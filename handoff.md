@@ -3,6 +3,24 @@
 **Current state and open items only. Under 15 KB.** Delete an item when it is done. The spec is
 `../app-plan/PLAN.md` (build order §3); how to run things is in `README.md`.
 
+## Production (12 Oct 2026, end of day)
+
+- **Live** on Vercel (project `whiteboard-ai`, Production env only) against its own Supabase project. The project ref
+  is NOT in this public repo: it is the `PROD_PROJECT_REF` variable on the GitHub `production-db` environment.
+- Migrations reach production only through `.github/workflows/migrate-prod.yml` (manual dispatch, typed confirmation,
+  `production-db` approval — measured: the run waits for the founder). Never seeds. Never link the CLI locally.
+- Auth settings live in the Supabase dashboard (config.toml is local only): Site URL, redirect `/auth/callback`,
+  code templates, OTP expiry 600, **Email OTP Length must equal NEXT_PUBLIC_OTP_LENGTH (6)** — hosted defaults to 8.
+- Production env names (values in Vercel): NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, APP_URL,
+  SUPABASE_SERVICE_ROLE_KEY, CRON_SECRET, AGE_COOKIE_KEY, RATE_LIMIT_HMAC_KEY, ANTHROPIC_API_KEY.
+- Bootstrapping an admin on a fresh project (the founder runs SQL in the dashboard; agents never query production):
+  `insert into public.invites (code, max_uses, note) values ('<CODE>', 1, 'founder bootstrap');` → sign up with it →
+  `insert into public.admins (user_id) select p.id from public.profiles p join auth.users u on u.id = p.id where
+  u.email = '<email>' and p.deleted_at is null returning user_id;` (expect 1 row) → /admin enrols an authenticator.
+- CI (`ci.yml`) is green on main. The repo is public while we build; it goes private at launch.
+- Not yet: Stripe keys (checkout answers 503), Resend SMTP (Supabase's built-in mail sends few codes an hour),
+  ElevenLabs, Vercel Cron for keep-warm (no `vercel.json` crons yet), Turnstile.
+
 ## Where things stand (12 Oct 2026, evening)
 
 Nothing committed, pushed or deployed. Everything runs on this Mac against the local stack (project_id
