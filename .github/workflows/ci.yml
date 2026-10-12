@@ -39,3 +39,7 @@ jobs:
       - run: WB_LOCAL_DB=1 npx vitest run tests/billing tests/db tests/generation/localdb.test.ts
       - run: npx playwright install --with-deps chromium webkit
       - run: CI=1 npx playwright test
+      - name: Keep the e2e evidence when it fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: playwright-results, path: test-results/, retention-days: 7 }
