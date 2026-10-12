@@ -23,9 +23,7 @@
 
 ## Where things stand (12 Oct 2026, evening)
 
-Nothing committed, pushed or deployed. Everything runs on this Mac against the local stack (project_id
-`whiteboard-ai`; Radlic's local stack was stopped to free Docker memory, data kept: `supabase start` in the Radlic
-checkout brings it back). Dev server: `npm run dev` (port 3100); `GENERATION_MOCK=1 npm run dev` = fake model, no spend.
+Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run dev` (port 3100); `GENERATION_MOCK=1 npm run dev` = fake model, no spend.
 
 - **M0 foundation, M1 database, M2 auth/shell, M3 generation server: built.** 11 migrations apply on `supabase db reset`;
   `supabase test db` 8 files / 1,054 pgTAP tests pass; `npx vitest run` 147 pass (4 skipped = opt-in local-DB files);
@@ -73,7 +71,7 @@ checkout brings it back). Dev server: `npm run dev` (port 3100); `GENERATION_MOC
   - `server-only` guards on every module holding a server key; npm audit (production deps): 0; headers: nonce CSP,
     HSTS, X-Frame-Options DENY, nosniff; `next=` accepts only same-site paths.
 
-## Voice: Kokoro in the browser (13 Oct 2026, branch `kokoro-voice`, not committed)
+## Voice: Kokoro in the browser (live since 13 Oct 2026, #1 + #2)
 
 - Founder's pick after listening to Chrome/Mac voices, Piper, Kitten and Kokoro: **Kokoro-82M fp32 on WebGPU**, made
   in the viewer's browser (no server, no ElevenLabs, no per-video cost), in all three styles. The viewer picks one of
@@ -91,11 +89,6 @@ checkout brings it back). Dev server: `npm run dev` (port 3100); `GENERATION_MOC
   **Security change:** page CSP gains `worker-src 'self'`; `/tts/*` has its own CSP (`wasm-unsafe-eval`, connect to
   huggingface.co and *.hf.co) and skips proxy.ts.
 - No WebGPU (founder, 13 Oct: leave it for now): the page says so and the player uses the browser voice.
-- Checked locally (13 Oct): `tests/voice` (pinning; 2 planted faults went red); vendor script refuses a wrong hash;
-  in the app the worker downloaded, checked and warmed up (progress 50…326 MB, check, prepare) and made lines; real
-  Chrome (Playwright, Apple GPU): whiteboard 7/7, paper 6/6, match-cut 6/6 lines as Kokoro WAVs; Playwright's own
-  Chromium (no GPU adapter): all three styles drew and spoke with the browser voice and showed the message. Unit
-  152, e2e 15 (6 skipped by design), lint 0 errors, audit 0.
 - **Licence facts (checked 13 Oct):** Kokoro and kokoro-js are Apache-2.0; phonemizer.js says Apache-2.0 but carries
   compiled espeak-ng, which is GPL-3.0; our vendored kokoro.web.js contains it (espeak symbols) and no GPL notice.
   For the lawyer: what serving it requires (licence text, source offer) and whether it reaches our own code (the
@@ -107,7 +100,7 @@ checkout brings it back). Dev server: `npm run dev` (port 3100); `GENERATION_MOC
   measured at 44 s on this Mac (325 MB); a cut download resumes on the next page (Range, OPFS .part); two tabs on
   a first visit download it twice.
 
-## Explore (13 Oct 2026, same branch, not committed)
+## Explore and reports (live since 13 Oct 2026, #1; migration applied by migrate-prod)
 
 - Founder's decisions: a public feed at `/explore`, open without signing in (noindex for now); a video goes there
   only by its maker's choice — "Show in Explore" on /ask, **ticked by default**, plus Show/Remove on the video page;
@@ -117,9 +110,6 @@ checkout brings it back). Dev server: `npm run dev` (port 3100); `GENERATION_MOC
   contact-info refusal and 20-a-day limit apply) and `explore_list(timestamptz, integer)` (anon; slug, question,
   style, explore_at — never an owner or generation id). Stop sharing, delete, account deletion and the new admin
   form "Take a video off Explore" (`admin_unpublish_share`, audited) all remove it. Header and home page link it.
-- Checked locally: pgTAP 1,083 (new `55_explore` 23; both hand maps updated; 2 planted faults went red); e2e 19/19
-  twice (new: ask → signed-out visitor finds it on /explore and it draws → maker removes it → gone; a contact-info
-  question is refused with its reason; watched red with the Explore call removed).
 - **Report this video** under every /v page (signed in or not; `submit_report`, 5 a day per visitor by IP HMAC,
   `src/app/v/[slug]/actions.ts`). /admin lists open reports: "Take off Explore and resolve" or "Keep and resolve"
   (both audited). e2e checks the report row really exists (watched red with a thanks that stored nothing).
@@ -130,7 +120,18 @@ checkout brings it back). Dev server: `npm run dev` (port 3100); `GENERATION_MOC
 - **Before production:** the attorney reviews those texts; no question screening exists yet (the decline policy),
   so reports + the admin form are the only brake.
 
-## Open items
+## Invite credits (13 Oct 2026)
+
+- Founder's ask: whoever gets access with an invite code gets **100 credits automatically**. `redeem_invite` writes
+  one `invite_grant` ledger row (+100 top-up, no expiry) when it turns access on for the first time; a unique index
+  keeps it to once per user; admin-granted access and a second code give nothing. Not retroactive. Invite credits do
+  not count as "ever paid" (`src/lib/session.ts`). Migration `20261013001300_invite_credits.sql` (security change:
+  redefines DEFINER `redeem_invite`); pgTAP `35_invite_credits` (watched red with the grant removed);
+  `tests/db/invite.test.mjs` drives it as the user. `tests/db/stack.mjs newUser` now sets access directly unless
+  `{ invite: true }`, so money tests still start at zero.
+- Flaky, not new: e2e `signed-out pages …` on WebKit sometimes fails under the full suite ("navigation interrupted"
+  by the previous redirect); alone it passed 6/6 on this branch and on main.
+
 
 - **Not built yet:** emails beyond sign-in codes: digest, alerts, outbox (needs
   Resend), the decline policy in the prompt + red-team run (a new prompt sha; ~$3 live), OG images, parent email for
