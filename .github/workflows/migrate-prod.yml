@@ -1,6 +1,7 @@
 # Apply supabase/migrations to the production database (PLAN.md §12.7). Manual only, and the `production-db`
 # environment requires the founder's approval for every run. Never seeds: seed.sql holds test users with credits.
-# Needs environment secrets: SUPABASE_ACCESS_TOKEN (a personal access token) and SUPABASE_DB_PASSWORD.
+# Needs on the production-db environment: secrets SUPABASE_ACCESS_TOKEN (a personal access token) and
+# SUPABASE_DB_PASSWORD, and the variable PROD_PROJECT_REF (kept out of this public repo).
 name: migrate-prod
 on:
   workflow_dispatch:
@@ -26,13 +27,15 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: 2.116.0
-      - name: Assert the target is the production project written in the repo
+      - name: Assert the target is the production project (environment variable PROD_PROJECT_REF)
+        env:
+          REF: ${{ vars.PROD_PROJECT_REF }}
+          CONFIRM: ${{ inputs.confirm }}
         run: |
-          REF="$(cat supabase/prod-ref)"
-          test "$REF" = "dsmffdrdeqzqatxplfty" || { echo "supabase/prod-ref changed: refusing"; exit 1; }
-          test "${{ inputs.confirm }}" = "$REF" || { echo "confirmation does not match supabase/prod-ref"; exit 1; }
+          echo "$REF" | grep -qE '^[a-z]{20}$' || { echo "PROD_PROJECT_REF is not set on the production-db environment"; exit 1; }
+          test "$CONFIRM" = "$REF" || { echo "the typed confirmation does not match PROD_PROJECT_REF"; exit 1; }
           test -n "$SUPABASE_ACCESS_TOKEN" && test -n "$SUPABASE_DB_PASSWORD" || { echo "missing environment secrets"; exit 1; }
-      - run: supabase link --project-ref "$(cat supabase/prod-ref)" --password "$SUPABASE_DB_PASSWORD"
+      - run: supabase link --project-ref "${{ vars.PROD_PROJECT_REF }}" --password "$SUPABASE_DB_PASSWORD"
       - name: Show what will be applied
         run: supabase migration list
       - run: supabase db push --password "$SUPABASE_DB_PASSWORD"

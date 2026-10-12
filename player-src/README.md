@@ -1,6 +1,6 @@
 # player-src: the drawing library and the three players' sources
 
-Copied **byte for byte** from the prototype (`/Users/mrk/whiteboard-ai/prototype/`) on 12 Oct 2026 (M0, PLAN.md §7.1,
+Copied **byte for byte** from the prototype (the prototype folder next to this app) on 12 Oct 2026 (M0, PLAN.md §7.1,
 §7.8, D6). From now on **this folder is the source of truth**; the prototype is frozen and is never edited to change
 a drawing.
 
