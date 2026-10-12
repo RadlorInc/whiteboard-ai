@@ -39,10 +39,12 @@ export function Player({ style, script, onEnded, bind }: {
   useEffect(() => {
     const on = (e: MessageEvent) => {
       if (e.source !== frame.current?.contentWindow || !e.data) return;    // only our own iframe
-      if (e.data.type === "ready") { ready.current = true; pending.current.splice(0).forEach(post); }
+      if (e.data.type === "ready" && !ready.current) { ready.current = true; pending.current.splice(0).forEach(post); }
       if (e.data.type === "ended") onEnded?.();
     };
     addEventListener("message", on);
+    // If the iframe loaded before this listener existed, its 'ready' was lost: ask again (it answers 'ready').
+    frame.current?.contentWindow?.postMessage({ type: "hello" }, "*");
     return () => removeEventListener("message", on);
   }, [post, onEnded]);
   useEffect(() => { if (script) post({ type: "script", script }); }, [script, post]);

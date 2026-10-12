@@ -47,6 +47,7 @@
   addEventListener('message', ev => {
     if (ev.source !== parent || !ev.data || typeof ev.data !== 'object') return;
     const m = ev.data;
+    if (m.type === 'hello') { tell({ type: 'ready' }); return; }   // the page may have missed our first 'ready'
     if (m.type === 'reset') { gen++; A = null; done = false; window.speechSynthesis?.cancel(); }
     else if (m.type === 'script') playScript(m.script);
     else if (style !== 'whiteboard') return;
