@@ -22,7 +22,8 @@ export async function getAccount() {
   const [profile, balance, paid, ops] = await Promise.all([
     supabase.from("profiles").select("age_band, access_granted_at").eq("id", user.id).maybeSingle(),
     supabase.from("credit_balances").select("sub, topup, held").eq("user_id", user.id).maybeSingle(),
-    supabase.from("credit_ledger").select("id").eq("user_id", user.id).limit(1),
+    // invite credits (invite_grant) are free: they do not make an account "ever paid"
+    supabase.from("credit_ledger").select("id").eq("user_id", user.id).neq("kind", "invite_grant").limit(1),
     signupMode(),
   ]);
   const b = balance.data;

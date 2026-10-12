@@ -72,7 +72,10 @@ export async function sql(query) {
 
 // A fresh user with a real session (6-digit code flow: generateLink -> verifyOtp), signed up, invited (redeem_invite
 // with a fixture code) and linked to a Stripe customer. No credits.
-export async function newUser(label) {
+// A signed-up account with access and no credits. With { invite: true } access comes the way the app gives it, by the
+// user redeeming an invite code, which also grants the 100 invite credits (13 Oct 2026); without it, access is set
+// directly so money tests start from zero.
+export async function newUser(label, { invite = false } = {}) {
   const { admin, anon, as } = stack();
   const email = `${label}-${randomUUID().slice(0, 8)}@example.test`;
   const created = await admin.auth.admin.createUser({ email, email_confirm: true });
@@ -87,10 +90,14 @@ export async function newUser(label) {
   const signup = await admin.rpc('complete_signup', { p_user_id: id, p_birth_year: 2000, p_birth_month: 1,
     p_gate_version: 'age-v1', p_terms_version: terms.data, p_source: 'direct' });
   if (signup.data !== 'ok') throw new Error(`complete_signup: ${JSON.stringify(signup)}`);
-  const code = `NODE-${randomUUID().slice(0, 8)}`;
-  await sql(`insert into public.invites (code, max_uses, note) values ('${code}', 1, 'node test fixture');`);
-  const redeemed = await as(token).rpc('redeem_invite', { p_code: code });
-  if (redeemed.data !== true) throw new Error(`redeem_invite: ${JSON.stringify(redeemed)}`);
+  if (invite) {
+    const code = `NODE-${randomUUID().slice(0, 8)}`;
+    await sql(`insert into public.invites (code, max_uses, note) values ('${code}', 1, 'node test fixture');`);
+    const redeemed = await as(token).rpc('redeem_invite', { p_code: code });
+    if (redeemed.data !== true) throw new Error(`redeem_invite: ${JSON.stringify(redeemed)}`);
+  } else {
+    await sql(`update public.profiles set access_granted_at = now() where id = '${id}';`);
+  }
   const customer = `cus_node_${id.replaceAll('-', '')}`;
   const linked = await admin.rpc('link_stripe_customer', { p_user_id: id, p_customer_id: customer });
   if (linked.data !== customer) throw new Error(`link_stripe_customer: ${JSON.stringify(linked)}`);
