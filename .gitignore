@@ -44,6 +44,3 @@ next-env.d.ts
 supabase/.temp/
 playwright-report/
 test-results/
-
-# voice runtime, copied from node_modules by scripts/vendor-tts.mjs
-/public/tts/vendor/
