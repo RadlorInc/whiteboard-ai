@@ -36,7 +36,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
           </p>
         </div>
         <p className="small">
-          Already have an account? <Link href="/signin">Sign in</Link>
+          Already have an account? <Link href="/signin">Sign in</Link> · <Link href="/explore">Explore videos people made</Link>
         </p>
 
         <h2 style={{ paddingTop: 16 }}>How it works</h2>

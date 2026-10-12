@@ -3,7 +3,7 @@
 begin;
 set local search_path = public, extensions;
 \ir helpers.psql
-select plan(555);
+select plan(561);
 
 create temp table tbl (t text primary key);
 insert into tbl values ('profiles'),('invites'),('price_catalog'),('credit_balances'),('generations'),
@@ -32,6 +32,7 @@ select is(pg_temp.q(w.r, w.sub, 'aal1', format(op.sql, t.t, (select attname from
 create temp table fn (f text primary key, roles text[]);
 insert into fn values
   ('get_shared_video','{anon,authenticated,service_role}'), ('health_ping','{anon,authenticated,service_role}'),
+  ('explore_list','{anon,authenticated,service_role}'), ('set_explore','{authenticated}'),
   ('accept_terms','{authenticated}'), ('redeem_invite','{authenticated}'), ('is_live_user','{authenticated}'),
   ('search_my_videos','{authenticated}'), ('create_share','{authenticated}'), ('revoke_share','{authenticated}'),
   ('submit_feedback','{authenticated}'), ('admin_adjust_credits','{authenticated}'),
@@ -68,7 +69,7 @@ select set_eq($$select proname::text from pg_proc where pronamespace = 'public':
                  and prorettype <> 'trigger'::regtype$$, 'select f from fn',
   'the matrix below covers every non-trigger function in public');
 
--- 75 functions x 3 roles = 225: refused where not granted, callable where granted.
+-- 77 functions x 3 roles = 231: refused where not granted, callable where granted.
 select case when w.r = any (fn.roles)
   then unalike(coalesce(pg_temp.q(w.r, w.sub, 'aal1', pg_temp.call_sql(fn.f)), '(null)'),
                'ERROR 42501: permission denied for function%', format('%s CAN call %s', w.r, fn.f))

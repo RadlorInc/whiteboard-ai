@@ -19,7 +19,7 @@
   u.email = '<email>' and p.deleted_at is null returning user_id;` (expect 1 row) → /admin enrols an authenticator.
 - CI (`ci.yml`) is green on main. The repo is public while we build; it goes private at launch.
 - Not yet: Stripe keys (checkout answers 503), Resend SMTP (Supabase's built-in mail sends few codes an hour),
-  ElevenLabs, Vercel Cron for keep-warm (no `vercel.json` crons yet), Turnstile.
+  Vercel Cron for keep-warm (no `vercel.json` crons yet), Turnstile.
 
 ## Where things stand (12 Oct 2026, evening)
 
@@ -73,9 +73,66 @@ checkout brings it back). Dev server: `npm run dev` (port 3100); `GENERATION_MOC
   - `server-only` guards on every module holding a server key; npm audit (production deps): 0; headers: nonce CSP,
     HSTS, X-Frame-Options DENY, nosniff; `next=` accepts only same-site paths.
 
+## Voice: Kokoro in the browser (13 Oct 2026, branch `kokoro-voice`, not committed)
+
+- Founder's pick after listening to Chrome/Mac voices, Piper, Kitten and Kokoro: **Kokoro-82M fp32 on WebGPU**, made
+  in the viewer's browser (no server, no ElevenLabs, no per-video cost), in all three styles. The viewer picks one of
+  16 voices on /ask (kokoro-js grades A to C-; "▶ Hear" plays a sample; kept in localStorage `wb.voice`, default
+  Heart); replays and share pages use the viewer's own choice.
+- How: `src/lib/voice.ts` starts `public/tts/kokoro-worker.mjs` when /ask or a player opens. First visit downloads
+  325 MB from Hugging Face; every request is moved to commit `1939ad2…` and only listed files pass
+  (`public/tts/kokoro-files.mjs`), the model and voice files are SHA-256 checked and kept in OPFS. A real progress
+  bar shows the download, the check and the GPU warm-up (`src/components/Voice.tsx`). Whiteboard steps go to the
+  player with their WAV (the board waits for its line); paper and match-cut get the script at once and their lines
+  one by one (paper starts each scene on its line, match-cut holds its clock before a line not yet made). Lines are
+  kept per tab, so Replay is instant. kokoro.web.js and the ONNX Runtime it was built with are fetched at
+  pre-dev/pre-build by `scripts/vendor-tts.mjs` (pinned, hashes equal to the npm tarballs) and served from our
+  origin — not an npm dependency (kokoro-js pulls server-side sharp/onnxruntime-node with open advisories).
+  **Security change:** page CSP gains `worker-src 'self'`; `/tts/*` has its own CSP (`wasm-unsafe-eval`, connect to
+  huggingface.co and *.hf.co) and skips proxy.ts.
+- No WebGPU (founder, 13 Oct: leave it for now): the page says so and the player uses the browser voice.
+- Checked locally (13 Oct): `tests/voice` (pinning; 2 planted faults went red); vendor script refuses a wrong hash;
+  in the app the worker downloaded, checked and warmed up (progress 50…326 MB, check, prepare) and made lines; real
+  Chrome (Playwright, Apple GPU): whiteboard 7/7, paper 6/6, match-cut 6/6 lines as Kokoro WAVs; Playwright's own
+  Chromium (no GPU adapter): all three styles drew and spoke with the browser voice and showed the message. Unit
+  152, e2e 15 (6 skipped by design), lint 0 errors, audit 0.
+- **Licence facts (checked 13 Oct):** Kokoro and kokoro-js are Apache-2.0; phonemizer.js says Apache-2.0 but carries
+  compiled espeak-ng, which is GPL-3.0; our vendored kokoro.web.js contains it (espeak symbols) and no GPL notice.
+  For the lawyer: what serving it requires (licence text, source offer) and whether it reaches our own code (the
+  worker talks to the app only by messages). The other way out is a non-GPL phonemizer (likely less accurate).
+- **Before production:** the licence decision above; a Cloudflare R2 copy as the second source (not coded yet: a
+  fallback that has never fetched from the real bucket is a trap — code and test it once the bucket exists); a
+  phone/tablet test on the Vercel preview (WebGPU needs https, so a phone on the Mac's LAN address cannot run it, and
+  the iOS Simulator needs a full Xcode install); first-visit wait
+  measured at 44 s on this Mac (325 MB); a cut download resumes on the next page (Range, OPFS .part); two tabs on
+  a first visit download it twice.
+
+## Explore (13 Oct 2026, same branch, not committed)
+
+- Founder's decisions: a public feed at `/explore`, open without signing in (noindex for now); a video goes there
+  only by its maker's choice — "Show in Explore" on /ask, **ticked by default**, plus Show/Remove on the video page;
+  13–17 the same as adults.
+- An Explore item is a share with `shares.explore_at` set (migration `20261013001200_explore.sql`). **Security
+  change:** DEFINER `set_explore(uuid, boolean)` (authenticated; owner only, goes through `create_share`, so the
+  contact-info refusal and 20-a-day limit apply) and `explore_list(timestamptz, integer)` (anon; slug, question,
+  style, explore_at — never an owner or generation id). Stop sharing, delete, account deletion and the new admin
+  form "Take a video off Explore" (`admin_unpublish_share`, audited) all remove it. Header and home page link it.
+- Checked locally: pgTAP 1,083 (new `55_explore` 23; both hand maps updated; 2 planted faults went red); e2e 19/19
+  twice (new: ask → signed-out visitor finds it on /explore and it draws → maker removes it → gone; a contact-info
+  question is refused with its reason; watched red with the Explore call removed).
+- **Report this video** under every /v page (signed in or not; `submit_report`, 5 a day per visitor by IP HMAC,
+  `src/app/v/[slug]/actions.ts`). /admin lists open reports: "Take off Explore and resolve" or "Keep and resolve"
+  (both audited). e2e checks the report row really exists (watched red with a thanks that stored nothing).
+- Terms, Privacy and Acceptable use (`src/content/legal.ts`, still beta drafts) now describe Explore (default-on,
+  public, 13–17 included, never the maker), reports (a scrambled IP is kept), and the voice (made on the device; the
+  model comes from Hugging Face, which sees the IP). **The terms version was not bumped** — the re-acceptance flow
+  (`/legal/accept`) is not built; the attorney review and the version bump go together.
+- **Before production:** the attorney reviews those texts; no question screening exists yet (the decline policy),
+  so reports + the admin form are the only brake.
+
 ## Open items
 
-- **Not built yet:** ElevenLabs voice (needs the key), emails beyond sign-in codes: digest, alerts, outbox (needs
+- **Not built yet:** emails beyond sign-in codes: digest, alerts, outbox (needs
   Resend), the decline policy in the prompt + red-team run (a new prompt sha; ~$3 live), OG images, parent email for
   13–17 payers (C13), Turnstile captcha (needs a site key), `/api/telemetry`, per-category library loading, streaming
   for paper and match-cut, `/legal/accept` re-acceptance.

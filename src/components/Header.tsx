@@ -24,6 +24,7 @@ export function Header({ available }: { available: number }) {
           </summary>
           <div className="menu-list">
             <Link href="/library">Your videos</Link>
+            <Link href="/explore">Explore</Link>
             <Link href="/account">Account</Link>
             <Link href="/help">Help</Link>
             <SignOutButton className="" />

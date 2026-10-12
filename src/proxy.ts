@@ -18,6 +18,7 @@ function csp(nonce: string, dev: boolean) {
     "font-src 'self'",
     `media-src 'self' blob: ${sb.origin}`,
     `connect-src 'self' ${sb.origin} ${ws}`,
+    "worker-src 'self'",                 // the voice worker, /tts/kokoro-worker.mjs (it fetches the model, not the page)
     "frame-src 'self' https://challenges.cloudflare.com",
     "object-src 'none'",
     "base-uri 'none'",
@@ -64,7 +65,7 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     {
-      source: "/((?!api|player|_next/static|_next/image|favicon.ico).*)",
+      source: "/((?!api|player|tts|_next/static|_next/image|favicon.ico).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

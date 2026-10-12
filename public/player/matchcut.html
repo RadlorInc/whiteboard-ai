@@ -84,6 +84,7 @@ function prepare(A) {
 const caption = document.getElementById('caption'), bar = document.getElementById('topics'), ANS = [...MC_ANSWERS];
 let player;
 function show(i, at = 0, still = false) {
+  player?.stop();                                      // else the old player keeps drawing and speaking under the new one
   const A = ANS[i], P = prepare(A);
   [...bar.children].forEach((b, k) => b.className = k === i ? 'on' : '');
   player = narratedPlayer({ canvas: cv, kit: K, scenes: [[0, P.len + 1, t => P.frame(t)]], caps: P.caps, fps: 60, len: P.len,

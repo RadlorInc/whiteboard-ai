@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Watch } from "./Watch";
+import { startVoice } from "@/lib/voice";
+import { VoicePicker, VoiceProgress } from "./Voice";
 
 const HOLD_CREDITS = 6; // same value as lib/session.ts (server); ponytail: one constants module once M3 adds it
 const STYLES = [
@@ -26,10 +28,15 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
   const [question, setQuestion] = useState("");
   const [style, setStyle] = useState<Style>("whiteboard");
   const [note, setNote] = useState<string | null>(null);
-  const [asking, setAsking] = useState<{ question: string; style: Style; n: number } | null>(null);
+  const [asking, setAsking] = useState<{ question: string; style: Style; explore: boolean; n: number } | null>(null);
+  const [explore, setExploreTick] = useState(true);   // "Show in Explore", ticked by default (founder, 13 Oct 2026)
   const router = useRouter();
   const box = useRef<HTMLTextAreaElement>(null);
   const loaded = useRef(false);
+
+  // The voice model starts loading as soon as a signed-in user reaches /ask (sign-in lands here), while they type.
+  // (VoicePicker starts it too; this keeps it starting even where the picker is hidden.)
+  useEffect(() => { startVoice(); }, []);
 
   // Restore the draft and the last style (§5.6). localStorage can be missing (private mode); the page works without it.
   useEffect(() => {
@@ -41,6 +48,7 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
       if (d?.question) setQuestion(String(d.question).slice(0, MAX));
       const st = (d?.style ?? s) as Style;
       if (STYLES.some((x) => x.id === st)) setStyle(st);
+      if (localStorage.getItem("wb.explore") === "off") setExploreTick(false);
     } catch {}
     loaded.current = true;
     if (matchMedia("(pointer: fine)").matches) box.current?.focus();
@@ -52,10 +60,11 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
       try {
         localStorage.setItem("wb.askDraft", JSON.stringify({ question, style }));
         localStorage.setItem("wb.style", style);
+        localStorage.setItem("wb.explore", explore ? "on" : "off");
       } catch {}
     }, 300);
     return () => clearTimeout(t);
-  }, [question, style]);
+  }, [question, style, explore]);
 
   // Grow 1–4 rows.
   useEffect(() => {
@@ -73,11 +82,11 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
     if (empty || !enough) return;
     box.current?.blur();
     setNote(null);
-    setAsking({ question: question.trim(), style, n: Date.now() });
+    setAsking({ question: question.trim(), style, explore, n: Date.now() });
   }
 
   if (asking) return (
-    <Watch key={asking.n} question={asking.question} style={asking.style}
+    <Watch key={asking.n} question={asking.question} style={asking.style} explore={asking.explore}
       onDone={() => router.refresh()} onExit={() => { setAsking(null); setQuestion(""); }} />
   );
 
@@ -127,6 +136,13 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
           {STYLES.find((s) => s.id === style)!.desc}
         </p>
       </fieldset>
+
+      <VoicePicker />
+      <label className="row small" style={{ gap: 8, alignItems: "center" }}>
+        <input type="checkbox" checked={explore} onChange={(e) => setExploreTick(e.target.checked)} />
+        Show in Explore — anyone can watch it there, without seeing who made it. You can remove it later.
+      </label>
+      <VoiceProgress />
 
       <p className="small">
         Up to {HOLD_CREDITS} credits · 1 credit = 10 s · You have {available}.

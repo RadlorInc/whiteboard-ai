@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { SharedPlayer } from "@/components/SharedPlayer";
+import { ReportForm } from "@/components/ReportForm";
 import { PRODUCT_NAME } from "@/product";
 
 // §5.10: a public share page. No login, no owner identity, not indexed.
@@ -18,7 +19,8 @@ export default async function Shared({ params }: { params: Promise<{ slug: strin
     <main className="page stack">
       <h1>{v.question}</h1>
       <SharedPlayer style={v.style} script={v.script} />
-      <p>Made with {PRODUCT_NAME}. <Link href="/">Ask your own question</Link>.</p>
+      <p>Made with {PRODUCT_NAME}. <Link href="/">Ask your own question</Link> · <Link href="/explore">Explore more</Link>.</p>
+      <ReportForm slug={slug} />
     </main>
   );
 }
