@@ -18,6 +18,8 @@ test("the admin enrols an authenticator, then sees today's numbers", async ({ pa
   await expect(page).toHaveURL(/\/admin$/);
   await expect(page.getByRole("heading", { name: "Today (UTC)" })).toBeVisible();
   await expect(page.getByText("balances match the ledger")).toBeVisible();
+  await page.screenshot({ path: "test-results/admin-page.png", fullPage: true });      // for a human look at the layout
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 
   // An audited credit grant: the balance moves by exactly 5, and an admin_audit row records who and why.
   const B = "00000000-0000-4000-8000-00000000000b";   // user B: app.spec counts A's credits in parallel

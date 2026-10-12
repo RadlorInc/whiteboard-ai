@@ -61,6 +61,8 @@ checkout brings it back). Dev server: `npm run dev` (port 3100); `GENERATION_MOC
   Resend), the decline policy in the prompt + red-team run (a new prompt sha; ~$3 live), OG images, parent email for
   13–17 payers (C13), Turnstile captcha (needs a site key), `/api/telemetry`, per-category library loading, streaming
   for paper and match-cut, `/legal/accept` re-acceptance.
+- Admin "missing drawings" on the local stack lists primitives (arrow, circle, line, path, text ×17) from mock runs;
+  production showed None. Check whether the mock (or the miss counter) records primitives as misses.
 - Paper and match-cut do not stream (they play when the script is done); match-cut took 45 s.
 - Player library loads every category (~1.6 MB unzipped); load only what a script uses (§7.9).
 - The founder decides the first commit; accounts to create are PLAN.md §2 E1–E18.
