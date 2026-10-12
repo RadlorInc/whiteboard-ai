@@ -1,8 +1,10 @@
-// Puts the voice's browser runtime into public/tts/vendor/ (git-ignored), so viewers load it from our own origin,
-// never a CDN. Runs before `next dev` and `next build` (package.json pre-scripts). The files are pinned by version and
-// SHA-256; the hashes were checked equal to the npm registry's own tarballs (13 Oct 2026). Not an npm dependency on
-// purpose: kokoro-js pulls @huggingface/transformers, which brings server-side sharp and onnxruntime-node (both with
-// open advisories) that the app never runs.
+// Writes the voice's browser runtime into public/tts/vendor/, which is committed: viewers load it from our own
+// origin, never a CDN. Run it (`npm run vendor:tts`) only to change a version, then commit the files; the deploy does
+// not run it (it was a prebuild step, and production served 404s for all three: Vercel's build never ran it, 13 Oct
+// 2026). tests/voice/vendor.test.ts checks the committed files against the hashes below. The hashes were checked
+// equal to the npm registry's own tarballs (13 Oct 2026). Not an npm dependency on purpose: kokoro-js pulls
+// @huggingface/transformers, which brings server-side sharp and onnxruntime-node (both with open advisories) that the
+// app never runs.
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";

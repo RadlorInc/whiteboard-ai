@@ -85,9 +85,9 @@ checkout brings it back). Dev server: `npm run dev` (port 3100); `GENERATION_MOC
   bar shows the download, the check and the GPU warm-up (`src/components/Voice.tsx`). Whiteboard steps go to the
   player with their WAV (the board waits for its line); paper and match-cut get the script at once and their lines
   one by one (paper starts each scene on its line, match-cut holds its clock before a line not yet made). Lines are
-  kept per tab, so Replay is instant. kokoro.web.js and the ONNX Runtime it was built with are fetched at
-  pre-dev/pre-build by `scripts/vendor-tts.mjs` (pinned, hashes equal to the npm tarballs) and served from our
-  origin — not an npm dependency (kokoro-js pulls server-side sharp/onnxruntime-node with open advisories).
+  kept per tab, so Replay is instant. kokoro.web.js and the ONNX Runtime it was built with are committed in
+  `public/tts/vendor` (hash-checked by `tests/voice/vendor.test.ts`; `npm run vendor:tts` updates them — as a
+  prebuild step it never ran on Vercel, so production served 404s, 13 Oct) and served from our origin — not an npm dependency (kokoro-js pulls server-side sharp/onnxruntime-node with open advisories).
   **Security change:** page CSP gains `worker-src 'self'`; `/tts/*` has its own CSP (`wasm-unsafe-eval`, connect to
   huggingface.co and *.hf.co) and skips proxy.ts.
 - No WebGPU (founder, 13 Oct: leave it for now): the page says so and the player uses the browser voice.
