@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Copied from the prototype as-is; M4 rewrites it into the players (player-src/README.md).
     "player-src/**",
+    // Third-party voice runtime, copied in by scripts/vendor-tts.mjs (pinned and hash-checked), minified.
+    "public/tts/vendor/**",
     "test-results/**",
     "playwright-report/**",
   ]),

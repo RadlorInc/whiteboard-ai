@@ -76,14 +76,25 @@ function narratedPlayer({ canvas, kit, scenes, caps = [], fps = 60, len, grainOn
     if (grainOn) kit.grain(f, canvas.width, canvas.height); };
   const capAt = t => { let c = -1; caps.forEach((x, i) => { if (t >= x[0]) c = i; }); return c; };
   function play(at = 0, still = false) {
-    const id = ++run, t0 = performance.now() - at * 1000; let said = -2;
+    const id = ++run; let t0 = performance.now() - at * 1000, said = -2, holdAt = 0, busy = false;
     if (window.speechSynthesis) speechSynthesis.cancel();
-    const tick = () => { if (id !== run) return; const t = still ? at : (performance.now() - t0) / 1000;
+    self.hushVoice?.();
+    // With the app's Kokoro lines (bridge.js), arriving one by one, the clock holds just before the next line until
+    // that line has arrived and the one before has finished, so a line is never cut or late (the estimated
+    // timeline then stretches to the real voice).
+    const wavs = !still && self.VOICE_WAVS?.length === caps.length ? self.VOICE_WAVS : null;
+    const tick = () => { if (id !== run) return;
+      const now = performance.now(); if (holdAt) { t0 += now - holdAt; holdAt = now; }
+      let t = still ? at : (now - t0) / 1000;
+      const next = Math.max(0, said + 1);                  // said starts at -2: nothing said yet
+      if (wavs && next < caps.length && t >= caps[next][0] - .6 && (busy || wavs[next] === undefined)) holdAt ||= now;
+      else holdAt = 0;
       frameAt(Math.min(t, len - .01));
-      const c = capAt(t); if (c !== said) { said = c; if (captionEl) captionEl.textContent = c >= 0 ? caps[c][1] : '';
-        if (!still && c >= 0 && voiceEl?.checked && window.speechSynthesis) { const u = new SpeechSynthesisUtterance(caps[c][1]); u.rate = 1.02; speechSynthesis.speak(u); } }
+      const c = holdAt ? said : capAt(t); if (c !== said) {             // holding: the next line has not started said = c; if (captionEl) captionEl.textContent = c >= 0 ? caps[c][1] : '';
+        if (!still && c >= 0 && wavs) { busy = true; self.sayLine(wavs[c], caps[c][1]).then(() => { busy = false; }); }
+        else if (!still && c >= 0 && voiceEl?.checked && window.speechSynthesis) { const u = new SpeechSynthesisUtterance(caps[c][1]); u.rate = 1.02; speechSynthesis.speak(u); } }
       if (!still && t < len) requestAnimationFrame(tick); };
     tick();
   }
-  return { play };
+  return { play, stop: () => { run++; } };                         // a new show() stops the old player's clock
 }

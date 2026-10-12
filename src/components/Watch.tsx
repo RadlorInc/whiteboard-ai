@@ -2,9 +2,25 @@
 // Watching a video (PLAN.md §5.6–5.8, §7.3): reads /api/generate's SSE stream and feeds the sandboxed player.
 // The same component replays a finished script (library, video page, share page) with no network call.
 import { useCallback, useEffect, useRef, useState } from "react";
+import { speakLine, startVoice, voiceOn } from "@/lib/voice";
+import { VoiceProgress } from "./Voice";
+import { setExplore } from "@/app/videos/actions";
+import { exploreRefusal } from "./VideoView";
 
 export type Style = "whiteboard" | "paper" | "matchcut";
 type Script = Record<string, unknown> & { steps?: { say: string }[]; objects?: { say: string }[] };
+// The spoken lines of a paper (steps) or match-cut (objects) script, in the order the player speaks them.
+const linesOf = (style: Style, s: Script) => (style === "matchcut" ? s.objects ?? [] : s.steps ?? []).map((x) => x.say);
+// A paper or match-cut script goes in whole and starts at once; its lines follow as Kokoro makes them,
+// in order, and the player waits for each where it needs it. Returns a stop for an unmounted player.
+function sendScript(post: (m: unknown) => void, style: Style, script: Script) {
+  if (!voiceOn()) { post({ type: "script", script }); return () => {}; }
+  const lines = linesOf(style, script);
+  let live = true;
+  post({ type: "script", script, voice: lines.length });
+  (async () => { for (const [i, say] of lines.entries()) { const wav = await speakLine(say); if (!live) return; post({ type: "wav", i, wav }); } })();
+  return () => { live = false; };
+}
 const PAGE: Record<Style, string> = {
   whiteboard: "/player/index.html",
   paper: "/player/stopmotion-topics.html?mode=paper",
@@ -47,19 +63,37 @@ export function Player({ style, script, onEnded, bind }: {
     frame.current?.contentWindow?.postMessage({ type: "hello" }, "*");
     return () => removeEventListener("message", on);
   }, [post, onEnded]);
-  useEffect(() => { if (script) post({ type: "script", script }); }, [script, post]);
+  useEffect(() => { startVoice(); }, []);
+  // A finished whiteboard script goes in as a stream, each step with its Kokoro line (made in order, ahead of the
+  // board), so a replay sounds like the first watch. Paper and match-cut take the script whole (browser voice).
+  useEffect(() => {
+    if (!script) return;
+    if (style !== "whiteboard") return sendScript(post, style, script);
+    let live = true;
+    (async () => {
+      post({ type: "reset" }); post({ type: "els", els: script.els });
+      for (const step of script.steps ?? []) {
+        const wav = await speakLine(step.say);
+        if (!live) return;
+        post({ type: "step", step, wav });
+      }
+      post({ type: "done" });
+    })();
+    return () => { live = false; };
+  }, [script, post, style]);
   useEffect(() => { bind?.(post); }, [bind, post]);      // the streaming caller sends steps through this
   return (
     <div className="player">
-      <iframe ref={frame} src={PAGE[style]} sandbox="allow-scripts" title="Video player" loading="eager"
+      <iframe ref={frame} src={PAGE[style]} sandbox="allow-scripts" allow="autoplay" title="Video player" loading="eager"
         style={{ width: "100%", aspectRatio: style === "matchcut" ? "960/500" : style === "paper" ? "960/720" : "960/660", border: 0 }} />
     </div>
   );
 }
 
-export function Watch({ question, style, onDone, onExit }: {
-  question: string; style: Style; onDone?: (available: number | null) => void; onExit: () => void;
+export function Watch({ question, style, explore = false, onDone, onExit }: {
+  question: string; style: Style; explore?: boolean; onDone?: (available: number | null) => void; onExit: () => void;
 }) {
+  const [exploreNote, setExploreNote] = useState<string | null>(null);
   const [stage, setStage] = useState("Starting…");
   const [error, setError] = useState<string | null>(null);
   const [owned, setOwned] = useState<string | null>(null);
@@ -71,8 +105,18 @@ export function Watch({ question, style, onDone, onExit }: {
   const postRef = useRef<(m: unknown) => void>(() => {});
   const bind = useCallback((p: (m: unknown) => void) => { postRef.current = p; }, []);
 
+  useEffect(() => { startVoice(); }, []);
+
   const run = useCallback(async (confirmNew = false) => {
     const post = (m: unknown) => postRef.current(m);
+    // Whiteboard messages go to the player in order, a step only once its Kokoro line is made (the board and the
+    // voice start together). The stream keeps arriving meanwhile; on a first visit the first step also waits for
+    // the model, and the page shows that load.
+    let line: Promise<unknown> = Promise.resolve();
+    const send = (m: Record<string, unknown>, say?: string) => {
+      line = line.then(async () => post(say === undefined ? m : { ...m, wav: await speakLine(say) }));
+    };
+    const sendWhole = (script: Script) => { sendScript(post, style, script); };
     setError(null); setOwned(null);
     let res: Response;
     try {
@@ -98,30 +142,32 @@ export function Watch({ question, style, onDone, onExit }: {
         if (!ev || !data) continue;
         const d = JSON.parse(data);
         if (ev === "stage") setStage(STAGE[d.stage] ?? "Working…");
-        else if (ev === "els") { scriptParts.els = d.els; if (style === "whiteboard") post({ type: "els", els: d.els }); }
-        else if (ev === "els_add") { scriptParts.els = { ...scriptParts.els, ...d.els }; if (style === "whiteboard") post({ type: "els_add", els: d.els }); }
+        else if (ev === "els") { scriptParts.els = d.els; if (style === "whiteboard") send({ type: "els", els: d.els }); }
+        else if (ev === "els_add") { scriptParts.els = { ...scriptParts.els, ...d.els }; if (style === "whiteboard") send({ type: "els_add", els: d.els }); }
         else if (ev === "step") {
           scriptParts.steps[d.i] = d.step; setSteps(s => { const n = [...s]; n[d.i] = d.step.say; return n; });
-          if (style === "whiteboard") post({ type: "step", step: d.step });
+          if (style === "whiteboard") send({ type: "step", step: d.step }, d.step.say);
         }
-        else if (ev === "script") { post({ type: "script", script: d.script }); setSteps(d.script.objects.map((o: { say: string }) => o.say)); }
+        else if (ev === "script") { sendWhole(d.script); setSteps(d.script.objects.map((o: { say: string }) => o.say)); }
         else if (ev === "done") {
           finished = true; setResult({ id: d.id, charged: d.creditsCharged }); setStage("");
-          if (style === "whiteboard") post({ type: "done" });
-          else if (style === "paper") post({ type: "script", script: { q: question, ...scriptParts } });
+          if (explore) setExplore(d.id, true).then((r) => setExploreNote(r.error ? exploreRefusal(r.error) : "Shown in Explore."));
+          if (style === "whiteboard") send({ type: "done" });
+          else if (style === "paper") sendWhole({ q: question, ...scriptParts } as Script);
           onDone?.(d.available ?? null);
         }
         else if (ev === "failed") { finished = true; setError(msg(d.code)); onDone?.(d.available ?? null); }
       }
     }
     if (!finished) setError("The connection dropped. If the video finishes it will be in your library, and failed videos are never charged.");
-  }, [question, style, onDone]);
+  }, [question, style, explore, onDone]);
 
   useEffect(() => { if (!started.current) { started.current = true; run(); } }, [run]);
 
   return (
     <section className="stack" aria-live="polite">
       <p className="muted">{question}</p>
+      {!error && !owned && <VoiceProgress />}
       <Player style={style} bind={bind} />
       {stage && !error && !owned && <p role="status">{stage}</p>}
       {error && <p role="alert" className="error">{error}</p>}
@@ -134,6 +180,7 @@ export function Watch({ question, style, onDone, onExit }: {
           </div>
         </div>
       )}
+      {exploreNote && <p className="muted small" role="status">{exploreNote}</p>}
       {result && <p className="muted">Done. {result.charged} credit{result.charged === 1 ? "" : "s"} used. <a href={`/videos/${result.id}`}>Open this video</a></p>}
       {steps.length > 0 && (
         <details><summary>Transcript</summary><ol>{steps.map((s, i) => <li key={i}>{s}</li>)}</ol></details>

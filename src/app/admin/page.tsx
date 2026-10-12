@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { requireAdmin } from "@/lib/admin";
 import { createAdminClient } from "@/lib/supabase/server";
-import { CreditsForm, InviteForm, SwitchForm } from "@/components/AdminForms";
+import { CreditsForm, InviteForm, ReportRow, SwitchForm, UnpublishForm } from "@/components/AdminForms";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
 const usd = (n: number) => `$${n.toFixed(2)}`;
@@ -13,13 +13,14 @@ export default async function Admin() {
   const db = createAdminClient();
   const day = new Date(); day.setUTCHours(0, 0, 0, 0);
   const since = day.toISOString();
-  const [gens, calls, settings, drift, misses, users] = await Promise.all([
+  const [gens, calls, settings, drift, misses, users, reports] = await Promise.all([
     db.from("generations").select("id, created_at, style, status, credits_charged, error_code").gte("created_at", since).order("created_at", { ascending: false }).limit(500),
     db.from("generation_calls").select("cost_usd").gte("started_at", since),
     db.from("ops_settings").select("*").single(),
     db.rpc("credit_drift"),
     sb.rpc("admin_top_misses", { p_days: 30 }),
     db.from("profiles").select("id", { count: "exact", head: true }),
+    db.from("reports").select("id, slug, reason, note, created_at").is("resolved_at", null).order("created_at", { ascending: false }).limit(50),
   ]);
   const g = gens.data ?? [], s = settings.data!;
   const spend = (calls.data ?? []).reduce((t, c) => t + Number(c.cost_usd ?? 0), 0);
@@ -39,9 +40,15 @@ export default async function Admin() {
         <SwitchForm k="generation_enabled" label="Making videos" on={s.generation_enabled} />
         <SwitchForm k="purchases_enabled" label="Purchases" on={s.purchases_enabled} />
       </div>
+      <section className="card stack">
+        <h2>Open reports ({(reports.data ?? []).length})</h2>
+        {(reports.data ?? []).length === 0 ? <p className="muted">None.</p>
+          : <ul className="stack" style={{ listStyle: "none", padding: 0 }}>{(reports.data ?? []).map(r => <ReportRow key={r.id} r={r} />)}</ul>}
+      </section>
       <div className="grid">
         <CreditsForm />
         <InviteForm />
+        <UnpublishForm />
       </div>
       <section className="card stack">
         <h2>Latest videos today</h2>

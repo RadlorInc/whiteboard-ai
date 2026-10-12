@@ -53,11 +53,12 @@ create temp table want_fn (f text primary key, grantees text[] not null, definer
 insert into want_fn values
   -- anon, authenticated, service_role
   ('get_shared_video', '{anon,authenticated,service_role}', true),
+  ('explore_list',     '{anon,authenticated,service_role}', true),
   ('health_ping',      '{anon,authenticated,service_role}', false),
   -- authenticated
   ('accept_terms','{authenticated}',true), ('redeem_invite','{authenticated}',true), ('is_live_user','{authenticated}',true),
   ('search_my_videos','{authenticated}',false), ('create_share','{authenticated}',true), ('revoke_share','{authenticated}',true),
-  ('submit_feedback','{authenticated}',true),
+  ('submit_feedback','{authenticated}',true), ('set_explore','{authenticated}',true),
   ('admin_adjust_credits','{authenticated}',true), ('admin_refund_generation','{authenticated}',true),
   ('admin_set_flags','{authenticated}',true), ('admin_set_settings','{authenticated}',true),
   ('admin_unpublish_share','{authenticated}',true), ('admin_view_generation','{authenticated}',true),

@@ -1,6 +1,6 @@
 "use client";
 import { useActionState } from "react";
-import { adjustCredits, createInvite, setSwitch } from "@/app/admin/actions";
+import { adjustCredits, createInvite, handleReport, setSwitch, unpublishShare } from "@/app/admin/actions";
 
 function Result({ s }: { s: { ok?: string; error?: string } }) {
   return s.error ? <p role="alert" className="error">{s.error}</p> : s.ok ? <p role="status">{s.ok}</p> : null;
@@ -44,5 +44,35 @@ export function InviteForm() {
       <button className="btn" disabled={pending}>Create</button>
       <Result s={s} />
     </form>
+  );
+}
+
+export function UnpublishForm() {
+  const [s, act, pending] = useActionState(unpublishShare, {});
+  return (
+    <form action={act} className="card stack">
+      <strong>Take a video off Explore</strong>
+      <label>Link or slug<input name="slug" className="input" required placeholder="https://…/v/…" /></label>
+      <label>Reason<input name="reason" className="input" required minLength={5} /></label>
+      <button className="btn" disabled={pending}>Remove</button>
+      <Result s={s} />
+    </form>
+  );
+}
+
+export function ReportRow({ r }: { r: { id: string; slug: string; reason: string; note: string | null; created_at: string } }) {
+  const [s, act, pending] = useActionState(handleReport, {});
+  return (
+    <li className="card stack">
+      <span><a href={`/v/${r.slug}`} target="_blank" rel="noreferrer">/v/{r.slug}</a> · <strong>{r.reason}</strong> · {new Date(r.created_at).toLocaleString()}</span>
+      {r.note && <span className="muted">{r.note}</span>}
+      <form action={act} className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+        <input type="hidden" name="id" value={r.id} /><input type="hidden" name="slug" value={r.slug} />
+        <input name="reason" className="input" placeholder="Reason (5+ characters)" required minLength={5} />
+        <button className="btn" name="act" value="remove" disabled={pending}>Take off Explore and resolve</button>
+        <button className="btn secondary" name="act" value="keep" disabled={pending}>Keep and resolve</button>
+      </form>
+      <Result s={s} />
+    </li>
   );
 }

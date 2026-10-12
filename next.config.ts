@@ -18,12 +18,29 @@ const PLAYER_CSP = [
   "form-action 'none'",
 ].join("; ");
 
+// The voice worker (public/tts, Kokoro TTS) and its runtime also skip the page CSP (a worker takes the CSP its own
+// script arrives with). It may run our own scripts and WebAssembly, and fetch only the pinned model files from
+// Hugging Face (huggingface.co redirects the download to a *.hf.co CDN host).
+const TTS_CSP = [
+  "default-src 'none'",
+  "script-src 'self' 'wasm-unsafe-eval'",
+  "connect-src 'self' https://huggingface.co https://*.hf.co",
+  "base-uri 'none'",
+].join("; ");
+
 const nextConfig: NextConfig = {
   async headers() {
     return [{
       source: "/player/:path*",
       headers: [
         { key: "Content-Security-Policy", value: PLAYER_CSP },
+        { key: "X-Content-Type-Options", value: "nosniff" },
+        { key: "Referrer-Policy", value: "no-referrer" },
+      ],
+    }, {
+      source: "/tts/:path*",
+      headers: [
+        { key: "Content-Security-Policy", value: TTS_CSP },
         { key: "X-Content-Type-Options", value: "nosniff" },
         { key: "Referrer-Policy", value: "no-referrer" },
       ],

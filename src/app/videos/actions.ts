@@ -23,6 +23,17 @@ export async function unshareVideo(id: string) {
   revalidatePath(`/videos/${id}`);
 }
 
+// Explore (founder, 13 Oct 2026): show or hide one of your videos there. Showing makes a share link if there is
+// none (the same contact-info refusal and daily limit as Share); hiding keeps the link.
+export async function setExplore(id: string, on: boolean): Promise<{ slug?: string; error?: string }> {
+  if (!isId(id)) return { error: "bad_request" };
+  const { data, error } = await (await createClient()).rpc("set_explore", { p_generation_id: id, p_on: on === true });
+  const r = Array.isArray(data) ? data[0] : data;
+  revalidatePath(`/videos/${id}`); revalidatePath("/explore");
+  if (error || !r || (r.outcome !== "shown" && r.outcome !== "removed")) return { error: r?.outcome ?? "failed" };
+  return { slug: r.slug ?? undefined };
+}
+
 export async function deleteVideo(id: string) {
   if (!isId(id)) return;
   const { data: { user } } = await (await createClient()).auth.getUser();

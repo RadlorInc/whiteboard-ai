@@ -13,13 +13,17 @@ export const LEGAL: Record<string, Doc> = {
       "One person per account. Keep your sign-in email safe; you are responsible for what happens in your account."]],
     ["What you get", [
       `${P} turns your question into a short animated, narrated explanation, written by AI. AI can be wrong: check anything important, especially health, legal or money questions. It is not medical, legal or financial advice.`,
-      "Every new question makes a new video and uses credits. Watching a video you already made is free."]],
+      "Every new question makes a new video and uses credits. Watching a video you already made is free.",
+      "The narration voice is made on your own device. The first time, your browser downloads a voice model (about 325 MB) from Hugging Face and keeps it; devices that cannot run it use the browser's own voice."]],
     ["Credits and payments", [
       "1 credit = 10 seconds of video, rounded up. Starting a video holds up to 6 credits; you are charged only for the length made, and failed or refused videos are free.",
       "Monthly plans renew automatically until you cancel. Plan credits end 3 days after each billing period. Credits from packs do not expire.",
       "Payments are handled by Stripe. Prices are in US dollars, plus tax where applicable. See Refunds for when money comes back."]],
     ["Acceptable use", ["Follow the Acceptable use rules. We may decline a question, and may suspend accounts that break them."]],
-    ["Sharing", ["If you share a video, anyone with the link can watch it. They do not see who made it. You can stop sharing at any time."]],
+    ["Sharing and Explore", [
+      "If you share a video, anyone with the link can watch it. They do not see who made it. You can stop sharing at any time.",
+      "Explore is a public page where anyone, signed in or not, can watch videos people chose to show there. When you ask a question, \u201cShow in Explore\u201d is ticked unless you untick it, for every account including those of users aged 13\u201317. Explore shows the question and the video, never your name or email. You can remove a video from Explore at any time from its page.",
+      "Questions with links, email addresses, handles or phone numbers are never shown on Explore. Anyone can report a public video, and we may remove any video from Explore or stop it being shared."]],
     ["Ending your account", ["You can delete your account at any time from Account. We may close accounts that break these terms."]],
     ["Changes", ["We will email you before new terms take effect, and ask you to accept them."]],
     ["Contact", ["Questions: use the Contact page."]],
@@ -27,11 +31,17 @@ export const LEGAL: Record<string, Doc> = {
   privacy: { title: "Privacy Policy", sections: [
     ["What we collect", [
       "Your email address, your age band (13–17 or 18+; never your birth date), your questions and the videos made from them, your credit and payment history (card details stay with Stripe), and basic technical logs.",
+      "Your choices of narration voice and of \u201cShow in Explore\u201d are kept only in your browser.",
       "We do not use advertising trackers or sell or share your personal information for advertising."]],
     ["Why", ["To make your videos, run your account and payments, keep the service safe and working, and meet legal duties."]],
     ["Who helps us (service providers)", [
-      "Supabase (database and sign-in), Vercel (hosting), Anthropic (writes the video script from your question), Stripe (payments), and an email provider for sign-in codes. Each may only use your data to provide its service to us."]],
-    ["Your questions", ["Your question is sent to Anthropic to write the video. Do not put private details (like full names, addresses or phone numbers) in a question. Questions never appear in web addresses or analytics."]],
+      "Supabase (database and sign-in), Vercel (hosting), Anthropic (writes the video script from your question), Stripe (payments), and an email provider for sign-in codes. Each may only use your data to provide its service to us.",
+      "Your browser downloads the narration voice model from Hugging Face, which lets Hugging Face see your IP address. No question or video is sent to it: the voice is made on your device."]],
+    ["Your questions", ["Your question is sent to Anthropic to write the video. Do not put private details (like full names, addresses or phone numbers) in a question, above all one you show on Explore. Questions never appear in web addresses or analytics."]],
+    ["Explore and shared videos", [
+      "A video you show on Explore or share by link is public: anyone can see its question and watch it. We never show who made it.",
+      "Remove it from Explore or stop sharing at any time from the video's page; deleting the video or your account also removes it.",
+      "When someone reports a public video we keep the reason, their note and a scrambled form of their IP address (to limit reports), never the address itself."]],
     ["Keeping and deleting", [
       "You can delete any video, download all your data, or delete your account from Account.",
       "When you delete your account we delete your questions, videos and shares. A minimal payment record is kept as tax law requires."]],
@@ -52,6 +62,7 @@ export const LEGAL: Record<string, Doc> = {
       "Sexual content, content that sexualises minors, help to harm yourself or others, weapons or dangerous instructions, hate or harassment, or anything illegal.",
       "If you are thinking about harming yourself, call or text 988 (US) right now."]],
     ["Don't", ["Share private details about other people, try to break or overload the service, resell access, or use automated tools to make videos."]],
+    ["Public videos", ["Videos on Explore or shared by link must follow these rules too. Use \u201cReport this video\u201d under any public video to tell us about one that does not."]],
   ] },
   accessibility: { title: "Accessibility", sections: [
     ["Our aim", ["We aim for WCAG 2.2 AA. Every video has captions and a text transcript, works with reduced motion, and the pages work with a keyboard and screen readers."]],
@@ -59,6 +70,6 @@ export const LEGAL: Record<string, Doc> = {
   ] },
   copyright: { title: "Copyright", sections: [
     ["Your videos", ["You may use the videos you make for personal and educational purposes."]],
-    ["Reporting", ["If you believe a shared video infringes your copyright, use the Contact page with the link and your details."]],
+    ["Reporting", ["If you believe a shared or Explore video infringes your copyright, use the Contact page with the link and your details."]],
   ] },
 };
