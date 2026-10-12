@@ -1,4 +1,5 @@
 "use client";
+import { OTP_LENGTH } from "@/product";
 // The sign-in methods (PLAN.md §5.4): Google (hidden in in-app browsers and until NEXT_PUBLIC_GOOGLE_ENABLED=1) and a
 // 6-digit email code. The code is sent from the browser (Supabase's per-IP limits see the user) and checked on the
 // server (verifyCode: per-email limit, then complete_signup in the same request).
@@ -140,7 +141,7 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
                 onChange={(e) => setEmail(e.target.value)}
               />
             </label>
-            <p className="muted small">Use an email you&apos;ll keep. We&apos;ll send you a 6-digit code.</p>
+            <p className="muted small">Use an email you&apos;ll keep. We&apos;ll send you a {OTP_LENGTH}-digit code.</p>
             <button type="submit" className="btn block" disabled={sending}>
               {sending ? "Sending…" : "Continue with email"}
             </button>
@@ -151,11 +152,11 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
           className="stack"
           onSubmit={(e) => {
             e.preventDefault();
-            if (code.length === 6) check(code);
+            if (code.length === OTP_LENGTH) check(code);
           }}
         >
           <p>
-            We sent a 6-digit code to <strong>{email}</strong>.
+            We sent a {OTP_LENGTH}-digit code to <strong>{email}</strong>.
           </p>
           <label className="field">
             <span>Code</span>
@@ -165,18 +166,18 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
               name="code"
               inputMode="numeric"
               autoComplete="one-time-code"
-              pattern="[0-9]{6}"
-              maxLength={6}
+              pattern={`[0-9]{${OTP_LENGTH}}`}
+              maxLength={OTP_LENGTH}
               value={code}
               disabled={pending}
               onChange={(e) => {
-                const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                const v = e.target.value.replace(/\D/g, "").slice(0, OTP_LENGTH);
                 setCode(v);
-                if (v.length === 6) check(v);
+                if (v.length === OTP_LENGTH) check(v);
               }}
             />
           </label>
-          <button type="submit" className="btn block" disabled={pending || code.length !== 6}>
+          <button type="submit" className="btn block" disabled={pending || code.length !== OTP_LENGTH}>
             {pending ? "Checking…" : "Continue"}
           </button>
           <p className="muted small">

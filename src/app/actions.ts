@@ -97,7 +97,7 @@ export async function submitAge(_: FormState, form: FormData): Promise<FormState
 
 export async function verifyCode(emailIn: string, token: string, next: string): Promise<FormState> {
   const email = String(emailIn).trim().toLowerCase();
-  if (!/^\d{6}$/.test(String(token)) || !email.includes("@") || email.length > 254) {
+  if (!/^\d{6,10}$/.test(String(token)) || !email.includes("@") || email.length > 254) {
     return { error: "That code isn't right. Check the latest email." };
   }
   if (!(await allowed(`otp:${hmac(email)}`, 600, 5))) {
