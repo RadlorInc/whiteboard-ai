@@ -2,8 +2,11 @@
 # Inert until the private GitHub repo exists (PLAN.md E2); make "ci" a required check so a red PR cannot merge.
 name: ci
 on: [push, pull_request]
-permissions: { contents: read }
-concurrency: { group: ci-${{ github.ref }}, cancel-in-progress: true }
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   ci:
     runs-on: ubuntu-latest
