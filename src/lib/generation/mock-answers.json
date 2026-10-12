@@ -1,0 +1,1017 @@
+{
+ "whiteboard": [
+  {
+   "q": "How does a rainbow form?",
+   "els": {
+    "sun": "circle 110 110 45 f=#ffd23f c=#e09f00",
+    "cloud": "path f=#e3eaf2 c=#7a8899 | M260 110 C238 110 236 80 262 76 C268 50 306 46 318 66 C332 46 372 52 372 76 C398 76 402 110 380 110 Z",
+    "d1": "path f=#8fd0ff c=#2f7fd6 w=3 | M290 128 C296 138 299 143 299 148 A9 9 0 0 1 281 148 C281 143 284 138 290 128 Z",
+    "d2": "path f=#8fd0ff c=#2f7fd6 w=3 | M330 142 C336 152 339 157 339 162 A9 9 0 0 1 321 162 C321 157 324 152 330 142 Z",
+    "d3": "path f=#8fd0ff c=#2f7fd6 w=3 | M370 130 C376 140 379 145 379 150 A9 9 0 0 1 361 150 C361 145 364 140 370 130 Z",
+    "a1": "path c=#e53935 w=14 | M60 520 A200 200 0 0 1 460 520",
+    "a2": "path c=#fb8c00 w=14 | M75 520 A185 185 0 0 1 445 520",
+    "a3": "path c=#fdd835 w=14 | M90 520 A170 170 0 0 1 430 520",
+    "a4": "path c=#43a047 w=14 | M105 520 A155 155 0 0 1 415 520",
+    "a5": "path c=#1e88e5 w=14 | M120 520 A140 140 0 0 1 400 520",
+    "a6": "path c=#3949ab w=14 | M135 520 A125 125 0 0 1 385 520",
+    "a7": "path c=#8e24aa w=14 | M150 520 A110 110 0 0 1 370 520",
+    "drop": "path f=#e8f5ff c=#2f7fd6 | M700 140 C760 230 830 280 830 330 A130 130 0 0 1 570 330 C570 280 640 230 700 140 Z",
+    "ray": "arrow 470 250 576 290 c=#f5b700 w=6",
+    "t_white": "text 440 232 s=28 | white light",
+    "r1": "line 578 292 816 385 c=#e53935 w=4",
+    "g1": "line 578 292 808 400 c=#43a047 w=4",
+    "v1": "line 578 292 797 415 c=#8e24aa w=4",
+    "r2": "line 816 385 632 440 c=#e53935 w=4",
+    "g2": "line 808 400 641 446 c=#43a047 w=4",
+    "v2": "line 797 415 655 452 c=#8e24aa w=4",
+    "r3": "arrow 632 440 530 495 c=#e53935 w=4",
+    "g3": "arrow 641 446 540 510 c=#43a047 w=4",
+    "v3": "arrow 655 452 552 522 c=#8e24aa w=4",
+    "t_bend": "text 735 200 s=28 | 1. bends",
+    "t_bounce": "text 836 405 s=28 | 2. bounces",
+    "t_out": "text 690 510 s=28 | 3. comes out as colours",
+    "t_final": "text 250 42 s=32 | sun behind you + rain in front = rainbow!"
+   },
+   "steps": [
+    {
+     "say": "Step 1: A rainbow needs two things: sunlight, and raindrops in the air.",
+     "do": [
+      "draw sun 900",
+      "fill sun",
+      "pop sun",
+      "draw cloud 1000",
+      "fill cloud",
+      "draw d1 250",
+      "draw d2 250",
+      "draw d3 250",
+      "fill d1 d2 d3"
+     ]
+    },
+    {
+     "say": "Step 2: Sunlight looks white, but it is really a mix of every colour.",
+     "do": [
+      "draw drop 1200",
+      "fill drop",
+      "draw ray 700",
+      "write t_white 900"
+     ]
+    },
+    {
+     "say": "Step 3: When light enters a raindrop, it bends, and each colour bends a little differently.",
+     "do": [
+      "draw r1 500",
+      "draw g1 500",
+      "draw v1 500",
+      "write t_bend 600"
+     ]
+    },
+    {
+     "say": "Step 4: Then it bounces off the back of the drop.",
+     "do": [
+      "draw r2 500",
+      "draw g2 500",
+      "draw v2 500",
+      "write t_bounce 700"
+     ]
+    },
+    {
+     "say": "Step 5: And it comes out spread into a fan of colours.",
+     "do": [
+      "draw r3 500",
+      "draw g3 500",
+      "draw v3 500",
+      "write t_out 1000"
+     ]
+    },
+    {
+     "say": "Step 6: Millions of drops do this at the same time, so we see a giant arc of colour.",
+     "do": [
+      "draw a1 450",
+      "draw a2 450",
+      "draw a3 450",
+      "draw a4 450",
+      "draw a5 450",
+      "draw a6 450",
+      "draw a7 450"
+     ]
+    },
+    {
+     "say": "Step 7: That is why a rainbow appears when the sun is behind you and the rain is in front of you.",
+     "do": [
+      "write t_final 1600",
+      "pop t_final 1.08"
+     ]
+    }
+   ]
+  },
+  {
+   "q": "What is compound interest?",
+   "els": {
+    "title": "text 60 62 s=44 | Interest on interest",
+    "given": "text 520 62 s=30 | $100 at 10% a year",
+    "xaxis": "line 110 470 900 470 w=4",
+    "yaxis": "line 120 480 120 80 w=4",
+    "b0": "rect 128 330 50 140 f=#f4a259 w=3",
+    "b1": "rect 198 316 50 154 f=#f4a259 w=3",
+    "b2": "rect 268 300.6 50 169.4 f=#f4a259 w=3",
+    "b3": "rect 338 283.7 50 186.3 f=#f4a259 w=3",
+    "b4": "rect 408 265 50 205 f=#f4a259 w=3",
+    "b5": "rect 478 244.5 50 225.5 f=#f4a259 w=3",
+    "b6": "rect 548 221.9 50 248.1 f=#f4a259 w=3",
+    "b7": "rect 618 197.1 50 272.9 f=#f4a259 w=3",
+    "b8": "rect 688 169.8 50 300.2 f=#f4a259 w=3",
+    "b9": "rect 758 139.9 50 330.1 f=#f4a259 w=3",
+    "b10": "rect 828 106.8 50 363.2 f=#f4a259 w=3",
+    "y0": "text 145 502 s=26 | 0",
+    "y5": "text 495 502 s=26 | 5",
+    "y10": "text 840 502 s=26 | 10",
+    "yrs": "text 880 530 s=24 | years",
+    "plus10": "text 192 304 s=26 f=#e04b3a | +$10",
+    "plus11": "text 262 290 s=26 f=#e04b3a | +$11",
+    "curve": "path c=#e04b3a w=5 | M153 330 L223 316 L293 300.6 L363 283.7 L433 265 L503 244.5 L573 221.9 L643 197.1 L713 169.8 L783 139.9 L853 106.8",
+    "end": "text 820 92 s=32 f=#e04b3a | $259",
+    "simple": "line 153 330 853 190 c=#2f7fd6 w=5",
+    "simpleT": "text 862 200 s=26 f=#2f7fd6 | $200",
+    "note": "text 520 100 s=26 f=#2f7fd6 | blue line = simple interest",
+    "extra": "text 300 140 s=30 | extra $59 = interest on interest!"
+   },
+   "steps": [
+    {
+     "say": "Step 1: Compound interest means you earn interest on your interest, too.",
+     "do": [
+      "write title 1300",
+      "write given 1100"
+     ]
+    },
+    {
+     "say": "Step 2: Say you put one hundred dollars in a bank that pays ten percent a year.",
+     "do": [
+      "draw yaxis 500",
+      "draw xaxis 700",
+      "write y0 200",
+      "draw b0 700",
+      "fill b0",
+      "pop b0"
+     ]
+    },
+    {
+     "say": "Step 3: After one year you earn ten dollars, so you have one hundred and ten.",
+     "do": [
+      "draw b1 700",
+      "fill b1",
+      "pop b1",
+      "write plus10 500"
+     ]
+    },
+    {
+     "say": "Step 4: The next year, ten percent of one hundred and ten is eleven dollars, not ten. Your interest earned interest.",
+     "do": [
+      "draw b2 700",
+      "fill b2",
+      "pop b2",
+      "write plus11 500"
+     ]
+    },
+    {
+     "say": "Step 5: Keep going, and the growth speeds up. After ten years you have about two hundred and fifty nine dollars.",
+     "do": [
+      "draw b3 250",
+      "fill b3",
+      "draw b4 250",
+      "fill b4",
+      "draw b5 250",
+      "fill b5",
+      "draw b6 250",
+      "fill b6",
+      "draw b7 250",
+      "fill b7",
+      "draw b8 250",
+      "fill b8",
+      "draw b9 250",
+      "fill b9",
+      "draw b10 250",
+      "fill b10",
+      "write y5 200",
+      "write y10 250",
+      "write yrs 300",
+      "draw curve 1400",
+      "write end 600",
+      "pop end 1.3"
+     ]
+    },
+    {
+     "say": "Step 6: With simple interest you would only have two hundred. The extra fifty nine dollars is interest on interest.",
+     "do": [
+      "draw simple 1200",
+      "write simpleT 400",
+      "write note 900",
+      "write extra 1400"
+     ]
+    }
+   ]
+  },
+  {
+   "q": "How does the internet send a message?",
+   "els": {
+    "screen": "rect 60 200 150 100 rx=8 f=#dff1ff",
+    "base": "path f=#cfd8dc | M40 300 L230 300 L246 322 L24 322 Z",
+    "you": "text 112 262 s=30 | You",
+    "phone": "rect 830 180 90 160 rx=14 f=#dff1ff",
+    "friend": "text 841 268 s=26 | Friend",
+    "L1": "line 210 250 332 162 c=#90a4ae w=4",
+    "L2": "line 210 250 332 390 c=#90a4ae w=4",
+    "L3": "line 390 150 590 150 c=#90a4ae w=4",
+    "L4": "line 390 400 590 400 c=#90a4ae w=4",
+    "L5": "line 382 172 598 378 c=#90a4ae w=4",
+    "L6": "line 650 160 830 228 c=#90a4ae w=4",
+    "L7": "line 650 390 830 300 c=#90a4ae w=4",
+    "R1": "circle 360 150 30 f=#ffe08a",
+    "R2": "circle 360 400 30 f=#ffe08a",
+    "R3": "circle 620 150 30 f=#ffe08a",
+    "R4": "circle 620 400 30 f=#ffe08a",
+    "rlabel": "text 322 210 s=24 | router",
+    "msg": "tag 135 140 230 44 | Hi, see you at 5!",
+    "p1": "tag 135 380 120 38 f=#c8f7c5 | 1: Hi, see",
+    "p2": "tag 135 425 120 38 f=#c8f7c5 | 2: you at",
+    "p3": "tag 135 470 120 38 f=#c8f7c5 | 3: 5!",
+    "final": "tag 790 120 250 44 | Hi, see you at 5!",
+    "fast": "text 330 525 s=32 | ...all in less than a second!"
+   },
+   "steps": [
+    {
+     "say": "Step 1: When you send a message, your computer does not send it in one piece.",
+     "do": [
+      "draw screen 900",
+      "fill screen",
+      "draw base 600",
+      "fill base",
+      "write you 400",
+      "draw phone 800",
+      "fill phone",
+      "write friend 500",
+      "draw msg 700",
+      "fill msg",
+      "pop msg"
+     ]
+    },
+    {
+     "say": "Step 2: First it cuts the message into small numbered pieces, called packets.",
+     "do": [
+      "fade msg 0.15 500",
+      "draw p1 400",
+      "fill p1",
+      "&pop p1",
+      "draw p2 400",
+      "fill p2",
+      "&pop p2",
+      "draw p3 400",
+      "fill p3",
+      "pop p3"
+     ]
+    },
+    {
+     "say": "Step 3: Each packet hops through routers, which pass it toward your friend's address.",
+     "do": [
+      "draw L1 300",
+      "draw L2 300",
+      "draw R1 400",
+      "draw R2 400",
+      "fill R1 R2",
+      "draw L3 400",
+      "draw L4 400",
+      "draw L5 400",
+      "draw R3 400",
+      "draw R4 400",
+      "fill R3 R4",
+      "draw L6 400",
+      "draw L7 400",
+      "write rlabel 500"
+     ]
+    },
+    {
+     "say": "Step 4: Packets can take different roads, so they may arrive in any order.",
+     "do": [
+      "&go p1 2600 360 150 620 150 760 425",
+      "&go p2 3000 360 400 620 400 760 470",
+      "go p3 1900 360 150 620 400 760 380",
+      "wait 1300"
+     ]
+    },
+    {
+     "say": "Step 5: Your friend's phone puts them back in order using the numbers, and the message appears.",
+     "do": [
+      "&go p3 1000 880 380 880 470 760 470",
+      "&go p1 700 760 380",
+      "go p2 700 760 425",
+      "wait 500",
+      "&fade p1 0 500",
+      "&fade p2 0 500",
+      "&fade p3 0 500",
+      "draw final 700",
+      "fill final",
+      "pop final 1.2"
+     ]
+    },
+    {
+     "say": "Step 6: All of this happens in less than a second!",
+     "do": [
+      "write fast 1200"
+     ]
+    }
+   ]
+  },
+  {
+   "q": "How do plants make food? (illustrated recipes)",
+   "els": {
+    "title": "title | Leaf captures energy",
+    "leaf": "leaf 455 265 384",
+    "sun": "sun 800 90 38 | Sunlight",
+    "beams": "beams 770 150 655 222",
+    "water": "flow 40 246 248 282 c=blue n=3 | Water",
+    "co2": "flow 70 385 300 330 c=sky n=2 dots=1 | Carbon dioxide",
+    "oxy": "flow 654 246 790 214 c=sky dots=1 | Oxygen",
+    "sugar": "trail 520 338 560 414 c=orange | Sugar, food for growth"
+   },
+   "steps": [
+    {
+     "say": "Step 1: Plants make their own food, and the kitchen is the leaf.",
+     "do": [
+      "write title 1200",
+      "draw leaf 2400",
+      "fill leaf"
+     ]
+    },
+    {
+     "say": "Step 2: Sunlight gives the leaf its energy.",
+     "do": [
+      "draw sun 1100",
+      "fill sun",
+      "draw beams 600"
+     ]
+    },
+    {
+     "say": "Step 3: Water travels up from the roots.",
+     "do": [
+      "draw water 1300"
+     ]
+    },
+    {
+     "say": "Step 4: Carbon dioxide comes in from the air.",
+     "do": [
+      "draw co2 1300"
+     ]
+    },
+    {
+     "say": "Step 5: With sunlight's energy, the leaf turns water and carbon dioxide into sugar, its food.",
+     "do": [
+      "draw sugar 900",
+      "fill sugar"
+     ]
+    },
+    {
+     "say": "Step 6: And it breathes out oxygen, the air we need.",
+     "do": [
+      "draw oxy 900"
+     ]
+    }
+   ]
+  },
+  {
+   "q": "What is the water cycle?",
+   "els": {
+    "title": "title | The water cycle",
+    "sea": "sea 0 540 440",
+    "sun": "sun 870 105 36",
+    "vapour": "vapour 120 260 420 250 | Evaporation",
+    "cond": "flow 340 236 486 168 c=sky | Condensation",
+    "cloud": "cloud 610 140 1.5",
+    "mountain": "mountain 780 545 420 260",
+    "rain": "rain 520 200 630 300 | Precipitation",
+    "coll": "flow 660 420 530 446 c=blue n=2 bend=-10 | Collection"
+   },
+   "steps": [
+    {
+     "say": "Step 1: Water on Earth is always on the move, in a giant loop called the water cycle.",
+     "do": [
+      "write title 1200",
+      "draw sea 1400",
+      "fill sea",
+      "loop sea sway"
+     ]
+    },
+    {
+     "say": "Step 2: The sun warms the sea, and water rises into the air as invisible vapour. That is evaporation.",
+     "do": [
+      "draw vapour 1600",
+      "loop vapour rise"
+     ]
+    },
+    {
+     "say": "Step 3: High up, the vapour cools into tiny droplets that gather into clouds. That is condensation.",
+     "do": [
+      "draw sun 800",
+      "fill sun",
+      "pop sun 1.15",
+      "draw cond 900",
+      "draw cloud 1200",
+      "fill cloud",
+      "pop cloud 1.12"
+     ]
+    },
+    {
+     "say": "Step 4: When the droplets get heavy, they fall as rain or snow. That is precipitation.",
+     "do": [
+      "draw mountain 1400",
+      "fill mountain",
+      "draw rain 900",
+      "loop rain fall"
+     ]
+    },
+    {
+     "say": "Step 5: Rivers carry the water back to the sea, and the whole cycle starts again.",
+     "do": [
+      "draw coll 1000",
+      "loop coll flow",
+      "loop cond flow",
+      "&travel vapour,cond,rain,coll 5200 loop",
+      "wait 5400"
+     ]
+    }
+   ]
+  },
+  {
+   "q": "How does the heart pump blood?",
+   "els": {
+    "title": "title | The heart: a double pump",
+    "heart": "heart 480 330 300",
+    "bodyIn": "flow 90 300 318 300 c=blue n=2 | From the body",
+    "toLungs": "flow 408 150 230 182 c=blue at=end | To the lungs",
+    "fromLungs": "flow 870 300 642 300 c=red n=2 | From the lungs",
+    "toBody": "flow 600 172 800 110 c=red at=end | To the body",
+    "lbl1": "label 120 505 c=blue s=24 | Its right side → lungs",
+    "lbl2": "label 610 505 c=red s=24 | Its left side → body"
+   },
+   "steps": [
+    {
+     "say": "Step 1: Your heart is a pump about the size of your fist, and it never stops.",
+     "do": [
+      "write title 1200",
+      "draw heart 2600",
+      "fill heart",
+      "pop heart 1.1",
+      "loop heart beat"
+     ]
+    },
+    {
+     "say": "Step 2: Used blood, low on oxygen, comes back from the body into its right side.",
+     "do": [
+      "draw bodyIn 1100",
+      "loop bodyIn flow"
+     ]
+    },
+    {
+     "say": "Step 3: The right side pumps it to the lungs, where it picks up fresh oxygen.",
+     "do": [
+      "draw toLungs 1000",
+      "loop toLungs flow"
+     ]
+    },
+    {
+     "say": "Step 4: Fresh blood comes back from the lungs into the left side.",
+     "do": [
+      "draw fromLungs 1100",
+      "loop fromLungs flow"
+     ]
+    },
+    {
+     "say": "Step 5: And the strong left side pumps it out to the whole body. Two pumps beating together, about seventy times a minute.",
+     "do": [
+      "draw toBody 1000",
+      "loop toBody flow",
+      "&travel bodyIn,toLungs,fromLungs,toBody 6000 loop",
+      "draw lbl1 700",
+      "draw lbl2 700",
+      "wait 4000"
+     ]
+    }
+   ]
+  }
+ ],
+ "paper": [
+  {
+   "key": "plants",
+   "q": "How do plants make food?",
+   "steps": [
+    {
+     "say": "Plants make their own food, and the kitchen is the leaf.",
+     "bg": "#ebe8e2",
+     "do": [
+      "glow 520 260 230 #7cc47f",
+      "ground 560",
+      "plant"
+     ]
+    },
+    {
+     "say": "Sunlight gives the leaf its energy.",
+     "bg": "#f3e3b0",
+     "do": [
+      "glow 200 120 200 #f6d65a",
+      "ground 560",
+      "sun 150 110 60",
+      "beams 210,150 500,230",
+      "plant glow"
+     ]
+    },
+    {
+     "say": "Water travels up from the roots.",
+     "bg": "#9fc4e6",
+     "do": [
+      "glow 480 200 220 #7cc47f",
+      "soil 420 480",
+      "stem 480,430 480,120",
+      "leaf 600 100 .7 -.2",
+      "flow drop 480,560 480,130 n=5"
+     ]
+    },
+    {
+     "say": "Carbon dioxide comes in from the air.",
+     "bg": "#1d4e5a",
+     "do": [
+      "glow 760 200 200 #c9cde6",
+      "leaf 400 320 1.6",
+      "pores 300,300 430,260 540,340",
+      "flow co2 1000,190 420,300 n=6 once gap=.45 spread=70"
+     ]
+    },
+    {
+     "say": "With sunlight's energy, the leaf turns water and carbon dioxide into sugar, its food.",
+     "bg": "#9fd29b",
+     "do": [
+      "cells",
+      "flow drop 290,620 470,300 n=4 once gap=.1 dur=2.4 spread=40 size=12",
+      "flow co2 1000,200 520,300 n=4 once gap=.1 dur=2.4 spread=90",
+      "flash 490 300 at=1.8",
+      "sugar 480 300 at=2.6"
+     ]
+    },
+    {
+     "say": "And it breathes out oxygen, the air we need.",
+     "bg": "#9fc4e6",
+     "do": [
+      "glow 480 400 200 #7cc47f",
+      "ground 560",
+      "plant",
+      "flow o2 560,220 560,-20 n=6 speed=.3 fade wobble=40"
+     ]
+    }
+   ]
+  },
+  {
+   "key": "water",
+   "q": "What is the water cycle?",
+   "steps": [
+    {
+     "say": "Water on Earth is always on the move, in a giant loop called the water cycle.",
+     "bg": "#cfe3f2",
+     "do": [
+      "land flow",
+      "sun 120 110 50",
+      "cloud 600 130 .9",
+      "cycle"
+     ]
+    },
+    {
+     "say": "The sun warms the sea, and water rises into the air as invisible vapour. That is evaporation.",
+     "bg": "#f3d9b8",
+     "do": [
+      "zoom 260 330 1.5",
+      "land",
+      "sun 140 140 50",
+      "vapour 40 430 n=9 gap=42"
+     ]
+    },
+    {
+     "say": "High up, the vapour cools into tiny droplets that gather into clouds. That is condensation.",
+     "bg": "#4b6fa8",
+     "do": [
+      "glow 480 200 240 #9fc4e6",
+      "vapour 120 620 n=10 gap=80 h=380",
+      "cloud 480 200 grow"
+     ]
+    },
+    {
+     "say": "When the droplets get heavy, they fall as rain or snow. That is precipitation.",
+     "bg": "#9fb4d8",
+     "do": [
+      "land",
+      "cloud 700 120 1.1 darken",
+      "rain 600 820 180 snow=700 at=1"
+     ]
+    },
+    {
+     "say": "Rivers carry the water back to the sea, and the whole cycle starts again.",
+     "bg": "#cfe3f2",
+     "do": [
+      "land flow",
+      "sun 120 110 50",
+      "cloud 600 130 .9",
+      "cycle grow at=1"
+     ]
+    }
+   ]
+  },
+  {
+   "key": "heart",
+   "q": "How does the heart pump blood?",
+   "steps": [
+    {
+     "say": "Your heart is a pump about the size of your fist, and it never stops.",
+     "bg": "#4b2f74",
+     "do": [
+      "glow 480 300 230 #f07aa0",
+      "heart 480 300 2.4",
+      "ring 480 300"
+     ]
+    },
+    {
+     "say": "Used blood, low on oxygen, comes back from the body into its right side.",
+     "bg": "#f3b49b",
+     "do": [
+      "heart map",
+      "blood in"
+     ]
+    },
+    {
+     "say": "The right side pumps it to the lungs, where it picks up fresh oxygen.",
+     "bg": "#f3b49b",
+     "do": [
+      "heart map",
+      "blood in dim",
+      "blood lungs"
+     ]
+    },
+    {
+     "say": "Fresh blood comes back from the lungs into the left side.",
+     "bg": "#f3b49b",
+     "do": [
+      "heart map",
+      "blood in dim",
+      "blood lungs dim",
+      "blood back"
+     ]
+    },
+    {
+     "say": "And the strong left side pumps it out to the whole body. Two pumps beating together, about seventy times a minute.",
+     "bg": "#f3b49b",
+     "do": [
+      "heart map",
+      "blood in dim",
+      "blood lungs dim",
+      "blood back dim",
+      "blood out"
+     ]
+    }
+   ]
+  }
+ ],
+ "matchcut": [
+  {
+   "q": "How did writing tools change?",
+   "move": "write",
+   "objects": [
+    {
+     "say": "Long ago, people scratched marks into the sand with a stick.",
+     "L": 340,
+     "top": [
+      6.5,
+      5.9,
+      6.7,
+      5.1,
+      6.1,
+      5.1,
+      5,
+      5.3,
+      4.1,
+      5,
+      0
+     ],
+     "bot": [
+      7.3,
+      5.5,
+      6.7,
+      5.3,
+      6,
+      5.1,
+      5.2,
+      5,
+      4.5,
+      4.8,
+      0
+     ],
+     "fill": "#9b6b3e",
+     "edge": "#4a2f18",
+     "bg": "#e2c590",
+     "texture": "dots",
+     "tex": "#c9a76c",
+     "mark": "#a8814a"
+    },
+    {
+     "say": "Then they pressed a cut reed into soft clay.",
+     "L": 330,
+     "top": [
+      9.5,
+      9.5,
+      9.5,
+      9.5,
+      9.5,
+      9.5,
+      9.5,
+      9.5,
+      9.5,
+      4.8,
+      0
+     ],
+     "bot": [
+      9.5,
+      9.5,
+      9.5,
+      9.5,
+      9.5,
+      9.5,
+      9.5,
+      9.5,
+      9.5,
+      9.5,
+      0
+     ],
+     "fill": "#cbb36f",
+     "edge": "#6b5a2a",
+     "parts": [
+      [
+       0.3,
+       0.32,
+       "#9c8644"
+      ],
+      [
+       0.6,
+       0.62,
+       "#9c8644"
+      ]
+     ],
+     "bg": "#b98463",
+     "texture": "dots",
+     "tex": "#a5704f",
+     "mark": "#6e3f28"
+    },
+    {
+     "say": "Later, a bird's feather, a quill, was dipped in ink.",
+     "L": 360,
+     "top": [
+      6,
+      23.2,
+      35.8,
+      43.7,
+      46,
+      42.5,
+      33.6,
+      20.2,
+      4.5,
+      2.3,
+      0
+     ],
+     "bot": [
+      4,
+      10.3,
+      15.5,
+      19,
+      20,
+      18.5,
+      14.6,
+      9.1,
+      3.6,
+      1.8,
+      0
+     ],
+     "fill": "#f4f1e8",
+     "edge": "#7a7a7a",
+     "parts": [
+      [
+       0.9,
+       1,
+       "#2b2b2b"
+      ]
+     ],
+     "lines": [
+      [
+       0,
+       0.3,
+       0.93,
+       0.3,
+       "#9a968c",
+       2
+      ]
+     ],
+     "bg": "#ecd8ad",
+     "texture": "dots",
+     "tex": "#d9c18e",
+     "mark": "#4a2a16"
+    },
+    {
+     "say": "Pencils packed graphite into wood, so you could rub mistakes away.",
+     "L": 330,
+     "top": [
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      6,
+      0
+     ],
+     "bot": [
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      6,
+      0
+     ],
+     "fill": "#f2c230",
+     "edge": "#6b4e12",
+     "parts": [
+      [
+       0,
+       0.06,
+       "#f08a9a"
+      ],
+      [
+       0.06,
+       0.11,
+       "#b9bec4"
+      ],
+      [
+       0.8,
+       0.95,
+       "#e8c99a"
+      ],
+      [
+       0.95,
+       1,
+       "#3a3a3a"
+      ]
+     ],
+     "lines": [
+      [
+       0.11,
+       -0.35,
+       0.8,
+       -0.35,
+       "#d9a514",
+       2
+      ],
+      [
+       0.11,
+       0.35,
+       0.8,
+       0.35,
+       "#d9a514",
+       2
+      ]
+     ],
+     "bg": "#f6f3ea",
+     "texture": "dots",
+     "tex": "#e6e1d4",
+     "mark": "#6c6c6c"
+    },
+    {
+     "say": "Fountain pens carried their own ink inside.",
+     "L": 320,
+     "top": [
+      0,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      9.2,
+      7.4,
+      3.9,
+      0
+     ],
+     "bot": [
+      0,
+      11,
+      11,
+      11,
+      11,
+      11,
+      11,
+      9.2,
+      7.4,
+      3.9,
+      0
+     ],
+     "fill": "#1f2d4a",
+     "edge": "#0c1424",
+     "parts": [
+      [
+       0.56,
+       0.6,
+       "#d4a73a"
+      ],
+      [
+       0.82,
+       1,
+       "#d9b24a"
+      ]
+     ],
+     "lines": [
+      [
+       0.08,
+       -0.6,
+       0.4,
+       -0.6,
+       "#d4a73a",
+       3
+      ],
+      [
+       0.88,
+       0,
+       0.99,
+       0,
+       "#6b5410",
+       1.5
+      ]
+     ],
+     "bg": "#f8f8f4",
+     "texture": "lines",
+     "tex": "#b9d0ea",
+     "mark": "#1f4fae"
+    },
+    {
+     "say": "And today, a stylus writes with light on a screen.",
+     "L": 330,
+     "top": [
+      0,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      6.9,
+      1.5
+     ],
+     "bot": [
+      0,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      6.9,
+      1.5
+     ],
+     "fill": "#f2f3f6",
+     "edge": "#8a909c",
+     "parts": [
+      [
+       0.92,
+       1,
+       "#9aa3b2"
+      ]
+     ],
+     "lines": [
+      [
+       0.06,
+       -0.5,
+       0.85,
+       -0.5,
+       "#ffffff",
+       2
+      ]
+     ],
+     "bg": "#141b2e",
+     "texture": "grid",
+     "tex": "#2a3a66",
+     "mark": "#9ff0ff"
+    }
+   ]
+  }
+ ]
+}

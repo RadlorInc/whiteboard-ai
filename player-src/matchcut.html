@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Match-cut Answers</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #111; font-family: system-ui, sans-serif; color: #eee; }
+  .wrap { width: min(960px, 100vw - 32px); padding: 16px 0; }
+  .bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  button { font-size: 14px; padding: 8px 14px; border-radius: 999px; border: 1px solid #2f7fd6; background: transparent; color: #cfe3ff; cursor: pointer; }
+  button.on { background: #2f7fd6; color: #fff; }
+  #q { flex: 1; min-width: 0; font-size: 16px; padding: 8px 14px; border-radius: 999px; border: 1px solid #2f7fd6; background: #1b1b1b; color: #eee; }
+  a { color: #8fc1ff; font-size: 14px; }
+  canvas { width: 100%; height: auto; display: block; background: #000; }
+  #caption { min-height: 1.6em; margin: 14px 4px 4px; font-size: 19px; text-align: center; }
+  #stats { text-align: center; color: #999; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <form class="bar" id="askbar" style="display:none" aria-label="Ask a question">
+    <input id="q" placeholder="Ask about change over time, e.g. How did phones change?" aria-label="Your question" maxlength="500">
+    <button id="ask" class="on">Ask</button>
+  </form>
+  <div class="bar" id="topics"></div>
+  <div class="bar"><label><input type="checkbox" id="voice" checked> Voice</label>
+    <span>Match-cut: one object keeps moving and flows into the next. Hand-made original: <a href="explain-matchcut.html">writing tools</a>.</span></div>
+  <canvas id="cv" width="960" height="384"></canvas>
+  <div id="caption"></div>
+  <div id="stats"></div>
+</div>
+<script src="styles-lib.js"></script>
+<script src="matchcut-answers.js"></script>
+<script>
+// Plays any match-cut answer written as data (matchcut-answers.js, or one the model writes):
+// objects in order, each a profile of 11 half-heights above (top) and below (bot) its axis, tail -> nose.
+const cv = document.getElementById('cv'), cx = cv.getContext('2d'), K = makeKit(cx);
+const sample = (arr, u) => { const x = clamp(u) * (arr.length - 1), i = Math.min(arr.length - 2, Math.floor(x)); return lerp(arr[i], arr[i + 1], x - i); };
+const profile = o => ({ ...o, top: u => -sample(o.top, u), bot: u => sample(o.bot, u) });
+const dur = s => Math.max(3.5, s.split(/\s+/).length * .42 + 1);    // seconds per object when spoken
+const V = 70, TIPX = 560, BASE = 286;
+const X = s => s + 24 * Math.sin(s / 15), Y = s => BASE - 22 * Math.cos(s / 15);   // looping "handwriting" path
+
+function surface(o, scroll, alpha, seed) {        // the whole frame is one material; its texture slides past
+  if (alpha <= 0) return; cx.save(); cx.globalAlpha = alpha; cx.fillStyle = o.bg; cx.fillRect(0, 0, 960, 384);
+  const r = rng(seed + 3), tex = o.tex || mix(o.bg, '#000000', .15), wrap = x => ((x % 1400) + 1400) % 1400 - 200;
+  cx.fillStyle = cx.strokeStyle = tex;
+  if (o.texture === 'dots') for (let k = 0; k < 260; k++) cx.fillRect(wrap(r() * 1400 - scroll), r() * 384, 2.5, 2.5);
+  if (o.texture === 'streaks') { cx.lineWidth = 3; cx.lineCap = 'round'; for (let k = 0; k < 40; k++) { const x = wrap(r() * 1400 - scroll * 2), y = r() * 384; cx.beginPath(); cx.moveTo(x, y); cx.lineTo(x + 60 + r() * 90, y); cx.stroke(); } }
+  if (o.texture === 'lines') { cx.lineWidth = 1.5; for (let y = 54; y < 384; y += 36) { cx.beginPath(); cx.moveTo(0, y); cx.lineTo(960, y); cx.stroke(); } }
+  if (o.texture === 'grid') { cx.lineWidth = 1; for (let x = -(scroll % 40); x < 960; x += 40) { cx.beginPath(); cx.moveTo(x, 0); cx.lineTo(x, 384); cx.stroke(); }
+    for (let y = 20; y < 384; y += 40) { cx.beginPath(); cx.moveTo(0, y); cx.lineTo(960, y); cx.stroke(); } }
+  cx.restore();
+}
+function trail(p, col) { cx.strokeStyle = col; cx.lineWidth = 3; cx.lineCap = cx.lineJoin = 'round'; cx.beginPath(); p.forEach(([x, y], i) => i ? cx.lineTo(x, y) : cx.moveTo(x, y)); cx.stroke(); }
+
+function prepare(A) {
+  const objs = A.objects.map(profile), n = objs.length, starts = [];
+  let t = 0; for (const o of objs) { starts.push(t); t += dur(o.say); }
+  const len = t + .5, eraAt = time => { let i = 0; while (i + 1 < n && time >= starts[i + 1]) i++; return i; };
+  function frame(t) {
+    let j = 0; while (j < n - 1 && t >= starts[j + 1] + .5) j++;
+    const k = j < n - 1 ? ease((t - (starts[j + 1] - .5)) / 1) : 0, from = objs[j], to = objs[Math.min(n - 1, j + 1)];
+    const write = A.move === 'write', s = V * t * (write ? 1 : 2);
+    surface(from, s, 1, j); if (j < n - 1) surface(to, s, k, j + 1);
+    let tipX = 480, tipY = 192 + 14 * Math.sin(t * 1.6), ang = .05 * Math.sin(t * 1.3);
+    if (write) {                                       // the tool writes; older writing stays, faint
+      const sx = w => w - s + TIPX, pts = [];
+      for (let w = Math.max(0, s - 700); w <= s; w += 2) pts.push([sx(X(w)), Y(w), eraAt(w / V)]);
+      for (let i = 0; i < n; i++) { const seg = pts.filter(p => p[2] === i); if (seg.length < 2 || !objs[i].mark) continue;
+        cx.save(); cx.globalAlpha = i >= j ? 1 : .35; trail(seg, objs[i].mark); cx.restore(); }
+      tipX = sx(X(s)); tipY = Y(s); ang = .55 + .05 * Math.sin(s / 15);
+    }
+    const L = lerp(from.L, to.L, k), glow = (k > .5 ? to : from).glow || 0;
+    const ox = write ? tipX - Math.cos(ang) * L / 2 : tipX, oy = write ? tipY - Math.sin(ang) * L / 2 : tipY;
+    cx.save(); cx.translate(tipX, tipY); cx.scale(1.4, 1.4); cx.translate(-tipX, -tipY);
+    K.morphObject(from, to, k, ox, oy, ang, glow);
+    cx.restore();
+  }
+  return { len, caps: objs.map((o, i) => [starts[i], o.say]), frame };
+}
+
+const caption = document.getElementById('caption'), bar = document.getElementById('topics'), ANS = [...MC_ANSWERS];
+let player;
+function show(i, at = 0, still = false) {
+  const A = ANS[i], P = prepare(A);
+  [...bar.children].forEach((b, k) => b.className = k === i ? 'on' : '');
+  player = narratedPlayer({ canvas: cv, kit: K, scenes: [[0, P.len + 1, t => P.frame(t)]], caps: P.caps, fps: 60, len: P.len,
+    captionEl: caption, voiceEl: document.getElementById('voice') });
+  const c = JSON.stringify(A).length;
+  document.getElementById('stats').textContent = `Match-cut script: ${c.toLocaleString()} chars (≈ ${Math.round(c / 3.5)} tokens) · narration: ${A.objects.map(o => o.say).join(' ').length} chars`;
+  player.play(at, still);
+}
+const addTopic = i => { const b = document.createElement('button'); b.textContent = '▶ ' + ANS[i].q; b.onclick = () => show(i); bar.append(b); return b; };
+ANS.forEach((_, i) => addTopic(i));
+const qs = new URLSearchParams(location.search);
+show(0, qs.has('t') ? +qs.get('t') : 3, true);       // ?t= : one still frame (render checks)
+// ?saved=1 : also list the answers saved from live API runs (saved-answers.jsonl), marked ★; no API call
+if (qs.has('saved')) fetch('saved-answers.jsonl').then(r => r.text()).then(t => t.trim().split('\n').filter(Boolean).map(JSON.parse)).then(all => all.filter(s => s.style === 'matchcut').forEach(s => {
+  ANS.push(s.answer); addTopic(ANS.length - 1).textContent = '▶ ★ ' + s.answer.q; }));
+
+// Ask anything: only when served by server.mjs (python http.server has no /api)
+fetch('api/health').then(r => r.ok && r.json()).then(h => { if (h) document.getElementById('askbar').style.display = 'flex'; }).catch(() => {});
+document.getElementById('askbar').onsubmit = async e => {
+  e.preventDefault();
+  const qEl = document.getElementById('q'), ask = document.getElementById('ask'), question = qEl.value.trim(); if (!question) return;
+  ask.disabled = true; const t0 = Date.now();
+  const tick = setInterval(() => caption.textContent = `Making your lesson… ${Math.round((Date.now() - t0) / 1000)} s`, 500);
+  try {
+    const r = await fetch('api/answer', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question, style: 'matchcut' }) });
+    const out = await r.json();
+    if (!r.ok) throw new Error(out.error);
+    ANS.push({ ...out.answer, q: out.answer.q || question }); clearInterval(tick);
+    addTopic(ANS.length - 1); show(ANS.length - 1);
+    document.getElementById('stats').textContent += out.usage[0]?.mock ? ' · MOCK: a hand-made answer, no API call'
+      : ` · made in ${(out.ms / 1000).toFixed(1)} s, ${out.attempts} attempt(s), cost $${out.cost.toFixed(4)}`;
+  } catch (err) { clearInterval(tick); caption.textContent = '⚠️ ' + err.message; }
+  ask.disabled = false;
+};
+
+// ?gallery=<cat> : every object of one match-cut library file, drawn still (render check: node lib/shot.mjs mc <cat>)
+(async () => {
+  const cat = qs.get('gallery'); if (!cat) return;
+  window.ERRS = [];
+  const lib = await (await fetch(`lib/mc/${cat}.json`)).json(), names = Object.keys(lib);
+  const G = Object.assign(document.createElement('canvas'), { id: 'gallery', width: 4 * 480, height: Math.ceil(names.length / 4) * 220 }), g = G.getContext('2d'), GK = makeKit(g);
+  document.querySelector('.wrap').style.width = '1940px'; document.querySelector('.wrap').append(G);
+  g.fillStyle = '#ece6da'; g.fillRect(0, 0, G.width, G.height); g.font = '14px system-ui';
+  names.forEach((name, i) => { const x = (i % 4) * 480, y = Math.floor(i / 4) * 220, o = lib[name];
+    try { if (o.top?.length !== 11 || o.bot?.length !== 11) throw new Error('top/bot must have 11 numbers');
+      const P = profile(o); GK.morphObject(P, P, 0, x + 240, y + 100, 0, o.glow || 0);
+      g.fillStyle = '#333'; g.fillText(`${name} — ${o.desc || ''}`.slice(0, 64), x + 6, y + 212);
+    } catch (err) { ERRS.push(`${name}: ${err.message}`); g.fillStyle = '#c00'; g.fillText(`${name} → ${err.message}`, x + 6, y + 110); } });
+  document.body.dataset.done = '1';
+})();
+</script>
+</body>
+</html>

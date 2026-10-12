@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en" data-style="whiteboard">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whiteboard Answers</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #222; --board: #fdfdfb; --page: #e9ecef; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--page); font-family: system-ui, sans-serif; color: #222; }
+  .wrap { width: min(960px, 100vw - 32px); padding: 16px 0; }
+  .bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  select, button { font-size: 17px; padding: 9px 16px; border-radius: 999px; border: 1px solid #b9c0c7; background: #fff; }
+  button { background: #2f7fd6; color: #fff; border: 0; cursor: pointer; }
+  button:disabled { opacity: .5; }
+  svg { width: 100%; height: auto; background: var(--board); border: 10px solid #b9c0c7; border-radius: 14px; box-shadow: 0 10px 30px #0002; display: block; overflow: hidden; }
+  .ink { stroke-linecap: round; stroke-linejoin: round; }
+  .hand { font-family: Caveat, cursive; }
+  .fillable { transition: fill-opacity .7s ease; fill-opacity: 0; }
+  .fillable.on { fill-opacity: 1; }
+  .pivot { transform-box: fill-box; transform-origin: center; }
+  #scene { transform-box: view-box; transform-origin: 0 0; }
+  #caption { min-height: 1.6em; margin: 12px 4px 4px; font-size: 19px; text-align: center; }
+  #stats { font-size: 13px; color: #667; text-align: center; }
+  .styles { font-size: 14px; color: #445; } .styles a { color: #2f7fd6; }
+  #askbar { display: none; gap: 10px; margin-bottom: 12px; }
+  #q { flex: 1; min-width: 0; font-size: 17px; padding: 9px 16px; border-radius: 999px; border: 1px solid #b9c0c7; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <form id="askbar" aria-label="Ask a question">
+    <input id="q" placeholder="Ask anything, e.g. Why is the sky blue?" aria-label="Your question" maxlength="500">
+    <button id="ask">Ask</button>
+  </form>
+  <div class="bar">
+    <select id="pick" aria-label="Question"></select>
+    <button id="play">▶ Play</button>
+    <span class="styles">Choose your style: <b>Whiteboard</b> · <a href="explain-stopmotion.html">Stop-motion</a> · <a href="matchcut.html">Match-cut</a> · <a href="styles-demo.html">(the two Instagram style copies)</a> · <a href="compare.html"><b>Compare all</b></a></span>
+  </div>
+  <svg viewBox="0 0 960 540" aria-label="Whiteboard answer"><g id="scene"></g></svg>
+  <div id="caption"></div>
+  <div id="stats"></div>
+</div>
+
+<script src="answers.js"></script>
+<script src="recipes.js"></script>
+<script src="lib/wb-load.js"></script>
+<script>
+// ---------- Player: ek scene script (JSON) ko whiteboard animation mein chalata hai ----------
+const NS = 'http://www.w3.org/2000/svg';
+const $ = s => document.querySelector(s);
+const scene = $('#scene');
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const BOUNCE = 'cubic-bezier(.34,1.56,.64,1)', SMOOTH = 'cubic-bezier(.65,0,.35,1)';
+let els = {}, marker, camNow = '', runId = 0;
+
+function mk(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  parent?.append(e);
+  return e;
+}
+
+// "circle 110 110 45 f=#ffd23f c=#e09f00"  ya  "text 40 60 s=30 | Hello"
+function parse(spec) {
+  const [head, content] = spec.split('|').map(s => s?.trim());
+  const parts = head.split(/\s+/), type = parts.shift();
+  const n = [], o = {};
+  for (const p of parts) p.includes('=') ? (o[p.split('=')[0]] = p.split('=')[1]) : n.push(+p);
+  return { type, n, o, content };
+}
+
+function arrowD([x1, y1, x2, y2]) {
+  const a = Math.atan2(y2 - y1, x2 - x1), h = 16;
+  const p = d => `${x2 - h * Math.cos(a + d)} ${y2 - h * Math.sin(a + d)}`;
+  return `M${x1} ${y1} L${x2} ${y2} M${p(-.45)} L${x2} ${y2} L${p(.45)}`;
+}
+
+function build(answer) {
+  scene.replaceChildren(); els = {};
+  for (const [id, spec] of Object.entries(answer.els)) {
+    const { type, n, o, content } = parse(spec);
+    const stroke = { stroke: o.c || '#222', 'stroke-width': o.w || 5, class: 'ink pivot', fill: o.f || 'none' };
+    if (o.f) stroke.class += ' fillable';
+    let e;
+    if (type === 'circle') e = mk('circle', { cx: n[0], cy: n[1], r: n[2], ...stroke }, scene);
+    else if (type === 'ellipse') e = mk('ellipse', { cx: n[0], cy: n[1], rx: n[2], ry: n[3], ...stroke }, scene);
+    else if (type === 'rect') e = mk('rect', { x: n[0], y: n[1], width: n[2], height: n[3], rx: o.rx || 4, ...stroke }, scene);
+    else if (type === 'line') e = mk('path', { d: `M${n[0]} ${n[1]} L${n[2]} ${n[3]}`, ...stroke, fill: 'none' }, scene);
+    else if (type === 'arrow') e = mk('path', { d: arrowD(n), ...stroke, fill: 'none' }, scene);
+    else if (type === 'path') e = mk('path', { d: content, ...stroke }, scene);
+    else if (type === 'text') {
+      e = mk('text', { x: n[0], y: n[1], class: 'hand pivot', 'font-size': o.s || 32, fill: o.f || '#222' }, scene);
+      e.textContent = content;
+    } else if (type === 'tag') {                       // dabba + beech mein likha text, saath hilte hain
+      const [cx, cy, w, h] = n;
+      e = mk('g', { class: 'pivot' }, scene);
+      mk('rect', { x: cx - w / 2, y: cy - h / 2, width: w, height: h, rx: 8, stroke: '#222', 'stroke-width': 4, fill: o.f || '#fff3c4', class: 'ink fillable' }, e);
+      const t = mk('text', { x: cx, y: cy + 9, 'text-anchor': 'middle', class: 'hand fillable', 'font-size': o.s || 28, fill: '#222' }, e);
+      t.textContent = content;
+      e.center = [cx, cy];
+    } else if (RECIPES[type]) {
+      e = RECIPES[type](n, o, content, scene);
+      if (e.tagName === 'g' && !e.anim) { const inner = mk('g', { class: 'pivot' }); inner.append(...e.childNodes); e.append(inner); e.anim = inner; }
+      if (e.tagName === 'text') e.classList.add('pivot');
+    }
+    else throw new Error(`Unknown element type "${type}" in ${id}`);
+    e.kind = type; e.off = [0, 0];
+    els[id] = e;
+  }
+  marker = mk('g', { style: 'opacity:0' }, scene);
+  marker.innerHTML = '<g transform="rotate(-35)"><path d="M0 0 L8 -14 L-8 -14Z" fill="#222"/><rect x="-11" y="-110" width="22" height="96" rx="6" fill="#2f7fd6" stroke="#1d1d1f" stroke-width="3"/><rect x="-11" y="-120" width="22" height="22" rx="5" fill="#1d1d1f"/></g>';
+  // sab chhupa do
+  scene.querySelectorAll('.ink').forEach(e => { const L = e.getTotalLength(); e.style.strokeDasharray = L; e.style.strokeDashoffset = L; });
+  scene.querySelectorAll('text.hand:not(.fillable)').forEach(e => e.style.clipPath = 'inset(0 100% 0 0)');
+  setCam(480, 270, 1, 0);
+}
+
+const strokeOf = id => { const e = els[id]; if (!e) throw new Error(`No element "${id}"`); return e.kind === 'tag' ? e.querySelector('rect') : e; };
+
+function markAt(el, x, y) {
+  const p = new DOMPoint(x, y).matrixTransform(scene.getCTM().inverse().multiply(el.getCTM()));
+  marker.setAttribute('transform', `translate(${p.x} ${p.y})`);
+}
+
+function frames(ms, onT) {
+  return new Promise(done => {
+    const t0 = performance.now();
+    (function f(now) { const t = Math.min((now - t0) / ms, 1); onT(t); t < 1 ? requestAnimationFrame(f) : done(); })(t0);
+  });
+}
+const ease = t => t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+
+function drawEl(el, ms) {
+  const len = el.getTotalLength();
+  marker.style.opacity = 1;
+  return frames(ms, t => { t = ease(t); el.style.strokeDashoffset = len * (1 - t); const p = el.getPointAtLength(len * t); markAt(el, p.x, p.y); });
+}
+async function draw(id, ms = 800) {
+  const el = strokeOf(id);
+  if (el.tagName !== 'g') return drawEl(el, ms);
+  // recipe: saari lines ek-ek karke (lambai ke hisaab se samay), phir uske labels
+  const inks = [...el.querySelectorAll('.ink')], total = inks.reduce((s, e) => s + e.getTotalLength(), 0);
+  for (const e of inks) await drawEl(e, Math.max(50, ms * e.getTotalLength() / total));
+  for (const t of el.querySelectorAll('.lbl')) await write(t, 500);
+}
+async function write(id, ms = 900) {
+  const el = typeof id === 'string' ? els[id] : id;
+  // a recipe (label, tag…) is a group: write the hidden text inside it, not the group itself
+  if (el.tagName === 'g') { const ts = [...el.querySelectorAll('text.hand:not(.fillable)')]; for (const t of ts) await write(t, ms / ts.length); return; }
+  const b = el.getBBox();
+  marker.style.opacity = 1;
+  return frames(ms, t => { el.style.clipPath = `inset(0 ${100 - t * 100}% 0 0)`; markAt(el, b.x + b.width * t, b.y + b.height * .75); });
+}
+async function penUp() {
+  if (marker.style.opacity === '0') return;
+  await marker.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220 }).finished;
+  marker.style.opacity = 0;
+}
+const anim = (el, kf, opt = {}) => el.animate(kf, { duration: 600, easing: BOUNCE, fill: 'forwards', ...opt }).finished;
+function setCam(cx, cy, s, ms) {
+  const to = `translate(${480 - s * cx}px, ${270 - s * cy}px) scale(${s})`;
+  const p = ms ? anim(scene, [{ transform: camNow || to }, { transform: to }], { duration: ms, easing: SMOOTH }) : (scene.style.transform = to, Promise.resolve());
+  camNow = to; return p;
+}
+function go(id, ms, pts) {             // tag ko waypoints se le jao (centre coordinates)
+  const el = els[id], [cx, cy] = el.center, kf = [{ transform: `translate(${el.off[0]}px, ${el.off[1]}px)` }];
+  for (let i = 0; i < pts.length; i += 2) kf.push({ transform: `translate(${pts[i] - cx}px, ${pts[i + 1] - cy}px)` });
+  el.off = [pts.at(-2) - cx, pts.at(-1) - cy];
+  return anim(el, kf, { duration: ms, easing: 'ease-in-out' });
+}
+
+// Ek kan raaste par safar kare: "travel bodyIn,toLungs,fromLungs,toBody 6000 loop"
+// har raaste ka rang le leta hai; paas ke raaste jud jaate hain, door wale par kan chhup kar wahan nikalta hai
+async function travel(ids, ms, repeat) {
+  const me = runId;
+  const segs = ids.map(id => { const g = els[id], p = g.tagName === 'g' ? g.querySelector('.ink:not(.head)') : g; return { p, len: p.getTotalLength(), color: p.getAttribute('stroke') }; });
+  const at = (s, t) => { const q = s.p.getPointAtLength(s.len * t); return new DOMPoint(q.x, q.y).matrixTransform(scene.getCTM().inverse().multiply(s.p.getCTM())); };
+  const dot = mk('circle', { r: 9, stroke: '#fff', 'stroke-width': 3 }); scene.insertBefore(dot, marker);
+  const put = q => { dot.setAttribute('cx', q.x); dot.setAttribute('cy', q.y); };
+  const total = segs.reduce((t, s) => t + s.len, 0), per = i => Math.max(300, ms * segs[i].len / total);
+  do {
+    for (let i = 0; i < segs.length; i++) {
+      if (me !== runId) return dot.remove();
+      dot.setAttribute('fill', segs[i].color);
+      if (i > 0) {
+        const a = at(segs[i - 1], 1), b = at(segs[i], 0);
+        if (Math.hypot(b.x - a.x, b.y - a.y) < 260) await frames(250, t => put({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }));
+        else { await dot.animate([{ opacity: 1 }, { opacity: 0 }], 200).finished; put(b); dot.animate([{ opacity: 0 }, { opacity: 1 }], 200); }
+      }
+      await frames(per(i), t => put(at(segs[i], t)));
+    }
+  } while (repeat && me === runId);
+  dot.remove();
+}
+
+// Lagataar chalne wali motion: dil ka dhadakna, bahaav, baarish, bhaap, lehrein
+function loop(el, kind) {
+  const t = el.anim || el, inks = [...el.querySelectorAll('.ink:not(.head)')], forever = { iterations: Infinity };
+  if (kind === 'beat') t.animate([{ scale: 1 }, { scale: 1.06 }, { scale: .98 }, { scale: 1 }], { duration: 850, easing: 'ease-in-out', ...forever });
+  else if (kind === 'flow') inks.forEach(e => { e.style.strokeDasharray = '12 9'; e.animate([{ strokeDashoffset: 0 }, { strokeDashoffset: -42 }], { duration: 900, ...forever }); });
+  else if (kind === 'fall' || kind === 'rise') inks.forEach((e, i) => e.animate(
+    [{ translate: '0 0', opacity: 1 }, { translate: kind === 'fall' ? '-6px 34px' : '0 -26px', opacity: 0 }],
+    { duration: 1000, delay: i * 70, easing: 'ease-in', ...forever }));
+  else if (kind === 'swing') {                 // rotate about a pivot: the drawing's own (el.swing, pivot at its 0,0) or its top centre
+    const s = el.swing || t; Object.assign(s.style, el.swing ? { transformBox: 'view-box', transformOrigin: '0px 0px' } : { transformBox: 'fill-box', transformOrigin: '50% 0%' });
+    s.animate([{ rotate: el.swing ? '0deg' : '-8deg' }, { rotate: el.swing ? '40deg' : '8deg' }], { duration: 1400, direction: 'alternate', easing: 'ease-in-out', ...forever });
+  }
+  else if (kind === 'sway') t.animate([{ translate: '-10px 0' }, { translate: '10px 0' }], { duration: 1600, direction: 'alternate', easing: 'ease-in-out', ...forever });
+  else throw new Error(`Unknown loop "${kind}"`);
+}
+
+// Ek command: "draw sun 900", "fill a b c", "go p1 2000 360 150 620 150", "&pop x" (& = intezaar mat karo)
+async function run(cmd) {
+  const bg = cmd.startsWith('&'); const [op, ...a] = cmd.replace(/^&/, '').trim().split(/\s+/);
+  const nums = a.slice(1).map(Number);
+  let p;
+  if (op === 'draw') p = draw(a[0], nums[0]);
+  else if (op === 'write') p = write(a[0], nums[0]);
+  else if (op === 'fill') { a.forEach(id => (els[id].tagName === 'g' ? els[id].querySelectorAll('.fillable') : [els[id]]).forEach(e => e.classList.add('on'))); p = wait(150); }
+  else if (op === 'pop') p = anim(els[a[0]].anim || els[a[0]], [{ scale: 1 }, { scale: nums[0] || 1.15 }, { scale: 1 }], { duration: 500, easing: 'ease-out', fill: 'none' });
+  else if (op === 'fade') p = anim(els[a[0]], [{ opacity: getComputedStyle(els[a[0]]).opacity }, { opacity: nums[0] }], { duration: nums[1] || 500, easing: 'linear' });
+  else if (op === 'go') p = go(a[0], nums[0], nums.slice(1));
+  else if (op === 'cam') p = Promise.resolve();   // founder, 12 Oct: the whole board stays in view so the flow shows; old scripts' cam is ignored
+  else if (op === 'wait') p = wait(+a[0]);
+  else if (op === 'loop') { loop(els[a[0]], a[1]); p = Promise.resolve(); }
+  else if (op === 'travel') p = travel(a[0].split(','), nums[0], a[2] === 'loop');
+  else throw new Error(`Unknown command "${op}"`);
+  if (!bg) await p;
+}
+
+function say(text) {
+  $('#caption').textContent = text;
+  return new Promise(done => {
+    const guess = 1200 + text.length * 70, tts = window.speechSynthesis;
+    if (!tts) return wait(guess).then(done);
+    const u = new SpeechSynthesisUtterance(text), v = tts.getVoices();
+    u.voice = v.find(x => /Samantha|Google UK English Female|Veena|Rishi/.test(x.name)) || v.find(x => x.lang.startsWith('en')) || null;
+    u.rate = 0.97;
+    let fin = false; const end = () => { if (!fin) { fin = true; done(); } };
+    u.onend = end; u.onerror = end;
+    setTimeout(end, guess + 4000);                  // ponytail: Chrome kabhi onend nahi bhejta; ye bas bachaav hai
+    tts.speak(u);
+  });
+}
+
+async function play(answer) {
+  runId++;
+  window.speechSynthesis?.cancel();
+  document.getAnimations().forEach(a => a.cancel());
+  build(answer); stats(answer);
+  $('#play').disabled = true;
+  try {
+    for (const s of answer.steps) {
+      await Promise.all([say(s.say), (async () => { for (const c of s.do) await run(c); await penUp(); })()]);
+      await wait(250);
+    }
+  } catch (e) { $('#caption').textContent = '⚠️ ' + e.message; console.error(e); }
+  $('#play').disabled = false; $('#play').textContent = '↻ Replay';
+}
+
+// Har script ka size: yahi AI ko likhna padega, isi se kharcha nikalta hai
+function stats(a) {
+  const chars = JSON.stringify(a).length, spoken = a.steps.map(s => s.say).join(' ').length;
+  $('#stats').textContent = `Scene script: ${chars.toLocaleString()} chars (≈ ${Math.round(chars / 3.5).toLocaleString()} tokens) · narration: ${spoken} chars`;
+}
+
+ANSWERS.forEach((a, i) => $('#pick').append(new Option(a.q, i)));
+const current = () => ANSWERS[$('#pick').value];
+$('#pick').onchange = () => { build(current()); stats(current()); $('#caption').textContent = ''; $('#play').textContent = '▶ Play'; };
+$('#play').onclick = () => play(current());
+window.speechSynthesis?.getVoices();
+build(current()); stats(current());
+// #autoN plays answer N; #showN only opens it (the compare page uses this)
+const fromHash = () => { const m = location.hash.match(/#(auto|show)(\d*)/); if (m) { $('#pick').value = m[2] || 0; $('#pick').onchange(); if (m[1] === 'auto') play(current()); } };
+fromHash(); window.onhashchange = fromHash;
+// ?saved=1 : also list the answers saved from live API runs (saved-answers.jsonl), marked ★; no API call
+if (new URLSearchParams(location.search).has('saved')) fetch('saved-answers.jsonl').then(r => r.text()).then(t => t.trim().split('\n').filter(Boolean).map(JSON.parse)).then(all => {
+  for (const s of all.filter(s => s.style === 'whiteboard')) { ANSWERS.push(s.answer); $('#pick').append(new Option('★ ' + s.answer.q, ANSWERS.length - 1)); }
+  $('#pick').value = ANSWERS.length - all.filter(s => s.style === 'whiteboard').length; $('#pick').onchange();
+});
+
+// Ask anything: only when the page is served by server.mjs (python http.server has no /api)
+fetch('api/health').then(r => r.ok && r.json()).then(h => { if (h) $('#askbar').style.display = 'flex'; }).catch(() => {});
+$('#askbar').onsubmit = async e => {
+  e.preventDefault();
+  const question = $('#q').value.trim(); if (!question) return;
+  $('#ask').disabled = true; const t0 = Date.now();
+  const tick = setInterval(() => $('#caption').textContent = `Writing your lesson… ${Math.round((Date.now() - t0) / 1000)} s`, 500);
+  try {
+    const r = await fetch('api/answer', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question }) });
+    const out = await r.json();
+    if (!r.ok) throw new Error(out.error);
+    ANSWERS.push(out.answer); $('#pick').append(new Option(out.answer.q, ANSWERS.length - 1)); $('#pick').value = ANSWERS.length - 1;
+    clearInterval(tick); play(out.answer);
+    if (out.usage[0]?.mock) $('#stats').textContent += ' · MOCK: a hand-made answer, no API call';
+    else $('#stats').textContent += ` · made in ${(out.ms / 1000).toFixed(1)} s, ${out.attempts} attempt(s), cost $${out.cost.toFixed(4)}`;
+  } catch (err) { clearInterval(tick); $('#caption').textContent = '⚠️ ' + err.message; }
+  $('#ask').disabled = false;
+};
+</script>
+<style>.embed body{margin:0;background:transparent}.embed .wrap{max-width:none;margin:0;padding:0}.embed .bar,.embed #askbar,.embed #stats,.embed a{display:none!important}.embed svg,.embed canvas{display:block;width:100%;height:auto}.embed #caption{min-height:0;margin:6px 4px 0;font-size:clamp(14px,3.6vw,20px)}</style><script src="bridge.js"></script>
+</body>
+</html>

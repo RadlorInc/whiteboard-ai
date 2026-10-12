@@ -1,0 +1,52 @@
+laptop cx cy width rot=deg |text | laptop 480 290 400 | open laptop; screen shows code, or the text given
+computer cx cy width |text | computer 480 270 440 | desktop computer: monitor with code, keyboard, tower
+smartphone cx cy height |text | smartphone 480 270 380 | smartphone with app icons, or text on screen
+server cx cy height | server 480 270 400 | server rack with status lights
+router cx cy width |text | router 480 290 360 |Router | wifi router, two antennas, signal waves above
+netcloud cx cy width |text | netcloud 480 270 400 |The cloud | cloud-computing cloud with upload and download arrows
+envelope cx cy width |num | envelope 480 270 320 |3 | letter envelope; a number tag makes it a data packet
+cable x1 y1 x2 y2 k=wire|fibre |text | cable 200 200 760 220 k=fibre | sagging cable with plugs; fibre glows orange; loop flow
+chip cx cy size |text | chip 480 270 340 | processor chip with pins, CPU or text on top
+ram cx cy width | ram 480 270 460 | memory stick: green board, black chips, gold contacts
+harddrive cx cy height | harddrive 480 270 400 | open hard drive: platter, spindle, read arm
+keyboard cx cy width | keyboard 480 270 520 | computer keyboard with keys and space bar
+robot cx cy height |text | robot 480 290 400 | friendly waving robot, antenna, screen on its belly
+neuralnet cx cy width height layers=3,4,4,2 |text | neuralnet 480 260 520 320 |Neural network | AI network: layers of nodes joined by links; loop flow
+padlock cx cy height k=locked|open | padlock 480 280 340 k=locked | padlock for security, shackle shut or open
+key cx cy length rot=deg | key 480 260 400 | gold door key
+database cx cy height |text | database 480 250 340 |Data | database cylinder with bands
+satdish cx cy height | satdish 480 270 380 | satellite dish on a stand catching signal waves
+satellite cx cy width rot=deg | satellite 480 270 480 rot=-15 | satellite with two solar panel wings and a dish
+celltower cx cy height | celltower 480 270 420 | mobile phone mast with antennas and signal waves
+gpsmap cx cy width | gpsmap 480 280 460 | folded map, dashed road, red location pin
+bulb cx cy height k=on|off | bulb 480 270 340 k=on | light bulb; on glows with rays, off is grey
+led cx cy height c=red|green|blue|yellow k=on|off | led 480 270 320 c=green | small LED with two legs, glows when on
+battery cx cy width level=0-100 |text | battery 480 270 420 level=60 | battery filled to level: green, amber or red
+plug cx cy height k=plug|socket | plug 480 270 360 k=plug | electric plug with cable, or a wall socket
+solarpanel cx cy width | solarpanel 480 270 480 | tilted solar panel on legs, cells in a grid
+turbine cx cy height spin=1 | turbine 480 270 440 spin=1 | wind turbine; spin=1 keeps the blades turning
+powerplant cx cy width | powerplant 480 270 440 | power station: cooling tower steam, chimney, hall with bolt
+powerline x1 x2 baseY height | powerline 260 700 470 340 | two electricity pylons with sagging wires; loop flow
+evcharge cx cy width | evcharge 480 270 520 | electric car plugged into a charging post
+vehicle cx cy length k=car|bus|train c=red|blue|green|yellow|orange | vehicle 480 290 440 k=car | side view car, bus or train facing right
+bicycle cx cy length | bicycle 480 270 420 | side-view bicycle with spoked wheels
+airplane cx cy length rot=deg | airplane 480 280 500 | passenger plane, side view facing right
+ship cx cy length | ship 480 280 500 | cargo ship with containers, cabin and funnel on waves
+piston cx cy height k=burn | piston 480 270 440 k=burn | engine cylinder cutaway: piston, rod, crank; burn shows flame
+gears cx cy width spin=1 | gears 480 270 460 spin=1 | three meshing gears; spin=1 turns them
+conveyor cx cy length | conveyor 480 280 500 | conveyor belt on rollers carrying boxes; loop flow
+building cx cy width k=house|factory|shop|bank |sign | building 480 280 400 k=shop | house, factory with smoke, shop with awning, or columned bank
+coin cx cy size |value | coin 480 270 240 |$1 | gold coin with its value
+banknote cx cy width |value | banknote 480 270 440 |$10 | paper money note with its value
+card cx cy width |text | card 480 270 440 | plain bank card: chip, contactless waves, number
+moneyjar cx cy height |text | moneyjar 480 250 340 |Savings | glass savings jar full of coins and a note
+wallet cx cy width | wallet 480 280 400 | leather wallet with a note peeking out
+cart cx cy width | cart 480 270 440 | shopping cart with groceries
+clock cx cy size h=3 m=0 | clock 480 270 380 h=3 m=0 | wall clock showing h:m
+calendar cx cy height |day | calendar 480 270 360 |14 | calendar page with a big day number
+book cx cy width k=open|closed |text | book 480 270 440 | open book with lines, or closed book with title
+newspaper cx cy width |name | newspaper 480 270 400 | newspaper page: masthead, headline, picture, columns
+camera cx cy width | camera 480 270 400 | photo camera: lens, flash, shutter button
+mic cx cy height | mic 480 270 400 | microphone on a stand
+headphones cx cy width | headphones 480 270 400 | over-ear headphones
+speaker cx cy height waves=1 | speaker 480 270 400 | loudspeaker box with sound waves; waves=0 hides them

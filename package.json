@@ -1,0 +1,39 @@
+{
+  "name": "app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3100",
+    "build": "next build",
+    "start": "next start -p 3100",
+    "lint": "eslint",
+    "lint:secrets": "node scripts/secret-scan.mjs",
+    "test": "vitest run",
+    "test:db": "vitest run tests/db",
+    "test:e2e": "playwright test",
+    "break": "scripts/break-check.sh",
+    "break:selftest": "scripts/break-selftest.sh",
+    "test:pgtap": "supabase db reset && supabase test db"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.133.0",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.2",
+    "next": "16.3.8",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "stripe": "22.6.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.8",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "5.0.2"
+  }
+}

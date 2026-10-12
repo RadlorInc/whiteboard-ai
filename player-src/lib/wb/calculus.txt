@@ -1,0 +1,32 @@
+normal x y w h mean=0 sd=1 from= to= |label | normal 120 40 720 440 mean=100 sd=15 from=85 to=115 | normal bell curve, σ ticks, area from–to shaded, probability computed
+histogram x y w h vals=… bins=5 width= hi= xl= yl= |label | histogram 140 40 680 440 vals=12,15,18,22,23,25,27,28,31,33,34,36,38,41,45,47,52 xl=minutes | histogram from raw values: equal bins counted, bars touching, counts shown
+boxplot x y w vals=… |label | boxplot 100 220 760 vals=3,7,8,5,12,14,21,13,18,9,10,35 | box plot, quartiles and 1.5·IQR outliers computed from values
+dotplot x y w vals=… |label | dotplot 100 380 760 vals=2,3,3,4,4,4,5,5,5,5,6,6,7,9 | dot plot stacked over number line; n, mean, median, mode
+stemleaf x y vals=… leaf=1 |label | stemleaf 300 80 vals=12,15,21,24,24,28,31,33,35,35,39,42,47,50,56 | stem-and-leaf table, sorted leaves, empty stems kept, key
+cumfreq x y w h edges=0,10,20 freq=4,9 vals= q=1 xl= |label | cumfreq 140 40 680 440 edges=0,10,20,30,40,50 freq=4,9,15,8,4 q=1 xl=minutes | cumulative frequency curve; median and quartiles read off with dashes
+correl x y w h pts=x,y;x,y resid=1 xl= yl= |label | correl 160 50 640 440 pts=1,52;2,55;3,61;4,60;5,68;6,70;7,74;8,79 xl=hours yl=score | scatter with best-fit line, correlation r computed and named strong/weak
+probtree x y w h |A:p(B:p,C:p),D:p(…) | probtree 80 40 800 460 |Red:3/5(Red:2/4,Blue:2/4),Blue:2/5(Red:3/4,Blue:1/4) | probability tree from text, p on branches, outcome products; "A:p,B:p;C:p,D:p" repeats levels
+samplespace cx cy size k=sum|product|diff|max a=6 b=6 hi=7 |label | samplespace 480 250 400 k=sum hi=7 | two-dice outcome grid, matching cells shaded (hi=7, hi=>9), probability
+zscore x y w mean=70 sd=10 at=85 |label | zscore 100 60 760 mean=70 sd=10 at=85 | value scale over z scale, z = (x − μ) ÷ σ, percent below
+confint x y w mean=50 sd=8 n=36 conf=95 moe= mu= |label | confint 100 200 760 mean=50 sd=8 n=36 conf=95 | confidence interval bar on number line, margin z*·σ/√n computed
+unitcircle cx cy r deg=30 rad=1 |label | unitcircle 330 270 190 deg=30 | unit circle, angle θ, cos and sin projections, exact values
+trigtri cx cy size deg=35 hyp=10 opp= adj= |label | trigtri 260 290 300 deg=35 hyp=10 | right triangle, opposite/adjacent/hypotenuse from θ, SOH CAH TOA ratios
+trigwave x y w h k=sin|cos a=2 b=1 c=0 d=0 |label | trigwave 120 40 720 460 k=sin a=2 b=1 | sine or cosine wave, π ticks, amplitude and period marked
+tangent x y w h f=x^2 at=1 x=lo,hi y=lo,hi |label | tangent 160 50 640 440 f=x^3-3x at=-1.5 x=-2.5,2.5 | curve f(x) with tangent at x, slope and tangent equation
+secant x y w h f=x^2 at=1 h=2,1,0.5 |label | secant 160 50 640 440 f=x^2 at=1 h=2,1,0.5 | secant lines shrinking to the tangent, slopes listed tending to f′(a)
+riemann x y w h f=x^2 a=0 b=2 n=4 k=left|right|mid|trap |label | riemann 160 50 640 440 f=x^2 a=0 b=2 n=4 k=left | Riemann rectangles or trapezoids under f, sum versus exact integral
+integral x y w h f=x^2 a=0 b=2 g= |label | integral 160 50 640 440 f=4-x^2 a=-1 b=2 | definite integral shaded from a to b (or between f and g), value
+slopefield x y w h f=x-y x=-3,3 y=-3,3 sol=x,y;x,y |label | slopefield 180 30 600 480 f=x-y sol=0,1;0,-2 | slope field for dy/dx = f(x, y), solution curves through points
+derivplot x y w h f=x^3-3x x=lo,hi |label | derivplot 160 20 640 500 f=x^3-3x | f above its derivative f′, turning points lined up with f′ = 0
+limit x y w h f=(x^2-1)/(x-1) at=1 val= |label | limit 160 50 640 440 f=(x^2-1)/(x-1) at=1 | graph with hole at x = a, approach arrows, limit computed (or none)
+piecewise x y w h pieces=expr[lo,hi);expr(lo,inf) |label | piecewise 160 50 640 440 pieces=x+3[-4,-1);x^2(-1,2];5-x(2,4] | piecewise function, each piece coloured, closed and open end dots
+asymptote x y w h num=2,1 den=1,-1,-2 |label | asymptote 160 40 640 460 num=2,1 den=1,-1,-2 | rational function from coefficients; vertical, horizontal or slant asymptotes, holes
+growth x y w h fs=3x;x^2;2^x x=0,6 |names | growth 160 40 640 460 fs=3x;x^2;2^x x=0,7 |linear,quadratic,exponential | linear vs quadratic vs exponential curves, where the fastest overtakes
+logscale x y w lo= hi= vals=3,45,800 |names | logscale 80 300 800 vals=3,45,800,12000 |ant,cat,horse,whale | logarithmic axis, ×10 steps, minor ticks, values placed
+sequence x y w h k=arith|geom a=2 d=3 r=2 n=8 |label | sequence 160 40 640 460 k=arith a=2 d=3 n=8 | sequence terms as dots, nth-term rule, difference or ratio, sum
+sigma cx cy size f=k^2 from=1 to=5 |label | sigma 480 200 150 f=k^2 from=1 to=5 | sigma notation card, terms written out, total computed
+axes3d cx cy size p=3,4,5;x,y,z v=1 |names | axes3d 440 330 280 p=3,4,5 v=1 | 3D x y z axes, point boxed by dashed lines, vector length
+complex x y w h z=3,4;-2,1 conj=1 |names | complex 160 40 640 460 z=3,4 conj=1 | complex plane point a + bi, modulus, argument, optional conjugate
+polar cx cy r k=rose|cardioid|limacon|spiral|circle a=1 n=3 b=0.5 f= |label | polar 560 270 210 k=rose n=3 | polar grid with r(θ) curve: rose, cardioid, limaçon, spiral, or f=
+conic x y w h k=circle|ellipse|parabola|hyperbola a=4 b=3 p=1 c=h,k |label | conic 180 30 600 480 k=ellipse a=5 b=3 | conic section on grid with foci, directrix or asymptotes, equation, eccentricity
+transform x y w h pts=1,1;4,1;1,3 k=translate|reflect|rotate|dilate by=3,-2 ax=y deg=90 s=2 c=0,0 |names | transform 180 30 600 480 pts=2,1;5,1;2,4 k=reflect ax=y | shape before and after translate, reflect, rotate or dilate, with rule

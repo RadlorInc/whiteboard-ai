@@ -1,0 +1,38 @@
+heartpump x y scale | heartpump 480 300 1.2 | beating heart in a blood loop: blue to lungs, red to body
+stomach x y scale | stomach 480 300 1.1 | stomach squeezing, food bits churning in juice, food leaving
+kidney x y scale | kidney 480 300 1.1 | kidney filtering blood: red in, blue out, urine drips to bladder
+skeleton x y scale | skeleton 480 300 1.2 | friendly skeleton walking, bones swinging at the joints
+muscle x y scale | muscle 480 300 1.1 | arm flexing at the elbow, biceps muscle bulging
+tooth x y scale | tooth 480 300 1.2 | molar in pink gum, toothbrush scrubbing, bubbles and sparkles
+skin x y scale | skin 480 300 1.2 | skin cross-section: surface, hair, sweat gland, blood vessels, fat
+bloodvessel x y scale | bloodvessel 480 300 1.1 | blood vessel with tumbling red cells, white cells, platelets flowing
+whitecell x y scale | whitecell 480 300 1.2 | white blood cell chasing a germ and reaching for it
+germs x y scale | germs 480 300 1.3 | germ splitting into two, four, eight
+vaccine x y scale | vaccine 480 300 1.1 | glowing shield in front of a person, germs bounce off; small syringe
+handwash x y scale | handwash 480 300 1.1 | hands rubbing under a running tap, soap bubbles rising
+plate x y scale | plate 480 300 1.2 | healthy plate: vegetables, fruit, eggs and beans, bread; water glass
+waterglass x y scale | waterglass 480 320 1.1 | glass filling with water poured from a jug
+sleepmoon x y scale | sleepmoon 480 300 1.2 | sleeping crescent moon in a nightcap rocking, stars twinkling
+thunderstorm x y scale | thunderstorm 480 300 1.1 | dark storm cloud, heavy rain, lightning flashing
+tornado x y scale | tornado 480 300 1.2 | spinning twisting tornado funnel, debris circling, dust
+snowfall x y scale | snowfall 480 300 1.1 | snow falling on white hills, snowy pine trees, cottage
+rainbow x y scale | rainbow 480 300 1.2 | rainbow arc appearing between two clouds, sparkling
+wind x y scale | wind 480 300 1.1 | wind bending trees, swirling wind lines, leaves blowing
+seasons x y scale k=spring|summer|autumn|winter | seasons 480 300 1.2 k=autumn | one tree through the seasons; no k cycles all four
+ocean x y scale | ocean 480 300 1.2 | rolling ocean waves, a fish leaping, fish swimming
+reef x y scale | reef 480 300 1.2 | coral reef: corals, seaweed swaying, fish, bubbles
+whale x y scale | whale 480 300 1.1 | whale surfacing, spouting a water fountain, tail flicking
+tide x y scale | tide 480 300 1.2 | beach where the tide comes in and out, moon moving above
+river x y scale | river 480 300 1.2 | river flowing from snowy mountains through land to the sea
+desert x y scale | desert 480 300 1.2 | sand dunes, cactus, hot sun, heat shimmer rising
+rainforest x y scale | rainforest 480 300 1.2 | rainforest canopy in rain, hanging vines, a parrot
+polar x y scale | polar 480 300 1.2 | penguins on a bobbing ice floe, iceberg, snow
+earthquake x y scale | earthquake 480 300 1.2 | ground cracking and shaking houses, waves spreading underground
+tsunami x y scale | tsunami 480 300 1.2 | long wave rolling to the shore, house safe on a hill
+foodchain x y scale | foodchain 480 300 1.2 | food chain: grass to rabbit to fox, energy flowing along arrows
+pollinate x y scale | pollinate 480 300 1.2 | bee flying between two flowers, leaving a pollen trail
+roots x y scale | roots 480 300 1.1 | plant roots drinking water from the soil, water rising up the stem
+compost x y scale | compost 480 300 1.2 | compost heap: scraps rotting into soil, worm, sprout growing
+carboncycle x y scale | carboncycle 480 300 1.1 | carbon cycle loop: tree, air, factory, soil; carbon dioxide circling
+greenhouse x y scale | greenhouse 480 300 1.1 | earth in its atmosphere: sunlight in, heat trapped and bounced back
+glacier x y scale | glacier 480 300 1.2 | glacier between mountains melting, dripping, ice breaking into the sea

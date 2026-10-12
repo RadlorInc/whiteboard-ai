@@ -1,0 +1,64 @@
+// Beta drafts of the legal pages (PLAN.md §11.8, C9). An attorney reviews them before public launch; until then every
+// page shows the "Beta draft" banner. Facts here must match the product: change both together.
+import { PRODUCT_NAME } from "@/product";
+
+export type Doc = { title: string; sections: [string, string[]][] };
+const P = PRODUCT_NAME;
+
+export const LEGAL: Record<string, Doc> = {
+  terms: { title: "Terms of Service", sections: [
+    ["Who we are", [`${P} is a service of Radlor Inc. ("we"). By creating an account you agree to these terms.`]],
+    ["Who can use it", [
+      "You must be 13 or older. If you are under 18, a parent or guardian must agree to these terms and must be the one who pays.",
+      "One person per account. Keep your sign-in email safe; you are responsible for what happens in your account."]],
+    ["What you get", [
+      `${P} turns your question into a short animated, narrated explanation, written by AI. AI can be wrong: check anything important, especially health, legal or money questions. It is not medical, legal or financial advice.`,
+      "Every new question makes a new video and uses credits. Watching a video you already made is free."]],
+    ["Credits and payments", [
+      "1 credit = 10 seconds of video, rounded up. Starting a video holds up to 6 credits; you are charged only for the length made, and failed or refused videos are free.",
+      "Monthly plans renew automatically until you cancel. Plan credits end 3 days after each billing period. Credits from packs do not expire.",
+      "Payments are handled by Stripe. Prices are in US dollars, plus tax where applicable. See Refunds for when money comes back."]],
+    ["Acceptable use", ["Follow the Acceptable use rules. We may decline a question, and may suspend accounts that break them."]],
+    ["Sharing", ["If you share a video, anyone with the link can watch it. They do not see who made it. You can stop sharing at any time."]],
+    ["Ending your account", ["You can delete your account at any time from Account. We may close accounts that break these terms."]],
+    ["Changes", ["We will email you before new terms take effect, and ask you to accept them."]],
+    ["Contact", ["Questions: use the Contact page."]],
+  ] },
+  privacy: { title: "Privacy Policy", sections: [
+    ["What we collect", [
+      "Your email address, your age band (13–17 or 18+; never your birth date), your questions and the videos made from them, your credit and payment history (card details stay with Stripe), and basic technical logs.",
+      "We do not use advertising trackers or sell or share your personal information for advertising."]],
+    ["Why", ["To make your videos, run your account and payments, keep the service safe and working, and meet legal duties."]],
+    ["Who helps us (service providers)", [
+      "Supabase (database and sign-in), Vercel (hosting), Anthropic (writes the video script from your question), Stripe (payments), and an email provider for sign-in codes. Each may only use your data to provide its service to us."]],
+    ["Your questions", ["Your question is sent to Anthropic to write the video. Do not put private details (like full names, addresses or phone numbers) in a question. Questions never appear in web addresses or analytics."]],
+    ["Keeping and deleting", [
+      "You can delete any video, download all your data, or delete your account from Account.",
+      "When you delete your account we delete your questions, videos and shares. A minimal payment record is kept as tax law requires."]],
+    ["Teens", ["The service is for ages 13 and up. If we learn that a user is under 13, we delete the account and refund unused paid credits."]],
+    ["Your rights", ["Depending on where you live (for example California), you can ask to see, correct or delete your data. Use Account or the Contact page."]],
+  ] },
+  refunds: { title: "Refunds and cancellation", sections: [
+    ["Never charged", ["Failed, refused or timed-out videos use no credits."]],
+    ["A wrong or broken video", ["Report it within 7 days and we give the credits back after a review."]],
+    ["Packs", ["A credit pack you have not used at all can be refunded within 14 days."]],
+    ["Plans", [
+      "Your first plan payment can be refunded within 7 days if you used 10% of its credits or fewer.",
+      "Cancel any time from Account → Manage plan. You keep your plan credits until the end of the period. Otherwise there are no partial refunds, unless the law requires them."]],
+    ["Deleting your account", ["Unused credits are not refunded when you delete your account."]],
+  ] },
+  "acceptable-use": { title: "Acceptable use", sections: [
+    ["Don't ask for", [
+      "Sexual content, content that sexualises minors, help to harm yourself or others, weapons or dangerous instructions, hate or harassment, or anything illegal.",
+      "If you are thinking about harming yourself, call or text 988 (US) right now."]],
+    ["Don't", ["Share private details about other people, try to break or overload the service, resell access, or use automated tools to make videos."]],
+  ] },
+  accessibility: { title: "Accessibility", sections: [
+    ["Our aim", ["We aim for WCAG 2.2 AA. Every video has captions and a text transcript, works with reduced motion, and the pages work with a keyboard and screen readers."]],
+    ["Problems", ["If something does not work for you, tell us on the Contact page."]],
+  ] },
+  copyright: { title: "Copyright", sections: [
+    ["Your videos", ["You may use the videos you make for personal and educational purposes."]],
+    ["Reporting", ["If you believe a shared video infringes your copyright, use the Contact page with the link and your details."]],
+  ] },
+};

@@ -1,0 +1,4 @@
+#!/bin/sh
+# Refuses a commit whose staged files hold something that looks like a key (scripts/secret-scan.mjs, PLAN.md §9.7).
+# On once per clone:  git config core.hooksPath .githooks
+exec node scripts/secret-scan.mjs --staged

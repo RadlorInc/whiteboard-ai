@@ -1,0 +1,102 @@
+-- Shared by every pgTAP file through `\ir helpers.psql` (not a .sql file, so the runner does not run it alone).
+-- Everything lives in pg_temp and vanishes with the session; each test file runs in one transaction and rolls back.
+-- Expected values never come from here: these only drive the real functions as the real roles.
+
+-- Run p_sql as p_role with JWT claims {sub, role, aal}; return the first column of the first row as text, or
+-- 'ERROR <sqlstate>: <message>'. The role and claims are always restored to postgres.
+create function pg_temp.q(p_role text, p_sub uuid, p_aal text, p_sql text) returns text
+language plpgsql as $$
+declare v text; v_state text; v_msg text;
+begin
+  perform set_config('request.jwt.claims',
+    case when p_sub is null then json_build_object('role', p_role)::text
+         else json_build_object('sub', p_sub, 'role', p_role, 'aal', coalesce(p_aal, 'aal1'))::text end, true);
+  perform set_config('role', p_role, true);
+  begin
+    execute p_sql into v;
+  exception when others then
+    get stacked diagnostics v_state = returned_sqlstate, v_msg = message_text;
+    v := 'ERROR ' || v_state || ': ' || v_msg;
+  end;
+  perform set_config('role', 'postgres', true);
+  perform set_config('request.jwt.claims', '', true);
+  return v;
+end $$;
+
+create function pg_temp.svc(p_sql text) returns text language sql as $$ select pg_temp.q('service_role', null, null, p_sql) $$;
+create function pg_temp.anon(p_sql text) returns text language sql as $$ select pg_temp.q('anon', null, null, p_sql) $$;
+create function pg_temp.as_user(p_user uuid, p_sql text) returns text language sql as $$
+  select pg_temp.q('authenticated', p_user, 'aal1', p_sql) $$;
+create function pg_temp.as_admin(p_aal text, p_sql text) returns text language sql as $$
+  select pg_temp.q('authenticated', '00000000-0000-4000-8000-0000000000ad', p_aal, p_sql) $$;
+
+-- Seed users (supabase/seed.sql).
+create function pg_temp.ua() returns uuid language sql as $$ select '00000000-0000-4000-8000-00000000000a'::uuid $$;
+create function pg_temp.ub() returns uuid language sql as $$ select '00000000-0000-4000-8000-00000000000b'::uuid $$;
+create function pg_temp.uadmin() returns uuid language sql as $$ select '00000000-0000-4000-8000-0000000000ad'::uuid $$;
+
+-- A fresh signed-up, invited user with a Stripe customer 'cus_t_<label>' and no credits.
+create function pg_temp.new_user(p_label text) returns uuid language plpgsql as $$
+declare v uuid := gen_random_uuid();
+begin
+  insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data,
+                          raw_user_meta_data, created_at, updated_at)
+  values ('00000000-0000-0000-0000-000000000000', v, 'authenticated', 'authenticated', p_label || '@example.test', '',
+          now(), '{"provider":"email","providers":["email"]}', '{}', now(), now());
+  if pg_temp.svc(format('select public.complete_signup(%L, 2000, 1, %L, public.current_terms_version(), %L)',
+                        v, 'age-v1', 'direct')) <> 'ok' then raise exception 'new_user: signup'; end if;
+  update public.profiles set access_granted_at = now() where id = v;
+  if pg_temp.svc(format('select public.link_stripe_customer(%L, %L)', v, 'cus_t_' || p_label)) <> 'cus_t_' || p_label
+    then raise exception 'new_user: customer'; end if;
+  return v;
+end $$;
+
+-- Test fixture for exact balances: moves credits through _ledger() (the primitive every money function uses), so the
+-- ledger and the cache agree. p_sub > 0 also makes the plan bucket valid for p_days days.
+create function pg_temp.give(p_user uuid, p_sub int, p_topup int, p_days int default 30) returns void
+language plpgsql as $$
+begin
+  if p_sub > 0 then
+    perform public._ledger(p_user, 'grant_sub', p_sub, 0, 0, null, 'test:' || gen_random_uuid());
+    update public.credit_balances set sub_expires_at = now() + make_interval(days => p_days), sub_plan = 'plus',
+           sub_subscription_id = 'sub_test_' || p_user, sub_cycle = sub_cycle + 1 where user_id = p_user;
+  end if;
+  if p_topup > 0 then
+    perform public._ledger(p_user, 'grant_topup', 0, p_topup, 0, null, 'test:' || gen_random_uuid());
+  end if;
+end $$;
+
+-- 'sub/topup/held' as stored.
+create function pg_temp.bal(p_user uuid) returns text language sql as $$
+  select sub || '/' || topup || '/' || held from public.credit_balances where user_id = p_user $$;
+
+-- reserve_generation as service_role: 'outcome:generation_id:available' (+ ':retry_at' when set).
+create function pg_temp.reserve(p_user uuid, p_req uuid default gen_random_uuid(), p_style text default 'whiteboard',
+  p_q text default 'How do plants grow?') returns text language sql as $$
+  select pg_temp.svc(format('select r.outcome || '':'' || coalesce(r.generation_id::text, '''') || '':'' '
+    || '|| coalesce(r.available::text, '''') || coalesce('':'' || r.retry_at::text, '''') from public.reserve_generation(%L::uuid, %L::uuid, %L, %L, %L, %L, 1::smallint) r',
+    p_user, p_req, p_style, p_q, 'build-test', 'sha-test')) $$;
+create function pg_temp.gid(p_r text) returns uuid language sql as $$ select nullif(split_part(p_r, ':', 2), '')::uuid $$;
+create function pg_temp.outcome(p_r text) returns text language sql as $$ select split_part(p_r, ':', 1) $$;
+
+-- A script whose narration is exactly p_chars characters, split over up to 3 steps (objects for match-cut).
+create function pg_temp.script(p_chars int, p_style text default 'whiteboard') returns jsonb language sql as $$
+  select jsonb_build_object('q', 'x', case when p_style = 'matchcut' then 'objects' else 'steps' end,
+    jsonb_build_array(jsonb_build_object('say', repeat('a', p_chars / 3)),
+                      jsonb_build_object('say', repeat('b', p_chars / 3)),
+                      jsonb_build_object('say', repeat('c', p_chars - 2 * (p_chars / 3))))) $$;
+
+-- finish_generation as service_role: 'outcome:credits_charged:available'.
+create function pg_temp.finish(p_id uuid, p_chars int, p_style text default 'whiteboard', p_metrics jsonb default null)
+returns text language sql as $$
+  select pg_temp.svc(format('select r.outcome || '':'' || coalesce(r.credits_charged::text, '''') || '':'' || coalesce(r.available::text, '''') '
+    || 'from public.finish_generation(%L::uuid, %L::jsonb, %L::jsonb) r', p_id, pg_temp.script(p_chars, p_style), p_metrics)) $$;
+
+-- fail_generation as service_role: 'outcome:available'.
+create function pg_temp.fail(p_id uuid, p_code text, p_metrics jsonb default null) returns text language sql as $$
+  select pg_temp.svc(format('select r.outcome || '':'' || coalesce(r.available::text, '''') from public.fail_generation(%L::uuid, %L, %L::jsonb) r',
+    p_id, p_code, p_metrics)) $$;
+
+-- credit_drift() as service_role: its row count as text ('0' = no drift).
+create function pg_temp.drift() returns text language sql as $$
+  select pg_temp.svc('select count(*)::text from public.credit_drift()') $$;

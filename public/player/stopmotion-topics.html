@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en" data-style="paper">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paper Motion Topics</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #111; font-family: system-ui, sans-serif; color: #eee; }
+  .wrap { width: min(960px, 100vw - 32px); padding: 16px 0; }
+  .bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  button { font-size: 14px; padding: 8px 14px; border-radius: 999px; border: 1px solid #2f7fd6; background: transparent; color: #cfe3ff; cursor: pointer; }
+  button.on { background: #2f7fd6; color: #fff; }
+  a { color: #8fc1ff; font-size: 14px; }
+  canvas { width: 100%; height: auto; display: block; background: #000; }
+  #stats { text-align: center; color: #999; font-size: 13px; }
+  #caption { min-height: 1.6em; margin: 14px 4px 4px; font-size: 19px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <form class="bar" id="askbar" style="display:none" aria-label="Ask a question">
+    <input id="q" placeholder="Ask anything, e.g. Why is the sky blue?" aria-label="Your question" maxlength="500"
+      style="flex:1;min-width:0;font-size:16px;padding:8px 14px;border-radius:999px;border:1px solid #2f7fd6;background:#1b1b1b;color:#eee">
+    <button id="ask" class="on">Ask</button>
+  </form>
+  <div class="bar" id="topics"></div>
+  <div class="bar" id="modes"></div>
+  <div class="bar"><label><input type="checkbox" id="voice" checked> Voice</label>
+    <span>The same six answers as the <a href="index.html">Whiteboard</a>, in the stop-motion style. No character, nothing written inside the frame.</span></div>
+  <canvas id="cv" width="960" height="600"></canvas>
+  <div id="caption"></div>
+  <div id="stats"></div>
+</div>
+<script src="styles-lib.js"></script>
+<script src="stopmotion-answers.js"></script>
+<script>
+const cv = document.getElementById('cv'), cx = cv.getContext('2d'), K = makeKit(cx);
+const { poly, circ, rrect } = K;
+// ---------- stop-motion helpers: every outline sits a hair differently each drawing (the boil), 12 drawings a second
+let BOIL = true, NOW = 0;                // BOIL off = paper motion (no wobble); NOW = the scene's clock, for things that turn
+const jig = (f, i, a = 1.6) => { if (!BOIL) return 0; const r = rng(f % 3 * 97 + i); return (r() - .5) * a; };
+let BG = '#ebe8e2';                      // each scene's full-frame colour (set per scene by the player), like the original's navy / purple / peach
+const paper = (col = BG) => { cx.fillStyle = col; cx.fillRect(-600, -600, 2200, 1800); };
+const ground = (y = 470) => { cx.strokeStyle = '#bdb8ae'; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(60, y); cx.lineTo(900, y); cx.stroke(); };
+const soft = list => { cx.save(); cx.filter = 'blur(40px)'; cx.globalAlpha = .5; list.forEach(([x, y, r, c]) => circ(x, y, r, c)); cx.restore(); };
+const blob = (x, y, rx, ry, f, i, fill, edge, lw = 3, n = 28, w = 4) => { const pts = [];
+  for (let a = 0; a < n; a++) { const an = a / n * TAU, k = 1 + jig(f, i * 31 + a, w / Math.max(rx, 1)); pts.push([x + Math.cos(an) * rx * k, y + Math.sin(an) * ry * k]); }
+  poly(pts, fill, edge, lw); };
+function sun(x, y, r, f) { cx.save(); cx.translate(x, y); cx.rotate(NOW * .25);
+  for (let i = 0; i < 12; i++) { cx.rotate(TAU / 12); poly([[r + 10, -9], [r + 34 + jig(f, i, 5), 0], [r + 10, 9]], '#f6d65a', '#c98a1a', 2.5); }
+  cx.restore(); blob(x, y, r, r, f, 1, '#f6d65a', '#c98a1a', 3.5); circ(x - r * .3, y - r * .3, r * .22, 'rgba(255,255,255,.45)'); }
+function cloud(x, y, s, f, fill = '#f6f4f0', edge = '#8a93a6', n = 5) { const P = [[-70, 10, 42], [-30, -18, 52], [22, -24, 56], [64, 4, 44], [0, 20, 48], [-100, 26, 30], [96, 28, 30]].slice(0, n + 2);
+  cx.save(); cx.translate(x, y); cx.scale(s, s); P.forEach(([px, py, r], i) => circ(px + jig(f, i), py + jig(f, i + 9), r, null, edge, 6)); P.forEach(([px, py, r], i) => circ(px + jig(f, i), py + jig(f, i + 9), r, fill)); cx.restore(); }
+const lenOf = pts => pts.slice(1).reduce((s, p, i) => s + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0);
+function along(pts, u) { let d = clamp(u) * lenOf(pts);
+  for (let i = 1; i < pts.length; i++) { const L = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); if (d <= L || i === pts.length - 1) { const k = L ? Math.min(1, d / L) : 0; return [lerp(pts[i - 1][0], pts[i][0], k), lerp(pts[i - 1][1], pts[i][1], k)]; } d -= L; } }
+function upto(pts, k) { const out = [pts[0]]; let d = clamp(k) * lenOf(pts);
+  for (let i = 1; i < pts.length; i++) { const L = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); if (d >= L) { out.push(pts[i]); d -= L; } else { out.push(along([pts[i - 1], pts[i]], L ? d / L : 0)); break; } } return out; }
+function path(pts, col, w, { dash, f = 0, glow, alpha = 1 } = {}) { if (pts.length < 2) return; cx.save(); cx.globalAlpha *= alpha; cx.strokeStyle = col; cx.lineWidth = w; cx.lineCap = cx.lineJoin = 'round';
+  if (dash) { cx.setLineDash(dash); cx.lineDashOffset = -f * 3; } if (glow) { cx.shadowColor = glow; cx.shadowBlur = 12; }
+  cx.beginPath(); pts.forEach(([x, y], i) => i ? cx.lineTo(x, y) : cx.moveTo(x, y)); cx.stroke(); cx.restore(); }
+function arrowHead(pts, col, s = 12) { const n = pts.length; if (n < 2) return; const [a, b] = [pts[n - 2], pts[n - 1]], an = Math.atan2(b[1] - a[1], b[0] - a[0]);
+  cx.save(); cx.translate(b[0], b[1]); cx.rotate(an); poly([[s, 0], [-s * .7, -s * .7], [-s * .7, s * .7]], col); cx.restore(); }
+const RAIN = ['#e05a4f', '#f29a52', '#f6d65a', '#6fbf73', '#4fa3d8', '#5d6fd0', '#9f74c0'];
+
+// ---------- 1. rainbow
+const DROP = [520, 300, 200], P0 = [520 - Math.sqrt(200 ** 2 - 100 ** 2), 200];
+const onDrop = a => [DROP[0] + Math.cos(a) * DROP[2], DROP[1] + Math.sin(a) * DROP[2]];
+function bigDrop(f, legs) {                         // legs: how far each of the three legs of light has gone (0..1)
+  paper(); soft([[300, 160, 180, '#9fc4e6'], [760, 460, 170, '#9f74c0']]);
+  blob(DROP[0], DROP[1], DROP[2], DROP[2], f, 3, 'rgba(173,214,240,.55)', '#5b8fb8', 5, 48, 3); circ(450, 220, 26, 'rgba(255,255,255,.6)');
+  path([[-20, 200], P0], '#ffffff', 16, { glow: '#ffffff' }); path([[-20, 200], P0], '#c9c4ba', 2);
+  RAIN.forEach((c, i) => { const B = onDrop(-.12 + i * .045), E = onDrop(2.05 + i * .06), out = add2(E, 2.55 + i * .07, 330);
+    path(upto([P0, B], legs[0]), c, 5); if (legs[1] > 0) path(upto([B, E], legs[1]), c, 5); if (legs[2] > 0) path(upto([E, out], legs[2]), c, 9); }); }
+const add2 = (p, a, L) => [p[0] + Math.cos(a) * L, p[1] + Math.sin(a) * L];
+function rainbowArc(cx0, cy0, r0, k, f, band = 16) { RAIN.forEach((c, i) => { cx.strokeStyle = c; cx.lineWidth = band + 1; cx.beginPath(); cx.arc(cx0 + jig(f, i, 1), cy0, r0 - i * band, Math.PI, Math.PI + Math.PI * clamp(k)); cx.stroke(); }); }
+const rainbow = {
+  q: 'How does a rainbow form?', bgs: ['#ebe8e2', '#1d2147', '#2c3566', '#2c3566', '#2c3566', '#f3b49b', '#ebe8e2'],
+  lines: ['A rainbow needs two things: sunlight, and raindrops in the air.', 'Sunlight looks white, but it is really a mix of every colour.',
+    'When light enters a raindrop, it bends, and each colour bends a little differently.', 'Then it bounces off the back of the drop.',
+    'And it comes out spread into a fan of colours.', 'Millions of drops do this at the same time, so we see a giant arc of colour.',
+    'That is why a rainbow appears when the sun is behind you and the rain is in front of you.'],
+  scenes: [
+    (t, f) => { paper(); soft([[220, 180, 170, '#f6d65a'], [740, 170, 180, '#9fb4d8']]); ground();
+      sun(230, 210, 70 * ease(t / .6), f); if (t > .8) { cloud(720, 190, 1.15, f, '#dfe3ea'); for (let i = 0; i < 16; i++) { const x = 620 + (i * 53) % 210, y = 260 + ((i * 41 + t * 260) % 200);
+        path([[x, y], [x - 4, y + 16]], '#5b8fb8', 3); } } },
+    (t, f) => { paper(); soft([[480, 300, 220, '#f3e3b0']]); const k = ease(t / 1.2), r = ease((t - 1.6) / 2.2);
+      rrect(-20, 262, 1000 * k, 76, 10, '#ffffff', '#c9c4ba', 3);
+      cx.save(); cx.beginPath(); cx.rect(-20, 262, 1000 * r, 76); cx.clip(); RAIN.forEach((c, i) => { const sp = r * 6; rrect(-20, 266 + i * 10 - (3 - i) * sp, 1000, 10, 2, c); }); cx.restore(); },
+    (t, f) => bigDrop(f, [ease(t / 2.2), 0, 0]),
+    (t, f) => { bigDrop(f, [1, ease(t / 1.4), 0]); if (t > 1.3 && t < 2.2) RAIN.forEach((c, i) => circ(...onDrop(-.12 + i * .045), 7, '#ffffff')); },
+    (t, f) => bigDrop(f, [1, 1, ease(t / 1.6)]),
+    (t, f) => { paper(); soft([[480, 120, 220, '#9fb4d8'], [800, 420, 160, '#f3b49b']]); blob(480, 640, 620, 170, f, 5, '#7cbf7c', '#3c7a46', 3);
+      const r = rng(4); for (let i = 0; i < 70; i++) circ(80 + r() * 800, 60 + r() * 380 + (t * 120 + r() * 60) % 40, 3, 'rgba(91,143,184,.6)');
+      rainbowArc(480, 560, 400, ease(t / 3), f, 18); },
+    (t, f) => { paper(); soft([[120, 360, 170, '#f6d65a'], [760, 200, 200, '#9fb4d8']]); ground(500);
+      sun(110, 380, 50, f); cloud(740, 150, 1, f, '#dfe3ea'); for (let i = 0; i < 12; i++) { const x = 650 + (i * 47) % 200, y = 210 + ((i * 41 + t * 260) % 160); path([[x, y], [x - 4, y + 14]], '#5b8fb8', 3); }
+      rainbowArc(700, 500, 230, 1, f, 12);
+      cx.save(); cx.translate(420, 430); cx.beginPath(); cx.moveTo(-50, 0); cx.quadraticCurveTo(0, -36, 50, 0); cx.quadraticCurveTo(0, 36, -50, 0); cx.fillStyle = '#fff'; cx.fill(); cx.strokeStyle = '#2a1a12'; cx.lineWidth = 4; cx.stroke();
+      circ(16, 0, 17, '#4fa3d8', '#2a1a12', 3); circ(18, 0, 8, '#2a1a12'); cx.restore();              // you, looking at the rain
+      const k = ease((t - .8) / 2.4); path(upto([[150, 380], [380, 360], [690, 270], [480, 425]], k), '#f0b429', 4, { dash: [12, 10], f }); }],
+};
+
+// ---------- 2. compound interest (one coin = ten dollars; gold = what you put in, green = interest, pink = interest on interest)
+const GOLD = ['#f2c230', '#8a6414'], GREEN = ['#7cc47f', '#2f6b3a'], PINK = ['#f07aa0', '#8a2f4f'];
+const coin = (x, y, f, i, [fill, edge], w = 70, h = 16) => { rrect(x - w / 2 + jig(f, i, 1.5), y - h / 2, w, h, h / 2, fill, edge, 2.5); cx.strokeStyle = 'rgba(255,255,255,.45)'; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(x - w / 2 + 10, y - 3); cx.lineTo(x + w / 2 - 10, y - 3); cx.stroke(); };
+function stack(x, base, n, f, colOf = () => GOLD, h = 16, w = 70) { const whole = Math.floor(n), part = n - whole;
+  for (let i = 0; i < whole; i++) coin(x, base - i * (h - 2) - h / 2, f, x + i, colOf(i), w, h);
+  if (part > .05) { cx.save(); cx.beginPath(); cx.rect(x - w, base - whole * (h - 2) - h, w * 2, h); cx.clip(); coin(x, base - whole * (h - 2) - h / 2, f, x + whole, colOf(whole), w * part + 12, h); cx.restore(); } }
+function jar(x, base, f) { cx.save(); cx.globalAlpha = .9; rrect(x - 70, base - 250, 140, 252, 22, 'rgba(200,226,240,.35)', '#7aa6c2', 4); rrect(x - 78, base - 268, 156, 22, 8, '#c9c4ba', '#7a7466', 3); cx.restore(); }
+function yearSun(t, d) { const u = clamp(t / d); sunSmall(lerp(160, 800, u), 120 - Math.sin(u * Math.PI) * 60); }
+const sunSmall = (x, y) => { circ(x, y, 26, '#f6d65a', '#c98a1a', 3); };
+const compound = {
+  q: 'What is compound interest?', bgs: ['#ebe8e2', '#2c3566', '#4b2f74', '#4b2f74', '#1d2147', '#ebe8e2'],
+  lines: ['Compound interest means you earn interest on your interest, too.', 'Say you put one hundred dollars in a bank that pays ten percent a year.',
+    'After one year you earn ten dollars, so you have one hundred and ten.', 'The next year, ten percent of one hundred and ten is eleven dollars, not ten. Your interest earned interest.',
+    'Keep going, and the growth speeds up. After ten years you have about two hundred and fifty nine dollars.', 'With simple interest you would only have two hundred. The extra fifty nine dollars is interest on interest.'],
+  scenes: [
+    (t, f) => { paper(); soft([[300, 300, 200, '#f6d65a'], [700, 260, 180, '#f07aa0']]);
+      const g = (x, y, r, [fill, edge], k, i) => { if (k <= 0) return; blob(x, y, r * k, r * k, f, i, fill, edge, 4, 32, 3); circ(x, y, r * k * .7, null, edge, 2); };
+      g(330, 330, 120, GOLD, ease(t / .6), 1); path(upto([[400, 260], [520, 200]], ease((t - .8) / .5)), '#3c7a46', 5);
+      g(575, 190, 62, GREEN, ease((t - 1.2) / .5), 2); path(upto([[615, 150], [690, 110]], ease((t - 2) / .4)), '#8a2f4f', 4); g(715, 98, 30, PINK, ease((t - 2.3) / .5), 3); },
+    (t, f) => { paper(); soft([[700, 260, 220, '#9fb4d8']]); ground(500);
+      poly([[600, 230], [800, 160], [1000, 230]], '#2f3566', '#1a1d40', 3); rrect(620, 230, 360, 270, 4, '#f4ead8', '#a88a55', 3);
+      for (let i = 0; i < 4; i++) rrect(650 + i * 82, 260, 26, 240, 4, '#e2d4b8', '#a88a55', 2);
+      jar(380, 500, f); stack(380, 494, Math.min(10, Math.floor(t / .22)), f);
+      cx.save(); cx.translate(520, 190); circ(0, 0, 48, '#f4ead8', '#a88a55', 3); cx.beginPath(); cx.moveTo(0, 0); cx.arc(0, 0, 48, -Math.PI / 2, -Math.PI / 2 + TAU / 10); cx.closePath(); cx.fillStyle = '#7cc47f'; cx.fill(); cx.strokeStyle = '#2f6b3a'; cx.lineWidth = 2.5; cx.stroke(); cx.restore(); },
+    (t, f, d) => { paper(); soft([[480, 300, 220, '#f6d65a']]); ground(500); yearSun(t, d * .55);
+      jar(480, 500, f); const drop = clamp((t - d * .6) / .5); stack(480, 494, 10, f);
+      if (drop > 0) coin(480, lerp(140, 494 - 10 * 14 - 8, ease(drop)), f, 99, GREEN); },
+    (t, f, d) => { paper(); soft([[480, 300, 220, '#f07aa0']]); ground(500); yearSun(t, d * .4);
+      jar(480, 500, f); stack(480, 494, 11, f, i => i === 10 ? GREEN : GOLD);
+      const drop = clamp((t - d * .45) / .5), top = 494 - 11 * 14 - 8, y = lerp(140, top, ease(drop));
+      if (drop > 0) { coin(480, y, f, 98, GREEN); cx.save(); if (t > d * .62) { cx.shadowColor = '#f07aa0'; cx.shadowBlur = 16 + 8 * Math.sin(f); } rrect(446, y - 22, 68, 9, 4, PINK[0], PINK[1], 2.5); cx.restore(); } },
+    (t, f, d) => { paper(); soft([[700, 200, 220, '#f6d65a'], [250, 420, 180, '#7cc47f']]); ground(520);
+      const shown = Math.min(11, Math.floor(t / (d * .7) * 11) + 1), H = 9, tops = [];
+      for (let n = 0; n < shown; n++) { const v = 10 * 1.1 ** n, x = 110 + n * 74; stack(x, 520, v, f, i => i < 10 ? GOLD : i < 10 + n ? GREEN : PINK, H + 2, 54); tops.push([x, 520 - v * H - 6]); }
+      path(tops, '#f07aa0', 4, { glow: '#f07aa0' }); },
+    (t, f) => { paper(); soft([[360, 300, 200, '#9fb4d8'], [620, 260, 200, '#f07aa0']]); ground(540);
+      stack(360, 540, 20, f, i => i < 10 ? GOLD : ['#9fb4d8', '#4a5f88'], 16, 120);
+      cx.save(); const pulse = .5 + .5 * Math.sin(t * 7);
+      stack(620, 540, 25.9, f, i => i < 10 ? GOLD : i < 20 ? GREEN : PINK, 16, 120);
+      cx.globalAlpha = .25 + .35 * pulse; cx.shadowColor = '#f07aa0'; cx.shadowBlur = 24; rrect(552, 540 - 25.9 * 14 - 6, 136, 6 * 14 + 6, 10, null, '#f07aa0', 5); cx.restore();
+      path([[300, 540 - 20 * 14 - 4], [700, 540 - 20 * 14 - 4]], '#4a5f88', 2.5, { dash: [10, 8] }); }],
+};
+
+// ---------- 3. internet
+const PK = ['#e05a4f', '#f29a52', '#4fa3d8', '#6fbf73', '#9f74c0'];
+function laptop(x, y, s, f) { cx.save(); cx.translate(x + jig(f, 1), y + jig(f, 2)); cx.scale(s, s); rrect(-80, -110, 160, 104, 8, '#2f3566', '#1a1d40', 3); rrect(-68, -98, 136, 80, 4, '#9fc4e6'); poly([[-100, 0], [100, 0], [86, -10], [-86, -10]], '#c9c4ba', '#7a7466', 3); cx.restore(); }
+function phone(x, y, s, f) { cx.save(); cx.translate(x + jig(f, 3), y + jig(f, 4)); cx.scale(s, s); rrect(-42, -78, 84, 156, 14, '#2f3566', '#1a1d40', 3); rrect(-34, -64, 68, 124, 6, '#d8ecf7'); circ(0, 68, 4, '#9aa0aa'); cx.restore(); }
+function envelope(x, y, w, h, f, open = 0) { rrect(x - w / 2 + jig(f, 5), y - h / 2, w, h, 6, '#ffffff', '#7a7466', 3);
+  path([[x - w / 2 + 4, y - h / 2 + 4], [x, y + (open ? -h * 1.1 * open : h * .15)], [x + w / 2 - 4, y - h / 2 + 4]], '#7a7466', 3); }
+function packet(x, y, n, f, s = 1) { cx.save(); cx.translate(x + jig(f, n * 7, 2), y + jig(f, n * 11, 2)); cx.scale(s, s); rrect(-26, -19, 52, 38, 6, '#ffffff', PK[n - 1], 4);
+  for (let i = 0; i < n; i++) circ(-16 + (i % 3) * 16, n > 3 ? (i < 3 ? -7 : 7) : 0, 5, PK[n - 1]); cx.restore(); }
+const NODES = [[110, 300], [300, 160], [300, 440], [480, 300], [660, 150], [660, 450], [850, 300]];
+const LINKS = [[0, 1], [0, 2], [1, 3], [2, 3], [1, 4], [3, 4], [3, 5], [2, 5], [4, 6], [5, 6]];
+function network(f, t) { paper(); soft([[480, 300, 260, '#9fc4e6']]);
+  LINKS.forEach(([a, b]) => path([NODES[a], NODES[b]], '#c9cde6', 4, { dash: [10, 8], alpha: .7 }));
+  NODES.slice(1, 6).forEach(([x, y], i) => { rrect(x - 30 + jig(f, i), y - 18, 60, 36, 8, '#e9eef7', '#8a93a6', 3); path([[x - 16, y - 18], [x - 22, y - 36]], '#c9cde6', 3); path([[x + 16, y - 18], [x + 22, y - 36]], '#c9cde6', 3);
+    circ(x + 18, y, 5, (Math.floor(t * 6) + i) % 2 ? '#7cc47f' : '#2f6b3a'); });
+  laptop(NODES[0][0] - 10, NODES[0][1] + 50, .55, f); phone(NODES[6][0] + 20, NODES[6][1], .6, f); }
+const ROUTES = [[0, 1, 4, 6], [0, 2, 5, 6], [0, 1, 3, 4, 6], [0, 2, 3, 5, 6], [0, 1, 3, 5, 6]].map(r => r.map(i => NODES[i]));
+const internet = {
+  q: 'How does the internet send a message?', bgs: ['#ebe8e2', '#f3b49b', '#1d2147', '#1d2147', '#4b2f74', '#ebe8e2'],
+  lines: ['When you send a message, your computer does not send it in one piece.', 'First it cuts the message into small numbered pieces, called packets.',
+    "Each packet hops through routers, which pass it toward your friend's address.", 'Packets can take different roads, so they may arrive in any order.',
+    "Your friend's phone puts them back in order using the numbers, and the message appears.", 'All of this happens in less than a second!'],
+  scenes: [
+    (t, f) => { paper(); soft([[250, 300, 180, '#9fc4e6'], [760, 300, 180, '#f3b49b']]); ground(470);
+      laptop(250, 470, 1.4, f); phone(760, 360, 1.3, f); path([[340, 300], [690, 300]], '#c9c4ba', 3, { dash: [12, 10] });
+      const k = ease(clamp((t - .6) / .8)), shake = t > 1.5 && t < 2.6 ? Math.sin(t * 40) * 6 : 0, x = lerp(250, 400, k) + shake; envelope(x, 330, 110, 70, f);
+      if (t > 2.6) for (let i = 1; i < 5; i++) path([[x - 55 + i * 22, 292], [x - 55 + i * 22, 368]], '#e05a4f', 3, { dash: [6, 6] }); },
+    (t, f) => { paper(); soft([[480, 300, 240, '#f3e3b0']]); const k = ease((t - .5) / 1.5);
+      cx.save(); cx.globalAlpha = 1 - k; envelope(480, 300, 320, 200, f); cx.restore();
+      for (let n = 1; n <= 5; n++) { const x0 = 480 - 128 + (n - 1) * 64, x1 = 140 + (n - 1) * 170; packet(lerp(x0, x1, k), 300 + (n % 2 ? -1 : 1) * 40 * k, n, f, lerp(.9, 1.6, k)); } },
+    (t, f) => { network(f, t); const u = clamp(t / 4); packet(...along(ROUTES[0], u), 1, f, 1.1); },
+    (t, f) => { network(f, t); const arrive = { 3: 1.9, 1: 2.5, 5: 3.0, 2: 3.5, 4: 4.0 }, order = [3, 1, 5, 2, 4];
+      for (let n = 1; n <= 5; n++) { const s = .1 + n * .05, u = clamp((t - s) / (arrive[n] - s)); if (u < 1) packet(...along(ROUTES[n - 1], u), n, f, 1);
+        else { const slot = order.indexOf(n); packet(820 + (slot % 2) * 56, 90 + slot * 46, n, f, .7); } } },
+    (t, f) => { paper(); soft([[480, 300, 240, '#9fc4e6']]); phone(480, 310, 3.2, f);
+      const order = [3, 1, 5, 2, 4], sort = ease((t - .5) / 1.5), merge = ease((t - 2.6) / .6);
+      if (merge < 1) for (let n = 1; n <= 5; n++) { const a = order.indexOf(n), b = n - 1, y = lerp(160 + a * 66, 160 + b * 66, sort), x = lerp(lerp(430 + (a % 2) * 60, 480, sort), 480, merge);
+        cx.save(); cx.globalAlpha = 1 - merge; packet(x, lerp(y, 300, merge), n, f, 1); cx.restore(); }
+      if (merge > 0) { cx.save(); cx.globalAlpha = merge; envelope(480, 300, 150, 100, f, ease((t - 3.4) / .5)); cx.restore();
+        if (t > 3.6) { const k = ease((t - 3.6) / .6); rrect(430, 230 - 40 * k, 100, 70, 4, '#fffdf6', '#c9c4ba', 2); for (let i = 0; i < 3; i++) path([[442, 246 - 40 * k + i * 14], [510 - i * 12, 246 - 40 * k + i * 14]], '#9aa0aa', 3); } } },
+    (t, f) => { paper(); soft([[480, 280, 240, '#f6d65a']]); laptop(170, 470, 1, f); phone(800, 400, 1, f);
+      for (let n = 1; n <= 5; n++) { const u = ((t * 2.2 + n * .2) % 1); const x = lerp(250, 740, u), y = 380 + (n - 3) * 18; path([[x - 90, y], [x - 20, y]], PK[n - 1], 4, { alpha: .6 }); packet(x, y, n, f, .55); }
+      circ(480, 150, 70, '#f4ead8', '#2a1a12', 4); rrect(470, 66, 20, 14, 3, '#2a1a12'); const a = -Math.PI / 2 + ease(t / 1.2) * 1.4;
+      path([[480, 150], [480 + Math.cos(a) * 55, 150 + Math.sin(a) * 55]], '#e05a4f', 5); circ(480, 150, 6, '#2a1a12'); }],
+};
+
+// ---------- 4. how plants make food
+function leaf(x, y, s, ang, f, glow) { cx.save(); cx.translate(x + jig(f, 1), y + jig(f, 2)); cx.rotate(ang); cx.scale(s, s);
+  if (glow) { cx.shadowColor = '#f6d65a'; cx.shadowBlur = glow; }
+  cx.beginPath(); cx.moveTo(-160, 0); cx.bezierCurveTo(-80, -112 + jig(f, 3, 4), 80, -112, 170, 0); cx.bezierCurveTo(80, 112, -80, 112 + jig(f, 4, 4), -160, 0); cx.closePath();
+  cx.fillStyle = '#6fbf73'; cx.fill(); cx.shadowBlur = 0; cx.strokeStyle = '#2f6b3a'; cx.lineWidth = 4; cx.stroke();
+  path([[-160, 0], [160, 0]], '#3c7a46', 4); for (let i = -2; i <= 2; i++) if (i) { const vx = i * 50; path([[vx - 30, 0], [vx + 10, -48]], '#3c7a46', 3); path([[vx - 30, 0], [vx + 10, 48]], '#3c7a46', 3); }
+  cx.restore(); }
+const pot = (x, y, f) => { poly([[x - 70, y - 90], [x + 70, y - 90], [x + 52, y], [x - 52, y]], '#5d86e0', '#2a3f7a', 3); rrect(x - 80, y - 104, 160, 22, 6, '#4a6fc4', '#2a3f7a', 3); };
+const co2 = (x, y, f, i) => { circ(x - 22 + jig(f, i), y, 11, '#e05a4f', '#7a2a24', 2.5); circ(x + 22 + jig(f, i + 1), y, 11, '#e05a4f', '#7a2a24', 2.5); circ(x, y + jig(f, i + 2), 15, '#4a4f60', '#1a1d30', 2.5); };
+const o2 = (x, y, f, i) => { circ(x - 11 + jig(f, i), y, 12, '#e05a4f', '#7a2a24', 2.5); circ(x + 11, y + jig(f, i + 1), 12, '#e05a4f', '#7a2a24', 2.5); };
+const waterDrop = (x, y, r, f, i) => { cx.save(); cx.translate(x + jig(f, i), y); cx.beginPath(); cx.moveTo(0, -r * 1.6); cx.quadraticCurveTo(r * 1.1, -r * .2, r, r * .3); cx.arc(0, r * .3, r, 0, Math.PI); cx.quadraticCurveTo(-r * 1.1, -r * .2, 0, -r * 1.6); cx.fillStyle = '#4fa3d8'; cx.fill(); cx.strokeStyle = '#2a5f88'; cx.lineWidth = 2.5; cx.stroke(); cx.restore(); };
+function sugar(x, y, r, f, i) { const pts = []; for (let a = 0; a < 6; a++) { const an = a / 6 * TAU + Math.PI / 6; pts.push([x + Math.cos(an) * r + jig(f, i + a, 2), y + Math.sin(an) * r + jig(f, i + a + 9, 2)]); } poly(pts, '#f6d65a', '#c98a1a', 3); circ(x, y, r * .3, '#fff3c4'); }
+const plant = (f, t, glow) => { pot(480, 560, f); path([[480, 460], [470, 360], [480, 280]], '#3c7a46', 10); leaf(560, 250, .9, -.3 + Math.sin(t * 2) * .04, f, glow); leaf(380, 340, .55, .5 + 3.14, f); };
+
+// ---------- 5. the water cycle
+function land(f, t, opt = {}) { paper(); soft([[200, 120, 200, '#f6d65a'], [700, 120, 220, '#9fc4e6']]);
+  poly([[520, 470], [720, 200 + jig(f, 1, 3)], [940, 470]], '#9a8fb8', '#5a4f78', 3); poly([[668, 270], [720, 200], [772, 270], [740, 258], [720, 272], [700, 256]], '#ffffff', '#5a4f78', 2.5);
+  cx.fillStyle = '#7cbf7c'; cx.fillRect(-100, 470, 1200, 200);
+  cx.beginPath(); cx.moveTo(-100, 440); for (let x = -100; x <= 420; x += 40) cx.quadraticCurveTo(x + 20, 440 + 8 * Math.sin(t * 6 + x), x + 40, 440); cx.lineTo(420, 620); cx.lineTo(-100, 620); cx.closePath(); cx.fillStyle = '#4fa3d8'; cx.fill(); cx.strokeStyle = '#2a5f88'; cx.lineWidth = 3; cx.stroke();
+  path([[700, 470], [640, 520], [520, 500], [420, 540]], '#4fa3d8', 18); if (opt.flow) path([[700, 470], [640, 520], [520, 500], [420, 540]], '#d8ecf7', 4, { dash: [14, 18], f: f * 2 }); }
+const LOOP = [[180, 450], [200, 330], [300, 190], [520, 120], [700, 150], [720, 260], [700, 470], [640, 520], [520, 500], [420, 540], [180, 450]];
+
+// ---------- 6. the heart
+function heartShape(x, y, s, fillL, fillR, f) { cx.save(); cx.translate(x + jig(f, 1), y + jig(f, 2)); cx.scale(s, s);
+  const shape = () => { cx.beginPath(); cx.moveTo(0, 70); cx.bezierCurveTo(-120, -5, -70, -120, 0, -55); cx.bezierCurveTo(70, -120, 120, -5, 0, 70); cx.closePath(); };
+  shape(); cx.save(); cx.clip(); cx.fillStyle = fillL; cx.fillRect(-140, -140, 140, 260); cx.fillStyle = fillR; cx.fillRect(0, -140, 140, 260); cx.restore();
+  shape(); cx.strokeStyle = '#5a1414'; cx.lineWidth = 5; cx.stroke(); path([[0, -50], [0, 64]], '#5a1414', 4); circ(-40, -42, 10, 'rgba(255,255,255,.35)'); cx.restore(); }
+const beat = t => 1 + .08 * Math.exp(-((t * 70 / 60) % 1) * 7);
+
+// ---------- player: one caption per scene; a scene lasts as long as its sentence takes to say; hard cuts between scenes
+// ---------- recipes: the drawings live here; an answer only names them (stopmotion-answers.js)
+const PATHS = { in: [[150, 640], [180, 470], [340, 380], [410, 340]], lungs: [[420, 250], [380, 170], [300, 120]], back: [[660, 120], [580, 170], [545, 250]], out: [[560, 380], [640, 450], [800, 470], [820, 640]] };
+const BLOOD = { in: ['#5d6fd0', '#5d6fd0'], lungs: ['#5d6fd0', '#e05a4f'], back: ['#e05a4f', '#e05a4f'], out: ['#e05a4f', '#e05a4f'] };
+// one command: name, then plain numbers (a.v), x,y points (a.pts), key=value, and bare words (flags; the first is a.w[0])
+function parseCmd(cmd) { const [name, ...rest] = cmd.trim().split(/\s+/), a = { v: [], pts: [], w: [] };
+  for (const r of rest) { if (r.includes('=')) { const [k, v] = r.split('='); a[k] = isNaN(+v) ? v : +v; }
+    else if (/^-?[\d.]+,-?[\d.]+$/.test(r)) a.pts.push(r.split(',').map(Number)); else if (!isNaN(+r)) a.v.push(+r); else { a[r] = true; a.w.push(r); } }
+  return { name, a }; }
+const ITEM = { dot: (x, y, f, i, a) => circ(x + jig(f, i), y + jig(f, i + 5), a.size || 10, a.c || '#ffffff', '#3a3a3a', 2.5), drop: (x, y, f, i, a) => waterDrop(x, y, a.size || 9, f, i), co2: (x, y, f, i) => co2(x, y, f, i * 5), o2: (x, y, f, i) => o2(x, y, f, i * 3) };
+const LIB = {
+  // generic paper pieces for any topic (the model's answers use these when no special drawing exists)
+  disc: (a, t, f) => circ(a.v[0] + jig(f, 1), a.v[1] + jig(f, 2), a.v[2] * (a.grow ? ease(clamp(t / .6)) : 1), a.w[0] || '#f6f4f0', a.edge || '#5a5348', 3),
+  box: (a, t, f) => rrect(a.v[0] + jig(f, 3), a.v[1] + jig(f, 4), a.v[2], a.v[3], a.r ?? 12, a.w[0] || '#f6f4f0', a.edge || '#5a5348', 3),
+  shape: (a, t, f) => poly(a.pts.map(([x, y], i) => [x + jig(f, i), y + jig(f, i + 9)]), a.w[0] || '#f6f4f0', a.edge || '#5a5348', 3),
+  line: (a, t, f) => { const pts = a.draw ? upto(a.pts, ease(clamp(t / (a.draw === true ? 1.2 : a.draw)))) : a.pts;
+    path(pts, a.c || '#3a3a3a', a.lw || 5, { dash: a.dash ? [12, 12] : undefined, f }); if (a.arrow) arrowHead(pts, a.c || '#3a3a3a', 14); },
+  glow: a => soft([[a.v[0], a.v[1], a.v[2], a.w[0]]]),
+  ground: a => ground(a.v[0]),
+  zoom: a => { cx.translate(480, 300); cx.scale(a.v[2], a.v[2]); cx.translate(-a.v[0], -a.v[1]); },
+  sun: (a, t, f) => sun(a.v[0], a.v[1], a.v[2], f),
+  cloud: (a, t, f) => { const n = a.grow ? Math.min(7, Math.floor(t / .6) + 1) : 5, k = a.darken ? ease(t / 1.2) : 0;
+    cloud(a.v[0], a.v[1], a.grow ? .6 + n * .12 : a.v[2] ?? 1, f, a.grow ? '#ffffff' : mix('#f6f4f0', '#8a93a6', k), mix('#8a93a6', '#4a5068', k), n); },
+  plant: (a, t, f) => plant(f, t, a.glow ? 10 + 30 * ease(t / 2) : 0),
+  leaf: (a, t, f) => leaf(a.v[0], a.v[1], a.v[2], a.v[3] || 0, f),
+  beams: (a, t, f) => { const [[x1, y1], [x2, y2]] = a.pts; for (let i = 0; i < (a.n || 4); i++) path([[x1, y1 + i * 22], [x2, y2 + i * 18]], '#e9a21a', 6, { dash: [16, 14], f, alpha: .9 }); },   // darker than the sun so it shows on a pale sky
+  soil: a => { const [y, x] = a.v; rrect(-40, y, 1040, 260, 0, '#a07856', '#6b4c33', 3);
+    for (let i = 0; i < 6; i++) path([[x, y + 10], [x + (i - 2.5) * 70, y + 100 + (i % 2) * 40], [x + (i - 2.5) * 110, y + 160]], '#d9c08f', 6); },
+  stem: a => { path(a.pts, '#3c7a46', 22); path(a.pts, '#5fae6c', 14); },
+  pores: a => a.pts.forEach(([x, y]) => { cx.beginPath(); cx.ellipse(x, y, 16, 7, 0, 0, TAU); cx.fillStyle = '#2f6b3a'; cx.fill(); }),
+  cells: (a, t, f) => { for (let r = 0; r < 6; r++) for (let c = 0; c < 9; c++) blob(60 + c * 110 + (r % 2) * 55, 40 + r * 110, 50, 50, f, r * 9 + c, null, 'rgba(47,107,58,.35)', 3, 6, 2); },
+  // things travelling along a path: loop forever, or (once) set off one after another and vanish on arrival
+  flow: (a, t, f) => { const draw = ITEM[a.w[0]]; if (!draw) throw Error(`No flow item "${a.w[0]}"`); const n = a.n || 5;
+    for (let i = 0; i < n; i++) { let u; if (a.once) { u = clamp((t - i * (a.gap ?? .3)) / (a.dur ?? 2.2)); if (u >= 1) continue; u = ease(u); } else u = (t * (a.speed ?? .35) + i / n) % 1;
+      const off = (i % 3 - 1) * (a.spread || 0); let [x, y] = along(a.pts.map(([px, py], j) => j === a.pts.length - 1 ? [px, py] : [px, py + off]), u);
+      if (a.wobble) x += Math.sin(u * 9 + i) * a.wobble + (i - n / 2) * a.wobble;
+      cx.save(); if (a.fade) cx.globalAlpha = 1 - u; draw(x, y, f, i, a); cx.restore(); } },
+  flash: (a, t) => { if (t > 1) return; cx.save(); cx.shadowColor = '#fff3a8'; cx.shadowBlur = 40; circ(a.v[0], a.v[1], 40 * ease(t / .4), 'rgba(255,243,168,.8)'); cx.restore(); },
+  sugar: (a, t, f) => { const [x, y] = a.v, n = Math.floor(clamp(t / 2.4) * (a.n || 6)); for (let i = 0; i < n; i++) sugar(x + Math.cos(i) * 120 * (i > 0), y + Math.sin(i) * 90 * (i > 0), 34, f, i * 13); },
+  land: (a, t, f) => land(f, t, { flow: a.flow }),
+  cycle: (a, t, f) => { if (a.grow) { const k = ease(t / 2.6); path(upto(LOOP, k), '#ffffff', 6, { glow: '#ffffff' }); if (k > .05) arrowHead(upto(LOOP, k), '#ffffff', 14); }
+    else { path(LOOP, '#ffffff', 4, { dash: [10, 12], f, alpha: .8 }); waterDrop(...along(LOOP, (t * .2) % 1), 13, f, 1); } },
+  vapour: (a, t) => { const [x0, y0] = a.v, n = a.n || 9, h = a.h || 260;
+    for (let i = 0; i < n; i++) { const u = (t * .3 + i / n) % 1, x = x0 + i * (a.gap || 42), pts = []; for (let k = 0; k < 8; k++) pts.push([x + Math.sin(k * 1.2 + i + t * 4.8) * 8, y0 - u * h - k * 9]);
+      path(pts, '#ffffff', 4, { alpha: (1 - u) * .9 }); } },
+  rain: (a, t) => { const [x0, x1, y0] = a.v;
+    for (let i = 0; i < 18; i++) { const x = x0 + (i * 37) % (x1 - x0), y = y0 + ((i * 53 + t * 300) % 180);
+      if (!a.snow || x < a.snow) path([[x, y], [x - 4, y + 16]], '#4fa3d8', 3);
+      else { cx.save(); cx.translate(x, y); cx.rotate(t * 2 + i); for (let k = 0; k < 3; k++) { cx.rotate(Math.PI / 3); path([[-7, 0], [7, 0]], '#ffffff', 2.5); } cx.restore(); } } },
+  // the heart; "map" = the diagram: body below, lungs above, the right side (blue) and the left side (red)
+  heart: (a, t, f) => { if (!a.map) return heartShape(a.v[0], a.v[1], a.v[2] * beat(t), '#c8323c', '#c8323c', f);
+    soft([[480, 330, 230, '#f3b49b'], [480, 90, 200, '#f07aa0'], [480, 620, 200, '#f3e3b0']]); rrect(60, 560, 840, 120, 40, '#f6dccb', '#c9a48c', 3);
+    for (const lx of [300, 660]) blob(lx, 100, 90, 62, f, lx, '#f5b5c3', '#a8566a', 3, 26, 3);
+    heartShape(480, 330, 1.7 * beat(t), '#8fa6dc', '#e86a5c', f); },
+  ring: (a, t) => { const ph = (t * 70 / 60) % 1; cx.save(); cx.globalAlpha = 1 - ph; cx.strokeStyle = '#c8323c'; cx.lineWidth = 4; cx.beginPath(); cx.arc(a.v[0], a.v[1], 200 + ph * 120, 0, TAU); cx.stroke(); cx.restore(); },
+  blood: (a, t, f) => { const key = a.w[0], pts = PATHS[key]; if (!pts) throw Error(`No blood path "${key}"`); const [c0, c1] = BLOOD[key];
+    path(pts, a.dim ? '#c9a48c' : '#5a1414', 3, { dash: [10, 10], f, alpha: a.dim ? .5 : .6 });
+    for (let k = 0; k < 6; k++) { const u = (t * .3 + k / 6) % 1; cx.save(); cx.globalAlpha = a.dim ? .35 : 1; circ(...along(pts, u), 10, mix(c0, c1, u), '#3a1414', 2.5); cx.restore(); } },
+};
+const CMDS = new Map();
+function runRecipe(cmds, t, f) { paper();
+  for (const c of cmds) { if (!CMDS.has(c)) CMDS.set(c, parseCmd(c)); const { name, a } = CMDS.get(c);
+    if (!LIB[name]) throw Error(`No recipe "${name}"`); if (t < (a.at || 0)) continue; LIB[name](a, t - (a.at || 0), f); } }
+const fromRecipe = A => ({ q: A.q, recipe: A, bgs: A.steps.map(s => s.bg), lines: A.steps.map(s => s.say), scenes: A.steps.map(s => (t, f) => runRecipe(s.do, t, f)) });
+const R = Object.fromEntries(SM_ANSWERS.map(A => [A.key, fromRecipe(A)]));
+
+const TOPICS = { rainbow, compound, internet, plants: R.plants, water: R.water, heart: R.heart };
+const dur = s => Math.max(3.6, s.split(/\s+/).length * .42 + 1);   // a scene's length when there is no voice to follow
+// Two looks on the same drawings:
+//  stop  = stop-motion: 12 drawings a second, the boil, grain sheets swapping, hard cuts
+//  paper = paper motion: smooth 60 fps, no boil, one still grain sheet, a soft cross-fade between scenes
+// Either way the whole answer is spoken as ONE utterance, and a scene starts on the word its sentence starts with,
+// so there is no gap between sentences (one utterance per sentence left a pause at every join).
+const caption = document.getElementById('caption'), voiceEl = document.getElementById('voice'), FADE = .45;
+let MODE = 'stop', run = 0;
+const BUF = Object.assign(document.createElement('canvas'), { width: 960, height: 600 });   // the incoming scene, laid over the outgoing one
+function drawScene(T, i, t) { const f = Math.floor(t * 12) + i * 7; BG = T.bgs[i] || '#ebe8e2'; NOW = t; const d = dur(T.lines[i]);
+  cx.save(); const z = 1 + .03 * t / d; cx.translate(480, 300); cx.scale(z, z); cx.translate(-480, -300); T.scenes[i](t, f, d); cx.restore(); }
+function frame(T, cur, curT, prev, prevT, k) {     // k: how far the cross-fade from prev to cur has gone (1 = done)
+  const q = x => MODE === 'stop' ? Math.floor(x * 12) / 12 : x;
+  cx.clearRect(0, 0, 960, 600);
+  drawScene(T, cur, q(curT));
+  if (prev != null && k < 1) { BUF.getContext('2d').drawImage(cv, 0, 0); drawScene(T, prev, q(prevT)); cx.save(); cx.globalAlpha = ease(k); cx.drawImage(BUF, 0, 0); cx.restore(); }
+  K.grain(MODE === 'stop' ? Math.floor(curT * 12) : 0, 960, 600);
+}
+function showStats(key) { const T = TOPICS[key], el = document.getElementById('stats');   // same rule as the whiteboard page: chars ÷ 3.5
+  if (!T.recipe) return el.textContent = 'No recipe yet: this answer is hand-written drawing code.';
+  const c = JSON.stringify(T.recipe).length; el.textContent = `Recipe script: ${c.toLocaleString()} chars (≈ ${Math.round(c / 3.5)} tokens) · narration: ${T.lines.join(' ').length} chars`; }
+function still(key, at) { showStats(key);                           // ?t= : one frame on the estimated timeline (render checks)
+  const T = TOPICS[key]; let i = 0, t0 = 0; while (i < T.lines.length - 1 && at >= t0 + dur(T.lines[i])) t0 += dur(T.lines[i++]);
+  BOIL = MODE === 'stop'; frame(T, i, at - t0); caption.textContent = T.lines[i];
+}
+function play(key) { showStats(key);
+  const T = TOPICS[key], id = ++run, n = T.lines.length; BOIL = MODE === 'stop';
+  let cur = 0, curAt = performance.now(), prev = null, prevAt = 0, spoken = false, ended = false, endAt = 0;
+  const go = i => { if (i <= cur || i >= n) return; prev = cur; prevAt = curAt; cur = i; curAt = performance.now(); caption.textContent = T.lines[i]; };
+  caption.textContent = T.lines[0];
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  if (voiceEl.checked && window.speechSynthesis) {
+    const starts = []; let text = ''; T.lines.forEach(l => { starts.push(text.length); text += l + ' '; });
+    const u = new SpeechSynthesisUtterance(text); u.rate = 1.02;
+    u.onboundary = e => { if (id !== run) return; spoken = true; let i = 0; while (i + 1 < n && e.charIndex >= starts[i + 1]) i++; go(i); };
+    u.onend = () => { ended = true; endAt = performance.now(); };
+    speechSynthesis.speak(u);
+  }
+  const tick = () => { if (id !== run) return; const now = performance.now();
+    // no word events from this voice (some voices never send them): fall back to the estimated lengths
+    if (!spoken && (now - curAt) / 1000 > dur(T.lines[cur])) go(cur + 1);
+    const k = MODE === 'paper' && prev != null ? (now - curAt) / 1000 / FADE : 1;
+    frame(T, cur, (now - curAt) / 1000, prev, (now - prevAt) / 1000, k);
+    const done = spoken ? ended && now - endAt > 1500 : cur === n - 1 && (now - curAt) / 1000 > dur(T.lines[cur]);
+    if (!done) requestAnimationFrame(tick); };
+  tick();
+}
+const bar = document.getElementById('topics'), modes = document.getElementById('modes'), q = new URLSearchParams(location.search);
+let current = q.get('topic') in TOPICS ? q.get('topic') : 'rainbow';
+if (q.get('mode') === 'paper') MODE = 'paper';
+const addTopic = key => { const b = document.createElement('button'); b.textContent = '▶ ' + TOPICS[key].q; b.className = key === current ? 'on' : '';
+  b.onclick = () => { current = key; [...bar.children].forEach(c => c.className = c === b ? 'on' : ''); play(key); }; bar.append(b); return b; };
+for (const key in TOPICS) addTopic(key);
+for (const [m, label] of [['stop', 'Stop-motion (12 fps, cuts)'], ['paper', 'Paper motion (smooth, fades)']]) { const b = document.createElement('button'); b.textContent = label; b.className = m === MODE ? 'on' : '';
+  b.onclick = () => { MODE = m; [...modes.children].forEach(c => c.className = c === b ? 'on' : ''); play(current); }; modes.append(b); }
+still(current, q.has('t') ? +q.get('t') : 1.5);
+// ?saved=1 : also list the paper answers saved from live API runs (saved-answers.jsonl), marked ★; no API call
+if (q.has('saved')) fetch('saved-answers.jsonl').then(r => r.text()).then(t => t.trim().split('\n').filter(Boolean).map(JSON.parse)).then(all => all.filter(s => s.style === 'paper').forEach((s, i) => {
+  TOPICS['saved' + i] = fromRecipe(s.answer); addTopic('saved' + i).textContent = '▶ ★ ' + s.answer.q; }));
+
+// Ask anything: only when served by server.mjs (python http.server has no /api)
+fetch('api/health').then(r => r.ok && r.json()).then(h => { if (h) document.getElementById('askbar').style.display = 'flex'; }).catch(() => {});
+document.getElementById('askbar').onsubmit = async e => {
+  e.preventDefault();
+  const qEl = document.getElementById('q'), ask = document.getElementById('ask'), question = qEl.value.trim(); if (!question) return;
+  ask.disabled = true; const t0 = Date.now();
+  const tick = setInterval(() => caption.textContent = `Making your lesson… ${Math.round((Date.now() - t0) / 1000)} s`, 500);
+  try {
+    const r = await fetch('api/answer', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question, style: 'paper' }) });
+    const out = await r.json();
+    if (!r.ok) throw new Error(out.error);
+    const key = 'ask' + Object.keys(TOPICS).length;
+    TOPICS[key] = fromRecipe({ ...out.answer, q: out.answer.q || question });
+    clearInterval(tick); current = key; const b = addTopic(key); b.click();
+    document.getElementById('stats').textContent += out.usage[0]?.mock ? ' · MOCK: a hand-made answer, no API call'
+      : ` · made in ${(out.ms / 1000).toFixed(1)} s, ${out.attempts} attempt(s), cost $${out.cost.toFixed(4)}`;
+  } catch (err) { clearInterval(tick); caption.textContent = '⚠️ ' + err.message; }
+  ask.disabled = false;
+};
+</script>
+<script src="lib/paper-load.js"></script>
+<script>
+// ?gallery=<cat> : every drawing of one paper-library category as a still, in a grid (render check: node lib/shot.mjs paper <cat>)
+(async () => {
+  const cat = new URLSearchParams(location.search).get('gallery'); if (!cat) return;
+  window.ERRS = []; MODE = 'paper'; BOIL = false;
+  const lines = (await (await fetch(`lib/paper/${cat}.txt`)).text()).split('\n').filter(l => l.trim() && !l.startsWith('#'))
+    .flatMap(l => { const p = l.split(' | '), sig = p[0], ex = p.slice(1, -1).join(' | '), desc = p.at(-1);    // every k= variant too
+      const ks = sig.match(/\bk=([\w|-]+)/)?.[1].split('|').filter(k => !new RegExp(`\\bk=${k}\\b`).test(ex)) || [];
+      return [l, ...ks.map(k => `${sig.split(/\s/)[0]} k=${k} | ${/ k=[\w-]+/.test(ex) ? ex.replace(/ k=[\w-]+/, ` k=${k}`) : ex + ` k=${k}`} | variant`)]; });
+  const G = Object.assign(document.createElement('canvas'), { id: 'gallery', width: 4 * 480, height: Math.ceil(lines.length / 4) * 330 }), g = G.getContext('2d');
+  document.querySelector('.wrap').style.width = '1940px'; document.querySelector('.wrap').append(G);
+  g.fillStyle = '#222'; g.fillRect(0, 0, G.width, G.height); g.font = '14px system-ui';
+  lines.forEach((l, i) => { const p = l.split(' | '), sig = p[0], example = p.slice(1, -1).join(' | '), x = (i % 4) * 480, y = Math.floor(i / 4) * 330;
+    try { TOPICS.__g = fromRecipe({ q: 'g', steps: [{ say: 'g', bg: '#cfd8e3', do: [example] }] }); CMDS.clear(); frame(TOPICS.__g, 0, 1.5);
+      g.drawImage(cv, x, y, 480, 300); g.fillStyle = '#eee'; g.fillText(sig.slice(0, 64), x + 6, y + 320);
+    } catch (err) { ERRS.push(`${example}: ${err.message}`); g.fillStyle = '#f66'; g.fillText(`${example} → ${err.message}`.slice(0, 70), x + 6, y + 160); } });
+  document.body.dataset.done = '1';
+})();
+</script>
+<style>.embed body{margin:0;background:transparent}.embed .wrap{max-width:none;margin:0;padding:0}.embed .bar,.embed #askbar,.embed #stats,.embed a{display:none!important}.embed svg,.embed canvas{display:block;width:100%;height:auto}.embed #caption{min-height:0;margin:6px 4px 0;font-size:clamp(14px,3.6vw,20px)}</style><script src="bridge.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+# Every push and PR: types, lint, secret scan, unit + local-DB tests, pgTAP, e2e (mock model: never spends).
+# Inert until the private GitHub repo exists (PLAN.md E2); make "ci" a required check so a red PR cannot merge.
+name: ci
+on: [push, pull_request]
+permissions: { contents: read }
+concurrency: { group: ci-${{ github.ref }}, cancel-in-progress: true }
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.116.0 }
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx eslint src
+      - run: npm run lint:secrets
+      - run: supabase start
+      - name: Local env (local stack keys only; no real secrets in CI)
+        run: |
+          supabase status -o env | awk -F= '
+            /^API_URL=/{gsub(/"/,"",$2); print "NEXT_PUBLIC_SUPABASE_URL="$2}
+            /^ANON_KEY=/{v=substr($0,index($0,"=")+1); gsub(/"/,"",v); print "NEXT_PUBLIC_SUPABASE_ANON_KEY="v}
+            /^SERVICE_ROLE_KEY=/{v=substr($0,index($0,"=")+1); gsub(/"/,"",v); print "SUPABASE_SERVICE_ROLE_KEY="v}' > .env.local
+          echo "APP_URL=http://localhost:3100" >> .env.local
+          echo "NEXT_PUBLIC_SITE_URL=http://localhost:3100" >> .env.local
+          echo "CRON_SECRET=ci-$(openssl rand -hex 16)" >> .env.local
+          echo "AGE_COOKIE_KEY=$(openssl rand -hex 32)" >> .env.local
+          echo "RATE_LIMIT_HMAC_KEY=$(openssl rand -hex 32)" >> .env.local
+      - run: supabase test db
+      - run: npx vitest run
+      - run: WB_LOCAL_DB=1 npx vitest run tests/billing tests/db tests/generation/localdb.test.ts
+      - run: npx playwright install --with-deps chromium webkit
+      - run: CI=1 npx playwright test

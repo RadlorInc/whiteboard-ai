@@ -1,0 +1,46 @@
+house x y s c=#hex | house 480 320 1.4 | house with red roof, lit windows, chimney smoke rising
+city x y s | city 480 300 1.2 | night skyline of tall buildings, windows flicker on and off
+factory x y s | factory 480 320 1.3 | brick factory, sawtooth roof, two chimneys puffing smoke
+shop x y s c=#hex | shop 480 320 1.4 | corner shop, striped awning, fruit in window, green door
+bank x y s | bank 480 300 1.4 | columned bank building with steps and a spinning gold coin emblem
+school x y s | school 480 320 1.3 | red school building with bell tower, the bell swinging
+hospital x y s | hospital 480 320 1.3 | white hospital, glowing blue plus sign, many windows
+bridge x y s | bridge 480 300 1.4 | red suspension bridge over rippling water, a small car crossing
+road x y s | road 480 330 1.5 | road strip with three cars driving past, moving lane dashes
+pyramid x y s | pyramid 480 320 1.4 | two desert pyramids on sand, lit and shaded faces (scenery)
+castle x y s | castle 480 340 1.2 | stone castle, two towers, blue cone roofs, waving pennants, gate
+globe x y s | globe 480 300 1.8 | Earth globe turning, green land drifting across blue sea
+map x y s | map 480 300 1.6 | folded paper map, dashed route line draws itself, pin drops
+car x y s c=#hex | car 480 320 1.6 | side-view car, wheels turning, speed lines behind
+bus x y s c=#hex | bus 480 320 1.4 | yellow side-view bus, window row, wheels turning
+train x y s | train 480 300 1.2 | green steam engine and two red carriages on moving track, smoke
+plane x y s c=#hex | plane 480 300 1.4 | passenger plane flying right, gentle bob, dashed trail
+ship x y s | ship 480 280 1.3 | cargo ship rocking on two rows of moving waves, smoking funnel
+bicycle x y s c=#hex | bicycle 480 300 1.6 | bicycle side view, spoked wheels and pedals turning
+cart x y s | cart 480 300 1.5 | shopping cart with boxes and an apple, rolling wheels
+computer x y s | computer 480 360 1.5 | laptop, bar chart on screen growing
+phone x y s | phone 480 300 1.4 | smartphone, empty chat bubbles popping in one by one
+server x y s | server 480 300 1.2 | server rack tower with blinking green, amber, blue lights
+wifi x y s c=#hex | wifi 480 300 1.6 | wireless signal, three arcs lighting up in turn
+lock x y s shut | lock 480 320 1.4 | gold padlock, shackle lifts open (shut = closes)
+idea x y s | idea 480 300 1.4 | light bulb switching on, glowing, rays pulsing: an idea
+coin x y s | coin 480 300 1.8 | gold coin spinning on its edge, bobbing
+banknote x y s | banknote 480 300 1.6 | green paper banknote fluttering, plain patterns, no numbers
+moneyjar x y s | moneyjar 480 330 1.2 | glass savings jar filling up with dropped coins
+conveyor x y s | conveyor 480 330 1.4 | factory conveyor belt carrying cardboard boxes, rollers turning
+tree x y s k=round|pine|palm | tree 480 300 1.6 k=palm | swaying tree: round leafy, pine, or palm
+forest x y s | forest 480 300 1.4 | row of round and pine trees swaying
+flower x y s c=#hex | flower 480 320 1.6 | flower on a stem, petals bloom open, head nods
+bird x y s c=#hex | bird 480 300 1.6 | blue bird flying, wings flapping
+fish x y s c=#hex | fish 480 300 1.6 | orange striped fish swimming, tail wagging, bubbles rising
+insect x y s k=butterfly|bee | insect 480 300 1.6 k=bee | fluttering butterfly or buzzing bee
+animal x y s k=cow|sheep|camel|lion|elephant | animal 480 320 1.4 k=elephant | side-view animal: cow, sheep, camel, lion, elephant; gently moving
+person x y s k=walk|wave c=#hex | person 480 300 1.6 k=walk | faceless person silhouette walking or waving
+crowd x y s n=count | crowd 480 300 1.4 | crowd of faceless colourful people, gently bobbing
+clock x y s | clock 480 300 1.6 | wall clock without numbers, hands turning
+calendar x y s | calendar 480 300 1.5 | wall calendar, pages flipping, marked day moves
+book x y s c=#hex | book 480 300 1.5 | book opening, then pages turning
+mail x y s | mail 480 300 1.5 | sealed envelope flying with speed lines
+bubble x y s k=speech|think dots | bubble 480 300 1.4 | empty speech or thought bubble pops in; dots = typing
+trophy x y s | trophy 480 320 1.4 | gold trophy cup on plinth, sparkles twinkling
+burst x y s c=#hex | burst 480 300 1.5 | spinning star burst, pulsing: celebration or highlight
