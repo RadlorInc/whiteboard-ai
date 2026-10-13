@@ -184,7 +184,7 @@ async function travel(ids, ms, repeat, me = runId) {
   }
   const segs = ids.map(id => { const g = els[id], p = g.tagName === 'g' ? g.querySelector('.ink:not(.head)') : g; return { p, len: p.getTotalLength(), color: p.getAttribute('stroke') }; });
   const at = (s, t) => { const q = s.p.getPointAtLength(s.len * t); return new DOMPoint(q.x, q.y).matrixTransform(scene.getCTM().inverse().multiply(s.p.getCTM())); };
-  const dot = mk('circle', { r: 9, stroke: '#fff', 'stroke-width': 3 }); scene.insertBefore(dot, marker);
+  const dot = mk('circle', { r: 9, stroke: '#fff', 'stroke-width': 3, class: 'trip' }); scene.insertBefore(dot, marker);
   const put = q => { dot.setAttribute('cx', q.x); dot.setAttribute('cy', q.y); };
   const total = segs.reduce((t, s) => t + s.len, 0), per = i => Math.max(300, ms * segs[i].len / total);
   do {

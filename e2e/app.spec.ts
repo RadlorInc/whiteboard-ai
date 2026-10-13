@@ -32,6 +32,16 @@ test("ask, get charged, find it in the library, share it, unshare it", async ({ 
   await expect(where).toHaveText(`Step ${steps} of ${steps}`);
   await page.getByRole("button", { name: "Previous step" }).click();
   await expect(where).toHaveText(`Step ${steps - 1} of ${steps}`);
+  // When it ends, nothing on the board moves on: no running animation, no travelling dot (14 Oct 2026).
+  await page.getByRole("slider", { name: "Step" }).fill(String(steps));
+  await expect(where).toHaveText("End", { timeout: 60_000 });
+  const board = page.frames().find(f => f.url().includes("/player/index.html"))!;
+  const moving = () => board.evaluate(() => ({
+    running: document.getAnimations().filter(a => a.playState === "running").length,
+    dots: document.querySelectorAll("#scene .trip").length,
+  }));
+  await page.waitForTimeout(500);                                   // a pen-up fade may still be finishing
+  expect(await moving()).toEqual({ running: 0, dots: 0 });
   await page.getByRole("button", { name: "Share", exact: true }).click();
   const url = (await page.locator("p.muted", { hasText: "/v/" }).textContent())!.trim();
   expect(url).toMatch(/\/v\/[A-Za-z0-9_-]{22}$/);

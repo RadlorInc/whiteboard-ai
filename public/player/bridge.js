@@ -68,9 +68,16 @@
         } else if (done) break;
         else await new Promise(r => setTimeout(r, 80));
       }
-      if (my === gen) { at = A.steps.length; where(); tell({ type: 'ended' }); }
+      if (my === gen) { at = A.steps.length; where(); still(); tell({ type: 'ended' }); }
     } catch (e) { tell({ type: 'error', message: String(e.message || e) }); }
   }
+  // The end: nothing moves on (14 Oct 2026). Looping motion (a beat, a flow, rain) holds where it is; a travelling
+  // dot stops (runId ends its trip) and goes.
+  const still = () => {
+    runId++;
+    document.getAnimations().forEach(a => { if (a.effect?.getTiming().iterations === Infinity) a.pause(); });
+    scene.querySelectorAll('.trip').forEach(d => d.remove());
+  };
   async function seek(k) {
     if (!A) return;
     k = Math.max(0, Math.min(k, A.steps.length - 1));
