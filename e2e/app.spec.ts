@@ -71,7 +71,8 @@ test("paper shows its first scene before the video is done", async ({ page }, in
   // still being made. (The bare player shows a demo line for a moment while it loads, so "not empty" is not enough.)
   await expect.poll(async () => {
     const cap = (await caption.textContent())?.trim();
-    return !!cap && (await page.locator("details li").allTextContents()).includes(cap);
+    const lis = await page.locator("details li").allTextContents();
+    return !!cap && lis.includes(cap);
   }, { timeout: 60_000 }).toBe(true);
   expect(await page.getByText(/credits? used/).count()).toBe(0);      // the first scene came before the end
   await expect(page.getByText(/credits? used/)).toBeVisible({ timeout: 90_000 });
