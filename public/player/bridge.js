@@ -4,7 +4,7 @@
 //           · {type:'script', script, voice?} (a finished script: replay, or paper/match-cut after streaming; voice =
 //             how many spoken lines will follow as WAVs from the app's voice) · {type:'wav', i, wav} (line i's WAV, or null when
 //             the voice could not make it: that line gets the browser voice)
-// The player answers {type:'at', i, n, done} as each step starts, {type:'ended'} when a run finishes and {type:'error', message} if a run throws.
+// The player answers {type:'size', h} (its content height) · {type:'at', i, n, done} as each step starts, {type:'ended'} when a run finishes and {type:'error', message} if a run throws.
 // Sound: an iPhone refuses audio started in this frame (no tap ever lands here), so the player asks the page to play
 // each WAV — {type:'play', id, wav} → the page answers {type:'played', id} when it has ended — and {type:'hush'}
 // stops it (13 Oct 2026).
@@ -114,5 +114,7 @@
     else if (m.type === 'done') { done = true; if (A) where(); }
     else if (m.type === 'seek' && Number.isInteger(m.i)) seek(m.i);
   });
+  // The page sizes the frame to what is drawn: a caption that wraps to two lines on a phone was cut off.
+  new ResizeObserver(() => tell({ type: 'size', h: Math.ceil(document.body.getBoundingClientRect().height) })).observe(document.body);
   tell({ type: 'ready' });
 })();

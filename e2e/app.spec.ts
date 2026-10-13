@@ -22,6 +22,16 @@ test("ask, get charged, find it in the library, share it, unshare it", async ({ 
   await page.goto("/library");
   expect(await credits(page)).toBe(before - 4);
   await page.getByRole("link", { name: question }).click();
+  // The step controls move the replay: forward one step, then straight to the last one, then back one.
+  const where = page.locator(".player-controls span");
+  await expect(where).toHaveText(/^Step 1 of (\d+)$/, { timeout: 30_000 });
+  const steps = Number((await where.textContent())!.match(/of (\d+)/)![1]);
+  await page.getByRole("button", { name: "Next step" }).click();
+  await expect(where).toHaveText(`Step 2 of ${steps}`);
+  await page.getByRole("slider", { name: "Step" }).fill(String(steps));
+  await expect(where).toHaveText(`Step ${steps} of ${steps}`);
+  await page.getByRole("button", { name: "Previous step" }).click();
+  await expect(where).toHaveText(`Step ${steps - 1} of ${steps}`);
   await page.getByRole("button", { name: "Share", exact: true }).click();
   const url = (await page.locator("p.muted", { hasText: "/v/" }).textContent())!.trim();
   expect(url).toMatch(/\/v\/[A-Za-z0-9_-]{22}$/);

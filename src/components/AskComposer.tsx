@@ -111,8 +111,8 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
         {question.length >= 400 && <span>{question.length} / {MAX}</span>}
       </div>
 
-      <label className="row small" style={{ gap: 8, alignItems: "center" }}>
-        <input type="checkbox" checked={explore} onChange={(e) => setExploreTick(e.target.checked)} />
+      <label className="row small" style={{ flexWrap: "nowrap" }}>
+        <input type="checkbox" checked={explore} onChange={(e) => setExploreTick(e.target.checked)} style={{ flex: "none", width: 20, height: 20 }} />
         Show in Explore — anyone can watch it there, without seeing who made it. You can remove it later.
       </label>
       <VoiceProgress />
