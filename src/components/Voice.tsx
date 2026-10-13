@@ -9,7 +9,12 @@ const MB = (b: number) => Math.round(b / 1e6);
 // and once if this device cannot run it. Nothing once it is ready.
 export function VoiceProgress() {
   const s = useVoiceStatus();
-  if (s.state === "failed") return <p className="muted small" role="status">This device can&apos;t run the narration voice, so videos use your browser&apos;s voice.</p>;
+  if (s.state === "failed") return (
+    <p className="muted small" role="status">
+      This device can&apos;t run the narration voice, so videos use your browser&apos;s voice.
+      {s.why && <span style={{ display: "block", opacity: 0.7 }}>Reason: {s.why}</span>}
+    </p>
+  );
   if (s.state !== "loading") return null;
   const label = s.stage === "download" ? `Downloading the voice — ${MB(s.loaded)} of ${MB(s.total)} MB (first time only)`
     : s.stage === "check" ? "Checking the download…"
