@@ -2,15 +2,15 @@
 // <iframe sandbox="allow-scripts"> (opaque origin, connect-src 'none'), so it can only draw what it is sent.
 // Messages: {type:'reset'} · {type:'els', els} · {type:'els_add', els} · {type:'step', step, wav?} · {type:'done'}
 //           · {type:'script', script, voice?} (a finished script: replay, or paper/match-cut after streaming; voice =
-//             how many spoken lines will follow as Kokoro WAVs) · {type:'wav', i, wav} (line i's WAV, or null when
-//             Kokoro could not make it: that line gets the browser voice)
+//             how many spoken lines will follow as WAVs from the app's voice) · {type:'wav', i, wav} (line i's WAV, or null when
+//             the voice could not make it: that line gets the browser voice)
 // The player answers {type:'ended'} when a run finishes and {type:'error', message} if a run throws.
 (() => {
   const style = document.documentElement.dataset.style;
   document.documentElement.classList.add('embed');
   const tell = msg => parent.postMessage(msg, '*');       // the parent checks event.source, not the origin (ours is opaque)
 
-  // A step may arrive with its line already spoken by the app (Kokoro, a WAV): play that. Without one (Kokoro off
+  // A step may arrive with its line already spoken by the app (a WAV): play that. Without one (voice off
   // or failed), the player's own say() uses the browser's voice.
   let audio = null;
   const hush = () => { window.speechSynthesis?.cancel(); audio?.pause(); audio = null; };

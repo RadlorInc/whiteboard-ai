@@ -79,7 +79,7 @@ function narratedPlayer({ canvas, kit, scenes, caps = [], fps = 60, len, grainOn
     const id = ++run; let t0 = performance.now() - at * 1000, said = -2, holdAt = 0, busy = false;
     if (window.speechSynthesis) speechSynthesis.cancel();
     self.hushVoice?.();
-    // With the app's Kokoro lines (bridge.js), arriving one by one, the clock holds just before the next line until
+    // With the app's spoken lines (bridge.js), arriving one by one, the clock holds just before the next line until
     // that line has arrived and the one before has finished, so a line is never cut or late (the estimated
     // timeline then stretches to the real voice).
     const wavs = !still && self.VOICE_WAVS?.length === caps.length ? self.VOICE_WAVS : null;

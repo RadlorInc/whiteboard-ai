@@ -71,36 +71,24 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
   - `server-only` guards on every module holding a server key; npm audit (production deps): 0; headers: nonce CSP,
     HSTS, X-Frame-Options DENY, nosniff; `next=` accepts only same-site paths.
 
-## Voice: Kokoro in the browser (live since 13 Oct 2026, #1 + #2)
+## Voice: Pocket TTS in the browser (13 Oct 2026, Draft PR #5 — Kokoro is live until it merges)
 
-- Founder's pick after listening to Chrome/Mac voices, Piper, Kitten and Kokoro: **Kokoro-82M fp32 on WebGPU**, made
-  in the viewer's browser (no server, no ElevenLabs, no per-video cost), in all three styles. The viewer picks one of
-  16 voices on /ask (kokoro-js grades A to C-; "▶ Hear" plays a sample; kept in localStorage `wb.voice`, default
-  Heart); replays and share pages use the viewer's own choice.
-- How: `src/lib/voice.ts` starts `public/tts/kokoro-worker.mjs` when /ask or a player opens. First visit downloads
-  325 MB from Hugging Face; every request is moved to commit `1939ad2…` and only listed files pass
-  (`public/tts/kokoro-files.mjs`), the model and voice files are SHA-256 checked and kept in OPFS. A real progress
-  bar shows the download, the check and the GPU warm-up (`src/components/Voice.tsx`). Whiteboard steps go to the
-  player with their WAV (the board waits for its line); paper and match-cut get the script at once and their lines
-  one by one (paper starts each scene on its line, match-cut holds its clock before a line not yet made). Lines are
-  kept per tab, so Replay is instant. kokoro.web.js and the ONNX Runtime it was built with are committed in
-  `public/tts/vendor` (hash-checked by `tests/voice/vendor.test.ts`; `npm run vendor:tts` updates them — as a
-  prebuild step it never ran on Vercel, so production served 404s, 13 Oct) and served from our origin — not an npm dependency (kokoro-js pulls server-side sharp/onnxruntime-node with open advisories).
-  **Security change:** page CSP gains `worker-src 'self'`; `/tts/*` has its own CSP (`wasm-unsafe-eval`, connect to
-  huggingface.co and *.hf.co) and skips proxy.ts.
-- No WebGPU (founder, 13 Oct: leave it for now): the page says so and the player uses the browser voice.
-- **Licence facts (checked 13 Oct):** Kokoro and kokoro-js are Apache-2.0; phonemizer.js says Apache-2.0 but carries
-  compiled espeak-ng, which is GPL-3.0; our vendored kokoro.web.js contains it (espeak symbols) and no GPL notice.
-  For the lawyer: what serving it requires (licence text, source offer) and whether it reaches our own code (the
-  worker talks to the app only by messages). The other way out is a non-GPL phonemizer (likely less accurate).
-- **Before production:** the licence decision above; a Cloudflare R2 copy as the second source (not coded yet: a
-  fallback that has never fetched from the real bucket is a trap — code and test it once the bucket exists); a
-  phone/tablet test on the Vercel preview (WebGPU needs https, so a phone on the Mac's LAN address cannot run it, and
-  the iOS Simulator needs a full Xcode install); first-visit wait
-  measured at 44 s on this Mac (325 MB); a cut download resumes on the next page (Range, OPFS .part); two tabs on
-  a first visit download it twice.
-
-- **Voice lab** (`/voice-lab/index.html`, Draft PR): voices an iPhone can run; findings in the PR.
+- Kokoro fp32 on WebGPU crashed iPhones (iOS kills the tab while the 325 MB model loads; Mac Safari peaked ~1.5 GB).
+  The voice lab (PR #5) measured Pocket TTS (Kyutai) on a real iPhone: 1.0–1.2x real time, first sound 0.5 s, no
+  crash; Kokoro q8 on CPU 0.4x. Founder: **Pocket everywhere**, one engine.
+- How: `src/lib/voice.ts` starts `public/tts/pocket-worker.js` (KevinAHM's Apache-2.0 web worker, our changes marked
+  "Radlor:") when /ask or a player opens. First visit ~166 MB: 7 model files from KevinAHM's Space pinned at
+  `d0c0c79` + our `public/tts/pocket-voices.bin`, each size- and SHA-256-checked (`public/tts/pocket-files.mjs`) and
+  kept in OPFS; a later visit loads in ~1 s with no download (measured, Chromium on the Mac). Old Kokoro/Kitten files
+  are deleted from OPFS. ONNX Runtime 1.20.0 on one thread (threads hung in Safari) + sentencepiece.js are committed
+  in `public/tts/vendor` (`tests/voice/vendor.test.ts`, `npm run vendor:tts`). Message protocol and players unchanged; the picker shows names only.
+- **Voices:** 6 of the 8 — cosette (Expresso) and jean (EARS) are CC BY-NC, so `scripts/pocket-voices.mjs` builds
+  our voices file without them; `tests/voice/pocket-files.test.ts` fails if a non-commercial voice is offered or
+  shipped (watched red on the 8-voice file). Credits (CC BY) are on the Copyright page.
+- **Security change:** `/tts/*` CSP gains `'unsafe-eval'` (the tokenizer's emscripten embind uses Function()); the
+  worker's CSP only, no DOM. A tokenizer without eval would let us drop it.
+- Not yet: the first iPhone run of the app itself (preview), iOS's 7-day storage eviction (a home-screen app is
+  exempt), a second download source (R2), the attorney's look at CC BY credits (no espeak/GPL any more).
 
 ## Explore and reports (live since 13 Oct 2026, #1; migration applied by migrate-prod)
 

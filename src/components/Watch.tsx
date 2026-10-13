@@ -11,7 +11,7 @@ export type Style = "whiteboard" | "paper" | "matchcut";
 type Script = Record<string, unknown> & { steps?: { say: string }[]; objects?: { say: string }[] };
 // The spoken lines of a paper (steps) or match-cut (objects) script, in the order the player speaks them.
 const linesOf = (style: Style, s: Script) => (style === "matchcut" ? s.objects ?? [] : s.steps ?? []).map((x) => x.say);
-// A paper or match-cut script goes in whole and starts at once; its lines follow as Kokoro makes them,
+// A paper or match-cut script goes in whole and starts at once; its lines follow as the voice makes them,
 // in order, and the player waits for each where it needs it. Returns a stop for an unmounted player.
 function sendScript(post: (m: unknown) => void, style: Style, script: Script) {
   if (!voiceOn()) { post({ type: "script", script }); return () => {}; }
@@ -64,7 +64,7 @@ export function Player({ style, script, onEnded, bind }: {
     return () => removeEventListener("message", on);
   }, [post, onEnded]);
   useEffect(() => { startVoice(); }, []);
-  // A finished whiteboard script goes in as a stream, each step with its Kokoro line (made in order, ahead of the
+  // A finished whiteboard script goes in as a stream, each step with its spoken line (made in order, ahead of the
   // board), so a replay sounds like the first watch. Paper and match-cut take the script whole (browser voice).
   useEffect(() => {
     if (!script) return;
@@ -109,7 +109,7 @@ export function Watch({ question, style, explore = false, onDone, onExit }: {
 
   const run = useCallback(async (confirmNew = false) => {
     const post = (m: unknown) => postRef.current(m);
-    // Whiteboard messages go to the player in order, a step only once its Kokoro line is made (the board and the
+    // Whiteboard messages go to the player in order, a step only once its spoken line is made (the board and the
     // voice start together). The stream keeps arriving meanwhile; on a first visit the first step also waits for
     // the model, and the page shows that load.
     let line: Promise<unknown> = Promise.resolve();

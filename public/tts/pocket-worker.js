@@ -1,9 +1,16 @@
-// Voice lab only (13 Oct 2026): KevinAHM's Pocket TTS web worker (Apache-2.0, POCKET-WEB-LICENSE), from
-// huggingface.co/spaces/KevinAHM/pocket-tts-web at d0c0c79. Changed: ONNX Runtime from our own copy, the model
-// files from that Space at the pinned commit, no voice-cloning encoder (20 MB we do not need).
-// Pocket TTS ONNX Web Worker
-console.log("Pocket TTS Worker Starting...");
-self.postMessage({ type: "status", status: "Worker Thread Started", state: "idle" });
+// The narration voice: Pocket TTS (Kyutai), made in the viewer's browser on the CPU (WebAssembly, one thread), off the
+// page's main thread. Founder's pick for every device, 13 Oct 2026: Kokoro on WebGPU crashed iPhones; this ran on a
+// real iPhone at 1.0-1.2x real time (voice lab, PR #5).
+//
+// Most of this file is KevinAHM's web worker (huggingface.co/spaces/KevinAHM/pocket-tts-web at d0c0c79, Apache-2.0,
+// POCKET-WORKER-LICENSE). Our changes, all marked "Radlor:": ONNX Runtime and the tokenizer from our own origin; every
+// model file pinned (pocket-files.mjs), hash-checked and kept in OPFS; no voice-cloning encoder; the tokenizer's
+// base64 made in pieces (Safari's stack); our message protocol at the end of the file in place of the demo's.
+//
+// Messages in:  {warm: true}       -> load (first time: download ~166 MB, hash-check, keep) -> {warm:'ok'|'error'}
+//               {id, text, voice}  -> {id, wav, secs, ms, bad} or {id, error}
+// Messages out while loading: {download, total} (bytes), {stage: 'check' | 'prepare'}.
+import { FILES, TOTAL_BYTES, VOICES, DEFAULT_VOICE } from "./pocket-files.mjs";
 
 let ort = null;
 
@@ -52,11 +59,11 @@ let isGenerating = false;
 let isReady = false;
 
 function bundleDir(language) {
-    return `https://huggingface.co/spaces/KevinAHM/pocket-tts-web/resolve/d0c0c79b7712256a32d691c67f20b8ae2e020d00/onnx/${language}`;
+    return `./onnx/${language}`;
 }
 
 function bundlePath(language, filename) {
-    return `${bundleDir(language)}/${filename}`;
+    return filename;   // Radlor: a pinned file's name; self.fetch below serves it from OPFS
 }
 
 function debugLog(...args) {
@@ -276,7 +283,7 @@ async function ensurePredefinedVoiceCached(voiceName, options = {}) {
         return voiceConditioningCache.get(voiceName);
     }
 
-    postMessage({ type: "status", status: statusText, state: "loading" });
+    emit({ type: "status", status: statusText, state: "loading" });
     const conditioned = stateFromVoiceRecord(predefinedVoiceRecords[voiceName]);
     voiceConditioningCache.set(voiceName, conditioned);
     return conditioned;
@@ -292,7 +299,7 @@ async function ensureCustomVoiceCached(options = {}) {
         return voiceConditioningCache.get("custom");
     }
 
-    postMessage({ type: "status", status: statusText, state: "loading" });
+    emit({ type: "status", status: statusText, state: "loading" });
     const conditioned = await buildVoiceConditionedState(customVoiceEmbedding);
     voiceConditioningCache.set("custom", conditioned);
     return conditioned;
@@ -533,7 +540,8 @@ async function loadOrt() {
         return;
     }
 
-    postMessage({ type: "status", status: "Loading ONNX Runtime...", state: "loading" });
+    emit({ type: "status", status: "Loading ONNX Runtime...", state: "loading" });
+    // Radlor: ONNX Runtime 1.20.0 from our own origin (scripts/vendor-tts.mjs), not jsDelivr.
     const ortModule = await import("./vendor/ort.wasm.min.mjs");
     ort = ortModule.default || ortModule;
     ort.env.wasm.wasmPaths = new URL("./vendor/", import.meta.url).href;
@@ -560,7 +568,7 @@ async function loadBundle(language, { initialLoad = false } = {}) {
 
     await loadOrt();
 
-    postMessage({ type: "status", status: `Loading ${language} bundle...`, state: "loading" });
+    emit({ type: "status", status: `Loading ${language} bundle...`, state: "loading" });
     currentLanguage = language;
     currentBundleDir = bundleDir(language);
 
@@ -591,7 +599,7 @@ async function loadBundle(language, { initialLoad = false } = {}) {
     };
 
     const [encoderRes, textCondRes, flowMainRes, flowFlowRes, decoderRes] = await Promise.all([
-        Promise.resolve(null),
+        Promise.resolve(null),   // Radlor: the voice-cloning encoder is never used, so never downloaded
         ort.InferenceSession.create(bundlePath(language, MODEL_STEMS.text_conditioner), sessionOptions),
         ort.InferenceSession.create(bundlePath(language, MODEL_STEMS.flow_lm_main), sessionOptions),
         ort.InferenceSession.create(bundlePath(language, MODEL_STEMS.flow_lm_flow), sessionOptions),
@@ -609,12 +617,12 @@ async function loadBundle(language, { initialLoad = false } = {}) {
         throw new Error(`Failed to load tokenizer for ${language}`);
     }
     const tokenizerBuffer = await tokenizerResponse.arrayBuffer();
-    // Changed for the lab: spreading 59 KB into one call overflows Safari's stack ("Maximum call stack size exceeded").
+    // Radlor: spreading 59 KB into one call overflows Safari's stack ("Maximum call stack size exceeded").
     const tokBytes = new Uint8Array(tokenizerBuffer);
     let tokBin = "";
     for (let i = 0; i < tokBytes.length; i += 8192) tokBin += String.fromCharCode(...tokBytes.subarray(i, i + 8192));
     tokenizerModelB64 = btoa(tokBin);
-    const spModule = await import("./sentencepiece.js?v=3");
+    const spModule = await import("./vendor/sentencepiece.js");   // Radlor: our origin
     tokenizerProcessor = new spModule.SentencePieceProcessor();
     await tokenizerProcessor.loadFromB64StringModel(tokenizerModelB64);
 
@@ -652,128 +660,22 @@ async function loadBundle(language, { initialLoad = false } = {}) {
 
     isReady = true;
 
-    postMessage({
+    emit({
         type: "voices_loaded",
         voices: bundleMetadata.predefined_voices || Object.keys(predefinedVoiceRecords),
         defaultVoice,
         language,
     });
-    postMessage({
+    emit({
         type: "bundle_loaded",
         language,
         sampleRate: currentSampleRate,
         initialLoad,
     });
-    postMessage({ type: "status", status: "Ready", state: "idle" });
-    postMessage({ type: "model_status", status: "ready", text: `Ready (${language})` });
+    emit({ type: "status", status: "Ready", state: "idle" });
+    emit({ type: "model_status", status: "ready", text: `Ready (${language})` });
     if (initialLoad) {
-        postMessage({ type: "loaded" });
-    }
-}
-
-self.onmessage = async (e) => {
-    const { type, data } = e.data;
-
-    try {
-        if (type === "load") {
-            await loadBundle(DEFAULT_LANGUAGE, { initialLoad: true });
-            return;
-        }
-
-        if (type === "set_language") {
-            if (isGenerating) {
-                postMessage({ type: "error", error: "Cannot switch language while generation is running." });
-                return;
-            }
-            await loadBundle(data.language, { initialLoad: false });
-            return;
-        }
-
-        if (type === "stop") {
-            isGenerating = false;
-            postMessage({ type: "status", status: "Stopped", state: "idle" });
-            return;
-        }
-
-        if (!isReady) {
-            postMessage({ type: "error", error: "Models are not loaded yet." });
-            return;
-        }
-
-        if (type === "encode_voice") {
-            if (isGenerating) {
-                postMessage({ type: "error", error: "Cannot encode a voice while generation is running." });
-                return;
-            }
-            customVoiceEmbedding = await encodeVoiceAudio(data.audio);
-            currentVoiceName = "custom";
-            await ensureCustomVoiceCached({ force: true, statusText: "Preparing custom voice..." });
-            postMessage({ type: "voice_encoded", voiceName: "custom" });
-            postMessage({ type: "status", status: "Ready", state: "idle" });
-            return;
-        }
-
-        if (type === "set_voice") {
-            if (isGenerating) {
-                postMessage({ type: "error", error: "Cannot switch voice while generation is running." });
-                return;
-            }
-            if (data.voiceName === "custom") {
-                await ensureCustomVoiceCached({ statusText: "Preparing custom voice..." });
-                currentVoiceName = "custom";
-            } else {
-                await ensurePredefinedVoiceCached(data.voiceName, {
-                    statusText: `Preparing voice (${data.voiceName})...`,
-                });
-                currentVoiceName = data.voiceName;
-            }
-            postMessage({ type: "voice_set", voiceName: currentVoiceName });
-            postMessage({ type: "status", status: "Ready", state: "idle" });
-            return;
-        }
-
-        if (type === "generate") {
-            if (isGenerating) {
-                return;
-            }
-            await startGeneration(data.text, data.voice || currentVoiceName);
-        }
-    } catch (err) {
-        console.error("Worker error:", err);
-        postMessage({ type: "error", error: err.toString() + " @ " + (err.stack || "").slice(0, 300) });
-    }
-};
-
-async function startGeneration(text, voiceName) {
-    isGenerating = true;
-    postMessage({ type: "status", status: "Generating...", state: "running" });
-    postMessage({ type: "generation_started", data: { time: performance.now() } });
-
-    try {
-        const { chunks, framesAfterEos } = splitIntoBestSentences(text);
-        if (!chunks.length) {
-            throw new Error("No text to generate");
-        }
-
-        if (voiceName === "custom") {
-            await ensureCustomVoiceCached({ statusText: "Preparing custom voice..." });
-        } else {
-            await ensurePredefinedVoiceCached(voiceName, {
-                statusText: `Preparing voice (${voiceName})...`,
-            });
-        }
-        currentVoiceName = voiceName;
-
-        await runGenerationPipeline(voiceName, chunks, framesAfterEos);
-    } catch (err) {
-        console.error("Generation error:", err);
-        postMessage({ type: "error", error: err.toString() + " @ " + (err.stack || "").slice(0, 300) });
-    } finally {
-        if (isGenerating) {
-            postMessage({ type: "stream_ended" });
-            postMessage({ type: "status", status: "Finished", state: "idle" });
-        }
-        isGenerating = false;
+        emit({ type: "loaded" });
     }
 }
 
@@ -920,7 +822,7 @@ async function runGenerationPipeline(voiceName, chunks, framesAfterEos) {
                 const audioFloat32 = new Float32Array(decodeResult[mimiDecoderSession.outputNames[0]].data);
                 const isLastChunk = shouldStop && chunkIdx === chunks.length - 1;
 
-                postMessage({
+                emit({
                     type: "audio_chunk",
                     data: audioFloat32,
                     metrics: {
@@ -948,7 +850,7 @@ async function runGenerationPipeline(voiceName, chunks, framesAfterEos) {
         if (chunkEnded && isGenerating && chunkIdx < chunks.length - 1) {
             const gapSamples = Math.max(1, Math.floor(CHUNK_GAP_SEC * currentSampleRate));
             const silence = new Float32Array(gapSamples);
-            postMessage({
+            emit({
                 type: "audio_chunk",
                 data: silence,
                 metrics: {
@@ -969,10 +871,140 @@ async function runGenerationPipeline(voiceName, chunks, framesAfterEos) {
     const rtfx = genTime > 0 ? audioSeconds / genTime : 0;
 
     debugLog(`Generation complete for ${voiceName} in ${totalTime.toFixed(2)}s (RTFx ${rtfx.toFixed(2)}x)`);
-    postMessage({
+    emit({
         type: "status",
         status: `Finished (RTFx: ${rtfx.toFixed(2)}x)`,
         state: "idle",
         metrics: { rtfx, genTime, totalTime, audioDuration: audioSeconds },
     });
 }
+
+
+// ── Radlor ───────────────────────────────────────────────────────────────────────────────────────────────────────
+// The demo's own messages (status text, voices list…) are of no use to the app, so they are dropped; while a line is
+// made its audio chunks are collected instead.
+let collecting = null;
+function emit(msg) {
+    if (collecting && msg?.type === "audio_chunk") collecting.push(msg.data);
+}
+
+const hex = async (buf) => [...new Uint8Array(await crypto.subtle.digest("SHA-256", buf))].map((b) => b.toString(16).padStart(2, "0")).join("");
+const BY_NAME = new Map(FILES.map((f) => [f.name, f]));
+BY_NAME.set("voices.bin", BY_NAME.get("pocket-voices.bin"));   // the demo asks for "voices.bin"
+
+// Download progress across all files (they come in parallel).
+const got = new Map();
+const progress = (f, n) => { got.set(f.name, n); self.postMessage({ download: [...got.values()].reduce((a, b) => a + b, 0), total: TOTAL_BYTES }); };
+
+// A file is kept in OPFS under its hash, and only after the hash matched: what is stored is always right. The download
+// is written into "<name>.part" as it arrives (a sync access handle commits each write), so a reload carries on with
+// an HTTP Range request instead of starting again. (From the Kokoro worker, 13 Oct 2026.)
+async function kept(f) {
+    const dir = await navigator.storage.getDirectory(), name = `pocket-${f.sha256}`;
+    try { const file = await (await dir.getFileHandle(name)).getFile(); if (file.size === f.bytes) { got.set(f.name, f.bytes); return file; } } catch {}   // kept: counts, no bar
+    let part = null, sync = null, have = 0, chunks = [];
+    try {
+        part = await dir.getFileHandle(name + ".part", { create: true });
+        sync = await part.createSyncAccessHandle();                    // one writer: another tab gets the in-memory way
+        have = sync.getSize();
+        if (have > f.bytes) { sync.truncate(0); have = 0; }
+    } catch { sync?.close(); part = sync = null; have = 0; }
+    try {
+        if (have < f.bytes) {
+            const res = await realFetch(f.url, have ? { headers: { Range: `bytes=${have}-` } } : undefined);
+            if (!res.ok) throw new Error(`${f.name}: HTTP ${res.status}`);
+            if (have && res.status !== 206) { sync.truncate(0); have = 0; }   // the server sent it all: start again
+            const reader = res.body.getReader();
+            for (;;) {
+                const { done, value } = await reader.read(); if (done) break;
+                if (have + value.length > f.bytes) throw new Error(`${f.name}: longer than ${f.bytes} bytes`);
+                if (sync) sync.write(value, { at: have }); else chunks.push(value);   // no OPFS: in memory this once
+                have += value.length;
+                progress(f, have);
+            }
+            if (have !== f.bytes) throw new Error(`${f.name}: ${have} bytes, expected ${f.bytes}`);
+        }
+    } finally { sync?.flush(); sync?.close(); }
+    const blob = part ? await part.getFile() : new Blob(chunks);
+    const hash = await hex(await blob.arrayBuffer());
+    if (hash !== f.sha256) {
+        if (part) await dir.removeEntry(name + ".part").catch(() => {});   // a bad piece: the next try starts clean
+        throw new Error(`${f.name}: hash ${hash.slice(0, 12)}… is not ${f.sha256.slice(0, 12)}…`);
+    }
+    if (part) try { await part.move(name); return await (await dir.getFileHandle(name)).getFile(); } catch {}
+    return blob;
+}
+
+// Each file once per worker: load() and then the demo's fetches ask for the same files (without OPFS, a second ask
+// would download again). A failure is not kept, so the next warm tries again.
+const once = new Map();
+const keptOnce = (f) => {
+    if (!once.has(f.name)) once.set(f.name, kept(f).catch((e) => { once.delete(f.name); throw e; }));
+    return once.get(f.name);
+};
+
+// Stored voice files nothing pinned names go: the earlier Kokoro (325 MB) and Kitten models, an older Pocket file.
+async function sweep() {
+    const keep = new Set(FILES.flatMap((f) => [`pocket-${f.sha256}`, `pocket-${f.sha256}.part`]));
+    const dir = await navigator.storage.getDirectory();
+    for await (const n of dir.keys()) if (/^(pocket|kokoro|kitten)-/.test(n) && !keep.has(n)) await dir.removeEntry(n).catch(() => {});
+}
+
+// The demo fetches its files (and ONNX Runtime its models) by name: those come from OPFS; nothing else is fetched.
+const realFetch = self.fetch.bind(self);
+self.fetch = async (input, init) => {
+    const url = typeof input === "string" ? input : input.url;
+    const f = BY_NAME.get(url);
+    if (!f) return realFetch(input, init);
+    return new Response(await keptOnce(f), { headers: { "content-type": "application/octet-stream" } });
+};
+
+let loading = null;
+const load = () => loading ||= (async () => {
+    await sweep().catch(() => {});
+    await Promise.all(FILES.map(keptOnce));          // download + check everything first, so the bar means something
+    self.postMessage({ stage: "prepare" });
+    await loadBundle(DEFAULT_LANGUAGE, { initialLoad: true });
+})().catch((e) => { loading = null; throw e; });
+
+// 16-bit mono WAV at the model's rate.
+function wavOf(samples, rate) {
+    const b = new ArrayBuffer(44 + samples.length * 2), v = new DataView(b);
+    const str = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+    str(0, "RIFF"); v.setUint32(4, 36 + samples.length * 2, true); str(8, "WAVE"); str(12, "fmt ");
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true);
+    v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); str(36, "data");
+    v.setUint32(40, samples.length * 2, true);
+    for (let i = 0; i < samples.length; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, samples[i] || 0)) * 0x7fff, true);
+    return b;
+}
+
+async function make(text, voice) {
+    await load();
+    const t = performance.now(), id = VOICES.some((v) => v.id === voice) ? voice : DEFAULT_VOICE;
+    const { chunks, framesAfterEos } = splitIntoBestSentences(text);
+    if (!chunks.length) throw new Error("no text to speak");
+    await ensurePredefinedVoiceCached(id);
+    collecting = []; isGenerating = true;
+    try { await runGenerationPipeline(id, chunks, framesAfterEos); }
+    finally { isGenerating = false; }
+    const parts = collecting; collecting = null;
+    const n = parts.reduce((a, p) => a + p.length, 0), audio = new Float32Array(n);
+    let at = 0, bad = 0;
+    for (const p of parts) { audio.set(p, at); at += p.length; }
+    for (const x of audio) if (!Number.isFinite(x)) bad++;
+    return { wav: wavOf(audio, currentSampleRate), secs: n / currentSampleRate, ms: performance.now() - t, bad };
+}
+
+// One thing at a time, in the order asked.
+let chain = Promise.resolve();
+self.onmessage = ({ data }) => {
+    if (data.warm) {
+        chain = chain.then(load)
+            .then(() => self.postMessage({ warm: "ok" }), (e) => self.postMessage({ warm: "error", error: String(e?.message || e) }));
+        return;
+    }
+    const { id, text, voice } = data;
+    chain = chain.then(() => make(text, voice))
+        .then((r) => self.postMessage({ id, ...r }, [r.wav]), (e) => self.postMessage({ id, error: String(e?.message || e) }));
+};

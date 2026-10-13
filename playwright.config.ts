@@ -10,7 +10,7 @@ export default defineConfig({
   retries: 0,
   use: { baseURL: "http://localhost:3100", trace: "retain-on-failure" },
   webServer: {
-    // e2e never calls the real model (no spend), and keeps the browser voice so CI never downloads Kokoro's 325 MB
+    // e2e never calls the real model (no spend), and keeps the browser voice so CI never downloads the voice model (~166 MB)
     command: "GENERATION_MOCK=1 NEXT_PUBLIC_VOICE=browser npm run dev",
     url: "http://localhost:3100",
     reuseExistingServer: !process.env.CI,

@@ -14,7 +14,7 @@ export const LEGAL: Record<string, Doc> = {
     ["What you get", [
       `${P} turns your question into a short animated, narrated explanation, written by AI. AI can be wrong: check anything important, especially health, legal or money questions. It is not medical, legal or financial advice.`,
       "Every new question makes a new video and uses credits. Watching a video you already made is free.",
-      "The narration voice is made on your own device. The first time, your browser downloads a voice model (about 325 MB) from Hugging Face and keeps it; devices that cannot run it use the browser's own voice."]],
+      "The narration voice is made on your own device. The first time, your browser downloads a voice model (about 166 MB, mostly from Hugging Face) and keeps it; devices that cannot run it use the browser's own voice."]],
     ["Credits and payments", [
       "1 credit = 10 seconds of video, rounded up. Starting a video holds up to 6 credits; you are charged only for the length made, and failed or refused videos are free.",
       "Monthly plans renew automatically until you cancel. Plan credits end 3 days after each billing period. Credits from packs do not expire.",
@@ -71,5 +71,8 @@ export const LEGAL: Record<string, Doc> = {
   copyright: { title: "Copyright", sections: [
     ["Your videos", ["You may use the videos you make for personal and educational purposes."]],
     ["Reporting", ["If you believe a shared or Explore video infringes your copyright, use the Contact page with the link and your details."]],
+    ["Narration voice", [
+      "The narration is made with Pocket TTS by Kyutai, licensed under Creative Commons Attribution 4.0 (CC BY 4.0), using the in-browser version by KevinAHM (Apache License 2.0).",
+      "Its voices come from recordings by Alba MacKenna (CC BY 4.0), the VCTK corpus of the Centre for Speech Technology Research, University of Edinburgh (CC BY 4.0), and Kyutai's Unmute voice donation project (CC0)."]],
   ] },
 };
