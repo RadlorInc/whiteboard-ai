@@ -18,7 +18,7 @@ function csp(nonce: string, dev: boolean) {
     "font-src 'self'",
     `media-src 'self' blob: ${sb.origin}`,
     `connect-src 'self' ${sb.origin} ${ws}`,
-    "worker-src 'self'",                 // the voice worker, /tts/kokoro-worker.mjs (it fetches the model, not the page)
+    "worker-src 'self'",                 // the voice worker, /tts/pocket-worker.js (it fetches the model, not the page)
     "frame-src 'self' https://challenges.cloudflare.com",
     "object-src 'none'",
     "base-uri 'none'",

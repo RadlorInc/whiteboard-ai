@@ -1,11 +1,11 @@
-// The narration voice (founder's pick, 13 Oct 2026): Kokoro, made in the viewer's browser on the graphics chip — no
-// server, no per-video cost. One worker per tab (public/tts/kokoro-worker.mjs) loads the model once: the first time
-// it downloads 325 MB from Hugging Face (pinned, hash-checked) and keeps it in the browser. startVoice() begins that
-// as soon as a signed-in page opens; speakLine() gives a line's WAV in the viewer's chosen voice, or null when
-// Kokoro cannot (no WebGPU, a failed download): the player then says the line with the browser's own voice.
-// NEXT_PUBLIC_VOICE=browser turns Kokoro off (the e2e suite does, so CI never downloads the model).
+// The narration voice (founder's pick for every device, 13 Oct 2026): Pocket TTS, made in the viewer's browser on the
+// CPU — no server, no per-video cost. One worker per tab (public/tts/pocket-worker.js) loads the model once: the first
+// time it downloads ~166 MB (pinned, hash-checked) and keeps it in the browser. startVoice() begins that as soon as a
+// signed-in page opens; speakLine() gives a line's WAV in the viewer's chosen voice, or null when it cannot (a failed
+// download, an old browser): the player then says the line with the browser's own voice.
+// NEXT_PUBLIC_VOICE=browser turns it off (the e2e suite does, so CI never downloads the model).
 import { useSyncExternalStore } from "react";
-import { DEFAULT_VOICE, VOICES } from "../../public/tts/kokoro-files.mjs";
+import { DEFAULT_VOICE, VOICES } from "../../public/tts/pocket-files.mjs";
 
 export { VOICES };
 export type VoiceStatus = {
@@ -36,11 +36,11 @@ export function startVoice(): Promise<boolean> {
   set({ state: "loading", stage: null });
   ready = new Promise<boolean>((resolve) => {
     const fail = (why: string) => {
-      console.warn("Kokoro voice off, the browser voice speaks instead:", why);
+      console.warn("Narration voice off, the browser voice speaks instead:", why);
       set({ state: "failed", stage: null }); resolve(false);
       waiting.forEach((w) => w(null)); waiting.clear();
     };
-    try { worker = new Worker("/tts/kokoro-worker.mjs", { type: "module" }); }
+    try { worker = new Worker("/tts/pocket-worker.js", { type: "module" }); }
     catch (e) { fail(String(e)); return; }
     worker.onerror = (e) => fail(e.message || "the worker did not start");
     worker.onmessage = ({ data }) => {
@@ -48,7 +48,7 @@ export function startVoice(): Promise<boolean> {
       if ("stage" in data) { set({ stage: data.stage }); return; }
       if (data.warm) { if (data.warm === "ok") { set({ state: "ready", stage: null }); resolve(true); } else fail(data.error); return; }
       const w = waiting.get(data.id); waiting.delete(data.id);
-      if (data.error) console.warn("Kokoro could not make a line:", data.error);
+      if (data.error) console.warn("The narration voice could not make a line:", data.error);
       w?.(data.error ? null : data.wav);
     };
     worker.postMessage({ warm: true });

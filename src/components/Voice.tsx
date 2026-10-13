@@ -5,7 +5,7 @@ import { VOICES, setVoice, speakLine, startVoice, useVoiceChoice, useVoiceStatus
 
 const MB = (b: number) => Math.round(b / 1e6);
 
-// Shown while the voice loads (the first time: a 325 MB download, then a check and the graphics chip warming up),
+// Shown while the voice loads (the first time: a ~166 MB download and its check, then the model starting up),
 // and once if this device cannot run it. Nothing once it is ready.
 export function VoiceProgress() {
   const s = useVoiceStatus();
@@ -49,7 +49,7 @@ export function VoicePicker() {
       <label className="stack" style={{ gap: 4, flex: 1 }}>
         <span className="small">Voice</span>
         <select value={voice} onChange={(e) => setVoice(e.target.value)}>
-          {VOICES.map((v) => <option key={v.id} value={v.id}>{v.name} — {v.accent}, {v.gender}</option>)}
+          {VOICES.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
         </select>
       </label>
       <button type="button" className="btn secondary" onClick={hear} disabled={hearing || status.state !== "ready"}>

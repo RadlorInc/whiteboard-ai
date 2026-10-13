@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     "player-src/**",
     // Third-party voice runtime, copied in by scripts/vendor-tts.mjs (pinned and hash-checked), minified.
     "public/tts/vendor/**",
+    // KevinAHM's Pocket TTS worker (Apache-2.0), changed only where it says "Radlor:"; kept close to upstream.
+    "public/tts/pocket-worker.js",
     "test-results/**",
     "playwright-report/**",
   ]),

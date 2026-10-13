@@ -317,7 +317,7 @@ function play(key) { showStats(key);
   caption.textContent = T.lines[0];
   if (window.speechSynthesis) speechSynthesis.cancel();
   self.hushVoice?.();
-  if (self.VOICE_WAVS?.length === n) {                   // the app's Kokoro lines (bridge.js), arriving one by one:
+  if (self.VOICE_WAVS?.length === n) {                   // the app's spoken lines (bridge.js), arriving one by one:
     spoken = true;                                         // each scene starts when its line is ready and is spoken
     (async () => { for (let i = 0; i < n && id === run; i++) { const w = await self.waitLine(i); if (id !== run) return; go(i); await self.sayLine(w, T.lines[i]); }
       if (id === run) { ended = true; endAt = performance.now(); } })();
