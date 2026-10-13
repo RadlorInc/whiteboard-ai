@@ -1,6 +1,7 @@
 // The app page drives these prototype players by postMessage (PLAN.md §7.8). The player runs in an
 // <iframe sandbox="allow-scripts"> (opaque origin, connect-src 'none'), so it can only draw what it is sent.
 // Messages: {type:'reset'} · {type:'els', els} · {type:'els_add', els} · {type:'step', step, wav?} · {type:'done'}
+//           (step and done: whiteboard and paper)
 //           · {type:'script', script, voice?} (a finished script: replay, or paper/match-cut after streaming; voice =
 //             how many spoken lines will follow as WAVs from the app's voice) · {type:'wav', i, wav} (line i's WAV, or null when
 //             the voice could not make it: that line gets the browser voice)
@@ -50,7 +51,7 @@
   };
   blank();
 
-  // Whiteboard: steps play as they arrive. Paper and match-cut play the finished script.
+  // Whiteboard and paper: steps play as they arrive. Match-cut plays the finished script.
   let A = null, done = false, gen = 0;
   async function streamPlay(my) {
     let i = 0;
@@ -78,17 +79,34 @@
     } catch (e) { tell({ type: 'error', message: String(e.message || e) }); }
   }
 
+  // Paper while it is being written: each step plays as it arrives (with its WAV, or null for the browser voice);
+  // waitLine(i) waits for step i, and 'done' puts LINE_END after the last one.
+  self.LINE_END = Symbol('end');
+  let P = null;
+  function paperStream(m) {
+    if (m.type === 'step' && m.step) {
+      const s = m.step, start = !P;
+      if (start) { P = { q: '', live: true, recipe: { steps: [] }, bgs: [], lines: [], scenes: [] }; self.VOICE_WAVS = []; waiters = []; }
+      const i = P.lines.length;
+      P.recipe.steps.push(s); P.bgs.push(s.bg); P.lines.push(s.say); P.scenes.push((t, f) => runRecipe(s.do, t, f));
+      if (start) { TOPICS.embed = P; current = 'embed'; play('embed'); }
+      lineIn(i, m.wav instanceof ArrayBuffer ? m.wav : null);
+    } else if (m.type === 'done' && P) lineIn(P.lines.length, self.LINE_END);
+  }
+  const lineIn = (i, w) => { self.VOICE_WAVS[i] = w; (waiters[i] || []).forEach(f => f(w)); waiters[i] = []; };
+
   addEventListener('message', ev => {
     if (ev.source !== parent || !ev.data || typeof ev.data !== 'object') return;
     const m = ev.data;
     if (m.type === 'hello') { tell({ type: 'ready' }); return; }   // the page may have missed our first 'ready'
     if (m.type === 'played') { const f = playing.get(m.id); playing.delete(m.id); f?.(); return; }
-    if (m.type === 'reset') { gen++; A = null; done = false; hush(); }
+    if (m.type === 'reset') { gen++; A = null; P = null; done = false; hush(); }
     else if (m.type === 'script') playScript(m.script, m.voice);
     else if (m.type === 'wav' && self.VOICE_WAVS && Number.isInteger(m.i) && m.i >= 0 && m.i < self.VOICE_WAVS.length) {
       const w = self.VOICE_WAVS[m.i] = m.wav instanceof ArrayBuffer ? m.wav : null;
       (waiters[m.i] || []).forEach(f => f(w)); waiters[m.i] = [];
     }
+    else if (style === 'paper') paperStream(m);
     else if (style !== 'whiteboard') return;
     else if (m.type === 'els') { A = { els: { ...m.els }, steps: [] }; done = false; restart(); }
     else if (m.type === 'els_add' && A) { Object.assign(A.els, m.els); restart(); }   // rare: replay with the new drawings

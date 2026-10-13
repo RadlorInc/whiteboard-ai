@@ -122,7 +122,7 @@ export function Watch({ question, style, explore = false, onDone, onExit }: {
 
   const run = useCallback(async (confirmNew = false) => {
     const post = (m: unknown) => postRef.current(m);
-    // Whiteboard messages go to the player in order, a step only once its spoken line is made (the board and the
+    // Whiteboard and paper messages go to the player in order, a step only once its spoken line is made (the board and the
     // voice start together). The stream keeps arriving meanwhile; on a first visit the first step also waits for
     // the model, and the page shows that load.
     let line: Promise<unknown> = Promise.resolve();
@@ -143,7 +143,6 @@ export function Watch({ question, style, explore = false, onDone, onExit }: {
     post({ type: "reset" });
     const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
     let buf = "", finished = false;
-    const scriptParts: { els?: Record<string, unknown>; steps: unknown[] } = { steps: [] };
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
@@ -155,18 +154,17 @@ export function Watch({ question, style, explore = false, onDone, onExit }: {
         if (!ev || !data) continue;
         const d = JSON.parse(data);
         if (ev === "stage") setStage(STAGE[d.stage] ?? "Working…");
-        else if (ev === "els") { scriptParts.els = d.els; if (style === "whiteboard") send({ type: "els", els: d.els }); }
-        else if (ev === "els_add") { scriptParts.els = { ...scriptParts.els, ...d.els }; if (style === "whiteboard") send({ type: "els_add", els: d.els }); }
+        else if (ev === "els") { if (style === "whiteboard") send({ type: "els", els: d.els }); }
+        else if (ev === "els_add") { if (style === "whiteboard") send({ type: "els_add", els: d.els }); }
         else if (ev === "step") {
-          scriptParts.steps[d.i] = d.step; setSteps(s => { const n = [...s]; n[d.i] = d.step.say; return n; });
-          if (style === "whiteboard") send({ type: "step", step: d.step }, d.step.say);
+          setSteps(s => { const n = [...s]; n[d.i] = d.step.say; return n; });
+          if (style !== "matchcut") send({ type: "step", step: d.step }, d.step.say);   // whiteboard and paper play as they arrive
         }
         else if (ev === "script") { sendWhole(d.script); setSteps(d.script.objects.map((o: { say: string }) => o.say)); }
         else if (ev === "done") {
           finished = true; setResult({ id: d.id, charged: d.creditsCharged }); setStage("");
           if (explore) setExplore(d.id, true).then((r) => setExploreNote(r.error ? exploreRefusal(r.error) : "Shown in Explore."));
-          if (style === "whiteboard") send({ type: "done" });
-          else if (style === "paper") sendWhole({ q: question, ...scriptParts } as Script);
+          if (style !== "matchcut") send({ type: "done" });
           onDone?.(d.available ?? null);
         }
         else if (ev === "failed") { finished = true; setError(msg(d.code)); onDone?.(d.available ?? null); }

@@ -55,6 +55,23 @@ test("no sideways scrolling on the public pages", async ({ page }) => {
   }
 });
 
+// Paper plays while it is being written (13 Oct 2026): its first scene is on screen before the script is finished.
+// Seed user A, after the core loop (one open video per user).
+test("paper shows its first scene before the video is done", async ({ page }, info) => {
+  test.skip(info.project.name !== "chromium-desktop", "one open video per user: run once");
+  test.setTimeout(120_000);
+  await signIn(page, "a@example.test");
+  await page.goto("/ask");
+  await page.locator("textarea").fill(`How does a rainbow form? (paper stream e2e ${Date.now()})`);
+  await page.getByLabel("Paper").check();
+  await page.getByLabel(/Show in Explore/).uncheck();
+  await page.getByRole("button", { name: "Ask", exact: true }).click();
+  const caption = page.frameLocator('iframe[title="Video player"]').locator("#caption");
+  await expect(caption).not.toHaveText("", { timeout: 60_000 });
+  await expect(page.getByText(/credits? used/)).toHaveCount(0);       // the first scene came before the end
+  await expect(page.getByText(/credits? used/)).toBeVisible({ timeout: 90_000 });
+});
+
 // Explore (founder, 13 Oct 2026), on the local stack with the fake model: a video asked with "Show in Explore"
 // ticked appears on /explore for a signed-out visitor, opens and draws there, and leaves when its maker removes it;
 // a question with contact details never gets there. Seed user B (A runs the core loop in app.spec.ts).
