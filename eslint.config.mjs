@@ -16,6 +16,7 @@ const eslintConfig = defineConfig([
     "player-src/**",
     // Third-party voice runtime, copied in by scripts/vendor-tts.mjs (pinned and hash-checked), minified.
     "public/tts/vendor/**",
+    "public/voice-lab/vendor/**", "public/voice-lab/sentencepiece.js", "public/voice-lab/pocket-worker.js",   // third-party, copied as is
     "test-results/**",
     "playwright-report/**",
   ]),

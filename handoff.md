@@ -100,6 +100,8 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
   measured at 44 s on this Mac (325 MB); a cut download resumes on the next page (Range, OPFS .part); two tabs on
   a first visit download it twice.
 
+- **Voice lab** (`/voice-lab/index.html`, Draft PR): voices an iPhone can run; findings in the PR.
+
 ## Explore and reports (live since 13 Oct 2026, #1; migration applied by migrate-prod)
 
 - Founder's decisions: a public feed at `/explore`, open without signing in (noindex for now); a video goes there

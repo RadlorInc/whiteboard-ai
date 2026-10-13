@@ -1,0 +1,20 @@
+:root { --bg: #fff; --fg: #111; --muted: #666; --card: #f4f4f5; --line: #ddd; --warn: #b42318; --accent: #2563eb; color-scheme: light dark; }
+@media (prefers-color-scheme: dark) { :root { --bg: #111; --fg: #eee; --muted: #9a9a9a; --card: #1c1c1f; --line: #333; --warn: #f97066; --accent: #60a5fa; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.45 -apple-system, system-ui, sans-serif; }
+main { max-width: 640px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 24px; margin: 8px 0; }
+h2 { font-size: 18px; margin: 0 0 8px; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.warn { color: var(--warn); font-weight: 600; }
+.stack { display: flex; flex-direction: column; gap: 4px; margin: 12px 0; }
+textarea { width: 100%; font: inherit; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--fg); }
+.card { background: var(--card); border-radius: 12px; padding: 12px; margin: 12px 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+select, button { font: inherit; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); min-height: 44px; }
+button.go { background: var(--accent); color: #fff; border: none; }
+button:disabled { opacity: .5; }
+table.m { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+table.m td { padding: 4px 0; border-top: 1px solid var(--line); }
+table.m td:last-child { text-align: right; font-variant-numeric: tabular-nums; }

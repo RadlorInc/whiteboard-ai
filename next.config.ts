@@ -28,6 +28,24 @@ const TTS_CSP = [
   "base-uri 'none'",
 ].join("; ");
 
+// The voice lab (public/voice-lab, 13 Oct 2026): a test page that runs candidate voice engines on a phone. Its own
+// CSP like the voice worker's, plus a stylesheet. No cross-origin isolation, so ONNX Runtime runs on one thread: with
+// threads, Pocket hung making a line in Safari and Kokoro hung loading in Chromium (Mac, 13 Oct); one thread worked.
+// A security change: these pages are public and reachable by anyone; they hold no session data and send nothing.
+const LAB_CSP = [
+  "default-src 'none'",
+  // 'unsafe-eval': Pocket TTS's tokenizer (sentencepiece.js, emscripten embind) builds functions with Function().
+  // Lab only; Pocket in the app would need a tokenizer that does not.
+  "script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval'",
+  "style-src 'self'",
+  "worker-src 'self'",
+  "connect-src 'self' https://huggingface.co https://*.hf.co",
+  "media-src 'self' blob:",
+  "base-uri 'none'",
+  "form-action 'none'",
+  "frame-ancestors 'none'",
+].join("; ");
+
 const nextConfig: NextConfig = {
   async headers() {
     return [{
@@ -43,6 +61,14 @@ const nextConfig: NextConfig = {
         { key: "Content-Security-Policy", value: TTS_CSP },
         { key: "X-Content-Type-Options", value: "nosniff" },
         { key: "Referrer-Policy", value: "no-referrer" },
+      ],
+    }, {
+      source: "/voice-lab/:path*",
+      headers: [
+        { key: "Content-Security-Policy", value: LAB_CSP },
+        { key: "X-Content-Type-Options", value: "nosniff" },
+        { key: "Referrer-Policy", value: "no-referrer" },
+        { key: "X-Robots-Tag", value: "noindex" },
       ],
     }];
   },
