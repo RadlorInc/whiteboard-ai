@@ -72,17 +72,13 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
   - `server-only` guards on every module holding a server key; npm audit (production deps): 0; headers: nonce CSP,
     HSTS, X-Frame-Options DENY, nosniff; `next=` accepts only same-site paths.
 
-## Voice: Pocket TTS in the browser (13 Oct 2026, Draft PR #5 — Kokoro is live until it merges)
+## Voice: Pocket TTS in the browser (live since 13 Oct 2026, #5, #7)
 
-- Kokoro fp32 on WebGPU crashed iPhones (iOS kills the tab while the 325 MB model loads; Mac Safari peaked ~1.5 GB).
-  The voice lab (PR #5) measured Pocket TTS (Kyutai) on a real iPhone: 1.0–1.2x real time, first sound 0.5 s, no
-  crash; Kokoro q8 on CPU 0.4x. Founder: **Pocket everywhere**, one engine.
-- How: `src/lib/voice.ts` starts `public/tts/pocket-worker.js` (KevinAHM's Apache-2.0 web worker, our changes marked
-  "Radlor:") when /ask or a player opens. First visit ~166 MB: 7 model files from KevinAHM's Space pinned at
-  `d0c0c79` + our `public/tts/pocket-voices.bin`, each size- and SHA-256-checked (`public/tts/pocket-files.mjs`) and
-  kept in OPFS; a later visit loads in ~1 s with no download (measured, Chromium on the Mac). Old Kokoro/Kitten files
-  are deleted from OPFS. ONNX Runtime 1.20.0 on one thread (threads hung in Safari) + sentencepiece.js are committed
-  in `public/tts/vendor` (`tests/voice/vendor.test.ts`, `npm run vendor:tts`). Message protocol and players unchanged; the picker shows names only.
+- Pocket TTS (Kyutai) on the CPU, one engine everywhere (Kokoro crashed iPhones). `src/lib/voice.ts` starts
+  `public/tts/pocket-worker.js` (KevinAHM's Apache-2.0 worker, our changes marked "Radlor:"). First visit ~166 MB:
+  7 model files pinned at `d0c0c79` + our `public/tts/pocket-voices.bin`, size- and SHA-256-checked
+  (`public/tts/pocket-files.mjs`), kept in OPFS, or Cache Storage where OPFS is missing (#7), or memory. ONNX Runtime
+  1.20.0, one thread, + sentencepiece.js in `public/tts/vendor` (`npm run vendor:tts`).
 - **Voices:** 6 of the 8 — cosette (Expresso) and jean (EARS) are CC BY-NC, so `scripts/pocket-voices.mjs` builds
   our voices file without them; `tests/voice/pocket-files.test.ts` fails if a non-commercial voice is offered or
   shipped (watched red on the 8-voice file). Credits (CC BY) are on the Copyright page.
@@ -151,10 +147,19 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
 - `break-check.sh` clones `node_modules` with `cp -c` (APFS) for e2e copies, because Turbopack rejects a symlinked
   `node_modules` outside the project. Linux CI (M8) needs another way (`cp --reflink=auto`, or a real install).
 
-## UI round (14 Oct 2026, branch `ui-controls`, not pushed)
+## UI round (14 Oct 2026, branch `ui-controls`, committed, not pushed — founder looks locally first)
 
-- /ask: whiteboard only (old paper/match-cut videos still play; the server still accepts them), latest five videos.
-  Voice, theme, motion on `/settings`. `.row` got its missing CSS. The player frame takes its height from the player.
-- Whiteboard step controls (prev / next / slider): `seek` in `bridge.js`, earlier steps drawn at once (`FAST` in
-  `index.html`). No pause yet. Local branch `paper-stream` (paper plays as it streams) is parked.
-- Local stack: `admin.spec.ts` fails past 50 users (first `listUsers` page); `tests/db` needs a fresh reset.
+- /ask: whiteboard only (old paper/match-cut videos still play; the server still accepts them), latest five videos +
+  "See all". Voice, theme, motion on `/settings`. `.row` got its missing CSS; the player frame takes its height from
+  the player (`size` message), so a two-line caption is not cut on a phone.
+- Whiteboard step controls (prev / next / slider): `seek` in `bridge.js`, earlier steps drawn at once (`FAST`).
+  At the end everything holds still (`still()`: infinite animations paused, travel dot gone; watched red: 7 running
+  + 1 dot without it). No pause button yet.
+- While a video is made, a cover over the board (`MakingCover` in `Watch.tsx`): spinner, seconds, bar, and the
+  stream's real stages — reading, drawings (with names), writing (fixing), then the voice (MB on first download).
+  It goes when the first step plays. Seen in Playwright; the core-loop e2e asserts it but has not run yet (user A
+  hit the local 20-videos-an-hour limit).
+- Local demo: `GENERATION_MOCK=1 npm run dev` (no API spend; credits are the local seed users'), sign in as
+  `b@example.test`, code from Mailpit `127.0.0.1:55324`. Use Chrome.
+- Parked: local branch `paper-stream` (paper plays as it streams; e2e watched red). Local stack: `admin.spec.ts`
+  fails past 50 users (first `listUsers` page); `tests/db` needs a fresh `supabase db reset`.
