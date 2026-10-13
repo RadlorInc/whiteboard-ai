@@ -16,6 +16,9 @@ test("ask, get charged, find it in the library, share it, unshare it", async ({ 
   await page.locator("textarea").fill(question);
   await page.getByLabel(/Show in Explore/).uncheck();                // this loop shares by hand (Explore: below)
   await page.getByRole("button", { name: "Ask", exact: true }).click();
+  // While it is made the board is covered by the progress list; the cover goes once the first step is drawn.
+  await expect(page.locator(".making li.now")).toHaveText(/Reading|Choosing|Writing|voice/);
+  await expect(page.locator(".making")).toHaveCount(0, { timeout: 60_000 });
   await expect(page.getByText(/credits? used/)).toBeVisible({ timeout: 90_000 });
   const used = Number((await page.getByText(/credits? used/).textContent())!.match(/(\d+) credits? used/)![1]);
   expect(used).toBe(4);                                  // the mock rainbow: 515 spoken characters -> ceil(515/150) = 4
