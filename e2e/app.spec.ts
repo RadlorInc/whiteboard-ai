@@ -67,8 +67,13 @@ test("paper shows its first scene before the video is done", async ({ page }, in
   await page.getByLabel(/Show in Explore/).uncheck();
   await page.getByRole("button", { name: "Ask", exact: true }).click();
   const caption = page.frameLocator('iframe[title="Video player"]').locator("#caption");
-  await expect(caption).not.toHaveText("", { timeout: 60_000 });
-  await expect(page.getByText(/credits? used/)).toHaveCount(0);       // the first scene came before the end
+  // The caption shows a line of THIS answer (one the page's transcript got from the stream), while the video is
+  // still being made. (The bare player shows a demo line for a moment while it loads, so "not empty" is not enough.)
+  await expect.poll(async () => {
+    const cap = (await caption.textContent())?.trim();
+    return !!cap && (await page.locator("details li").allTextContents()).includes(cap);
+  }, { timeout: 60_000 }).toBe(true);
+  expect(await page.getByText(/credits? used/).count()).toBe(0);      // the first scene came before the end
   await expect(page.getByText(/credits? used/)).toBeVisible({ timeout: 90_000 });
 });
 
