@@ -153,13 +153,8 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
 
 ## UI round (14 Oct 2026, branch `ui-controls`, not pushed)
 
-- /ask offers whiteboard only (paper and match-cut videos already made still play; the server still accepts them).
-  The voice picker moved to `/settings` (with theme and motion; menu → Settings). /ask lists the latest five videos
-  and "See all your videos". `.row` had no CSS, so button rows ran together: now flex with a gap. The player frame
-  takes its height from the player (`size` message), so a two-line caption is no longer cut off on a phone.
-- Whiteboard step controls under the player: previous / next / a step slider (`seek` in `bridge.js`; the steps before
-  are drawn at once through `FAST` in `index.html`). No pause yet. Checked in the core-loop e2e.
-- Local branch `paper-stream` (paper plays each scene as it streams, with a watched-red e2e) is parked now that paper
-  is hidden.
-- Local stack only: `admin.spec.ts` fails once there are 50+ users (it looks on the first page of `listUsers`), and
-  `tests/db` concurrency/invite need a fresh `supabase db reset`.
+- /ask: whiteboard only (old paper/match-cut videos still play; the server still accepts them), latest five videos.
+  Voice, theme, motion on `/settings`. `.row` got its missing CSS. The player frame takes its height from the player.
+- Whiteboard step controls (prev / next / slider): `seek` in `bridge.js`, earlier steps drawn at once (`FAST` in
+  `index.html`). No pause yet. Local branch `paper-stream` (paper plays as it streams) is parked.
+- Local stack: `admin.spec.ts` fails past 50 users (first `listUsers` page); `tests/db` needs a fresh reset.
