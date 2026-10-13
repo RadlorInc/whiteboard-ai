@@ -1,7 +1,7 @@
 "use client";
 // The narration voice in the UI: the first-visit load as a real progress bar, and the voice picker on /ask.
-import { useEffect, useRef, useState } from "react";
-import { VOICES, setVoice, speakLine, startVoice, useVoiceChoice, useVoiceStatus } from "@/lib/voice";
+import { useEffect, useState } from "react";
+import { VOICES, playSound, setVoice, speakLine, startVoice, stopSound, tapForSound, useSoundBlocked, useVoiceChoice, useVoiceStatus } from "@/lib/voice";
 
 const MB = (b: number) => Math.round(b / 1e6);
 
@@ -34,19 +34,19 @@ export function VoicePicker() {
   const voice = useVoiceChoice();
   const status = useVoiceStatus();
   const [hearing, setHearing] = useState(false);
-  const audio = useRef<HTMLAudioElement | null>(null);
-  useEffect(() => { startVoice(); return () => audio.current?.pause(); }, []);
+  const blocked = useSoundBlocked();
+  useEffect(() => { startVoice(); return () => stopSound(); }, []);
   if (status.state === "failed" || status.state === "off") return null;
 
+  // Played through the page's one audio element, started by this tap (lib/voice.ts): an iPhone refused a new Audio
+  // started after the line was made. If it is refused anyway, the next tap on the button plays it.
   const hear = async () => {
+    if (blocked) { tapForSound(); return; }
     const v = VOICES.find((x) => x.id === voice)!;
     setHearing(true);
     const wav = await speakLine(sample(v.name), v.id);
     setHearing(false);
-    if (!wav) return;
-    audio.current?.pause();
-    audio.current = new Audio(URL.createObjectURL(new Blob([wav], { type: "audio/wav" })));
-    audio.current.play().catch(() => {});
+    if (wav) playSound(wav);
   };
 
   return (
@@ -58,7 +58,7 @@ export function VoicePicker() {
         </select>
       </label>
       <button type="button" className="btn secondary" onClick={hear} disabled={hearing || status.state !== "ready"}>
-        {hearing ? "…" : "▶ Hear"}
+        {hearing ? "…" : blocked ? "🔊 Tap to hear" : "▶ Hear"}
       </button>
     </div>
   );
