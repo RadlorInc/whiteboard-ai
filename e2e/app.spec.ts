@@ -63,7 +63,7 @@ test("paper shows its first scene before the video is done", async ({ page }, in
   await signIn(page, "a@example.test");
   await page.goto("/ask");
   await page.locator("textarea").fill(`How does a rainbow form? (paper stream e2e ${Date.now()})`);
-  await page.getByLabel("Paper").check();
+  await page.getByRole("radio", { name: "Paper" }).check();
   await page.getByLabel(/Show in Explore/).uncheck();
   await page.getByRole("button", { name: "Ask", exact: true }).click();
   const caption = page.frameLocator('iframe[title="Video player"]').locator("#caption");
