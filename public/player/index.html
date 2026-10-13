@@ -51,7 +51,9 @@
 const NS = 'http://www.w3.org/2000/svg';
 const $ = s => document.querySelector(s);
 const scene = $('#scene');
-const wait = ms => new Promise(r => setTimeout(r, ms));
+// FAST: a seek draws the steps before the one it jumps to at once (bridge.js seek), with no motion and no voice.
+let FAST = false;
+const wait = ms => FAST ? Promise.resolve() : new Promise(r => setTimeout(r, ms));
 const BOUNCE = 'cubic-bezier(.34,1.56,.64,1)', SMOOTH = 'cubic-bezier(.65,0,.35,1)';
 let els = {}, marker, camNow = '', runId = 0;
 
@@ -125,6 +127,7 @@ function markAt(el, x, y) {
 }
 
 function frames(ms, onT) {
+  if (FAST) { onT(1); return Promise.resolve(); }
   return new Promise(done => {
     const t0 = performance.now();
     (function f(now) { const t = Math.min((now - t0) / ms, 1); onT(t); t < 1 ? requestAnimationFrame(f) : done(); })(t0);
@@ -155,10 +158,11 @@ async function write(id, ms = 900) {
 }
 async function penUp() {
   if (marker.style.opacity === '0') return;
+  if (FAST) { marker.style.opacity = 0; return; }
   await marker.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220 }).finished;
   marker.style.opacity = 0;
 }
-const anim = (el, kf, opt = {}) => el.animate(kf, { duration: 600, easing: BOUNCE, fill: 'forwards', ...opt }).finished;
+const anim = (el, kf, opt = {}) => el.animate(kf, { duration: 600, easing: BOUNCE, fill: 'forwards', ...opt, ...(FAST && { duration: 0 }) }).finished;
 function setCam(cx, cy, s, ms) {
   const to = `translate(${480 - s * cx}px, ${270 - s * cy}px) scale(${s})`;
   const p = ms ? anim(scene, [{ transform: camNow || to }, { transform: to }], { duration: ms, easing: SMOOTH }) : (scene.style.transform = to, Promise.resolve());
@@ -173,8 +177,11 @@ function go(id, ms, pts) {             // tag ko waypoints se le jao (centre coo
 
 // Ek kan raaste par safar kare: "travel bodyIn,toLungs,fromLungs,toBody 6000 loop"
 // har raaste ka rang le leta hai; paas ke raaste jud jaate hain, door wale par kan chhup kar wahan nikalta hai
-async function travel(ids, ms, repeat) {
-  const me = runId;
+async function travel(ids, ms, repeat, me = runId) {
+  if (FAST) {                     // a one-off trip leaves nothing behind; a looping one starts once the seek is done
+    if (repeat) setTimeout(() => me === runId && travel(ids, ms, repeat, me), 50);
+    return;
+  }
   const segs = ids.map(id => { const g = els[id], p = g.tagName === 'g' ? g.querySelector('.ink:not(.head)') : g; return { p, len: p.getTotalLength(), color: p.getAttribute('stroke') }; });
   const at = (s, t) => { const q = s.p.getPointAtLength(s.len * t); return new DOMPoint(q.x, q.y).matrixTransform(scene.getCTM().inverse().multiply(s.p.getCTM())); };
   const dot = mk('circle', { r: 9, stroke: '#fff', 'stroke-width': 3 }); scene.insertBefore(dot, marker);

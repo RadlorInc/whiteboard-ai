@@ -49,6 +49,7 @@ export function Player({ style, script, onEnded, bind }: {
   const ready = useRef(false);
   const soundBlocked = useSoundBlocked();
   const pending = useRef<unknown[]>([]);
+  const [at, setAt] = useState<{ i: number; n: number; done: boolean } | null>(null);   // whiteboard: the step playing
   const post = useCallback((m: unknown) => {
     if (ready.current) frame.current?.contentWindow?.postMessage(m, "*");
     else pending.current.push(m);
@@ -58,6 +59,7 @@ export function Player({ style, script, onEnded, bind }: {
       if (e.source !== frame.current?.contentWindow || !e.data) return;    // only our own iframe
       if (e.data.type === "ready" && !ready.current) { ready.current = true; pending.current.splice(0).forEach(post); }
       if (e.data.type === "ended") onEnded?.();
+      if (e.data.type === "at") setAt({ i: e.data.i, n: e.data.n, done: e.data.done });
       // The player's lines play on this page (an iPhone refuses sound started in the iframe): see lib/voice.ts.
       if (e.data.type === "play" && e.data.wav instanceof ArrayBuffer) {
         const id = e.data.id;
@@ -99,6 +101,19 @@ export function Player({ style, script, onEnded, bind }: {
       )}
       <iframe ref={frame} src={PAGE[style]} sandbox="allow-scripts" allow="autoplay" title="Video player" loading="eager"
         style={{ width: "100%", aspectRatio: style === "matchcut" ? "960/500" : style === "paper" ? "960/720" : "960/660", border: 0 }} />
+      {at && at.n > 0 && (
+        <div className="row player-controls">
+          <button type="button" className="btn secondary" aria-label="Previous step" disabled={at.i === 0}
+            onClick={() => post({ type: "seek", i: at.i - 1 })}>⏮</button>
+          <input type="range" min={1} max={at.n} value={Math.min(at.i + 1, at.n)} aria-label="Step"
+            onChange={(e) => post({ type: "seek", i: Number(e.target.value) - 1 })} style={{ flex: 1 }} />
+          <button type="button" className="btn secondary" aria-label="Next step" disabled={at.i >= at.n - 1}
+            onClick={() => post({ type: "seek", i: at.i + 1 })}>⏭</button>
+          <span className="muted small" aria-live="off">
+            {at.i >= at.n ? "End" : `Step ${at.i + 1} of ${at.n}${at.done ? "" : "…"}`}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

@@ -71,6 +71,7 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .narrow { max-width: 440px; }
 @media (min-width: 768px) { .page { padding: 40px 24px 64px; } }
 .stack > * + * { margin-top: 16px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }   /* button rows: wrap, never overlap */
 h1 { font-size: 1.75rem; line-height: 1.2; font-weight: 700; }
 h2 { font-size: 1.25rem; font-weight: 650; }
 .muted { color: var(--muted); }

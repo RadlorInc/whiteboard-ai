@@ -1,5 +1,5 @@
 "use client";
-// The narration voice in the UI: the first-visit load as a real progress bar, and the voice picker on /ask.
+// The narration voice in the UI: the first-visit load as a real progress bar, and the voice picker on /settings.
 import { useEffect, useState } from "react";
 import { VOICES, playSound, setVoice, speakLine, startVoice, stopSound, tapForSound, useSoundBlocked, useVoiceChoice, useVoiceStatus } from "@/lib/voice";
 
@@ -36,7 +36,8 @@ export function VoicePicker() {
   const [hearing, setHearing] = useState(false);
   const blocked = useSoundBlocked();
   useEffect(() => { startVoice(); return () => stopSound(); }, []);
-  if (status.state === "failed" || status.state === "off") return null;
+  if (status.state === "off") return <p className="muted small">Videos use your browser&apos;s voice.</p>;
+  if (status.state === "failed") return null;          // VoiceProgress says why
 
   // Played through the page's one audio element, started by this tap (lib/voice.ts): an iPhone refused a new Audio
   // started after the line was made. If it is refused anyway, the next tap on the button plays it.
