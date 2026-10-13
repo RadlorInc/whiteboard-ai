@@ -46,10 +46,10 @@ export default async function SignUp({ searchParams }: PageProps<"/signup">) {
     <>
       <main className="page narrow stack">
         <h1>Create your account</h1>
-        {body}
-        <p className="small">
-          Already have an account? <Link href="/signin">Sign in</Link>
+        <p>
+          Already have an account? <Link href="/signin">Sign in here</Link>: no invite code or birth date needed again.
         </p>
+        {body}
       </main>
       <Footer />
     </>

@@ -13,6 +13,14 @@ export default async function Home({ searchParams }: PageProps<"/">) {
   if (data.user) redirect("/ask");
 
   const q = await searchParams;
+  // A sign-in link from an email lands on the Site URL (here) with ?code= (PKCE) or an error. It goes to
+  // /auth/callback, which signs the user in; left here it showed the sign-up button, and a returning user on a new
+  // phone was walked into invite code and birth date (13 Oct 2026, production's Magic Link email had a link).
+  if (typeof q.code === "string" || typeof q.error_code === "string") {
+    const fwd = new URLSearchParams();
+    for (const k of ["code", "error", "error_code"]) if (typeof q[k] === "string") fwd.set(k, q[k] as string);
+    redirect(`/auth/callback?${fwd}`);
+  }
   const utm = typeof q.utm_source === "string" ? q.utm_source.toLowerCase() : "";
   const src = SIGNUP_SOURCES.includes(utm) ? utm : q.ref ? "ref" : q.from === "share" ? "share" : "";
   const invite = (await signupMode()) === "invite";
@@ -28,15 +36,20 @@ export default async function Home({ searchParams }: PageProps<"/">) {
           Type a question and get a short voiced video that draws the answer step by step.
         </p>
         <div>
-          <Link href={`/signup${src ? `?src=${src}` : ""}`} className="btn">
-            {invite ? "Private beta, invite only" : "Get started"}
-          </Link>
+          {/* Two equal doors: a returning user once took the big button for sign-in and ended up in sign-up
+              (invite code, then birth date) with no way through (13 Oct 2026). */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <Link href={`/signup${src ? `?src=${src}` : ""}`} className="btn">
+              {invite ? "New here? Join the private beta" : "Get started"}
+            </Link>
+            <Link href="/signin" className="btn secondary">I have an account: sign in</Link>
+          </div>
           <p className="muted small" style={{ marginTop: 8 }}>
             Plans from $9.99 a month, or $4.99 for 60 credits. No free plan.
           </p>
         </div>
         <p className="small">
-          Already have an account? <Link href="/signin">Sign in</Link> · <Link href="/explore">Explore videos people made</Link>
+          <Link href="/explore">Explore videos people made</Link>
         </p>
 
         <h2 style={{ paddingTop: 16 }}>How it works</h2>
