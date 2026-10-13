@@ -13,6 +13,7 @@ export type VoiceStatus = {
   stage: "download" | "check" | "prepare" | null;   // while loading: bytes arriving, the hash check, the graphics chip
   loaded: number;
   total: number;
+  why?: string;     // when failed: the worker's reason, shown small so a screenshot says what happened
 };
 
 const ON = process.env.NEXT_PUBLIC_VOICE !== "browser";
@@ -37,7 +38,7 @@ export function startVoice(): Promise<boolean> {
   ready = new Promise<boolean>((resolve) => {
     const fail = (why: string) => {
       console.warn("Narration voice off, the browser voice speaks instead:", why);
-      set({ state: "failed", stage: null }); resolve(false);
+      set({ state: "failed", stage: null, why: why.slice(0, 160) }); resolve(false);
       waiting.forEach((w) => w(null)); waiting.clear();
     };
     try { worker = new Worker("/tts/pocket-worker.js", { type: "module" }); }
