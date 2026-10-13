@@ -150,3 +150,16 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
   320/390/430/768 layout runs) comes with the first real specs (M2, M4).
 - `break-check.sh` clones `node_modules` with `cp -c` (APFS) for e2e copies, because Turbopack rejects a symlinked
   `node_modules` outside the project. Linux CI (M8) needs another way (`cp --reflink=auto`, or a real install).
+
+## UI round (14 Oct 2026, branch `ui-controls`, not pushed)
+
+- /ask offers whiteboard only (paper and match-cut videos already made still play; the server still accepts them).
+  The voice picker moved to `/settings` (with theme and motion; menu → Settings). /ask lists the latest five videos
+  and "See all your videos". `.row` had no CSS, so button rows ran together: now flex with a gap. The player frame
+  takes its height from the player (`size` message), so a two-line caption is no longer cut off on a phone.
+- Whiteboard step controls under the player: previous / next / a step slider (`seek` in `bridge.js`; the steps before
+  are drawn at once through `FAST` in `index.html`). No pause yet. Checked in the core-loop e2e.
+- Local branch `paper-stream` (paper plays each scene as it streams, with a watched-red e2e) is parked now that paper
+  is hidden.
+- Local stack only: `admin.spec.ts` fails once there are 50+ users (it looks on the first page of `listUsers`), and
+  `tests/db` concurrency/invite need a fresh `supabase db reset`.
