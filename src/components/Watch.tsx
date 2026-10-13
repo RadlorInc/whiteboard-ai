@@ -2,7 +2,7 @@
 // Watching a video (PLAN.md §5.6–5.8, §7.3): reads /api/generate's SSE stream and feeds the sandboxed player.
 // The same component replays a finished script (library, video page, share page) with no network call.
 import { useCallback, useEffect, useRef, useState } from "react";
-import { playSound, speakLine, startVoice, stopSound, tapForSound, useSoundBlocked, voiceOn } from "@/lib/voice";
+import { playSound, speakLine, startVoice, stopSound, tapForSound, useSoundBlocked, useVoiceStatus, voiceOn } from "@/lib/voice";
 import { VoiceProgress } from "./Voice";
 import { setExplore } from "@/app/videos/actions";
 import { exploreRefusal } from "./VideoView";
@@ -42,8 +42,9 @@ const FAILED: Record<string, string> = {
 };
 const msg = (code: string) => FAILED[code] ?? "Something went wrong. Nothing was charged.";
 
-export function Player({ style, script, onEnded, bind }: {
+export function Player({ style, script, onEnded, bind, onStart, cover }: {
   style: Style; script?: Script | null; onEnded?: () => void; bind?: (post: (m: unknown) => void) => void;
+  onStart?: () => void; cover?: React.ReactNode;     // cover: shown over the board until the first step plays
 }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const ready = useRef(false);
@@ -61,6 +62,7 @@ export function Player({ style, script, onEnded, bind }: {
       if (e.data.type === "ready" && !ready.current) { ready.current = true; pending.current.splice(0).forEach(post); }
       if (e.data.type === "ended") onEnded?.();
       if (e.data.type === "size" && Number.isFinite(e.data.h) && e.data.h > 50 && e.data.h < 4000) setH(e.data.h);
+      if (e.data.type === "at") onStart?.();
       if (e.data.type === "at") setAt({ i: e.data.i, n: e.data.n, done: e.data.done });
       // The player's lines play on this page (an iPhone refuses sound started in the iframe): see lib/voice.ts.
       if (e.data.type === "play" && e.data.wav instanceof ArrayBuffer) {
@@ -73,7 +75,7 @@ export function Player({ style, script, onEnded, bind }: {
     // If the iframe loaded before this listener existed, its 'ready' was lost: ask again (it answers 'ready').
     frame.current?.contentWindow?.postMessage({ type: "hello" }, "*");
     return () => { removeEventListener("message", on); stopSound(); };
-  }, [post, onEnded]);
+  }, [post, onEnded, onStart]);
   useEffect(() => { startVoice(); }, []);
   // A finished whiteboard script goes in as a stream, each step with its spoken line (made in order, ahead of the
   // board), so a replay sounds like the first watch. Paper and match-cut take the script whole (browser voice).
@@ -101,6 +103,7 @@ export function Player({ style, script, onEnded, bind }: {
           🔊 Tap for sound
         </button>
       )}
+      {cover}
       <iframe ref={frame} src={PAGE[style]} sandbox="allow-scripts" allow="autoplay" title="Video player" loading="eager"
         style={{ width: "100%", border: 0, display: "block",
           ...(h ? { height: h } : { aspectRatio: style === "matchcut" ? "960/500" : style === "paper" ? "960/720" : "960/660" }) }} />
@@ -121,6 +124,47 @@ export function Player({ style, script, onEnded, bind }: {
   );
 }
 
+type Making = { at: 0 | 1 | 2 | 3; names?: string[]; fixing?: boolean };
+
+// Over the empty board while a video is made: a spinner, how long it has taken, and the real stages from the
+// server's stream (reading → drawings → writing) and then this browser making the first spoken line. Nothing here
+// is a guess: each line ticks when its event arrives.
+function MakingCover({ making }: { making: Making }) {
+  const [secs, setSecs] = useState(0);
+  useEffect(() => { const t = setInterval(() => setSecs(s => s + 1), 1000); return () => clearInterval(t); }, []);
+  const voice = useVoiceStatus();
+  const names = making.names?.filter(Boolean).slice(0, 4).join(", ");
+  const voiceLine = voice.state === "loading"
+    ? voice.stage === "download" && voice.total ? `Getting the voice ready (${Math.round(voice.loaded / 1e6)} of ${Math.round(voice.total / 1e6)} MB, first time only)` : "Getting the voice ready"
+    : "Making the voice";
+  const rows = [
+    "Reading your question",
+    names ? `Choosing drawings: ${names}` : "Choosing drawings",
+    making.fixing ? "Writing the lesson (fixing a step)" : "Writing the lesson",
+    voiceLine,
+  ];
+  return (
+    <div className="making" role="status" aria-live="polite">
+      <div className="making-box">
+        <div className="making-head">
+          <span className="spinner" aria-hidden="true" />
+          <strong>Making your video</strong>
+          <span className="muted small">{secs} s</span>
+        </div>
+        <progress aria-label="Progress" max={rows.length + 1}
+          value={making.at + 1 + (making.at === 3 && voice.state === "loading" && voice.total ? voice.loaded / voice.total : 0)} />
+        <ol className="making-steps">
+          {rows.map((r, i) => (
+            <li key={i} className={i < making.at ? "done" : i === making.at ? "now" : ""}>
+              <span aria-hidden="true">{i < making.at ? "✓" : i === making.at ? "●" : "○"}</span> {r}
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+}
+
 export function Watch({ question, style, explore = false, onDone, onExit }: {
   question: string; style: Style; explore?: boolean; onDone?: (available: number | null) => void; onExit: () => void;
 }) {
@@ -130,6 +174,9 @@ export function Watch({ question, style, explore = false, onDone, onExit }: {
   const [owned, setOwned] = useState<string | null>(null);
   const [result, setResult] = useState<{ id: string; charged: number } | null>(null);
   const [steps, setSteps] = useState<string[]>([]);
+  const [making, setMaking] = useState<Making>({ at: 0 });      // what the progress cover shows
+  const [playing, setPlaying] = useState(false);                // the first step is on the board: the cover goes
+  const onStart = useCallback(() => setPlaying(true), []);
   const started = useRef(false);
   const requestId = useRef(crypto.randomUUID());
 
@@ -172,19 +219,25 @@ export function Watch({ question, style, explore = false, onDone, onExit }: {
         const ev = /^event: (.+)$/m.exec(block)?.[1], data = /^data: (.*)$/m.exec(block)?.[1];
         if (!ev || !data) continue;
         const d = JSON.parse(data);
-        if (ev === "stage") setStage(STAGE[d.stage] ?? "Working…");
+        if (ev === "stage") {
+          setStage(STAGE[d.stage] ?? "Working…");
+          setMaking(m => d.stage === "drawings" ? { at: 1, names: d.names } : d.stage === "writing" ? { ...m, at: 2 }
+            : d.stage === "fixing" ? { ...m, at: 2, fixing: true } : m);
+        }
         else if (ev === "els") { scriptParts.els = d.els; if (style === "whiteboard") send({ type: "els", els: d.els }); }
         else if (ev === "els_add") { scriptParts.els = { ...scriptParts.els, ...d.els }; if (style === "whiteboard") send({ type: "els_add", els: d.els }); }
         else if (ev === "step") {
+          if (d.i === 0) setMaking(m => ({ ...m, at: 3 }));
           scriptParts.steps[d.i] = d.step; setSteps(s => { const n = [...s]; n[d.i] = d.step.say; return n; });
           if (style === "whiteboard") send({ type: "step", step: d.step }, d.step.say);
         }
-        else if (ev === "script") { sendWhole(d.script); setSteps(d.script.objects.map((o: { say: string }) => o.say)); }
+        else if (ev === "script") { setPlaying(true); sendWhole(d.script); setSteps(d.script.objects.map((o: { say: string }) => o.say)); }
         else if (ev === "done") {
           finished = true; setResult({ id: d.id, charged: d.creditsCharged }); setStage("");
           if (explore) setExplore(d.id, true).then((r) => setExploreNote(r.error ? exploreRefusal(r.error) : "Shown in Explore."));
           if (style === "whiteboard") send({ type: "done" });
-          else if (style === "paper") sendWhole({ q: question, ...scriptParts } as Script);
+          else if (style === "paper") setPlaying(true);
+          if (style === "paper") sendWhole({ q: question, ...scriptParts } as Script);
           onDone?.(d.available ?? null);
         }
         else if (ev === "failed") { finished = true; setError(msg(d.code)); onDone?.(d.available ?? null); }
@@ -198,9 +251,10 @@ export function Watch({ question, style, explore = false, onDone, onExit }: {
   return (
     <section className="stack" aria-live="polite">
       <p className="muted">{question}</p>
-      {!error && !owned && <VoiceProgress />}
-      <Player style={style} bind={bind} />
-      {stage && !error && !owned && <p role="status">{stage}</p>}
+      {playing && !error && !owned && <VoiceProgress />}
+      <Player style={style} bind={bind} onStart={onStart}
+        cover={!playing && !error && !owned ? <MakingCover making={making} /> : null} />
+      {playing && stage && !error && !owned && <p role="status" className="muted small">{stage}</p>}
       {error && <p role="alert" className="error">{error}</p>}
       {owned && (
         <div className="stack">
