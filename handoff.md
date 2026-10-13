@@ -120,7 +120,7 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
 - **Before production:** the attorney reviews those texts; no question screening exists yet (the decline policy),
   so reports + the admin form are the only brake.
 
-## Invite credits (13 Oct 2026)
+## Invite credits (live since 13 Oct 2026, #3; migration applied by migrate-prod)
 
 - Founder's ask: whoever gets access with an invite code gets **100 credits automatically**. `redeem_invite` writes
   one `invite_grant` ledger row (+100 top-up, no expiry) when it turns access on for the first time; a unique index
