@@ -22,7 +22,12 @@ $('#device').textContent = [
 ].join(' · ');
 
 let ctx = null;                                   // one AudioContext, made inside a tap (iOS plays nothing otherwise)
-const audio = () => { ctx ||= new (window.AudioContext || window.webkitAudioContext)(); ctx.resume(); return ctx; };
+// iOS mutes Web Audio while the ring/silent switch is on ("ambient"); "playback" plays like a video does (Safari
+// 16.4+). An iPhone showed the page's speaker icon and made no sound (13 Oct).
+const audio = () => {
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}
+  ctx ||= new (window.AudioContext || window.webkitAudioContext)(); ctx.resume(); return ctx;
+};
 let source = null;
 const play = buf => { source?.stop(); source = ctx.createBufferSource(); source.buffer = buf; source.connect(ctx.destination); source.start(); };
 
