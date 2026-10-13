@@ -18,9 +18,13 @@
   `insert into public.invites (code, max_uses, note) values ('<CODE>', 1, 'founder bootstrap');` → sign up with it →
   `insert into public.admins (user_id) select p.id from public.profiles p join auth.users u on u.id = p.id where
   u.email = '<email>' and p.deleted_at is null returning user_id;` (expect 1 row) → /admin enrols an authenticator.
-- CI (`ci.yml`) is green on main. The repo is public while we build; it goes private at launch.
-- Not yet: Stripe keys (checkout answers 503), Resend SMTP (Supabase's built-in mail sends few codes an hour),
-  Vercel Cron for keep-warm (no `vercel.json` crons yet), Turnstile.
+- CI (`ci.yml`): main green on `90e8f53`; e2e `app.spec.ts:61` (Show in Explore) is flaky (red 4 of 12 runs on 13 Oct,
+  once on a docs-only branch). The repo is public while we build; it goes private at launch.
+- **Sign-in email (13 Oct):** Supabase sends through **Resend SMTP** (the founder set it up: the Resend account Radlic
+  already uses, its verified domain, a separate sending-only key named `whiteboard-ai supabase`; sender name "Whiteboard
+  AI"; email rate limit raised from 30/h). Both Magic Link and Confirm signup templates are code-only. When the product
+  has its own name and domain, change the sender (and verify that domain in Resend).
+- Not yet: Stripe keys (checkout answers 503), Vercel Cron for keep-warm (no `vercel.json` crons yet), Turnstile.
 
 ## Where things stand (12 Oct 2026, evening)
 
@@ -72,7 +76,7 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
   - `server-only` guards on every module holding a server key; npm audit (production deps): 0; headers: nonce CSP,
     HSTS, X-Frame-Options DENY, nosniff; `next=` accepts only same-site paths.
 
-## Voice: Pocket TTS in the browser (13 Oct 2026, Draft PR #5 — Kokoro is live until it merges)
+## Voice: Pocket TTS in the browser (live since 13 Oct 2026, #5 + #7)
 
 - Kokoro fp32 on WebGPU crashed iPhones (iOS kills the tab while the 325 MB model loads; Mac Safari peaked ~1.5 GB).
   The voice lab (PR #5) measured Pocket TTS (Kyutai) on a real iPhone: 1.0–1.2x real time, first sound 0.5 s, no
@@ -80,7 +84,10 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
 - How: `src/lib/voice.ts` starts `public/tts/pocket-worker.js` (KevinAHM's Apache-2.0 web worker, our changes marked
   "Radlor:") when /ask or a player opens. First visit ~166 MB: 7 model files from KevinAHM's Space pinned at
   `d0c0c79` + our `public/tts/pocket-voices.bin`, each size- and SHA-256-checked (`public/tts/pocket-files.mjs`) and
-  kept in OPFS; a later visit loads in ~1 s with no download (measured, Chromium on the Mac). Old Kokoro/Kitten files
+  kept in OPFS; a later visit loads in ~1 s with no download (measured, Chromium on the Mac). Without OPFS (#7: WebKit
+  private windows throw on getDirectory(), and Chrome on the founder's iPhone turned the voice off) files go to Cache
+  Storage, else memory; in private WebKit a second worker saw an empty cache, so it downloads each visit there. A
+  failed voice shows its reason in small text under the message. Old Kokoro/Kitten files
   are deleted from OPFS. ONNX Runtime 1.20.0 on one thread (threads hung in Safari) + sentencepiece.js are committed
   in `public/tts/vendor` (`tests/voice/vendor.test.ts`, `npm run vendor:tts`). Message protocol and players unchanged; the picker shows names only.
 - **Voices:** 6 of the 8 — cosette (Expresso) and jean (EARS) are CC BY-NC, so `scripts/pocket-voices.mjs` builds
@@ -88,7 +95,7 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
   shipped (watched red on the 8-voice file). Credits (CC BY) are on the Copyright page.
 - **Security change:** `/tts/*` CSP gains `'unsafe-eval'` (the tokenizer's emscripten embind uses Function()); the
   worker's CSP only, no DOM. A tokenizer without eval would let us drop it.
-- Not yet: the first iPhone run of the app itself (preview), iOS's 7-day storage eviction (a home-screen app is
+- Not yet: the founder's iPhone run of the live app (Safari and Chrome: voice on, a reload with no download), iOS's 7-day storage eviction (a home-screen app is
   exempt), a second download source (R2), the attorney's look at CC BY credits (no espeak/GPL any more).
 
 ## Explore and reports (live since 13 Oct 2026, #1; migration applied by migrate-prod)
