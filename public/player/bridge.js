@@ -5,6 +5,9 @@
 //             how many spoken lines will follow as WAVs from the app's voice) · {type:'wav', i, wav} (line i's WAV, or null when
 //             the voice could not make it: that line gets the browser voice)
 // The player answers {type:'ended'} when a run finishes and {type:'error', message} if a run throws.
+// Sound: an iPhone refuses audio started in this frame (no tap ever lands here), so the player asks the page to play
+// each WAV — {type:'play', id, wav} → the page answers {type:'played', id} when it has ended — and {type:'hush'}
+// stops it (13 Oct 2026).
 (() => {
   const style = document.documentElement.dataset.style;
   document.documentElement.classList.add('embed');
@@ -12,13 +15,17 @@
 
   // A step may arrive with its line already spoken by the app (a WAV): play that. Without one (voice off
   // or failed), the player's own say() uses the browser's voice.
-  let audio = null;
-  const hush = () => { window.speechSynthesis?.cancel(); audio?.pause(); audio = null; };
+  let seq = 0;
+  const playing = new Map();                                // id -> resolve, until the page says 'played'
+  const hush = () => {
+    window.speechSynthesis?.cancel();
+    if (playing.size) { tell({ type: 'hush' }); playing.forEach(f => f()); playing.clear(); }
+  };
   const playWav = (wav, text) => new Promise(done => {
     if (text != null) document.getElementById('caption').textContent = text;
-    audio = new Audio(URL.createObjectURL(new Blob([wav], { type: 'audio/wav' })));
-    audio.onended = audio.onerror = audio.onpause = () => done();
-    audio.play().catch(() => done());
+    const id = ++seq;
+    playing.set(id, done);
+    tell({ type: 'play', id, wav });                        // copied, not transferred: a replay plays it again
   });
 
   // Paper and match-cut (stopmotion-topics.html play(), styles-lib.js narratedPlayer) start on the script and get
@@ -75,6 +82,7 @@
     if (ev.source !== parent || !ev.data || typeof ev.data !== 'object') return;
     const m = ev.data;
     if (m.type === 'hello') { tell({ type: 'ready' }); return; }   // the page may have missed our first 'ready'
+    if (m.type === 'played') { const f = playing.get(m.id); playing.delete(m.id); f?.(); return; }
     if (m.type === 'reset') { gen++; A = null; done = false; hush(); }
     else if (m.type === 'script') playScript(m.script, m.voice);
     else if (m.type === 'wav' && self.VOICE_WAVS && Number.isInteger(m.i) && m.i >= 0 && m.i < self.VOICE_WAVS.length) {

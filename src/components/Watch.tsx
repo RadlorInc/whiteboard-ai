@@ -2,7 +2,7 @@
 // Watching a video (PLAN.md §5.6–5.8, §7.3): reads /api/generate's SSE stream and feeds the sandboxed player.
 // The same component replays a finished script (library, video page, share page) with no network call.
 import { useCallback, useEffect, useRef, useState } from "react";
-import { speakLine, startVoice, voiceOn } from "@/lib/voice";
+import { playSound, speakLine, startVoice, stopSound, tapForSound, useSoundBlocked, voiceOn } from "@/lib/voice";
 import { VoiceProgress } from "./Voice";
 import { setExplore } from "@/app/videos/actions";
 import { exploreRefusal } from "./VideoView";
@@ -47,6 +47,7 @@ export function Player({ style, script, onEnded, bind }: {
 }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const ready = useRef(false);
+  const soundBlocked = useSoundBlocked();
   const pending = useRef<unknown[]>([]);
   const post = useCallback((m: unknown) => {
     if (ready.current) frame.current?.contentWindow?.postMessage(m, "*");
@@ -57,11 +58,17 @@ export function Player({ style, script, onEnded, bind }: {
       if (e.source !== frame.current?.contentWindow || !e.data) return;    // only our own iframe
       if (e.data.type === "ready" && !ready.current) { ready.current = true; pending.current.splice(0).forEach(post); }
       if (e.data.type === "ended") onEnded?.();
+      // The player's lines play on this page (an iPhone refuses sound started in the iframe): see lib/voice.ts.
+      if (e.data.type === "play" && e.data.wav instanceof ArrayBuffer) {
+        const id = e.data.id;
+        playSound(e.data.wav).then(() => post({ type: "played", id }));
+      }
+      if (e.data.type === "hush") stopSound();
     };
     addEventListener("message", on);
     // If the iframe loaded before this listener existed, its 'ready' was lost: ask again (it answers 'ready').
     frame.current?.contentWindow?.postMessage({ type: "hello" }, "*");
-    return () => removeEventListener("message", on);
+    return () => { removeEventListener("message", on); stopSound(); };
   }, [post, onEnded]);
   useEffect(() => { startVoice(); }, []);
   // A finished whiteboard script goes in as a stream, each step with its spoken line (made in order, ahead of the
@@ -83,7 +90,13 @@ export function Player({ style, script, onEnded, bind }: {
   }, [script, post, style]);
   useEffect(() => { bind?.(post); }, [bind, post]);      // the streaming caller sends steps through this
   return (
-    <div className="player">
+    <div className="player" style={{ position: "relative" }}>
+      {soundBlocked && (
+        <button type="button" className="btn" onClick={tapForSound}
+          style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", zIndex: 1 }}>
+          🔊 Tap for sound
+        </button>
+      )}
       <iframe ref={frame} src={PAGE[style]} sandbox="allow-scripts" allow="autoplay" title="Video player" loading="eager"
         style={{ width: "100%", aspectRatio: style === "matchcut" ? "960/500" : style === "paper" ? "960/720" : "960/660", border: 0 }} />
     </div>

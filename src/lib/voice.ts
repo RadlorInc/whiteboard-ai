@@ -90,3 +90,74 @@ export function speakLine(text: string, voice = getVoice()): Promise<ArrayBuffer
 export function useVoiceStatus(): VoiceStatus {
   return useSyncExternalStore(subscribe, () => status, () => status);
 }
+
+// ── Playing the lines ─────────────────────────────────────────────────────────────────────────────────────────────
+// An iPhone plays sound only from an audio element that was first started inside a tap: a line made seconds after
+// "Ask" or "▶ Hear" was refused silently (13 Oct 2026, no sound at all on the founder's iPhone). So every line plays
+// through one element on this page, started on the first tap (unlockSound, a click listener), and the sandboxed
+// player asks this page to play its lines. A line refused anyway (a page opened with no tap yet) waits, and the player
+// waits with it, until the viewer taps "Tap for sound" (tapForSound).
+let el: HTMLAudioElement | null = null;
+let unlocked = false;
+let current: { finish: (played: boolean) => void } | null = null;
+let blocked = false;
+const setBlocked = (b: boolean) => { if (blocked !== b) { blocked = b; emit(); } };
+
+const silence = () => {   // 0.1 s of silent 16-bit mono WAV, as a blob URL
+  const n = 2400, b = new ArrayBuffer(44 + n * 2), v = new DataView(b), s = (o: number, t: string) => [...t].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  s(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); s(8, "WAVEfmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+  v.setUint16(22, 1, true); v.setUint32(24, 24000, true); v.setUint32(28, 48000, true); v.setUint16(32, 2, true);
+  v.setUint16(34, 16, true); s(36, "data"); v.setUint32(40, n * 2, true);
+  return URL.createObjectURL(new Blob([b], { type: "audio/wav" }));
+};
+
+export function unlockSound() {
+  if (unlocked || typeof Audio === "undefined") return;
+  el ||= new Audio();
+  if (current) return;                      // a line is waiting on this tap: tapForSound plays it
+  el.src = silence();
+  el.play().then(() => { unlocked = true; }, () => {});
+}
+if (typeof document !== "undefined") {
+  document.addEventListener("click", unlockSound, true);
+  document.addEventListener("keydown", unlockSound, true);
+}
+
+/** Plays one line's WAV; resolves when it ends (true) or cannot play (false). Refused for want of a tap: waits. */
+export function playSound(wav: ArrayBuffer): Promise<boolean> {
+  stopSound();
+  el ||= new Audio();
+  const a = el, url = URL.createObjectURL(new Blob([wav], { type: "audio/wav" }));
+  return new Promise<boolean>((resolve) => {
+    const me = {
+      finish: (played: boolean) => {
+        if (current !== me) return;
+        current = null; a.onended = a.onerror = null; URL.revokeObjectURL(url); setBlocked(false); resolve(played);
+      },
+    };
+    current = me;
+    a.onended = () => me.finish(true);
+    a.onerror = () => me.finish(false);
+    a.src = url;
+    a.play().then(() => { unlocked = true; }, (e: DOMException) => {
+      if (e?.name === "NotAllowedError") setBlocked(true); else me.finish(false);
+    });
+  });
+}
+
+export function stopSound() {
+  if (!current) return;
+  el?.pause();
+  current.finish(false);
+}
+
+/** The viewer's tap on "Tap for sound": plays the waiting line inside the tap. */
+export function tapForSound() {
+  if (!el || !current) return;
+  const me = current;
+  el.play().then(() => { unlocked = true; setBlocked(false); }, () => me.finish(false));
+}
+
+export function useSoundBlocked(): boolean {
+  return useSyncExternalStore(subscribe, () => blocked, () => false);
+}
