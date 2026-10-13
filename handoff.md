@@ -10,7 +10,8 @@
 - Migrations reach production only through `.github/workflows/migrate-prod.yml` (manual dispatch, typed confirmation,
   `production-db` approval — measured: the run waits for the founder). Never seeds. Never link the CLI locally.
 - Auth settings live in the Supabase dashboard (config.toml is local only): Site URL, redirect `/auth/callback`,
-  code templates, OTP expiry 600, **Email OTP Length must equal NEXT_PUBLIC_OTP_LENGTH (6)** — hosted defaults to 8.
+  code templates (**both** Magic Link and Confirm signup = `supabase/templates/*.html`; 13 Oct production's Magic Link
+  still had the default link, so returning users on a new device got a link), OTP expiry 600, **Email OTP Length must equal NEXT_PUBLIC_OTP_LENGTH (6)** — hosted defaults to 8.
 - Production env names (values in Vercel): NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, APP_URL,
   SUPABASE_SERVICE_ROLE_KEY, CRON_SECRET, AGE_COOKIE_KEY, RATE_LIMIT_HMAC_KEY, ANTHROPIC_API_KEY.
 - Bootstrapping an admin on a fresh project (the founder runs SQL in the dashboard; agents never query production):
