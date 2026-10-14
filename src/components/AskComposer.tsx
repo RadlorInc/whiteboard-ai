@@ -83,6 +83,9 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
     box.current?.blur();
     setNote(null);
     setAsking({ question: question.trim(), style, explore, n: Date.now() });
+    // Asked, so no longer a draft: leaving mid-video and coming back must not bring the question back.
+    setQuestion("");
+    try { localStorage.removeItem("wb.askDraft"); } catch {}
   }
 
   if (asking) return (
