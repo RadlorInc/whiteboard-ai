@@ -55,17 +55,9 @@ export default async function Home({ searchParams }: PageProps<"/">) {
         <h2 style={{ paddingTop: 16 }}>How it works</h2>
         <ol style={{ listStyle: "decimal", paddingLeft: 24 }}>
           <li>Type a question.</li>
-          <li>Pick a style.</li>
-          <li>Watch it drawn and voiced.</li>
+          <li>Watch it drawn on a whiteboard and voiced, step by step.</li>
           <li>Replay it any time, free.</li>
         </ol>
-
-        <h2 style={{ paddingTop: 16 }}>Three styles</h2>
-        <ul className="grid-cards">
-          <li className="card"><strong>Whiteboard</strong>: numbered steps on a board. Best for how things work, sums and diagrams.</li>
-          <li className="card"><strong>Paper</strong>: cut-paper scenes with no writing. Best for journeys into and out of things.</li>
-          <li className="card"><strong>Match-cut</strong>: one object turns into the next. Best for how something changed over time.</li>
-        </ul>
 
         <h2 style={{ paddingTop: 16 }}>Good to know</h2>
         <ul style={{ listStyle: "disc", paddingLeft: 24 }}>

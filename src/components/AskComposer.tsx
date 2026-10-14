@@ -1,34 +1,27 @@
 "use client";
-// The /ask composer (PLAN.md §5.6), shell only: question box, style picker, cost line. Asking arrives in M3.
+// The /ask composer (PLAN.md §5.6): question box, cost line. The voice is picked on /settings.
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Watch } from "./Watch";
 import { startVoice } from "@/lib/voice";
-import { VoicePicker, VoiceProgress } from "./Voice";
+import { VoiceProgress } from "./Voice";
 
 const HOLD_CREDITS = 6; // same value as lib/session.ts (server); ponytail: one constants module once M3 adds it
-const STYLES = [
-  { id: "whiteboard", label: "Whiteboard", desc: "Numbered steps on a board. Best for how things work, sums and diagrams." },
-  { id: "paper", label: "Paper", desc: "Cut-paper scenes with no writing. Best for journeys into and out of things." },
-  { id: "matchcut", label: "Match-cut", desc: "One object turns into the next. Best for how something changed over time." },
-] as const;
-type Style = (typeof STYLES)[number]["id"];
-const EXAMPLES: [string, Style][] = [
-  ["How does the heart pump blood?", "whiteboard"],
-  ["What is compound interest?", "whiteboard"],
-  ["How does food become energy?", "paper"],
-  ["How does a rainbow form?", "paper"],
-  ["How did phones change?", "matchcut"],
-  ["How did cars change?", "matchcut"],
+// Only whiteboard is offered for now (founder, 14 Oct 2026). Paper and match-cut videos already made still play.
+const style = "whiteboard";
+const EXAMPLES = [
+  "How does the heart pump blood?",
+  "What is compound interest?",
+  "How does a rainbow form?",
+  "How does a car engine work?",
 ];
 const MAX = 500;
 
 export function AskComposer({ available, firstRun }: { available: number; firstRun: boolean }) {
   const [question, setQuestion] = useState("");
-  const [style, setStyle] = useState<Style>("whiteboard");
   const [note, setNote] = useState<string | null>(null);
-  const [asking, setAsking] = useState<{ question: string; style: Style; explore: boolean; n: number } | null>(null);
+  const [asking, setAsking] = useState<{ question: string; explore: boolean; n: number } | null>(null);
   const [explore, setExploreTick] = useState(true);   // "Show in Explore", ticked by default (founder, 13 Oct 2026)
   const router = useRouter();
   const box = useRef<HTMLTextAreaElement>(null);
@@ -38,16 +31,13 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
   // (VoicePicker starts it too; this keeps it starting even where the picker is hidden.)
   useEffect(() => { startVoice(); }, []);
 
-  // Restore the draft and the last style (§5.6). localStorage can be missing (private mode); the page works without it.
+  // Restore the draft (§5.6). localStorage can be missing (private mode); the page works without it.
   useEffect(() => {
     try {
       const d = JSON.parse(localStorage.getItem("wb.askDraft") ?? "null");
-      const s = localStorage.getItem("wb.style");
       // Storage is only readable after hydration, so restoring the draft has to happen in an effect.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (d?.question) setQuestion(String(d.question).slice(0, MAX));
-      const st = (d?.style ?? s) as Style;
-      if (STYLES.some((x) => x.id === st)) setStyle(st);
       if (localStorage.getItem("wb.explore") === "off") setExploreTick(false);
     } catch {}
     loaded.current = true;
@@ -58,13 +48,12 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
     if (!loaded.current) return;
     const t = setTimeout(() => {
       try {
-        localStorage.setItem("wb.askDraft", JSON.stringify({ question, style }));
-        localStorage.setItem("wb.style", style);
+        localStorage.setItem("wb.askDraft", JSON.stringify({ question }));
         localStorage.setItem("wb.explore", explore ? "on" : "off");
       } catch {}
     }, 300);
     return () => clearTimeout(t);
-  }, [question, style, explore]);
+  }, [question, explore]);
 
   // Grow 1–4 rows.
   useEffect(() => {
@@ -82,11 +71,14 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
     if (empty || !enough) return;
     box.current?.blur();
     setNote(null);
-    setAsking({ question: question.trim(), style, explore, n: Date.now() });
+    setAsking({ question: question.trim(), explore, n: Date.now() });
+    // Asked, so no longer a draft: leaving mid-video and coming back must not bring the question back.
+    setQuestion("");
+    try { localStorage.removeItem("wb.askDraft"); } catch {}
   }
 
   if (asking) return (
-    <Watch key={asking.n} question={asking.question} style={asking.style} explore={asking.explore}
+    <Watch key={asking.n} question={asking.question} style={style} explore={asking.explore}
       onDone={() => router.refresh()} onExit={() => { setAsking(null); setQuestion(""); }} />
   );
 
@@ -122,24 +114,8 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
         {question.length >= 400 && <span>{question.length} / {MAX}</span>}
       </div>
 
-      <fieldset>
-        <legend className="sr-only">Style</legend>
-        <div className="segmented">
-          {STYLES.map((s) => (
-            <label key={s.id}>
-              <input type="radio" name="style" value={s.id} checked={style === s.id} onChange={() => setStyle(s.id)} />
-              {s.label}
-            </label>
-          ))}
-        </div>
-        <p className="muted small" style={{ marginTop: 6 }}>
-          {STYLES.find((s) => s.id === style)!.desc}
-        </p>
-      </fieldset>
-
-      <VoicePicker />
-      <label className="row small" style={{ gap: 8, alignItems: "center" }}>
-        <input type="checkbox" checked={explore} onChange={(e) => setExploreTick(e.target.checked)} />
+      <label className="row small" style={{ flexWrap: "nowrap" }}>
+        <input type="checkbox" checked={explore} onChange={(e) => setExploreTick(e.target.checked)} style={{ flex: "none", width: 20, height: 20 }} />
         Show in Explore — anyone can watch it there, without seeing who made it. You can remove it later.
       </label>
       <VoiceProgress />
@@ -172,16 +148,8 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
         <div className="stack" style={{ paddingTop: 8 }}>
           <p className="muted small">Try one. One question per video works best.</p>
           <div className="chips">
-            {EXAMPLES.map(([q, s]) => (
-              <button
-                key={q}
-                type="button"
-                className="chip"
-                onClick={() => {
-                  setQuestion(q);
-                  setStyle(s);
-                }}
-              >
+            {EXAMPLES.map((q) => (
+              <button key={q} type="button" className="chip" onClick={() => setQuestion(q)}>
                 {q}
               </button>
             ))}

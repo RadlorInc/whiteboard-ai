@@ -1,10 +1,10 @@
 // The app page drives these prototype players by postMessage (PLAN.md §7.8). The player runs in an
 // <iframe sandbox="allow-scripts"> (opaque origin, connect-src 'none'), so it can only draw what it is sent.
-// Messages: {type:'reset'} · {type:'els', els} · {type:'els_add', els} · {type:'step', step, wav?} · {type:'done'}
+// Messages: {type:'seek', i} (whiteboard: jump to step i) · {type:'reset'} · {type:'els', els} · {type:'els_add', els} · {type:'step', step, wav?} · {type:'done'}
 //           · {type:'script', script, voice?} (a finished script: replay, or paper/match-cut after streaming; voice =
 //             how many spoken lines will follow as WAVs from the app's voice) · {type:'wav', i, wav} (line i's WAV, or null when
 //             the voice could not make it: that line gets the browser voice)
-// The player answers {type:'ended'} when a run finishes and {type:'error', message} if a run throws.
+// The player answers {type:'size', h} (its content height) · {type:'at', i, n, done} as each step starts, {type:'ended'} when a run finishes and {type:'error', message} if a run throws.
 // Sound: an iPhone refuses audio started in this frame (no tap ever lands here), so the player asks the page to play
 // each WAV — {type:'play', id, wav} → the page answers {type:'played', id} when it has ended — and {type:'hush'}
 // stops it (13 Oct 2026).
@@ -51,22 +51,47 @@
   blank();
 
   // Whiteboard: steps play as they arrive. Paper and match-cut play the finished script.
-  let A = null, done = false, gen = 0;
-  async function streamPlay(my) {
-    let i = 0;
+  // Whiteboard: steps play as they arrive, and the page can seek to any step that has arrived ({type:'seek', i}):
+  // the steps before it are drawn at once (FAST, index.html), then it plays on from there. The player tells the page
+  // where it is: {type:'at', i, n, done} (i = n once it has ended).
+  let A = null, done = false, gen = 0, at = 0, fastBy = 0;
+  const where = () => tell({ type: 'at', i: at, n: A.steps.length, done });
+  async function streamPlay(my, i = 0) {
     try {
       while (my === gen) {
         if (i < A.steps.length) {
-          const s = A.steps[i++];
-          await Promise.all([s.wav ? playWav(s.wav, s.say) : say(s.say), (async () => { for (const c of s.do) await run(c); await penUp(); })()]);
+          const s = A.steps[i]; at = i++; where();
+          await Promise.all([s.wav ? playWav(s.wav, s.say) : say(s.say),
+            (async () => { for (const c of s.do) { if (my !== gen) return; await run(c); } await penUp(); })()]);
+          if (my !== gen) return;
           await wait(250);
         } else if (done) break;
         else await new Promise(r => setTimeout(r, 80));
       }
-      if (my === gen) tell({ type: 'ended' });
+      if (my === gen) { at = A.steps.length; where(); still(); tell({ type: 'ended' }); }
     } catch (e) { tell({ type: 'error', message: String(e.message || e) }); }
   }
-  const restart = () => { gen++; hush(); document.getAnimations().forEach(a => a.cancel()); build(A); streamPlay(gen); };
+  // The end: nothing moves on (14 Oct 2026). Looping motion (a beat, a flow, rain) holds where it is; a travelling
+  // dot stops (runId ends its trip) and goes.
+  const still = () => {
+    runId++;
+    document.getAnimations().forEach(a => { if (a.effect?.getTiming().iterations === Infinity) a.pause(); });
+    scene.querySelectorAll('.trip').forEach(d => d.remove());
+  };
+  async function seek(k) {
+    if (!A) return;
+    k = Math.max(0, Math.min(k, A.steps.length - 1));
+    const my = ++gen; runId++; hush(); document.getAnimations().forEach(a => a.cancel()); build(A);
+    FAST = true; fastBy = my;
+    try { for (const s of A.steps.slice(0, k)) for (const c of s.do) { if (my !== gen) return; await run(c); } }
+    catch (e) { tell({ type: 'error', message: String(e.message || e) }); }
+    finally { if (fastBy === my) FAST = false; }        // unless a newer seek took over
+    if (my !== gen) return;
+    marker.style.opacity = 0;
+    document.getElementById('caption').textContent = '';
+    streamPlay(my, k);
+  }
+  const restart = () => seek(0);
 
   async function playScript(script, voice) {
     gen++; hush();
@@ -91,9 +116,12 @@
     }
     else if (style !== 'whiteboard') return;
     else if (m.type === 'els') { A = { els: { ...m.els }, steps: [] }; done = false; restart(); }
-    else if (m.type === 'els_add' && A) { Object.assign(A.els, m.els); restart(); }   // rare: replay with the new drawings
+    else if (m.type === 'els_add' && A) { Object.assign(A.els, m.els); seek(at); }   // rare: redraw with the new drawings, same step
     else if (m.type === 'step' && A) A.steps.push(m.wav instanceof ArrayBuffer ? { ...m.step, wav: m.wav } : m.step);
-    else if (m.type === 'done') done = true;
+    else if (m.type === 'done') { done = true; if (A) where(); }
+    else if (m.type === 'seek' && Number.isInteger(m.i)) seek(m.i);
   });
+  // The page sizes the frame to what is drawn: a caption that wraps to two lines on a phone was cut off.
+  new ResizeObserver(() => tell({ type: 'size', h: Math.ceil(document.body.getBoundingClientRect().height) })).observe(document.body);
   tell({ type: 'ready' });
 })();

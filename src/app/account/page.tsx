@@ -1,20 +1,17 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { requireAccount } from "@/lib/session";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Preferences } from "@/components/Preferences";
 import { SignOutButton } from "@/components/SignOutButton";
 import { BillingButton, DeleteAccount } from "@/components/AccountData";
 import Link from "next/link";
 
 export const metadata: Metadata = { title: "Account" };
 
-// §5.11 /account, the shell: email, sign-in methods, theme, motion, sign out. Change email, credits, billing and
+// §5.11 /account: email, sign-in methods, credits, sign out (theme and motion moved to /settings). Change email, credits, billing and
 // data pages arrive with M5/M6.
 export default async function Account() {
   const account = await requireAccount("/account");
-  const jar = await cookies();
   const methods = [...new Set((account.user.identities ?? []).map((i) => (i.provider === "google" ? "Google" : "Email code")))];
   return (
     <>
@@ -40,7 +37,7 @@ export default async function Account() {
           <BillingButton />
           <a className="btn secondary block" href="/api/account/export">Download my data</a>
         </section>
-        <Preferences theme={jar.get("wb_theme")?.value} motion={jar.get("wb_motion")?.value} />
+        <p><Link href="/settings">Voice, theme and motion are in Settings.</Link></p>
         <section className="stack">
           <SignOutButton className="btn secondary block" />
           <SignOutButton className="btn link" scope="global" label="Sign out of all devices" />
