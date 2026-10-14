@@ -1,6 +1,6 @@
 "use client";
 // A finished video: replay (free), share link, Explore, delete (§5.9, §5.10).
-import { useState, useTransition } from "react";
+import { useState, useSyncExternalStore, useTransition } from "react";
 import { Player, type Style } from "./Watch";
 import { VoiceProgress } from "./Voice";
 import { deleteVideo, setExplore, shareVideo, unshareVideo } from "@/app/videos/actions";
@@ -8,13 +8,18 @@ import { deleteVideo, setExplore, shareVideo, unshareVideo } from "@/app/videos/
 export const exploreRefusal = (e?: string) => e === "contact_info" ? "This question has contact details in it, so it can't go on Explore."
   : e === "share_limit" ? "That's a lot of shared videos today. Try again tomorrow." : "Couldn't change Explore. Try again.";
 
+const noop = () => () => {};
+
 export function VideoView({ id, style, script, slug: initial, inExplore: initialExplore }: { id: string; style: Style; script: Record<string, unknown>; slug: string | null; inExplore: boolean }) {
   const [n, setN] = useState(0);
   const [inExplore, setInExplore] = useState(initialExplore);
   const [slug, setSlug] = useState(initial);
   const [note, setNote] = useState<string | null>(null);
   const [busy, start] = useTransition();
-  const url = slug && typeof window !== "undefined" ? `${window.location.origin}/v/${slug}` : null;
+  // The origin is only known in the browser: null on the server and while hydrating, so the HTML matches
+  // (a mismatch re-renders the page and drops a click made meanwhile, e.g. "Remove from Explore").
+  const origin = useSyncExternalStore(noop, () => location.origin, () => null);
+  const url = slug && origin ? `${origin}/v/${slug}` : null;
   return (
     <section className="stack">
       <VoiceProgress />
