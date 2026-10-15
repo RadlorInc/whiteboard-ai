@@ -2,7 +2,7 @@
 // Watching a video (PLAN.md §5.6–5.8, §7.3): reads /api/generate's SSE stream and feeds the sandboxed player.
 // The same component replays a finished script (library, video page, share page) with no network call.
 import { useCallback, useEffect, useRef, useState } from "react";
-import { playSound, speakLine, startVoice, stopSound, tapForSound, useSoundBlocked, useVoiceStatus, voiceOn } from "@/lib/voice";
+import { pauseSound, playSound, resumeSound, speakLine, startVoice, stopSound, tapForSound, useSoundBlocked, useVoiceStatus, voiceOn } from "@/lib/voice";
 import { VoiceProgress } from "./Voice";
 import { setExplore } from "@/app/videos/actions";
 import { exploreRefusal } from "./VideoView";
@@ -51,7 +51,7 @@ export function Player({ style, script, onEnded, bind, onStart, cover }: {
   const soundBlocked = useSoundBlocked();
   const pending = useRef<unknown[]>([]);
   const [h, setH] = useState<number | null>(null);    // the player's own content height, once it says
-  const [at, setAt] = useState<{ i: number; n: number; done: boolean } | null>(null);   // whiteboard: the step playing
+  const [at, setAt] = useState<{ i: number; n: number; done: boolean; paused?: boolean } | null>(null);   // whiteboard: the step playing
   const post = useCallback((m: unknown) => {
     if (ready.current) frame.current?.contentWindow?.postMessage(m, "*");
     else pending.current.push(m);
@@ -63,13 +63,15 @@ export function Player({ style, script, onEnded, bind, onStart, cover }: {
       if (e.data.type === "ended") onEnded?.();
       if (e.data.type === "size" && Number.isFinite(e.data.h) && e.data.h > 50 && e.data.h < 4000) setH(e.data.h);
       if (e.data.type === "at") onStart?.();
-      if (e.data.type === "at") setAt({ i: e.data.i, n: e.data.n, done: e.data.done });
+      if (e.data.type === "at") setAt({ i: e.data.i, n: e.data.n, done: e.data.done, paused: e.data.paused === true });
       // The player's lines play on this page (an iPhone refuses sound started in the iframe): see lib/voice.ts.
       if (e.data.type === "play" && e.data.wav instanceof ArrayBuffer) {
         const id = e.data.id;
         playSound(e.data.wav).then(() => post({ type: "played", id }));
       }
       if (e.data.type === "hush") stopSound();
+      if (e.data.type === "pauseSound") pauseSound();
+      if (e.data.type === "resumeSound") resumeSound();
     };
     addEventListener("message", on);
     // If the iframe loaded before this listener existed, its 'ready' was lost: ask again (it answers 'ready').
@@ -111,6 +113,10 @@ export function Player({ style, script, onEnded, bind, onStart, cover }: {
         <div className="row player-controls">
           <button type="button" className="btn secondary" aria-label="Previous step" disabled={at.i === 0}
             onClick={() => post({ type: "seek", i: at.i - 1 })}>⏮</button>
+          {at.i < at.n && (
+            <button type="button" className="btn secondary" aria-label={at.paused ? "Play" : "Pause"}
+              onClick={() => post({ type: at.paused ? "resume" : "pause" })}>{at.paused ? "▶" : "⏸"}</button>
+          )}
           <input type="range" min={1} max={at.n} value={Math.min(at.i + 1, at.n)} aria-label="Step"
             onChange={(e) => post({ type: "seek", i: Number(e.target.value) - 1 })} style={{ flex: 1 }} />
           <button type="button" className="btn secondary" aria-label="Next step" disabled={at.i >= at.n - 1}

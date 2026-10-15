@@ -145,6 +145,10 @@ export function playSound(wav: ArrayBuffer): Promise<boolean> {
   });
 }
 
+/** The player's pause: hold the line being spoken, and carry on from the same place. */
+export function pauseSound() { if (current) el?.pause(); }
+export function resumeSound() { if (current) el?.play().catch(() => {}); }
+
 export function stopSound() {
   if (!current) return;
   el?.pause();
