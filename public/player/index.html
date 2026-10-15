@@ -52,8 +52,8 @@ const NS = 'http://www.w3.org/2000/svg';
 const $ = s => document.querySelector(s);
 const scene = $('#scene');
 // FAST: a seek draws the steps before the one it jumps to at once (bridge.js seek), with no motion and no voice.
-let FAST = false;
-const wait = ms => FAST ? Promise.resolve() : new Promise(r => setTimeout(r, ms));
+let FAST = false, PAUSED = false;      // PAUSED: the embedded player's pause (bridge.js); timed drawing and waits hold
+const wait = ms => FAST ? Promise.resolve() : frames(ms, () => {});
 const BOUNCE = 'cubic-bezier(.34,1.56,.64,1)', SMOOTH = 'cubic-bezier(.65,0,.35,1)';
 let els = {}, marker, camNow = '', runId = 0;
 
@@ -129,8 +129,8 @@ function markAt(el, x, y) {
 function frames(ms, onT) {
   if (FAST) { onT(1); return Promise.resolve(); }
   return new Promise(done => {
-    const t0 = performance.now();
-    (function f(now) { const t = Math.min((now - t0) / ms, 1); onT(t); t < 1 ? requestAnimationFrame(f) : done(); })(t0);
+    let gone = 0, last = performance.now();                 // time only runs while not paused
+    (function f(now) { if (!PAUSED) gone += now - last; last = now; const t = Math.min(gone / ms, 1); onT(t); t < 1 ? requestAnimationFrame(f) : done(); })(last);
   });
 }
 const ease = t => t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;

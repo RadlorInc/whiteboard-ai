@@ -174,3 +174,6 @@ th { font-weight: 600; }
   .ask-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 32px; align-items: start; }
   .ask-recent { display: block; }
 }
+.ask-field { display: flex; align-items: center; gap: 10px; }
+.ask-field img { flex: none; border-radius: 8px; }
+.ask-field textarea { flex: 1; min-width: 0; }

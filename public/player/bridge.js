@@ -1,10 +1,11 @@
 // The app page drives these prototype players by postMessage (PLAN.md §7.8). The player runs in an
 // <iframe sandbox="allow-scripts"> (opaque origin, connect-src 'none'), so it can only draw what it is sent.
-// Messages: {type:'seek', i} (whiteboard: jump to step i) · {type:'reset'} · {type:'els', els} · {type:'els_add', els} · {type:'step', step, wav?} · {type:'done'}
+// Messages: {type:'seek', i} (whiteboard: jump to step i) · {type:'pause'} / {type:'resume'} (whiteboard) · {type:'reset'} · {type:'els', els} · {type:'els_add', els} · {type:'step', step, wav?} · {type:'done'}
 //           · {type:'script', script, voice?} (a finished script: replay, or paper/match-cut after streaming; voice =
 //             how many spoken lines will follow as WAVs from the app's voice) · {type:'wav', i, wav} (line i's WAV, or null when
 //             the voice could not make it: that line gets the browser voice)
-// The player answers {type:'size', h} (its content height) · {type:'at', i, n, done} as each step starts, {type:'ended'} when a run finishes and {type:'error', message} if a run throws.
+// The player answers {type:'size', h} (its content height) · {type:'at', i, n, done, paused} as each step starts (and when a
+// click on a drawing jumps to its step), {type:'ended'} when a run finishes and {type:'error', message} if a run throws.
 // Sound: an iPhone refuses audio started in this frame (no tap ever lands here), so the player asks the page to play
 // each WAV — {type:'play', id, wav} → the page answers {type:'played', id} when it has ended — and {type:'hush'}
 // stops it (13 Oct 2026).
@@ -55,7 +56,7 @@
   // the steps before it are drawn at once (FAST, index.html), then it plays on from there. The player tells the page
   // where it is: {type:'at', i, n, done} (i = n once it has ended).
   let A = null, done = false, gen = 0, at = 0, fastBy = 0;
-  const where = () => tell({ type: 'at', i: at, n: A.steps.length, done });
+  const where = () => tell({ type: 'at', i: at, n: A.steps.length, done, paused: PAUSED });
   async function streamPlay(my, i = 0) {
     try {
       while (my === gen) {
@@ -78,8 +79,28 @@
     document.getAnimations().forEach(a => { if (a.effect?.getTiming().iterations === Infinity) a.pause(); });
     scene.querySelectorAll('.trip').forEach(d => d.remove());
   };
+  // Pause holds everything where it is: timed drawing and waits (PAUSED in index.html), running animations, and the
+  // line being spoken (the page's audio, or the browser voice). Resume carries on from the same moment.
+  let held = [];
+  function pause() {
+    if (!A || PAUSED || at >= A.steps.length) return;
+    PAUSED = true; held = document.getAnimations().filter(a => a.playState === 'running'); held.forEach(a => a.pause());
+    window.speechSynthesis?.pause(); tell({ type: 'pauseSound' }); where();
+  }
+  function resume() {
+    if (!PAUSED) return;
+    PAUSED = false; held.forEach(a => a.play()); held = [];
+    window.speechSynthesis?.resume(); tell({ type: 'resumeSound' }); where();
+  }
+  // A click on a drawing (a box, a label, a shape) plays the video again from the step that first drew it.
+  const stepOf = id => A?.steps.findIndex(s => s.do.some(c => c.replace(/^&/, '').trim().split(/\s+/).slice(1).some(w => w.split(',').includes(id))));
+  const idAt = node => { for (; node && node !== scene; node = node.parentNode) for (const id in els) if (els[id] === node) return id; return null; };
+  if (style === 'whiteboard') scene.addEventListener('click', e => { const id = idAt(e.target), k = id == null ? -1 : stepOf(id); if (k >= 0) seek(k); });
+  if (style === 'whiteboard') scene.addEventListener('pointerover', e => { const id = idAt(e.target); scene.style.cursor = id != null && stepOf(id) >= 0 ? 'pointer' : ''; });
+
   async function seek(k) {
     if (!A) return;
+    if (PAUSED) { PAUSED = false; held = []; window.speechSynthesis?.resume(); }
     k = Math.max(0, Math.min(k, A.steps.length - 1));
     const my = ++gen; runId++; hush(); document.getAnimations().forEach(a => a.cancel()); build(A);
     FAST = true; fastBy = my;
@@ -108,7 +129,7 @@
     const m = ev.data;
     if (m.type === 'hello') { tell({ type: 'ready' }); return; }   // the page may have missed our first 'ready'
     if (m.type === 'played') { const f = playing.get(m.id); playing.delete(m.id); f?.(); return; }
-    if (m.type === 'reset') { gen++; A = null; done = false; hush(); }
+    if (m.type === 'reset') { gen++; A = null; done = false; PAUSED = false; held = []; hush(); }
     else if (m.type === 'script') playScript(m.script, m.voice);
     else if (m.type === 'wav' && self.VOICE_WAVS && Number.isInteger(m.i) && m.i >= 0 && m.i < self.VOICE_WAVS.length) {
       const w = self.VOICE_WAVS[m.i] = m.wav instanceof ArrayBuffer ? m.wav : null;
@@ -120,6 +141,8 @@
     else if (m.type === 'step' && A) A.steps.push(m.wav instanceof ArrayBuffer ? { ...m.step, wav: m.wav } : m.step);
     else if (m.type === 'done') { done = true; if (A) where(); }
     else if (m.type === 'seek' && Number.isInteger(m.i)) seek(m.i);
+    else if (m.type === 'pause') pause();
+    else if (m.type === 'resume') resume();
   });
   // The page sizes the frame to what is drawn: a caption that wraps to two lines on a phone was cut off.
   new ResizeObserver(() => tell({ type: 'size', h: Math.ceil(document.body.getBoundingClientRect().height) })).observe(document.body);

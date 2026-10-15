@@ -31,13 +31,12 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
   // (VoicePicker starts it too; this keeps it starting even where the picker is hidden.)
   useEffect(() => { startVoice(); }, []);
 
-  // Restore the draft (§5.6). localStorage can be missing (private mode); the page works without it.
+  // No draft is restored: the box starts empty every time (founder, 15 Oct 2026). localStorage can be missing.
   useEffect(() => {
     try {
-      const d = JSON.parse(localStorage.getItem("wb.askDraft") ?? "null");
-      // Storage is only readable after hydration, so restoring the draft has to happen in an effect.
+      localStorage.removeItem("wb.askDraft");
+      // Storage is only readable after hydration, so reading it has to happen in an effect.
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (d?.question) setQuestion(String(d.question).slice(0, MAX));
       if (localStorage.getItem("wb.explore") === "off") setExploreTick(false);
     } catch {}
     loaded.current = true;
@@ -47,13 +46,10 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
   useEffect(() => {
     if (!loaded.current) return;
     const t = setTimeout(() => {
-      try {
-        localStorage.setItem("wb.askDraft", JSON.stringify({ question }));
-        localStorage.setItem("wb.explore", explore ? "on" : "off");
-      } catch {}
+      try { localStorage.setItem("wb.explore", explore ? "on" : "off"); } catch {}
     }, 300);
     return () => clearTimeout(t);
-  }, [question, explore]);
+  }, [explore]);
 
   // Grow 1–4 rows.
   useEffect(() => {
@@ -74,7 +70,6 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
     setAsking({ question: question.trim(), explore, n: Date.now() });
     // Asked, so no longer a draft: leaving mid-video and coming back must not bring the question back.
     setQuestion("");
-    try { localStorage.removeItem("wb.askDraft"); } catch {}
   }
 
   if (asking) return (
@@ -90,15 +85,18 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
         submit();
       }}
     >
-      <label className="field">
+      <label className="field ask-field">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="" width={36} height={45} />
         <span className="sr-only">Your question</span>
         <textarea
+          autoComplete="off"
           ref={box}
           name="question"
           rows={1}
           maxLength={MAX}
           enterKeyHint="go"
-          placeholder="Ask anything, e.g. How does the heart pump blood?"
+          placeholder="Ask anything…"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           onKeyDown={(e) => {
