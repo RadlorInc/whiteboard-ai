@@ -10,11 +10,11 @@ test("ask, get charged, find it in the library, share it, unshare it", async ({ 
   test.skip(info.project.name !== "chromium-desktop", "one open video per user: run once");
   test.setTimeout(120_000);
   await signIn(page, "a@example.test");
+  await page.addInitScript(() => localStorage.setItem("wb.explore", "off"));  // this loop shares by hand (Explore: below)
   await page.goto("/ask");
   const before = await credits(page);
   const question = `How does a rainbow form? (e2e ${Date.now()})`;
   await page.locator("textarea").fill(question);
-  await page.getByLabel(/Show in Explore/).uncheck();                // this loop shares by hand (Explore: below)
   await page.getByRole("button", { name: "Ask", exact: true }).click();
   // While it is made the board is covered by the progress list; the cover goes once the first step is drawn.
   await expect(page.locator(".making li.now")).toHaveText(/Reading|Choosing|Writing|voice/);
@@ -86,7 +86,6 @@ test("ask with Show in Explore, see it signed out, remove it", async ({ page, br
   test.setTimeout(150_000);
   await signIn(page, "b@example.test");
   await page.goto("/ask");
-  await expect(page.getByLabel(/Show in Explore/)).toBeChecked();          // ticked by default
   const question = `How does a rainbow form? (explore e2e ${Date.now()})`;
   await page.locator("textarea").fill(question);
   await page.getByRole("button", { name: "Ask", exact: true }).click();
