@@ -12,7 +12,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = { title: "Ask" };
 
-// §5.3 / §5.6: ask a question; below it the five latest of your videos.
+// §5.3 / §5.6: ask a question; the five latest of your videos on the right on laptops. Phones reach them from the menu's "Your videos".
 export default async function Ask() {
   const account = await requireAccount("/ask");
   if (account.hasAccess && !account.everPaid && account.available === 0 && !(await cookies()).has(START_SEEN_COOKIE)) {
@@ -28,16 +28,16 @@ export default async function Ask() {
       <Header available={account.available} />
       <main className="page stack">
         {account.hasAccess ? (
-          <>
+          <div className="ask-layout">
             <AskComposer available={account.available} firstRun={!account.everPaid} />
             {recent.length > 0 && (
-              <section className="stack" style={{ paddingTop: 16 }}>
+              <section className="stack ask-recent">
                 <h2>Your videos</h2>
                 <VideoList rows={recent} />
                 <Link href="/library" className="btn secondary block">See all your videos</Link>
               </section>
             )}
-          </>
+          </div>
         ) : (
           <div className="narrow stack">
             <h1>Enter your invite code</h1>

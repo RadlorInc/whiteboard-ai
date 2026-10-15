@@ -109,20 +109,10 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
           }}
         />
       </label>
-      <div className="muted small" style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-        <span>Answers are in English.</span>
-        {question.length >= 400 && <span>{question.length} / {MAX}</span>}
-      </div>
-
-      <label className="row small" style={{ flexWrap: "nowrap" }}>
-        <input type="checkbox" checked={explore} onChange={(e) => setExploreTick(e.target.checked)} style={{ flex: "none", width: 20, height: 20 }} />
-        Show in Explore — anyone can watch it there, without seeing who made it. You can remove it later.
-      </label>
+      {question.length >= 400 && (
+        <div className="muted small" style={{ textAlign: "right", marginTop: 6 }}>{question.length} / {MAX}</div>
+      )}
       <VoiceProgress />
-
-      <p className="small">
-        Up to {HOLD_CREDITS} credits · 1 credit = 10 s · You have {available}.
-      </p>
 
       {enough ? (
         <button type="submit" className="btn block" disabled={empty}>
