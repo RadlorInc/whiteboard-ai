@@ -10,6 +10,8 @@ export function Header({ available }: { available: number }) {
     <header className="site-header">
       <div className="bar">
         <Link href="/ask" className="wordmark">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="" width={28} height={35} />
           {PRODUCT_NAME}
         </Link>
         <Link href="/buy" className={`pill${low ? " low" : ""}`} aria-label={`${available} credits. Buy credits`}>
