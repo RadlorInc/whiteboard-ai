@@ -19,8 +19,7 @@
   `insert into public.admins (user_id) select p.id from public.profiles p join auth.users u on u.id = p.id where
   u.email = '<email>' and p.deleted_at is null returning user_id;` (expect 1 row) → /admin enrols an authenticator.
 - CI (`ci.yml`) is green on main. The repo is public while we build; it goes private at launch.
-- Not yet: Stripe keys (checkout answers 503), Resend SMTP (Supabase's built-in mail sends few codes an hour),
-  Vercel Cron for keep-warm (no `vercel.json` crons yet), Turnstile.
+- Not yet: Stripe keys (checkout answers 503), Vercel Cron for keep-warm (no `vercel.json` crons yet), Turnstile.
 
 ## Where things stand (12 Oct 2026, evening)
 
@@ -90,7 +89,8 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
 ## Explore and reports (live since 13 Oct 2026, #1; migration applied by migrate-prod)
 
 - Founder's decisions: a public feed at `/explore`, open without signing in (noindex for now); a video goes there
-  only by its maker's choice — "Show in Explore" on /ask, **ticked by default**, plus Show/Remove on the video page;
+  by default — /ask has no "Show in Explore" tick since 15 Oct (#12), so every new video goes there; the maker removes
+  it with Show/Remove on the video page;
   13–17 the same as adults.
 - An Explore item is a share with `shares.explore_at` set (migration `20261013001200_explore.sql`). **Security
   change:** DEFINER `set_explore(uuid, boolean)` (authenticated; owner only, goes through `create_share`, so the
@@ -122,11 +122,11 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
 
 - **Not built yet:** emails beyond sign-in codes: digest, alerts, outbox (needs
   Resend), the decline policy in the prompt + red-team run (a new prompt sha; ~$3 live), OG images, parent email for
-  13–17 payers (C13), Turnstile captcha (needs a site key), `/api/telemetry`, per-category library loading, streaming
-  for paper and match-cut, `/legal/accept` re-acceptance.
+  13–17 payers (C13), Turnstile captcha (needs a site key), `/api/telemetry`, per-category library loading,
+  `/legal/accept` re-acceptance.
 - Admin "missing drawings" on the local stack lists primitives (arrow, circle, line, path, text ×17) from mock runs;
   production showed None. Check whether the mock (or the miss counter) records primitives as misses.
-- Paper and match-cut do not stream (they play when the script is done); match-cut took 45 s.
+- Paper and match-cut are not offered on /ask (since #10); old videos in those styles still replay.
 - Player library loads every category (~1.6 MB unzipped); load only what a script uses (§7.9).
 - The founder decides the first commit; accounts to create are PLAN.md §2 E1–E18.
 
@@ -147,7 +147,7 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
 - `break-check.sh` clones `node_modules` with `cp -c` (APFS) for e2e copies, because Turbopack rejects a symlinked
   `node_modules` outside the project. Linux CI (M8) needs another way (`cp --reflink=auto`, or a real install).
 
-## UI round (14 Oct 2026, branch `ui-controls`, committed, not pushed — founder looks locally first)
+## UI round (live since 15 Oct 2026, #10)
 
 - /ask: whiteboard only (old paper/match-cut videos still play; the server still accepts them), latest five videos +
   "See all". Voice, theme, motion on `/settings`. `.row` got its missing CSS; the player frame takes its height from
@@ -157,9 +157,29 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
   + 1 dot without it). No pause button yet.
 - While a video is made, a cover over the board (`MakingCover` in `Watch.tsx`): spinner, seconds, bar, and the
   stream's real stages — reading, drawings (with names), writing (fixing), then the voice (MB on first download).
-  It goes when the first step plays. Seen in Playwright; the core-loop e2e asserts it but has not run yet (user A
-  hit the local 20-videos-an-hour limit).
+  It goes when the first step plays. The core-loop e2e asserts it (green in CI).
+- Two fixes found by the Explore e2e (#10): the video page built the share link only in the browser, so server and
+  browser HTML differed and React re-rendered, dropping a click made meanwhile ("Remove from Explore"); the origin
+  now comes from `useSyncExternalStore` (`VideoView.tsx`). And /ask kept an asked question as the draft, so coming
+  back asked it again ("You already have a video…"); the draft is cleared on Ask (`AskComposer.tsx`).
 - Local demo: `GENERATION_MOCK=1 npm run dev` (no API spend; credits are the local seed users'), sign in as
   `b@example.test`, code from Mailpit `127.0.0.1:55324`. Use Chrome.
-- Parked: local branch `paper-stream` (paper plays as it streams; e2e watched red). Local stack: `admin.spec.ts`
+- Paper streaming (PR #11) was closed and its branch deleted on 15 Oct: /ask no longer offers Paper. The commits
+  stay reachable from PR #11 if Paper comes back. Local stack: `admin.spec.ts`
   fails past 50 users (first `listUsers` page); `tests/db` needs a fresh `supabase db reset`.
+
+## Rename and /ask cleanup (live since 15 Oct 2026, #12, #13; founder, for a meeting)
+
+- The public name is **askRadlor** (`PRODUCT_NAME` in `src/product.ts`: header, page titles, home, Explore, legal,
+  manifest). The header shows `public/logo.png` (`radlor-robot-head.png` from `milo_react/radlor-internal/brand/logos`,
+  scaled to 96 px; black background, so corners are rounded). The Vercel project and repo are still `whiteboard-ai`.
+- /ask: removed "Answers are in English", the "Show in Explore" tick and the "Up to 6 credits · …" line. The 400+
+  character counter stays. Explore stays on by default (a stored `wb.explore=off` from before still turns it off);
+  the core-loop e2e now sets that key instead of unticking.
+- /ask layout: from 768 px the latest five videos sit right of the composer (300 px column, `.ask-layout` in
+  `globals.css`); on phones they are hidden and the menu's "Your videos" reaches them.
+- Not checked signed in on the live site (the header and /ask need an account); the live CSS has the new layout.
+- **To fix:** `src/content/legal.ts` still says "Show in Explore" is ticked and can be unticked when asking. With the
+  tick gone, Explore is opt-out only from the video page. Change the Privacy/Terms wording (or bring the tick back);
+  the attorney review covers it.
+
