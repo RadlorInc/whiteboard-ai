@@ -89,7 +89,8 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
 ## Explore and reports (live since 13 Oct 2026, #1; migration applied by migrate-prod)
 
 - Founder's decisions: a public feed at `/explore`, open without signing in (noindex for now); a video goes there
-  only by its maker's choice — "Show in Explore" on /ask, **ticked by default**, plus Show/Remove on the video page;
+  by default — /ask has no "Show in Explore" tick since 15 Oct (#12), so every new video goes there; the maker removes
+  it with Show/Remove on the video page;
   13–17 the same as adults.
 - An Explore item is a share with `shares.explore_at` set (migration `20261013001200_explore.sql`). **Security
   change:** DEFINER `set_explore(uuid, boolean)` (authenticated; owner only, goes through `create_share`, so the
@@ -166,3 +167,19 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
 - Paper streaming (PR #11) was closed and its branch deleted on 15 Oct: /ask no longer offers Paper. The commits
   stay reachable from PR #11 if Paper comes back. Local stack: `admin.spec.ts`
   fails past 50 users (first `listUsers` page); `tests/db` needs a fresh `supabase db reset`.
+
+## Rename and /ask cleanup (live since 15 Oct 2026, #12, #13; founder, for a meeting)
+
+- The public name is **askRadlor** (`PRODUCT_NAME` in `src/product.ts`: header, page titles, home, Explore, legal,
+  manifest). The header shows `public/logo.png` (`radlor-robot-head.png` from `milo_react/radlor-internal/brand/logos`,
+  scaled to 96 px; black background, so corners are rounded). The Vercel project and repo are still `whiteboard-ai`.
+- /ask: removed "Answers are in English", the "Show in Explore" tick and the "Up to 6 credits · …" line. The 400+
+  character counter stays. Explore stays on by default (a stored `wb.explore=off` from before still turns it off);
+  the core-loop e2e now sets that key instead of unticking.
+- /ask layout: from 768 px the latest five videos sit right of the composer (300 px column, `.ask-layout` in
+  `globals.css`); on phones they are hidden and the menu's "Your videos" reaches them.
+- Not checked signed in on the live site (the header and /ask need an account); the live CSS has the new layout.
+- **To fix:** `src/content/legal.ts` still says "Show in Explore" is ticked and can be unticked when asking. With the
+  tick gone, Explore is opt-out only from the video page. Change the Privacy/Terms wording (or bring the tick back);
+  the attorney review covers it.
+
