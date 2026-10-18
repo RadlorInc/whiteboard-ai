@@ -97,30 +97,34 @@
   `admin.spec.ts` fails past 50 users (it reads only the first `listUsers` page), and `tests/db` needs a fresh
   `supabase db reset`.
 
-## UI redesign (18 Oct 2026, branch `ui-redesign` on top of #18, not committed)
+## UI redesign + Explore + Collection (18 Oct 2026, PR #19 `ui-redesign`, stacked on #18, not merged)
 
-- Founder: layout like Claude, always dark, monochrome like the logo (white on black), subject picked in the composer.
-- `src/app/(app)/layout.tsx` + `AppFrame.tsx`: sidebar (New chat, Explore, Your videos, Recents, credits, account menu);
-  phones get a top bar + drawer. Signed out, the same pages get `PublicHeader` + footer. Pages moved into `(app)/`.
-- `globals.css` rewritten (no light theme; Settings lost Theme). `Icon.tsx` replaces emoji icons. Logo assets:
-  `public/logo.png` (transparent white), `app/icon.png`, `apple-icon.png`, `favicon.ico`.
-- Players (`public/player/*.html`, embed only): no board frame, light captions, body not 100vh (frame couldn't shrink).
-- **Explore by chat**: a card per chat ("N videos") with a board still (player `poster`, lazy iframe), search
-  (questions + narration), subject chips; `/v/[slug]` plays the chat in order + "More like this". Migration `20261018000200_explore_chats.sql` (DEFINER: explore_on_finish,
-  explore_feed/series/related); the server now puts each finished video on Explore (`db.explore` after finish), the
-  browser no longer does. pgTAP `56_explore_chats` (22).
-- Signed out, `/v/[slug]` plays only the opened video; the chat's rest is blurred under "Sign up to watch the rest"
-  (scripts not sent). Sign up / log in return there (`next` through invite → age → sign-in, `okNext`).
-- Player: every step goes in at once (`voice: true` on els); the Player makes lines behind the board from the
-  current/jumped step (`need`, `stepWav`; a jump cancels the line in progress: worker `{cancel}`). Controls: step segments, keys, full screen.
-- No `(app)/loading.tsx`: it streams early, so `notFound()` answered 200 (IDOR and unshare e2e want 404).
-- 18 Oct late: new glowing logo; Collection (`saved_items`, `save_item`/`my_saved`, /saved, bookmark on cards);
-  "videos left" not credits in the app (`lib/videos.ts`, 4 credits a video: an estimate); Recents = 10; video page
-  shows before/after in its chat. Pricing/Help/legal copy still says credits.
-- Also: error screen, skip link, real titles + link previews, ⌘⇧O new chat (no sidebar chat search: founder), toasts, chat header
-  (Share, Delete chat = delete_my_video each), Share per answer, jump-to-latest, Your videos as a grid + search.
-- Checked: tsc, eslint, vitest and screenshots at 1440 and 390 px. **e2e not run**: locally Playwright reuses
-  the dev server on 3100, which was running the live model; two selectors updated for the sidebar.
+- **Look (founder):** like Claude, always dark, monochrome + the glowing robot logo (`public/logo.png`, app icons
+  RGBA: an RGB favicon 500s every page). `globals.css` rewritten, no light theme. `Icon.tsx`, no emoji icons.
+- **Frame:** `src/app/(app)/layout.tsx` + `AppFrame.tsx`. Sidebar: New chat, Explore, Collection, Your videos,
+  subject chips, Recents (latest 10, "All chats"). **No chat search in any form** (founder: not a chat app).
+  Profile top right: avatar with a videos-left ring (green / amber / red, full at 25), menu with videos left.
+  Phones: top bar + drawer. Signed out: `PublicHeader` + footer. No `(app)/loading.tsx` (made `notFound()` a 200).
+- **Videos left, not credits** (`lib/videos.ts`: 4 credits a video, an estimate); Your videos show no credits.
+  Pricing/Help/legal copy still says credits. e2e reads balances from `data-credits` / `data-charged`.
+- **Chat:** composer with the subject picker inside; header with Share and Delete chat; Share per answer;
+  jump-to-latest; AI note at the bottom of a new chat.
+- **Player:** every step goes in at once and the Player makes the voice behind it from the current step; a jump
+  draws at once (only step 1 waits for its line), cancels the line in progress (worker `{cancel}`), its line joins
+  when made (~4–7 s). Controls: step segments, play/pause, keys, full screen. Embedded players: no frame, light
+  captions, no 100vh, `place-items: normal`.
+- **Explore** (migration `20261018000200_explore_chats.sql`): one card per chat with a board still (player
+  `poster`), search over questions + narration, subject chips; the server puts each finished video on Explore.
+  `/v/[slug]` plays the chat in order + "More like this". Signed out: only the opened video plays, the rest is
+  blurred behind sign-up (scripts not sent); sign up / log in return there (`next` + `okNext`).
+- **Collection** (migration `20261018000300_saved_items.sql`): bookmark on cards and lessons, `/saved`.
+- **Video page:** before/after links within its chat. Your videos: grid + search. Error/404 screens, skip link,
+  link previews, toasts.
+- **Tests:** pgTAP 56 (22) and 57 (11), security catalogues (00, 20, 60) updated; vitest 178. Locally, 20_writes
+  and 60_deletion fail 3–4 fixture checks because seed users A/B hold dev data (fresh CI is the judge).
+  **e2e only runs in CI**: locally Playwright would reuse the dev server on the live model.
+- **Open:** CI on the last push (60_deletion's FK list was just fixed); `migrate-prod` for both migrations
+  before merge (LAUNCH.md); the founder's look at the whole UI on a phone.
 
 ## Subjects: own prompt + library per chat subject (18 Oct 2026, PR #17, on top of #16)
 
@@ -171,7 +175,6 @@
   "1 question = 1 video": Plus "40 videos/month", Pro "Unlimited, fair use 150", 3 bonus videos when the balance hits
   0, replays and Explore free, show "videos left". Full-use margins with keep-warm: Plus ~70%, Pro at 150 ~57%.
   Needs the money functions, Stripe prices and /pricing changed: decide before launch.
-- **Next session:** UI work (founder's choice), then the LAUNCH.md list. Physics and Chemistry get the same
-  treatment later (`servier-chem` exists; no pins yet).
+- **Next:** UI done (PR #19, above); then the LAUNCH.md list. Physics and Chemistry later (`servier-chem`, no pins).
 - Local: `.env.local`'s Anthropic key was replaced 18 Oct (the one in `prototype/.env` is revoked). A 401 makes the app block generation ~10 min (`ops_state.provider_blocked_until`); delete that row locally.
 
