@@ -14,18 +14,28 @@ js = '''// Whiteboard library — anatomy: realistic drawings adapted from Servi
 (() => {
   const A = ''' + json.dumps(data, separators=(',', ':')) + ''';
   const COL = { low: '#1f4f8f', high: '#8a1d16', valve: '#6a4e38' };
+  // Realistic drawings that load when a lesson needs them (lib/sv/<id>.js calls SV.add): the player asks for every
+  // "sv id=..." element before it draws (bridge.js, SV.need), so a phone downloads only that lesson's drawings.
+  const SV = window.SV = { data: {}, wait: {}, add(id, d) { this.data[id] = d; (this.wait[id] || []).forEach(f => f()); },
+    need(ids) { return Promise.all(ids.filter(id => /^[a-z0-9-]{1,60}$/.test(id) && !this.data[id]).map(id => new Promise(done => {
+      if (!this.wait[id]) { this.wait[id] = []; const s = document.createElement('script'); s.src = `lib/sv/${id}.js`; s.onerror = () => done(); document.head.append(s); }
+      this.wait[id].push(done); }))); } };
   const drawing = key => ([cx, cy, H = 460], o, t, parent) => {
-    const a = A[key], s = H / a.h, ox = cx - a.w * s / 2, oy = cy - H / 2;
+    const a = key === 'sv' ? SV.data[o.id] : A[key];
+    if (!a) throw new Error(`sv: no drawing "${o.id}"`);
+    const s = H / a.h, ox = cx - a.w * s / 2, oy = cy - H / 2;
     const g = mk('g', { class: 'polished anat', transform: `translate(${ox} ${oy}) scale(${s})` }, parent);
     for (const [d, fill, alpha, stroke, w] of a.shapes) {
       if (fill !== 'none') mk('path', { d, fill, class: 'fillable', ...(alpha < 1 && { opacity: alpha }) }, g);
       if (stroke) mk('path', { d, fill: 'none', stroke, 'stroke-width': w, 'stroke-linejoin': 'round', class: 'ink' }, g);
     }
-    g.parts = a.parts; g.place = { key, ox, oy, s, w: a.w, h: a.h };
+    g.parts = a.parts; g.place = { data: a, ox, oy, s, w: a.w, h: a.h };
     return g;
   };
   Object.assign(window.RECIPES, {
     heartcut: drawing('heartcut'),
+    // "sv id=<name> cx cy height" — any realistic drawing from the on-demand library (find_drawing lists them)
+    sv: drawing('sv'),
     // "pin of=<drawing id> part=<name> [| words]" — a labelled pointer to one part of an anatomy drawing listed earlier
     pin: (n, o, t, parent) => {
       const h = els[o.of], part = h?.parts?.[o.part];
@@ -34,7 +44,7 @@ js = '''// Whiteboard library — anatomy: realistic drawings adapted from Servi
       const g = mk('g', { class: 'polished anat' }, parent);
       const trace = mk('g', { transform: `translate(${ox} ${oy}) scale(${s})` }, g);
       const tw = (part.kind === 'valve' ? 2 : 3.2) / s;   // valves are lacy: a thinner trace
-      for (const i of part.shapes) mk('path', { d: A[h.place.key].shapes[i][0], fill: 'none', stroke: col, 'stroke-width': tw, 'stroke-linejoin': 'round', class: 'ink', opacity: .9 }, trace);
+      for (const i of part.shapes) mk('path', { d: h.place.data.shapes[i][0], fill: 'none', stroke: col, 'stroke-width': tw, 'stroke-linejoin': 'round', class: 'ink', opacity: .9 }, trace);
       const [ax, ay] = P(...part.at), left = part.label[0] === 'L';
       const [lx, ly] = P(left ? -50 : w + 50, part.label[1]);
       // one stroke: a small ring on the part, then the leader to the words (a separate circle left a speck before it was drawn)

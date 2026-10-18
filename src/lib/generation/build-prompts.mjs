@@ -30,11 +30,20 @@ const catalogueOf = (dir, list) => list.map(c => ({ cat: c, lines: fs.readFileSy
     return { name: sig.split(/\s+/)[0], sig, example, desc }; }) }));
 // WB_CATS = the plain whiteboard prompt's categories; WB_EXTRA = subject-only ones (the player loads both).
 const WB_CATS = cats('wb-load.js', 'WB_CATS');
-const WB_ALL = catalogueOf('wb', [...WB_CATS, ...cats('wb-load.js', 'WB_EXTRA')]);
+// Realistic drawings adapted from Servier Medical Art (18 Oct 2026; scripts/servier): loaded on demand by the player,
+// found only through find_drawing (too many to list in a prompt). One search category per subject.
+const SV = JSON.parse(fs.readFileSync(path.join(genDir, '..', '..', '..', 'scripts', 'servier', 'sv-catalogue.json'), 'utf8'));
+const svCat = (cat, subject) => ({ cat, lines: SV.filter(d => d.subject === subject).map(d => ({ name: d.id, sig: `sv id=${d.id} cx cy height`,
+  example: `sv id=${d.id} 480 270 460`, desc: `${d.name} (realistic; width ${(d.w / 1000).toFixed(2)} x its height): ${d.tags.join(' ')}` })) });
+const SV_CATS = [svCat('servier', 'biology'), svCat('servier-chem', 'chemistry')];
+const isSv = c => c.cat.startsWith('servier');
+const WB_ALL = [...catalogueOf('wb', [...WB_CATS, ...cats('wb-load.js', 'WB_EXTRA')]), ...SV_CATS];
 const WB_LIB = WB_ALL.filter(c => WB_CATS.includes(c.cat));
-const libIndex = lib => lib.map(c => `  ${c.cat}: ${c.lines.map(l => l.name).join(' ')}`).join('\n');
+const libIndex = lib => lib.map(c => isSv(c)
+  ? `  ${c.cat}: ${c.lines.length} realistic drawings, not listed: find them with find_drawing query words (e.g. "kidney nephron"), then draw with "sv id=<name> cx cy height"`
+  : `  ${c.cat}: ${c.lines.map(l => l.name).join(' ')}`).join('\n');
 const PRIMITIVES = ['circle', 'ellipse', 'rect', 'line', 'arrow', 'path', 'text', 'tag'];
-const typesOf = lib => new Set([...PRIMITIVES, ...RECIPE_NAMES, ...lib.flatMap(c => c.lines.map(l => l.name))]);
+const typesOf = lib => new Set([...PRIMITIVES, ...RECIPE_NAMES, ...lib.filter(c => !isSv(c)).flatMap(c => c.lines.map(l => l.name)), ...(lib.some(isSv) ? ['sv'] : [])]);
 const TYPES = typesOf(WB_ALL);                                    // what the checks accept: every loaded drawing
 const COMMANDS = new Set(['draw', 'write', 'fill', 'pop', 'fade', 'go', 'cam', 'wait', 'loop', 'travel']);
 const LOOPS = new Set(['beat', 'flow', 'fall', 'rise', 'sway', 'swing']);
@@ -79,7 +88,7 @@ const RULES = wbRules(WB_LIB);
 // Each subject prompt lists only its categories (plus the shared diagrams) and adds how to teach that subject.
 // find_drawing searches the same categories. Each is its own prompt cache entry (its own prompt_sha).
 const SUBJECTS = {
-  biology: { cats: ['anatomy', 'biology', 'cells', 'body', 'health', 'diagrams'], teach: `
+  biology: { cats: ['anatomy', 'servier', 'biology', 'cells', 'body', 'health', 'diagrams'], teach: `
 - Teaching biology: name the real structures with their proper names (labelled drawings, lab=1), then show what they
   do: follow one thing (blood, air, food, a nerve signal, water, sugar) as it travels through them with travel or go.
   For these topics use the detailed diagrams: heartsection, circulation, breathing, gut, reflexarc, dnaladder,
@@ -88,11 +97,14 @@ const SUBJECTS = {
 - For the heart, prefer heartcut (a realistic drawing) over heartsection. Draw it in step 1 (draw, then fill), then
   in each step add one pin for each part that step talks about (draw the pin when its part is spoken about), so the
   names appear one by one as they are explained. Keep heartcut near the middle (x 440-500) so the pins' words fit on
-  both sides; leave the left 200 and right 260 pixels free for them and put nothing else there.` },
+  both sides; leave the left 200 and right 260 pixels free for them and put nothing else there.
+- For any other organ, cell, tissue, microbe or molecule, first search the realistic library: find_drawing with a
+  short query (e.g. "lungs alveoli", "neuron synapse", "mitochondria"); draw a match with "sv id=<name> cx cy height"
+  (draw it, then fill it), one or two per lesson, big, and name its parts with your own label or tag elements beside it.` },
   physics: { cats: ['physics', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
 - Teaching physics: show the cause and the effect, with forces, energy and waves drawn as arrows. Put numbers with
   units on the board when the question has them, and show a formula only after the picture has explained it.` },
-  chemistry: { cats: ['chemistry', 'earth', 'math', 'diagrams'], teach: `
+  chemistry: { cats: ['servier-chem', 'chemistry', 'earth', 'math', 'diagrams'], teach: `
 - Teaching chemistry: show the particles (atoms, molecules, ions) and what changes and what stays the same. Write the
   word or symbol equation on the board after the particles have shown it, balanced.` },
 };
@@ -192,6 +204,7 @@ export function buildPrompts() {
     wbCats: WB_CATS,
     // the named parts of each anatomy drawing (its catalogue line's "parts: ..."), so the checks can verify pins
     parts: Object.fromEntries(WB_ALL.flatMap(c => c.lines).filter(l => /parts: /.test(l.desc)).map(l => [l.name, l.desc.split('parts: ')[1].trim().split(/\s+/)])),
+    svIds: SV.map(d => d.id),
     types: [...TYPES], commands: [...COMMANDS], loops: [...LOOPS],
     libNames: [...LIB_NAMES], flowItems: [...FLOW_ITEMS], bloodPaths: [...BLOOD_PATHS], textures: [...TEXTURES],
     wbLib: WB_ALL, paperLib: PAPER_LIB, mcLib: MC_LIB,

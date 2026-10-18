@@ -70,7 +70,8 @@ describe('the per-step split is the same check', () => {
 describe('check.mjs §2d–2e: library and find_drawing', () => {
   it('§2d every catalogue line has its code, names are unique, the example calls its own name', () => {
     const seen: Record<string, Set<string>> = { wb: new Set<string>(P.types.filter(t => !WB_LIB.some((c: Any) => c.lines.some((l: Any) => l.name === t)))), paper: new Set<string>() };
-    for (const [dir, lib] of [['wb', WB_LIB], ['paper', PAPER_LIB]] as const) for (const { cat, lines } of lib as Any[]) {
+    // the realistic (servier) categories have one file per drawing instead: checked in 'realistic library' below
+    for (const [dir, lib] of [['wb', (WB_LIB as Any[]).filter(c => !c.cat.startsWith('servier'))], ['paper', PAPER_LIB]] as const) for (const { cat, lines } of lib as Any[]) {
       const src = fs.readFileSync(path.resolve(__dirname, `../../player-src/lib/${dir}/${cat}.js`), 'utf8');
       for (const l of lines) {
         expect(new RegExp(`^\\s+${l.name}: `, 'm').test(src), `lib/${dir}/${cat}: "${l.name}" not in the code`).toBe(true);
@@ -86,10 +87,11 @@ describe('check.mjs §2d–2e: library and find_drawing', () => {
   });
   it('§2e find_drawing: by name, unknown names, by query; no full lines in the cached prompt', () => {
     const findDrawing = findDrawingJs as (lib: unknown, q: { names: string[]; query: string }) => string;
-    const l = (WB_LIB as Any[]).flatMap(c => c.lines).find(x => x.name === 'magnet');
-    expect(findDrawing(WB_LIB, { names: ['magnet'], query: '' }).startsWith(l.sig)).toBe(true);
-    expect(findDrawing(WB_LIB, { names: ['unicornx'], query: '' })).toMatch(/unicornx: not in the library/);
-    expect(findDrawing(WB_LIB, { names: [], query: 'blood vessel artery' })).toMatch(/^vessel /m);
+    const WB = (WB_LIB as Any[]).filter(c => !c.cat.startsWith('servier'));   // the plain prompt's library
+    const l = WB.flatMap(c => c.lines).find(x => x.name === 'magnet');
+    expect(findDrawing(WB, { names: ['magnet'], query: '' }).startsWith(l.sig)).toBe(true);
+    expect(findDrawing(WB, { names: ['unicornx'], query: '' })).toMatch(/unicornx: not in the library/);
+    expect(findDrawing(WB, { names: [], query: 'blood vessel artery' })).toMatch(/^vessel /m);
     expect(P.styles.whiteboard.system.includes(l.desc)).toBe(false);
   });
   it('§7.6 the find_drawing input guard: ≤40 names of ≤40 characters, query ≤200', () => {
@@ -160,5 +162,30 @@ describe('anatomy pins', () => {
     expect(checkEls({ p: 'pin of=h part=ra', h: 'heartcut 470 270 480' })[0]).toMatch(/listed before it/);
     expect(checkEls({ p: 'pin of=zz part=ra' })[0]).toMatch(/listed before it/);
     expect(checkEls({ s: 'sun 100 100', p: 'pin of=s part=ra' })[0]).toMatch(/listed before it/);
+  });
+});
+
+// The realistic library (scripts/servier, 18 Oct 2026): every catalogue drawing has its on-demand file, biology search
+// finds them, the prompt does not list them, and an sv element must name one of them.
+describe('realistic library', () => {
+  const sv = (WB_LIB as Any[]).find(c => c.cat === 'servier').lines as Any[];
+  it('every drawing has its file in public/player/lib/sv, and the file registers that id', () => {
+    expect(sv.length).toBeGreaterThan(1000);
+    for (const l of sv) {
+      const f = path.resolve(__dirname, `../../public/player/lib/sv/${l.name}.js`);
+      expect(fs.existsSync(f), l.name).toBe(true);
+      expect(fs.readFileSync(f, 'utf8').startsWith(`SV.add(${JSON.stringify(l.name)},`)).toBe(true);
+    }
+  });
+  it('search finds realistic drawings; the biology prompt mentions them without listing names', () => {
+    const findDrawing = findDrawingJs as (lib: unknown, q: { names: string[]; query: string }) => string;
+    expect(findDrawing([{ cat: 'servier', lines: sv }], { names: [], query: 'mitochondria' })).toMatch(/^sv id=mitochondria/m);
+    expect(P.subjects.biology.system).toMatch(/servier: \d+ realistic drawings, not listed/);
+    expect(P.subjects.biology.system.includes(sv[0].desc)).toBe(false);
+    expect(P.styles.whiteboard.system).not.toMatch(/servier/);
+  });
+  it('an sv element must name a catalogue drawing', () => {
+    expect(checkEls({ a: `sv id=${sv[0].name} 480 270 460` })).toEqual([]);
+    expect(checkEls({ a: 'sv id=unicornx 480 270 460' })[0]).toMatch(/sv needs id=/);
   });
 });

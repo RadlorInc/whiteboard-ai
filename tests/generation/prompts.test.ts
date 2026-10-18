@@ -55,14 +55,14 @@ describe('prompt sha parity', () => {
 
   // Subject prompts (founder, 18 Oct 2026): new prompts, so no prototype twin; these shas bind them the same way.
   const SUBJECT_EXPECTED = {
-    biology: 'e0d9ca99cd7f0ec19d5223622a92bb9064ca7d1cbb61cc68aa780c17f9ed6580',
+    biology: '1886d539119b6d428407dbfc2c0be69d8ae3513f0da66979a95a0c331415aece',
     physics: '1f75c2088d47ff2f7f314b0a7309326a5862a7fb01bf30071f5119d8e83ac102',
-    chemistry: '9cab313ff7bbe5e9bf83294b8508451856900c3b88d238a1030fcaa83d9096d1',
+    chemistry: '283c68b7407e04f098fa1d7e287a5fd7a559088d958e3abbe87a754bb1114d9d',
   } as const;
   for (const s of ['biology', 'physics', 'chemistry'] as const) it(`${s}: its own prompt, sha bound, only its categories listed`, () => {
     const t = P.subjects[s].system;
     expect(sha(t)).toBe(SUBJECT_EXPECTED[s]); expect(P.subjects[s].sha256).toBe(SUBJECT_EXPECTED[s]);
-    const listed = [...t.split('More recipes, by subject')[1].split('Worked examples')[0].matchAll(/^  (\w+): /gm)].map(m => m[1]);
+    const listed = [...t.split('More recipes, by subject')[1].split('Worked examples')[0].matchAll(/^  ([\w-]+): /gm)].map(m => m[1]);
     expect(listed).toEqual(P.subjects[s].cats);
     expect(t).toContain(`- Teaching ${s}:`);
     // the rules and worked examples are the plain prompt's, word for word

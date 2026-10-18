@@ -114,11 +114,13 @@
   }
   const restart = () => seek(0);
 
+  // Realistic drawings ("sv id=...") load on demand before the board is built (SV, lib/wb/anatomy.js).
+  const needSv = els => self.SV ? SV.need(Object.values(els || {}).map(v => /^\s*sv\b.*\bid=([a-z0-9-]+)/.exec(String(v))?.[1]).filter(Boolean)) : Promise.resolve();
   async function playScript(script, voice) {
     gen++; hush();
     self.VOICE_WAVS = Number.isInteger(voice) && voice > 0 ? new Array(voice).fill(undefined) : null; waiters = [];
     try {
-      if (style === 'whiteboard') { A = { ...script, steps: [...script.steps] }; done = true; restart(); return; }
+      if (style === 'whiteboard') { const my = ++gen; A = { ...script, steps: [...script.steps] }; done = true; await needSv(A.els); if (my === gen) restart(); return; }
       if (style === 'paper') { TOPICS.embed = fromRecipe(script); current = 'embed'; play('embed'); }
       else { ANS.length = 0; ANS.push(script); show(0); }
     } catch (e) { tell({ type: 'error', message: String(e.message || e) }); }
@@ -136,8 +138,8 @@
       (waiters[m.i] || []).forEach(f => f(w)); waiters[m.i] = [];
     }
     else if (style !== 'whiteboard') return;
-    else if (m.type === 'els') { A = { els: { ...m.els }, steps: [] }; done = false; restart(); }
-    else if (m.type === 'els_add' && A) { Object.assign(A.els, m.els); seek(at); }   // rare: redraw with the new drawings, same step
+    else if (m.type === 'els') { const my = gen, a = A = { els: { ...m.els }, steps: [] }; done = false; needSv(a.els).then(() => { if (my === gen && A === a) restart(); }); }
+    else if (m.type === 'els_add' && A) { const a = A; Object.assign(a.els, m.els); needSv(m.els).then(() => { if (A === a) seek(at); }); }   // rare: redraw with the new drawings, same step
     else if (m.type === 'step' && A) A.steps.push(m.wav instanceof ArrayBuffer ? { ...m.step, wav: m.wav } : m.step);
     else if (m.type === 'done') { done = true; if (A) where(); }
     else if (m.type === 'seek' && Number.isInteger(m.i)) seek(m.i);

@@ -5,11 +5,11 @@ import sys, re, colorsys, xml.etree.ElementTree as ET
 NS = {'a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
       'p': 'http://schemas.openxmlformats.org/presentationml/2006/main'}
 A = '{%s}' % NS['a']; P = '{%s}' % NS['p']
-root_dir, n, out = sys.argv[1], sys.argv[2], sys.argv[3]
-
 theme = {}
-t = ET.parse(f'{root_dir}/ppt/theme/theme1.xml').getroot()
-for el in t.find('.//a:clrScheme', NS):
+def load_theme(root_dir):
+  theme.clear()
+  t = ET.parse(f'{root_dir}/ppt/theme/theme1.xml').getroot()
+  for el in t.find('.//a:clrScheme', NS):
     tag = el.tag.split('}')[1]; c = el[0]
     theme[tag] = c.get('val') if c.tag == A + 'srgbClr' else c.get('lastClr', '000000')
 alias = {'tx1': 'dk1', 'bg1': 'lt1', 'tx2': 'dk2', 'bg2': 'lt2'}
@@ -121,9 +121,21 @@ def walk(node, depth=0, k=1.0):          # k: how much the groups above scale th
             if rot or fh or fv: tf += f' translate({cx / 2:.1f} {cy / 2:.1f}) rotate({rot:.2f}) scale({-1 if fh else 1} {-1 if fv else 1}) translate({-cx / 2:.1f} {-cy / 2:.1f})'
             out_parts.append(f'{shape} transform="{tf}"{attrs} data-name="{ch.find("p:nvSpPr/p:cNvPr", NS).get("name")}"/>'); count += 1
 
-sld = ET.parse(f'{root_dir}/ppt/slides/slide{n}.xml').getroot()
-walk(sld.find('p:cSld/p:spTree', NS))
-pres = ET.parse(f'{root_dir}/ppt/presentation.xml').getroot().find('p:sldSz', NS)
-W, H = pres.get('cx'), pres.get('cy')
-open(out, 'w').write(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}">' + ''.join(out_parts) + '</svg>')
-print(f'{count} shapes -> {out}')
+def slide_svg(root_dir, n):
+    """(svg text, [texts inside each top-level group], slide title) for one slide; theme must be loaded"""
+    global count
+    out_parts.clear(); count = 0
+    sld = ET.parse(f'{root_dir}/ppt/slides/slide{n}.xml').getroot()
+    tree = sld.find('p:cSld/p:spTree', NS)
+    walk(tree)
+    texts = [' '.join(t.text or '' for t in g.iter(A + 't')).strip() for g in tree if g.tag == P + 'grpSp']   # = the svg's <g> children, in order
+    title = ' '.join(t.text or '' for sp in tree.findall('p:sp', NS) if sp.find('.//p:ph', NS) is not None for t in sp.iter(A + 't')).strip()
+    pres = ET.parse(f'{root_dir}/ppt/presentation.xml').getroot().find('p:sldSz', NS)
+    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {pres.get("cx")} {pres.get("cy")}">' + ''.join(out_parts) + '</svg>', texts, title
+
+if __name__ == '__main__':
+    root_dir, n, out = sys.argv[1], sys.argv[2], sys.argv[3]
+    load_theme(root_dir)
+    svg, _, _ = slide_svg(root_dir, n)
+    open(out, 'w').write(svg)
+    print(f'{count} shapes -> {out}')
