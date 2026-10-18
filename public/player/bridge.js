@@ -56,18 +56,23 @@
   // the steps before it are drawn at once (FAST, index.html), then it plays on from there. The player tells the page
   // where it is: {type:'at', i, n, done} (i = n once it has ended).
   let A = null, done = false, gen = 0, at = 0, fastBy = 0, wavWait = {};
-  const where = () => tell({ type: 'at', i: at, n: A.steps.length, done, paused: PAUSED });
+  const where = () => tell({ type: 'at', i: at, n: A.steps.length, done, paused: PAUSED, waiting: !!A.voice && A.steps[at]?.wav === undefined });
   async function streamPlay(my, i = 0) {
     try {
       while (my === gen) {
         if (i < A.steps.length) {
           const s = A.steps[i]; at = i++;
-          // The page makes the voice behind the board (every step is here at once, so any step can be jumped to): a
-          // step waits for its line, and asks for it first ('need'), so a jump ahead is not stuck behind the others.
+          // The page makes the voice behind the board (every step is here at once, so any step can be jumped to) and
+          // makes this step's line next ('need'). The first step waits for its line, so a video starts in sync; any
+          // other step waits at most 1.2 s, then draws anyway and its line joins as soon as it is made (founder,
+          // 18 Oct 2026: a jump ahead must not sit still while the voice catches up).
+          let line = null;
           if (A.voice && s.wav === undefined) {
-            tell({ type: 'at', i: at, n: A.steps.length, done, paused: PAUSED, waiting: true }); tell({ type: 'need', i: at });
+            const idx = at;
+            line = new Promise(r => (wavWait[idx] ||= []).push(r));
+            where(); tell({ type: 'need', i: idx });
             document.getElementById('caption').textContent = s.say;
-            await new Promise(r => (wavWait[at] ||= []).push(r));
+            await (idx === 0 ? line : Promise.race([line, new Promise(r => setTimeout(r, 1200))]));
             while (PAUSED && my === gen) await new Promise(r => setTimeout(r, 120));   // paused while it waited
             if (my !== gen) return;
           }
@@ -78,7 +83,10 @@
           const ids = s.do.map(c => c.replace(/^&/, '').trim().split(/\s+/)).filter(([op]) => !['wait', 'cam'].includes(op)).flatMap(([, a = '']) => a.split(','));
           scene.querySelectorAll('.flow').forEach(e => e.classList.toggle('old', !ids.some(id => els[id] === e)));
           scene.classList.toggle('spot', ids.some(id => isFlow(els[id])));
-          await Promise.all([s.wav ? playWav(s.wav, s.say) : say(s.say),
+          const voice = s.wav ? playWav(s.wav, s.say)
+            : s.wav === undefined && line ? line.then(() => { if (my !== gen) return; where(); return s.wav ? playWav(s.wav, s.say) : say(s.say); })
+            : say(s.say);
+          await Promise.all([voice,
             (async () => { for (const c of s.do) { if (my !== gen) return; await run(c); } await penUp(); })()]);
           if (my !== gen) return;
           await wait(250);
