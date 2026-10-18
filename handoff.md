@@ -160,12 +160,9 @@
     white edge and a running shimmer; that step dims the drawing (spotlight); older flows fade. Player-only, so old
     videos get it too. Prompt: no tags/text over the drawing, one flow per step, pins for parts.
 - **Measured (local, real Opus):** 5 linked heart follow-ups, all correct, $0.53; warm ≈ $0.064 a video, cold +$0.09.
-- **Cost by prompt version:** `npm run cost` (local) or `sql/cost-by-version.sql` in the SQL editor; "sha-test" rows
-  are unit tests.
-- **Sequences 2 and 3 (after the follow-up cache):** 8 videos, all correct and linked; the deliberate wrong follow-up
-  ("is urine made in the bladder?") was corrected ("No! … made in the kidneys"). $0.29 + $0.25; uncached input stays
-  ~600–1,100 tokens per follow-up (was growing to 5,369), cache writes ~200–340. Warm ≈ $0.05 a video; a video that
-  hand-draws its own diagram costs ~$0.10–0.12 (4,400–4,900 output tokens). All 13 test videos: $1.07.
+- **Cost by prompt version:** `npm run cost` (local) or `sql/cost-by-version.sql`.
+- **Sequences 2 and 3** (after the follow-up cache): 8 videos, all correct; a wrong follow-up was corrected. Warm
+  ≈ $0.05 a video; a hand-drawn diagram ~$0.10–0.12. All 13 test videos: $1.07.
 - Fixed from them: c4b3780 (looping `travel`, jsonb element order → `script.order`, search ranking).
 - Later fixes (#18): no dot along step-tag arrows over a realistic drawing; the biology prompt searches 2–3 words
   before hand-drawing. "Tiny air sacs" now picks the realistic alveoli with 4 pins.
