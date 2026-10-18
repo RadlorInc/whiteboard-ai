@@ -127,7 +127,6 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
 - Admin "missing drawings" on the local stack lists primitives (arrow, circle, line, path, text ×17) from mock runs;
   production showed None. Check whether the mock (or the miss counter) records primitives as misses.
 - Paper and match-cut do not stream (they play when the script is done); match-cut took 45 s.
-- Player library loads every category (~1.6 MB unzipped); load only what a script uses (§7.9).
 - The founder decides the first commit; accounts to create are PLAN.md §2 E1–E18.
 
 
@@ -142,24 +141,34 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
   on GitHub secret scanning and push protection when the private repo exists (E2).
 - `player-src/` still contains the prototype's HTML sinks (`innerHTML`, `document.write` in `lib/*-load.js`). M4's
   no-HTML-sinks gate must reach zero before anything there is served.
-- Playwright has three projects now; §12.5's full matrix (360×800 and 1440×900 in Chromium and WebKit, plus the
-  320/390/430/768 layout runs) comes with the first real specs (M2, M4).
 - `break-check.sh` clones `node_modules` with `cp -c` (APFS) for e2e copies, because Turbopack rejects a symlinked
   `node_modules` outside the project. Linux CI (M8) needs another way (`cp --reflink=auto`, or a real install).
 
-## UI round (14 Oct 2026, branch `ui-controls`, committed, not pushed — founder looks locally first)
+## Local demo
 
-- /ask: whiteboard only (old paper/match-cut videos still play; the server still accepts them), latest five videos +
-  "See all". Voice, theme, motion on `/settings`. `.row` got its missing CSS; the player frame takes its height from
-  the player (`size` message), so a two-line caption is not cut on a phone.
-- Whiteboard step controls (prev / next / slider): `seek` in `bridge.js`, earlier steps drawn at once (`FAST`).
-  At the end everything holds still (`still()`: infinite animations paused, travel dot gone; watched red: 7 running
-  + 1 dot without it). No pause button yet.
-- While a video is made, a cover over the board (`MakingCover` in `Watch.tsx`): spinner, seconds, bar, and the
-  stream's real stages — reading, drawings (with names), writing (fixing), then the voice (MB on first download).
-  It goes when the first step plays. Seen in Playwright; the core-loop e2e asserts it but has not run yet (user A
-  hit the local 20-videos-an-hour limit).
-- Local demo: `GENERATION_MOCK=1 npm run dev` (no API spend; credits are the local seed users'), sign in as
-  `b@example.test`, code from Mailpit `127.0.0.1:55324`. Use Chrome.
-- Parked: local branch `paper-stream` (paper plays as it streams; e2e watched red). Local stack: `admin.spec.ts`
-  fails past 50 users (first `listUsers` page); `tests/db` needs a fresh `supabase db reset`.
+- `GENERATION_MOCK=1 npm run dev` (no API spend; credits are the local seed users'). Sign in as `b@example.test`
+  with the code from Mailpit (`127.0.0.1:55324`). Use Chrome.
+- Parked: local branch `paper-stream` (paper plays as it streams; e2e watched red). On the local stack,
+  `admin.spec.ts` fails past 50 users (it reads only the first `listUsers` page), and `tests/db` needs a fresh
+  `supabase db reset`.
+
+## Subjects: own prompt + library per chat subject (18 Oct 2026, PR #17, on top of #16)
+
+- `build-prompts.mjs` → `prompts.json` `subjects.*` = `{system, sha256, cats}`. The rules and examples are the plain
+  prompt's; the categories are only the subject's (+ `diagrams`), plus a "- Teaching <subject>:" rule.
+  - The plain prompt is unchanged (`332e6d…`) and is used outside a chat.
+  - The subject shas are bound in `prompts.test.ts`.
+- The chat's subject picks:
+  - the `prompt_sha` (`promptSha(style, subject)`), so reserve and cost rows carry it;
+  - `prefix(style, subject)`;
+  - the `find_drawing` categories.
+- Keep-warm covers 6 prompts (`PROMPTS`). No migration: `prompt_cache_state` is keyed by `prompt_sha`.
+- Each subject prompt is ~10k tokens, so a cold write is ~$0.08 (estimated). Keeping all three warm costs
+  ~$0.17/day.
+- Biology library: `lib/wb/biology.*`, listed as `WB_EXTRA` in `wb-load.js`. The player loads it; only the biology
+  prompt lists it.
+  - Drawings: heartsection, circulation, breathing, gut, reflexarc, dnaladder, cellcycle, leafsection, plantparts.
+  - All labelled by default (`lab=0` hides the words), drawn polished (`.polished`: no wobble or watercolour).
+- Proof: biology-chat tests in `run.test.ts` and `localdb.test.ts`, and the mock "How does blood travel around the
+  body?" plays to the end.
+- **Next:** physics, then chemistry, the same way.
