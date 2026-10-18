@@ -110,9 +110,12 @@ export function findDrawing(lib, { names = [], query = '' }) {
     ls.slice(1).forEach(x => out.push(`${x.sig} — ${x.desc}`));
     out.push(l ? `${l.sig} — ${l.desc}` : `${n}: not in the library` +
     (() => { const near = all.filter(x => x.name.includes(n) || n.includes(x.name)).slice(0, 5).map(x => x.name); return near.length ? ` (close: ${near.join(', ')})` : ''; })()); }
-  const q = words(query);
-  if (q.length) all.map(l => [l, q.filter(w => words(`${l.name} ${l.desc}`).some(x => x.startsWith(w) || w.startsWith(x))).length])
-    .filter(([, s]) => s > 0).sort((a, b) => b[1] - a[1]).slice(0, 12).forEach(([l]) => out.push(`${l.sig} — ${l.desc}`));
+  // Search (18 Oct 2026): words of 3+ letters ("a" matched everything), matched on a shared stem of up to 5 letters
+  // ("alveolus" finds "alveoli"); a drawing with named parts (pins) wins a tie, being the better teaching picture.
+  const stem = w => w.slice(0, Math.min(5, w.length)), q = words(query).filter(w => w.length >= 3);
+  if (q.length) all.map(l => { const ws = words(`${l.name} ${l.desc}`).filter(x => x.length >= 3);
+      return [l, q.filter(w => ws.some(x => x.startsWith(stem(w)) || w.startsWith(stem(x)))).length + (/; parts: /.test(l.desc) ? .5 : 0)]; })
+    .filter(([, s]) => s >= 1).sort((a, b) => b[1] - a[1]).slice(0, 12).forEach(([l]) => out.push(`${l.sig} — ${l.desc}`));
   return out.length ? [...new Set(out)].join('\n') : 'Nothing found. Use a drawing from the index or the primitives.';
 }
 // §7.6 input guard, before findDrawing runs: ≤40 names of ≤40 characters, query cut to 200.

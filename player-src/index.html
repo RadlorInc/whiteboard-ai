@@ -92,7 +92,10 @@ function arrowD([x1, y1, x2, y2]) {
 
 function build(answer) {
   scene.replaceChildren(); els = {};
-  for (const [id, spec] of Object.entries(answer.els)) {
+  // the order the model wrote (answer.order: saved scripts, whose jsonb lost it); older saved videos: pins last
+  const keys = Array.isArray(answer.order) ? [...new Set([...answer.order.filter(k => k in answer.els), ...Object.keys(answer.els)])]
+    : Object.keys(answer.els).sort((a, b) => /^\s*pin\b/.test(answer.els[a]) - /^\s*pin\b/.test(answer.els[b]));
+  for (const [id, spec] of keys.map(k => [k, answer.els[k]])) {
     const { type, n, o, content } = parse(spec);
     const stroke = { stroke: o.c || '#222', 'stroke-width': o.w || 5, class: 'ink pivot', fill: o.f || 'none' };
     if (o.f) stroke.class += ' fillable';
@@ -260,7 +263,8 @@ async function run(cmd) {
   else if (op === 'loop') { loop(els[a[0]], a[1]); p = Promise.resolve(); }
   else if (op === 'travel') p = travel(a[0].split(','), nums[0], a[2] === 'loop');
   else throw new Error(`Unknown command "${op}"`);
-  if (!bg) await p;
+  // a looping travel never ends: waiting for it froze the lesson on that step (18 Oct 2026), so it always runs alongside
+  if (!bg && !(op === 'travel' && a[2] === 'loop')) await p;
 }
 
 function say(text) {

@@ -33,6 +33,8 @@ describe('money paths: exactly one settle or release', () => {
     expect(r.events.at(-1)).toEqual({ event: 'done', data: { id: ID, creditsCharged: 4, narrationChars: 515, available: 96 } });
     expect(r.log.finish[0].metrics).toMatchObject({ attempts: 1, repaired: false, misses: ['sun', 'unicornx'], steps_sent: 7 });
     expect(r.log.calls.map(c => c.kind)).toEqual(['round', 'round']);   // one cost row per model call
+    // jsonb loses key order, so the saved script keeps it (a pin must be built after its drawing)
+    expect((r.log.finish[0].script as Any).order).toEqual(Object.keys(rainbow.els));
   });
 
   it('paper success: 2 credits', async () => {

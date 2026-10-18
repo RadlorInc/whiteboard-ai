@@ -207,6 +207,9 @@ export async function runGeneration(o: {
     }
     if (style === 'matchcut') send('script', { script: a });
     else (a.steps as Step[]).forEach((s, i) => { if (i >= sent.length) { sent.push(s); send('step', { i, step: s }); } });
+    // Postgres jsonb reorders object keys (shorter first), so the saved script carries the elements' order: back to
+    // front, and a pin after the drawing it points at (18 Oct 2026: replays failed with "pin: no part").
+    if (style === 'whiteboard' && a.els && typeof a.els === 'object') a.order = Object.keys(a.els as Json);
     await settle(async () => {
       let r;
       for (let n = 0; ; n++) {                            // §6.6 step 7: idempotent through already_final
