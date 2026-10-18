@@ -108,7 +108,13 @@ const SUBJECTS = {
   To show something moving through it (blood, air, food, a signal), use at most one arrow or one travel per step,
   following the real path inside the drawing, in a colour that differs from the part under it (blue or dark on red);
   it gets a white edge so it stands out. Put the numbered step tags in one row above or below it, clear of it.
-  Never travel along the arrows between the step tags: a moving dot means something flows there.` },
+  Never travel along the arrows between the step tags: a moving dot means something flows there.
+- Before you draw any organ, cell, tissue, microbe or molecule yourself, search for it: call find_drawing with two or
+  three different words for it (e.g. "alveolus", "air sac", "gas exchange"), and use a realistic drawing or a recipe
+  when one fits. Only when none fits, draw it yourself the way a textbook would: never a plain circle or box standing
+  in for a body part. Use "path" with curved outlines of its real shape (an alveolus is a cluster of round sacs on a
+  branching tube; a cell is a soft blob with a nucleus and organelles), its real colours (f=), a darker edge (c=) and
+  a lighter highlight shape inside, plus the small inner details that make it recognisable.` },
   physics: { cats: ['physics', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
 - Teaching physics: show the cause and the effect, with forces, energy and waves drawn as arrows. Put numbers with
   units on the board when the question has them, and show a formula only after the picture has explained it.` },
