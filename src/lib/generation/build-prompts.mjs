@@ -98,8 +98,8 @@ const SUBJECTS = {
   in each step add one pin for each part that step talks about (draw the pin when its part is spoken about), so the
   names appear one by one as they are explained. Keep heartcut near the middle (x 440-500) so the pins' words fit on
   both sides; leave the left 200 and right 260 pixels free for them and put nothing else there.
-- For any other organ, cell, tissue, microbe or molecule, first search the realistic library: find_drawing with a
-  short query (e.g. "lungs alveoli", "neuron synapse", "mitochondria"); draw a match with "sv id=<name> cx cy height"
+- For any other organ, cell, tissue, plant, animal, microbe or molecule, first search the realistic library:
+  find_drawing with a short query (e.g. "lungs alveoli", "neuron synapse", "seedling root", "honey bee"); draw a match with "sv id=<name> cx cy height"
   (draw it, then fill it), one or two per lesson, big. When its search result lists "parts: ...", point at them with
   pins ("p1": "pin of=<its element id> part=<part>"), drawn one by one in the step that explains each part; centre the
   drawing and keep the left 200 and right 260 pixels free for the pins' words. Otherwise label it with your own text.
@@ -109,7 +109,11 @@ const SUBJECTS = {
   following the real path inside the drawing, in a colour that differs from the part under it (blue or dark on red);
   it gets a white edge so it stands out. Put the numbered step tags in one row above or below it, clear of it.
   Never travel along the arrows between the step tags: a moving dot means something flows there.
-- Before you draw any organ, cell, tissue, microbe or molecule yourself, search for it: call find_drawing with two or
+- Food chains and webs, life cycles, classification and evolution: draw the real organisms from the library (search
+  each one: "grass", "rabbit", "fox"; "egg", "larva", "pupa"), smaller (height 120-200), in a row, a circle or a tree,
+  each labelled with your own text below it, joined by arrows (in a food chain the arrow points to the eater: the
+  way energy flows). Draw only what the library lacks yourself.
+- Before you draw any organ, cell, tissue, plant, animal, microbe or molecule yourself, search for it: call find_drawing with two or
   three different words for it (e.g. "alveolus", "air sac", "gas exchange"), and use a realistic drawing or a recipe
   when one fits. Only when none fits, draw it yourself the way a textbook would: never a plain circle or box standing
   in for a body part. Use "path" with curved outlines of its real shape (an alveolus is a cluster of round sacs on a

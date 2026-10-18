@@ -75,6 +75,7 @@ export const LEGAL: Record<string, Doc> = {
       "The narration is made with Pocket TTS by Kyutai, licensed under Creative Commons Attribution 4.0 (CC BY 4.0), using the in-browser version by KevinAHM (Apache License 2.0).",
       "Its voices come from recordings by Alba MacKenna (CC BY 4.0), the VCTK corpus of the Centre for Speech Technology Research, University of Edinburgh (CC BY 4.0), and Kyutai's Unmute voice donation project (CC0)."]],
     ["Illustrations", [
-      "Some anatomy drawings (such as the heart cut open) are adapted from Servier Medical Art by Servier (smart.servier.com), licensed under Creative Commons Attribution 4.0 (CC BY 4.0). We converted them to our whiteboard format, recoloured nothing, and added our own labels and animation."]],
+      "Some anatomy drawings (such as the heart cut open) are adapted from Servier Medical Art by Servier (smart.servier.com), licensed under Creative Commons Attribution 4.0 (CC BY 4.0). We converted them to our whiteboard format, recoloured nothing, and added our own labels and animation.",
+      "Plant, animal, microbe and virus drawings come from Bioicons (bioicons.com), converted to our whiteboard format. Licensed under Creative Commons Attribution 4.0 (CC BY 4.0): Alejandro Matía, Alexis Maizel, Andi Wilson, Ciera Martinez, Connor Tansley, DBCLS (TogoTV), Daniel Carvalho, Durvesh Burhade & Niliksha Patel, Erin Sparks, Frédéric Bouché, Guillaume Lobet, Lucien Hinderling and Roman Schwob, Matthew Dzievit and Plant Illustrations. Under CC BY 3.0: Servier. Public domain (CC0): Ben Murrell, Ewa Oz, Geomicrobio, Gina Vong, James Lloyd, Mariana Ruiz Villareal, Pauline Franz, Samuel Nestor Meckoni and Simon Dürr. The full list, drawing by drawing, is kept with our source code."]],
   ] },
 };
