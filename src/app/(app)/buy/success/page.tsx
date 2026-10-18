@@ -7,7 +7,7 @@ export default async function BuySuccess() {
   return (
     <main className="page narrow stack" style={{ textAlign: "center" }}>
       <h1>Thanks for your purchase</h1>
-      <p className="muted">Your credits usually appear within a few seconds. If they don&apos;t, refresh this page.</p>
+      <p className="muted">Your videos usually appear within a few seconds. If they don&apos;t, refresh this page.</p>
       <Link className="btn" href="/ask">Ask a question</Link>
     </main>
   );

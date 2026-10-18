@@ -8,7 +8,7 @@ import { VoiceProgress } from "./Voice";
 import { Icon } from "./Icon";
 import { SUBJECT_NAME, type Subject } from "./Chats";
 
-const HOLD_CREDITS = 6; // same value as lib/session.ts (server); ponytail: one constants module once M3 adds it
+import { HOLD_CREDITS } from "@/lib/videos";
 const EXAMPLES: Record<Subject, string[]> = {
   biology: ["How does the heart pump blood?", "How do we breathe?", "What does DNA do?"],
   physics: ["How does a rainbow form?", "Why do things fall?", "How does a car engine work?"],
@@ -99,11 +99,11 @@ export function AskComposer({ available, firstRun, onAsk, busy = false, placehol
               {busy ? <span className="spinner sm" aria-hidden="true" /> : <Icon name="arrowUp" size={18} />}
             </button>
           ) : (
-            <Link href="/start" className="btn sm send-buy">Buy credits</Link>
+            <Link href="/start" className="btn sm send-buy">Get more videos</Link>
           )}
         </div>
       </div>
-      {!enough && <p className="composer-note">A video needs up to {HOLD_CREDITS} credits. You have {available}.</p>}
+      {!enough && <p className="composer-note">You have no videos left. Get more to keep asking.</p>}
       <VoiceProgress />
       {firstRun && (
         <div className="examples" aria-label="Example questions">

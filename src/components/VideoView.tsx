@@ -47,7 +47,7 @@ export function VideoView({ id, style, script, slug: initial, inExplore: initial
           setNote(inExplore ? "Off Explore. The share link still works." : "On Explore: anyone can watch it there. They can't see who made it.");
         })}><Icon name="compass" size={16} /> {inExplore ? "Remove from Explore" : "Show in Explore"}</button>
         <button className="btn danger" type="button" disabled={busy} onClick={() => {
-          if (window.confirm("Delete this video? This can't be undone. Credits aren't returned.")) start(() => deleteVideo(id));
+          if (window.confirm("Delete this video? This can't be undone. Used videos aren't given back.")) start(() => deleteVideo(id));
         }}><Icon name="trash" size={16} /> Delete</button>
       </div>
       {url && <p className="muted share-url">{url}</p>}

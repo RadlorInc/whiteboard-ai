@@ -3,7 +3,7 @@
 begin;
 set local search_path = public, extensions;
 \ir helpers.psql
-select plan(594);
+select plan(600);
 
 create temp table tbl (t text primary key);
 insert into tbl values ('profiles'),('invites'),('price_catalog'),('credit_balances'),('generations'),
@@ -36,6 +36,7 @@ insert into fn values
   ('create_conversation','{authenticated}'), ('attach_to_conversation','{service_role}'),
   ('explore_feed','{anon,authenticated,service_role}'), ('explore_series','{anon,authenticated,service_role}'),
   ('explore_related','{anon,authenticated,service_role}'), ('explore_on_finish','{service_role}'),
+  ('save_item','{authenticated}'), ('my_saved','{authenticated}'),
   ('accept_terms','{authenticated}'), ('redeem_invite','{authenticated}'), ('is_live_user','{authenticated}'),
   ('search_my_videos','{authenticated}'), ('create_share','{authenticated}'), ('revoke_share','{authenticated}'),
   ('submit_feedback','{authenticated}'), ('admin_adjust_credits','{authenticated}'),

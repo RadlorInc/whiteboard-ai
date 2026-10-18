@@ -45,6 +45,6 @@ test("a returning user who opens the email's sign-in link lands in their account
   await page.goto(`${AUTH}/auth/v1/verify?token=${token}&type=magiclink&redirect_to=${encodeURIComponent(baseURL!)}`);
   await expect(page).toHaveURL(/\/(ask|start)$/, { timeout: 15_000 });   // not the landing page with ?code=
   await expect(page.getByText("Private beta, invite only")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: /\d+ credits/, includeHidden: true })).toBeAttached();   // the signed-in sidebar (a closed drawer on phones)
+  await expect(page.getByRole("link", { name: /\d+ videos? left/, includeHidden: true })).toBeAttached();   // the signed-in sidebar (a closed drawer on phones)
   await admin.auth.admin.deleteUser(id);
 });

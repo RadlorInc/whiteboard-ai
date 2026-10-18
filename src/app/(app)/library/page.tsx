@@ -8,9 +8,10 @@ import { Icon } from "@/components/Icon";
 export const metadata: Metadata = { title: "Your videos" };
 const PAGE = 24;
 
-type Row = { id: string; created_at: string; style: string; question: string | null; status: string; credits_charged: number | null; script: unknown };
+type Row = { id: string; created_at: string; style: string; question: string | null; status: string; script: unknown };
 const day = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-const cost = (r: Row) => r.status === "succeeded" ? `${r.credits_charged} credits` : r.status === "failed" || r.status === "refunded" ? "Not charged" : "Being made";
+// No credits here (founder, 18 Oct 2026): only what is not a normal finished video says so.
+const state = (r: Row) => r.status === "failed" || r.status === "refunded" ? " · Didn't finish, not counted" : r.status === "succeeded" ? "" : " · Being made";
 
 // §5.9: the signed-in person's own videos, as cards like Explore's. Replays are free. Search: search_my_videos.
 export default async function Library({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
@@ -19,7 +20,7 @@ export default async function Library({ searchParams }: { searchParams: Promise<
   const q = typeof sp.q === "string" ? sp.q.trim().slice(0, 100) : "";
   const page = Math.min(Math.max(Number.parseInt(sp.page ?? "1", 10) || 1, 1), 50);
   const sb = await createClient();
-  const cols = "id, created_at, style, question, status, credits_charged, script";
+  const cols = "id, created_at, style, question, status, script";
   let rows: Row[];
   if (q) {
     const { data: hits } = await sb.rpc("search_my_videos", { p_q: q });
@@ -32,7 +33,7 @@ export default async function Library({ searchParams }: { searchParams: Promise<
     rows = (data ?? []) as Row[];
   }
   const items: ExploreItem[] = rows.map((r) => ({ slug: r.id, href: `/videos/${r.id}`, title: r.question ?? "(deleted)", style: r.style,
-    script: r.status === "succeeded" ? r.script : null, n: 1, subject: null, latest: r.created_at, meta: `${day(r.created_at)} · ${cost(r)}` }));
+    script: r.status === "succeeded" ? r.script : null, n: 1, subject: null, latest: r.created_at, meta: `${day(r.created_at)}${state(r)}` }));
 
   return (
     <main className="page wide stack">

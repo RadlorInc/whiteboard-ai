@@ -510,3 +510,34 @@ li.now .tick { border-color: transparent; }
 .pc-wait { position: absolute; left: 12px; top: 12px; z-index: 2; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px;
   border-radius: 999px; background: rgb(0 0 0 / 0.75); color: #fff; font-size: 0.8125rem; backdrop-filter: blur(6px); pointer-events: none; }
 .pc-wait .spinner { border-color: rgb(255 255 255 / 0.3); border-top-color: #fff; }
+
+/* A new chat: the AI note sits at the bottom centre of the page, like Claude's (founder, 18 Oct 2026). */
+.chat.empty { position: relative; }
+.chat.empty .composer-wrap > .composer-note:last-child { position: absolute; left: 0; right: 0; bottom: max(14px, env(safe-area-inset-bottom)); }
+
+/* ---- A video page: the videos before and after it in its chat ---- */
+.seq-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 28px !important; }
+.seq-link { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface);
+  color: var(--text); text-decoration: none; transition: background-color .15s, border-color .15s; min-width: 0; }
+.seq-link:hover { background: var(--surface-2); border-color: var(--border-strong); }
+.seq-link.next { text-align: right; justify-items: end; }
+.seq-dir { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--faint); font-weight: 600; }
+.seq-link:not(.next) .seq-dir .icon { transform: rotate(90deg); }
+.seq-link.next .seq-dir .icon { transform: rotate(-90deg); }
+.seq-q { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+@media (max-width: 560px) { .seq-nav { grid-template-columns: 1fr; } .seq-link.next { text-align: left; justify-items: start; } }
+
+/* ---- Collection: the bookmark (SaveButton) ---- */
+.x-item { position: relative; }
+.save-btn { display: inline-grid; place-items: center; cursor: pointer; border: 0; font: inherit; transition: background-color .15s, color .15s, opacity .15s; }
+.save-btn.on-card { position: absolute; top: 8px; right: 8px; z-index: 2; width: 36px; height: 36px; border-radius: 50%;
+  background: rgb(0 0 0 / 0.65); color: #fff; backdrop-filter: blur(6px); opacity: 0; }
+.x-item:hover .save-btn.on-card, .save-btn.on-card:focus-visible, .save-btn.on-card.on { opacity: 1; }
+@media (pointer: coarse) { .save-btn.on-card { opacity: 1; } }
+.save-btn.on-card:hover { background: rgb(0 0 0 / 0.85); }
+.save-btn.sm { grid-auto-flow: column; gap: 6px; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border-strong);
+  background: transparent; color: var(--text); font-size: 0.875rem; font-weight: 600; }
+.save-btn.sm:hover { background: var(--surface-2); }
+.save-btn.sm.on { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.v-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 6px 16px; }
+.v-head .page-sub { grid-column: 1 / -1; }

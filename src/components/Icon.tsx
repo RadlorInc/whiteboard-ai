@@ -25,6 +25,8 @@ const PATHS = {
   chevronDown: "M6 9l6 6 6-6",
   chevronUp: "M18 15l-6-6-6 6",
   check: "M20 6L9 17l-5-5",
+  bookmark: "M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z",
+  bookmarkOn: "M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z",
   expand: "M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3",
   shrink: "M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3",
   sound: "M11 5L6 9H2v6h4l5 4ZM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14",
@@ -33,7 +35,7 @@ const PATHS = {
 export type IconName = keyof typeof PATHS;
 
 export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
-  const fill = name === "play" || name === "pause" || name === "prev" || name === "next";
+  const fill = name === "play" || name === "pause" || name === "prev" || name === "next" || name === "bookmarkOn";
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill={fill ? "currentColor" : "none"}
       stroke="currentColor" strokeWidth={fill ? 0 : 1.8} strokeLinecap="round" strokeLinejoin="round" className="icon">

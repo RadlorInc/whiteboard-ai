@@ -5,7 +5,8 @@ when every item is ticked. Agents never touch production: each step names who do
 
 ## Ship the chat and biology work (in this order)
 - [ ] Run `migrate-prod` (GitHub Actions, typed confirmation) for `20261018000100_conversations.sql` and
-      `20261018000200_explore_chats.sql` (Explore by chat; the UI branch needs it) — founder.
+      `20261018000200_explore_chats.sql` (Explore by chat) and `20261018000300_saved_items.sql` (Collection); the UI
+      branch needs both — founder.
 - [ ] Merge #16 (chats), then #17 (subject prompts), then #18 (realistic library, pins, flows, follow-up cache),
       then the UI redesign + Explore (`ui-redesign`).
       Without the migration first, starting a chat fails.

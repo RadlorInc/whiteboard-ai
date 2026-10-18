@@ -20,6 +20,8 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
   const { data } = await (await createClient()).rpc("explore_feed",
     { p_q: q || null, p_subject: subject, p_offset: (page - 1) * PAGE, p_limit: PAGE });
   const items = (data ?? []) as ExploreItem[];
+  const { data: mine } = account ? await (await createClient()).from("saved_items").select("slug") : { data: null };   // RLS: own
+  const save = { saved: (mine ?? []).map((r: { slug: string }) => r.slug), signedIn: !!account };
   const href = (o: { q?: string; subject?: string | null; page?: number }) => {
     const p = new URLSearchParams();
     const nq = o.q ?? q, ns = o.subject === undefined ? subject : o.subject;
@@ -51,7 +53,7 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
       </div>
 
       {q && <p className="muted small">{items.length ? `Results for “${q}”` : ""}</p>}
-      {items.length > 0 ? <ExploreGrid items={items} /> : (
+      {items.length > 0 ? <ExploreGrid items={items} save={save} /> : (
         <div className="x-empty">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="" width={72} height={50} />

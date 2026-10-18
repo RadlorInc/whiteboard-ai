@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { requireAccount } from "@/lib/session";
+import { CREDITS_PER_VIDEO, videos, videosLeft } from "@/lib/videos";
 import { BuyButton } from "@/components/BuyButton";
 
-export const metadata: Metadata = { title: "Buy credits" };
+export const metadata: Metadata = { title: "Get more videos" };
 const PLANS = [
   { key: "plus", name: "Plus", price: "$9.99", credits: 150, note: "About 35 short videos a month" },
   { key: "pro", name: "Pro", price: "$19.99", credits: 330, note: "About 80 short videos a month" },
@@ -19,8 +20,8 @@ export default async function Buy() {
   return (
     <main className="page stack">
       <div>
-        <h1>Buy credits</h1>
-        <p className="page-sub">You have {account.available} credits. 1 credit = 10 seconds of video; most videos use 3 or 4. Failed videos are never charged.</p>
+        <h1>Get more videos</h1>
+        <p className="page-sub">You have {videos(videosLeft(account.available))} left. Videos that fail are never counted.</p>
       </div>
       <p className="section-label">Monthly plans</p>
       <ul className="grid-cards">
@@ -28,16 +29,16 @@ export default async function Buy() {
           <li key={p.key} className="card plan">
             <h2>{p.name}</h2>
             <p className="price">{p.price} <small>/ month</small></p>
-            <p className="muted small">{p.credits} credits each month. {p.note}. Cancel any time.</p>
+            <p className="muted small">{p.note}. Cancel any time.</p>
             <div style={{ marginTop: 10 }}><BuyButton priceKey={p.key} label={`Get ${p.name}`} /></div>
           </li>
         ))}
       </ul>
-      <p className="section-label" style={{ marginTop: 32 }}>Credit packs · one-time, never expire</p>
+      <p className="section-label" style={{ marginTop: 32 }}>Video packs · one-time, never expire</p>
       <div className="list-card">
         {PACKS.map(p => (
           <div key={p.key} className="pack-row">
-            <span><strong>{p.credits} credits</strong> <span className="muted">· {p.price}</span></span>
+            <span><strong>About {videos(Math.floor(p.credits / CREDITS_PER_VIDEO))}</strong> <span className="muted">· {p.price}</span></span>
             <BuyButton priceKey={p.key} label="Buy" />
           </div>
         ))}

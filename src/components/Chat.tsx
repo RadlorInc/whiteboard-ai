@@ -109,7 +109,7 @@ export function Chat({ conversationId, subject: initialSubject, turns, available
               <div className="chat-head-actions">
                 <ShareButton id={past[0].id} title={past[0].question} />
                 <button type="button" className="icon-btn" aria-label="Delete chat" title="Delete chat" onClick={async () => {
-                  if (window.confirm("Delete this chat and all its videos? This can't be undone. Credits aren't returned.")) await deleteChat(conv);
+                  if (window.confirm("Delete this chat and all its videos? This can't be undone. Used videos aren't given back.")) await deleteChat(conv);
                 }}><Icon name="trash" size={18} /></button>
               </div>
             )}

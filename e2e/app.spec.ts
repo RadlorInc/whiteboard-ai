@@ -19,8 +19,9 @@ test("ask, get charged, find it in the library, share it, unshare it", async ({ 
   // While it is made the board is covered by the progress list; the cover goes once the first step is drawn.
   await expect(page.locator(".making li.now")).toHaveText(/Reading|Choosing|Writing|voice/);
   await expect(page.locator(".making")).toHaveCount(0, { timeout: 60_000 });
-  await expect(page.getByText(/credits? used/)).toBeVisible({ timeout: 90_000 });
-  const used = Number((await page.getByText(/credits? used/).textContent())!.match(/(\d+) credits? used/)![1]);
+  // People see "Done." and videos left; the credits charged stay on the element for this check (18 Oct 2026).
+  await expect(page.locator("[data-charged]")).toBeVisible({ timeout: 90_000 });
+  const used = Number(await page.locator("[data-charged]").getAttribute("data-charged"));
   expect(used).toBe(4);                                  // the mock rainbow: 515 spoken characters -> ceil(515/150) = 4
   await page.goto("/library");
   expect(await credits(page)).toBe(before - 4);

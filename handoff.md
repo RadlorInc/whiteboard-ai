@@ -84,7 +84,6 @@
   Resend), the decline policy in the prompt + red-team run (a new prompt sha; ~$3 live), OG images, parent email for
   13–17 payers (C13), Turnstile captcha (needs a site key), `/api/telemetry`, per-category library loading, streaming
   for paper and match-cut, `/legal/accept` re-acceptance.
-- Admin "missing drawings" (local) lists primitives from mock runs; production showed None. Check the miss counter.
 - Paper and match-cut do not stream (45 s for match-cut).
 - The founder decides the first commit; accounts to create are PLAN.md §2 E1–E18.
 
@@ -115,6 +114,9 @@
 - Player: every step goes in at once (`voice: true` on els); the Player makes lines behind the board from the
   current/jumped step (`need`, `stepWav`; a jump cancels the line in progress: worker `{cancel}`). Controls: step segments, keys, full screen.
 - No `(app)/loading.tsx`: it streams early, so `notFound()` answered 200 (IDOR and unshare e2e want 404).
+- 18 Oct late: new glowing logo; Collection (`saved_items`, `save_item`/`my_saved`, /saved, bookmark on cards);
+  "videos left" not credits in the app (`lib/videos.ts`, 4 credits a video: an estimate); Recents = 10; video page
+  shows before/after in its chat. Pricing/Help/legal copy still says credits.
 - Also: error screen, skip link, real titles + link previews, ⌘K chat search, ⌘⇧O new chat, toasts, chat header
   (Share, Delete chat = delete_my_video each), Share per answer, jump-to-latest, Your videos as a grid + search.
 - Checked: tsc, eslint, vitest and screenshots at 1440 and 390 px. **e2e not run**: locally Playwright reuses

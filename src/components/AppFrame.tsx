@@ -10,7 +10,7 @@ import { SignOutButton } from "./SignOutButton";
 import { ChatList, SUBJECT_NAME, type ChatRow, type Subject } from "./Chats";
 import { Icon, type IconName } from "./Icon";
 
-const HOLD_CREDITS = 6; // same value as lib/session.ts (server)
+import { HOLD_CREDITS, videos, videosLeft } from "@/lib/videos";
 
 function Brand() {
   return (
@@ -57,7 +57,7 @@ export function AppFrame({ email, available, chats, children }: {
   }, [open]);
 
   const low = available < HOLD_CREDITS;
-  const nav: [string, IconName, string][] = [["/explore", "compass", "Explore"], ["/library", "videos", "Your videos"]];
+  const nav: [string, IconName, string][] = [["/explore", "compass", "Explore"], ["/saved", "bookmark", "Collection"], ["/library", "videos", "Your videos"]];
   const active = path.startsWith("/c/") ? path.slice(3) : undefined;
   const subjects = (Object.keys(SUBJECT_NAME) as Subject[]).filter((s) => chats.some((c) => c.subject === s));
   const words = find.trim().toLowerCase();
@@ -102,11 +102,11 @@ export function AppFrame({ email, available, chats, children }: {
           )}
           <p className="side-label">Recents</p>
           {chats.length > 0 && shown.length === 0 ? <p className="side-empty">No chat matches.</p> : <ChatList chats={shown} active={active} />}
-          {chats.length >= 30 && <Link href="/chats" className="side-all">All chats</Link>}
+          {chats.length >= 10 && <Link href="/chats" className="side-all">All chats</Link>}
         </div>
         <div className="side-foot">
-          <Link href="/buy" className={`pill${low ? " low" : ""}`} aria-label={`${available} credits. Buy credits`}>
-            <Icon name="card" size={16} /> {available} {available === 1 ? "credit" : "credits"}
+          <Link href="/buy" className={`pill${low ? " low" : ""}`} data-credits={available} aria-label={`${videos(videosLeft(available))} left. Get more`}>
+            <Icon name="videos" size={16} /> {videos(videosLeft(available))} left
           </Link>
           <details className="menu up" ref={menu}>
             <summary aria-label="Account menu">
@@ -117,7 +117,7 @@ export function AppFrame({ email, available, chats, children }: {
             <div className="menu-list">
               <Link href="/settings"><Icon name="settings" size={18} /> Settings</Link>
               <Link href="/account"><Icon name="user" size={18} /> Account</Link>
-              <Link href="/buy"><Icon name="card" size={18} /> Buy credits</Link>
+              <Link href="/buy"><Icon name="card" size={18} /> Get more videos</Link>
               <Link href="/help"><Icon name="help" size={18} /> Help</Link>
               <Link href="/legal/terms"><Icon name="file" size={18} /> Terms and privacy</Link>
               <hr />

@@ -31,7 +31,7 @@ const STAGE: Record<string, string> = {
   reading: "Reading your question…", drawings: "Picking drawings…", writing: "Writing the lesson…", fixing: "Fixing a step…",
 };
 const FAILED: Record<string, string> = {
-  insufficient_credits: "You need at least 6 credits to start a video.",
+  insufficient_credits: "You have no videos left. Get more to keep asking.",
   busy: "A video is already being made. Wait for it to finish.",
   rate_limited: "That's a lot of videos for now. Try again a little later.",
   paused: "Making videos is paused right now. Try again soon.",
@@ -361,13 +361,13 @@ export function Watch({ question, style, explore = false, conversationId, onDone
           <p>You already have a video for this question.</p>
           <div className="row">
             <a className="btn" href={`/videos/${owned}`}>Watch it (free)</a>
-            <button className="btn secondary" type="button" onClick={() => run(true)}>Make a new one (uses credits)</button>
+            <button className="btn secondary" type="button" onClick={() => run(true)}>Make a new one (uses 1 video)</button>
           </div>
         </div>
       )}
       {result && (
         <p className="answer-meta">
-          <span>Done. {result.charged} credit{result.charged === 1 ? "" : "s"} used.</span>
+          <span data-charged={result.charged}>Done.</span>
           <ShareButton id={result.id} title={question} />
           <a href={`/videos/${result.id}`} className="btn ghost sm"><Icon name="external" size={16} /> Open this video</a>
         </p>
