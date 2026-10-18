@@ -151,3 +151,14 @@ describe('checkSafety', () => {
     expect(checkSafety(a, style).length).toBeGreaterThan(0);
   });
 });
+
+// Anatomy pins (18 Oct 2026): a pin must point at an anatomy drawing listed before it, and at one of its parts.
+describe('anatomy pins', () => {
+  it('a good pin passes; an unknown part, a missing or later drawing, or a non-anatomy drawing fails', () => {
+    expect(checkEls({ h: 'heartcut 470 270 480', p: 'pin of=h part=ra' })).toEqual([]);
+    expect(checkEls({ h: 'heartcut 470 270 480', p: 'pin of=h part=kidney' })[0]).toMatch(/no part "kidney"/);
+    expect(checkEls({ p: 'pin of=h part=ra', h: 'heartcut 470 270 480' })[0]).toMatch(/listed before it/);
+    expect(checkEls({ p: 'pin of=zz part=ra' })[0]).toMatch(/listed before it/);
+    expect(checkEls({ s: 'sun 100 100', p: 'pin of=s part=ra' })[0]).toMatch(/listed before it/);
+  });
+});

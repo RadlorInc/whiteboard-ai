@@ -74,5 +74,7 @@ export const LEGAL: Record<string, Doc> = {
     ["Narration voice", [
       "The narration is made with Pocket TTS by Kyutai, licensed under Creative Commons Attribution 4.0 (CC BY 4.0), using the in-browser version by KevinAHM (Apache License 2.0).",
       "Its voices come from recordings by Alba MacKenna (CC BY 4.0), the VCTK corpus of the Centre for Speech Technology Research, University of Edinburgh (CC BY 4.0), and Kyutai's Unmute voice donation project (CC0)."]],
+    ["Illustrations", [
+      "Some anatomy drawings (such as the heart cut open) are adapted from Servier Medical Art by Servier (smart.servier.com), licensed under Creative Commons Attribution 4.0 (CC BY 4.0). We converted them to our whiteboard format, recoloured nothing, and added our own labels and animation."]],
   ] },
 };

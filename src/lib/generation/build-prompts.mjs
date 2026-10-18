@@ -79,12 +79,16 @@ const RULES = wbRules(WB_LIB);
 // Each subject prompt lists only its categories (plus the shared diagrams) and adds how to teach that subject.
 // find_drawing searches the same categories. Each is its own prompt cache entry (its own prompt_sha).
 const SUBJECTS = {
-  biology: { cats: ['biology', 'cells', 'body', 'health', 'diagrams'], teach: `
+  biology: { cats: ['anatomy', 'biology', 'cells', 'body', 'health', 'diagrams'], teach: `
 - Teaching biology: name the real structures with their proper names (labelled drawings, lab=1), then show what they
   do: follow one thing (blood, air, food, a nerve signal, water, sugar) as it travels through them with travel or go.
   For these topics use the detailed diagrams: heartsection, circulation, breathing, gut, reflexarc, dnaladder,
   cellcycle, leafsection, plantparts. One big labelled diagram plus the step tags reads better than many small
-  pictures. Keep the facts correct at school level; the body's right side is on the viewer's left.` },
+  pictures. Keep the facts correct at school level; the body's right side is on the viewer's left.
+- For the heart, prefer heartcut (a realistic drawing) over heartsection. Draw it in step 1 (draw, then fill), then
+  in each step add one pin for each part that step talks about (draw the pin when its part is spoken about), so the
+  names appear one by one as they are explained. Keep heartcut near the middle (x 440-500) so the pins' words fit on
+  both sides; leave the left 200 and right 260 pixels free for them and put nothing else there.` },
   physics: { cats: ['physics', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
 - Teaching physics: show the cause and the effect, with forces, energy and waves drawn as arrows. Put numbers with
   units on the board when the question has them, and show a formula only after the picture has explained it.` },
@@ -186,6 +190,8 @@ export function buildPrompts() {
     // whiteboard prompts per chat subject; cats = the library categories it lists and find_drawing searches
     subjects: Object.fromEntries(Object.entries(SUBJECT_RULES).map(([s, t]) => [s, { system: t, sha256: sha(t), cats: SUBJECTS[s].cats }])),
     wbCats: WB_CATS,
+    // the named parts of each anatomy drawing (its catalogue line's "parts: ..."), so the checks can verify pins
+    parts: Object.fromEntries(WB_ALL.flatMap(c => c.lines).filter(l => /parts: /.test(l.desc)).map(l => [l.name, l.desc.split('parts: ')[1].trim().split(/\s+/)])),
     types: [...TYPES], commands: [...COMMANDS], loops: [...LOOPS],
     libNames: [...LIB_NAMES], flowItems: [...FLOW_ITEMS], bloodPaths: [...BLOOD_PATHS], textures: [...TEXTURES],
     wbLib: WB_ALL, paperLib: PAPER_LIB, mcLib: MC_LIB,

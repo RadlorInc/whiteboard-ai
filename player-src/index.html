@@ -19,6 +19,8 @@
   /* Polished drawings (founder, 18 Oct 2026: Biology only for now): no wobble or watercolour, labels in a clean font. */
   .polished [filter] { filter: none; }
   .polished text { font-family: "Helvetica Neue", Arial, sans-serif; font-weight: 600; }
+  /* anatomy drawings and pins: square line ends, so an undrawn line (dash offset = its length) shows no dot */
+  .anat .ink { stroke-linecap: butt; }
   .fillable { transition: fill-opacity .7s ease; fill-opacity: 0; }
   .fillable.on { fill-opacity: 1; }
   .pivot { transform-box: fill-box; transform-origin: center; }
