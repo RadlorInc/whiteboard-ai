@@ -160,8 +160,15 @@
   +context and pins), cold +$0.09. Measured before the follow-up cache (#18 54df5ff), so rerun to see its effect.
 - **Cost by prompt version:** `npm run cost` (local) or `sql/cost-by-version.sql` in the SQL editor; "sha-test" rows
   are unit tests.
-- **Next session:** run Sequences 2 and 3 (lungs → alveoli → mitochondria; kidney with a deliberate wrong
-  follow-up), check cost after the follow-up cache, then the LAUNCH.md list. Physics and Chemistry get the same
+- **Sequences 2 and 3 (after the follow-up cache):** 8 videos, all correct and linked; the deliberate wrong follow-up
+  ("is urine made in the bladder?") was corrected ("No! … made in the kidneys"). $0.29 + $0.25; uncached input stays
+  ~600–1,100 tokens per follow-up (was growing to 5,369), cache writes ~200–340. Warm ≈ $0.05 a video; a video that
+  hand-draws its own diagram costs ~$0.10–0.12 (4,400–4,900 output tokens). All 13 test videos: $1.07.
+- Fixed from them (c4b3780): a looping `travel` without `&` froze the lesson; saved scripts lost element order in
+  jsonb (pins built before their drawing, replays failed) — now `script.order`, old videos build pins last; search
+  ranked junk ("a" matched everything), now 3+ letter stems and pin drawings first.
+- Cosmetic, not fixed: the model sometimes runs a looping dot along the arrows between the step tags.
+- **Next session:** the LAUNCH.md list. Physics and Chemistry get the same
   treatment later (`servier-chem` exists; no pins yet).
 - Local: the Anthropic key in `.env.local` was replaced on 18 Oct (the old one, still in `prototype/.env`, is revoked).
   A 401 makes the app block generation ~10 min (`ops_state.provider_blocked_until`); delete that row locally.
