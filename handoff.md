@@ -90,19 +90,9 @@
 - The founder decides the first commit; accounts to create are PLAN.md §2 E1–E18.
 
 
-- The break-check self-test's schema case (a migration break, then `supabase db reset --local` from your tree) has
-  never run: it wipes the local DB. Run `SELFTEST_DB_RESET=1 npm run break:selftest` once when nothing else uses the
-  stack.
-- `.env.local` still uses older names (`NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
-  `NEXT_PUBLIC_SITE_URL`) where §14 says `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `APP_URL`.
-  Nothing reads them yet; rename them (founder, or the first milestone that reads them) to match `.env.example`.
-- gitleaks is not installed, so `scripts/secret-scan.mjs` stands in (Anthropic, Stripe secret/restricted/webhook,
-  Supabase secret, any JWT). It does not know ElevenLabs or Resend key shapes. In CI (M8) run gitleaks too, and turn
-  on GitHub secret scanning and push protection when the private repo exists (E2).
-- `player-src/` still contains the prototype's HTML sinks (`innerHTML`, `document.write` in `lib/*-load.js`). M4's
-  no-HTML-sinks gate must reach zero before anything there is served.
-- `break-check.sh` clones `node_modules` with `cp -c` (APFS) for e2e copies, because Turbopack rejects a symlinked
-  `node_modules` outside the project. Linux CI (M8) needs another way (`cp --reflink=auto`, or a real install).
+- Tooling debts (details in git history): break-check's DB-reset self-test never ran; `.env.local` uses older env
+  names than `.env.example`; gitleaks not installed (`scripts/secret-scan.mjs` stands in); `player-src/` still has
+  prototype HTML sinks; break-check's `cp -c` is macOS-only.
 
 ## Local demo
 
