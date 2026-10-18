@@ -1,0 +1,70 @@
+{
+ "parts": {
+  "femur": {
+   "name": "femur",
+   "at": [
+    230,
+    150
+   ],
+   "kind": "part",
+   "shapes": [
+    5
+   ]
+  },
+  "cartilage": {
+   "name": "cartilage",
+   "at": [
+    220,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    18
+   ]
+  },
+  "ligaments": {
+   "name": "ligaments",
+   "at": [
+    120,
+    520
+   ],
+   "kind": "part",
+   "shapes": [
+    18
+   ]
+  },
+  "muscle": {
+   "name": "muscle (cut)",
+   "at": [
+    380,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    55
+   ]
+  },
+  "tibia": {
+   "name": "tibia",
+   "at": [
+    250,
+    850
+   ],
+   "kind": "part",
+   "shapes": [
+    9
+   ]
+  },
+  "fibula": {
+   "name": "fibula",
+   "at": [
+    370,
+    850
+   ],
+   "kind": "part",
+   "shapes": [
+    12
+   ]
+  }
+ }
+}

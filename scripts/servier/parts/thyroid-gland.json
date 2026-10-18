@@ -1,0 +1,48 @@
+{
+ "parts": {
+  "right": {
+   "name": "right lobe",
+   "at": [
+    250,
+    400
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "left": {
+   "name": "left lobe",
+   "at": [
+    800,
+    400
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "isthmus": {
+   "name": "isthmus",
+   "at": [
+    480,
+    700
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "pyramid": {
+   "name": "pyramidal lobe",
+   "at": [
+    540,
+    150
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  }
+ }
+}

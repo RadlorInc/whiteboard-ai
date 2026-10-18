@@ -1,0 +1,59 @@
+{
+ "parts": {
+  "cell": {
+   "name": "white blood cell",
+   "at": [
+    1000,
+    650
+   ],
+   "kind": "part",
+   "shapes": [
+    52
+   ]
+  },
+  "pseudopod": {
+   "name": "arms wrap around",
+   "at": [
+    200,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  },
+  "bacteria": {
+   "name": "bacteria",
+   "at": [
+    400,
+    400
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "vacuole": {
+   "name": "food vacuole",
+   "at": [
+    1100,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    57
+   ]
+  },
+  "digest": {
+   "name": "digested inside",
+   "at": [
+    2300,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    158
+   ]
+  }
+ }
+}

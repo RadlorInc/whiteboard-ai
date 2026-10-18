@@ -1,0 +1,81 @@
+{
+ "parts": {
+  "trachea": {
+   "name": "trachea (windpipe)",
+   "at": [
+    500,
+    150
+   ],
+   "kind": "part",
+   "shapes": [
+    4
+   ]
+  },
+  "bronchus": {
+   "name": "bronchus",
+   "at": [
+    462,
+    420
+   ],
+   "kind": "part",
+   "shapes": [
+    128
+   ]
+  },
+  "rul": {
+   "name": "upper lobe",
+   "at": [
+    250,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    128
+   ]
+  },
+  "rml": {
+   "name": "middle lobe",
+   "at": [
+    300,
+    700
+   ],
+   "kind": "part",
+   "shapes": [
+    128
+   ]
+  },
+  "rll": {
+   "name": "lower lobe",
+   "at": [
+    60,
+    760
+   ],
+   "kind": "part",
+   "shapes": [
+    128
+   ]
+  },
+  "lul": {
+   "name": "upper lobe",
+   "at": [
+    760,
+    380
+   ],
+   "kind": "part",
+   "shapes": [
+    130
+   ]
+  },
+  "lll": {
+   "name": "lower lobe",
+   "at": [
+    680,
+    900
+   ],
+   "kind": "part",
+   "shapes": [
+    132
+   ]
+  }
+ }
+}

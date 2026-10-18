@@ -1,0 +1,48 @@
+{
+ "parts": {
+  "disc": {
+   "name": "optic disc (blind spot)",
+   "at": [
+    580,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    67
+   ]
+  },
+  "macula": {
+   "name": "macula (sharpest vision)",
+   "at": [
+    380,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    133
+   ]
+  },
+  "vessels": {
+   "name": "blood vessels",
+   "at": [
+    650,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    16
+   ]
+  },
+  "retina": {
+   "name": "retina",
+   "at": [
+    200,
+    650
+   ],
+   "kind": "part",
+   "shapes": [
+    7
+   ]
+  }
+ }
+}

@@ -1,0 +1,35 @@
+{
+ "parts": {
+  "kidney": {
+   "name": "kidney",
+   "at": [
+    220,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    12
+   ]
+  },
+  "hilum": {
+   "name": "hilum (vessels in and out)",
+   "at": [
+    395,
+    440
+   ],
+   "kind": "part",
+   "shapes": [
+    138
+   ]
+  },
+  "ureter": {
+   "name": "ureter (to the bladder)",
+   "at": [
+    478,
+    760
+   ],
+   "kind": "part",
+   "shapes": []
+  }
+ }
+}

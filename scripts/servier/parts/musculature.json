@@ -1,0 +1,81 @@
+{
+ "parts": {
+  "face": {
+   "name": "face muscles",
+   "at": [
+    190,
+    100
+   ],
+   "kind": "part",
+   "shapes": [
+    148
+   ]
+  },
+  "deltoid": {
+   "name": "deltoid (shoulder)",
+   "at": [
+    300,
+    260
+   ],
+   "kind": "part",
+   "shapes": [
+    235
+   ]
+  },
+  "pectoral": {
+   "name": "pectoral (chest)",
+   "at": [
+    150,
+    250
+   ],
+   "kind": "part",
+   "shapes": [
+    1061
+   ]
+  },
+  "biceps": {
+   "name": "biceps",
+   "at": [
+    85,
+    330
+   ],
+   "kind": "part",
+   "shapes": [
+    150
+   ]
+  },
+  "abs": {
+   "name": "abdominals",
+   "at": [
+    200,
+    400
+   ],
+   "kind": "part",
+   "shapes": [
+    301
+   ]
+  },
+  "quads": {
+   "name": "quadriceps (thigh)",
+   "at": [
+    150,
+    600
+   ],
+   "kind": "part",
+   "shapes": [
+    153
+   ]
+  },
+  "shin": {
+   "name": "shin muscles",
+   "at": [
+    260,
+    830
+   ],
+   "kind": "part",
+   "shapes": [
+    131
+   ]
+  }
+ }
+}

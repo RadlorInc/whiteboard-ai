@@ -1,0 +1,68 @@
+{
+ "parts": {
+  "head": {
+   "name": "head",
+   "at": [
+    160,
+    80
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "spongy": {
+   "name": "spongy bone",
+   "at": [
+    80,
+    150
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "marrow": {
+   "name": "marrow and vessels",
+   "at": [
+    90,
+    350
+   ],
+   "kind": "part",
+   "shapes": [
+    962
+   ]
+  },
+  "cavity": {
+   "name": "marrow cavity",
+   "at": [
+    100,
+    540
+   ],
+   "kind": "part",
+   "shapes": [
+    1009
+   ]
+  },
+  "compact": {
+   "name": "compact bone",
+   "at": [
+    40,
+    650
+   ],
+   "kind": "part",
+   "shapes": []
+  },
+  "cartilage": {
+   "name": "joint cartilage",
+   "at": [
+    140,
+    960
+   ],
+   "kind": "part",
+   "shapes": [
+    7
+   ]
+  }
+ }
+}

@@ -1,0 +1,46 @@
+{
+ "parts": {
+  "bronchiole": {
+   "name": "bronchiole",
+   "at": [
+    160,
+    250
+   ],
+   "kind": "part",
+   "shapes": [
+    29
+   ]
+  },
+  "duct": {
+   "name": "alveolar duct",
+   "at": [
+    285,
+    600
+   ],
+   "kind": "part",
+   "shapes": []
+  },
+  "alveoli": {
+   "name": "alveoli (air sacs)",
+   "at": [
+    450,
+    520
+   ],
+   "kind": "part",
+   "shapes": [
+    186
+   ]
+  },
+  "inside": {
+   "name": "inside an alveolus",
+   "at": [
+    500,
+    820
+   ],
+   "kind": "part",
+   "shapes": [
+    331
+   ]
+  }
+ }
+}

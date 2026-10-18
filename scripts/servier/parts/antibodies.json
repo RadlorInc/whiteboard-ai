@@ -1,0 +1,46 @@
+{
+ "parts": {
+  "heavy": {
+   "name": "heavy chain",
+   "at": [
+    310,
+    450
+   ],
+   "kind": "part",
+   "shapes": []
+  },
+  "light": {
+   "name": "light chain",
+   "at": [
+    70,
+    120
+   ],
+   "kind": "part",
+   "shapes": [
+    11
+   ]
+  },
+  "site": {
+   "name": "antigen-binding site",
+   "at": [
+    520,
+    60
+   ],
+   "kind": "part",
+   "shapes": [
+    6
+   ]
+  },
+  "antigen": {
+   "name": "antigen",
+   "at": [
+    300,
+    860
+   ],
+   "kind": "part",
+   "shapes": [
+    16
+   ]
+  }
+ }
+}

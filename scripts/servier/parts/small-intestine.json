@@ -1,0 +1,26 @@
+{
+ "parts": {
+  "coils": {
+   "name": "small intestine",
+   "at": [
+    400,
+    200
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "end": {
+   "name": "cut end",
+   "at": [
+    580,
+    140
+   ],
+   "kind": "part",
+   "shapes": [
+    102
+   ]
+  }
+ }
+}

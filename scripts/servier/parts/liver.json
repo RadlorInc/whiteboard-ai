@@ -1,0 +1,48 @@
+{
+ "parts": {
+  "right": {
+   "name": "right lobe",
+   "at": [
+    300,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    1
+   ]
+  },
+  "left": {
+   "name": "left lobe",
+   "at": [
+    850,
+    220
+   ],
+   "kind": "part",
+   "shapes": [
+    1
+   ]
+  },
+  "ligament": {
+   "name": "falciform ligament",
+   "at": [
+    650,
+    250
+   ],
+   "kind": "part",
+   "shapes": [
+    1
+   ]
+  },
+  "under": {
+   "name": "underside",
+   "at": [
+    400,
+    650
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  }
+ }
+}

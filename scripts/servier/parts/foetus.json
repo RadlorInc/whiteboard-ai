@@ -1,0 +1,59 @@
+{
+ "parts": {
+  "head": {
+   "name": "head",
+   "at": [
+    350,
+    150
+   ],
+   "kind": "part",
+   "shapes": [
+    4
+   ]
+  },
+  "hand": {
+   "name": "hand",
+   "at": [
+    420,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    3
+   ]
+  },
+  "cord": {
+   "name": "umbilical cord",
+   "at": [
+    560,
+    560
+   ],
+   "kind": "part",
+   "shapes": [
+    1
+   ]
+  },
+  "leg": {
+   "name": "leg and foot",
+   "at": [
+    450,
+    800
+   ],
+   "kind": "part",
+   "shapes": [
+    4
+   ]
+  },
+  "body": {
+   "name": "body",
+   "at": [
+    150,
+    600
+   ],
+   "kind": "part",
+   "shapes": [
+    4
+   ]
+  }
+ }
+}

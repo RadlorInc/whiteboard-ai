@@ -1,0 +1,15 @@
+{
+ "parts": {
+  "platelet": {
+   "name": "platelet (a cell fragment)",
+   "at": [
+    300,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  }
+ }
+}

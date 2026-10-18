@@ -1,0 +1,46 @@
+{
+ "parts": {
+  "mucus": {
+   "name": "mucus cells (lining)",
+   "at": [
+    230,
+    150
+   ],
+   "kind": "part",
+   "shapes": [
+    3
+   ]
+  },
+  "chief": {
+   "name": "chief cells (make enzymes)",
+   "at": [
+    120,
+    500
+   ],
+   "kind": "part",
+   "shapes": []
+  },
+  "parietal": {
+   "name": "parietal cells (make acid)",
+   "at": [
+    130,
+    620
+   ],
+   "kind": "part",
+   "shapes": [
+    217
+   ]
+  },
+  "capillary": {
+   "name": "capillary",
+   "at": [
+    20,
+    420
+   ],
+   "kind": "part",
+   "shapes": [
+    21
+   ]
+  }
+ }
+}

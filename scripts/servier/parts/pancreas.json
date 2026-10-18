@@ -1,0 +1,37 @@
+{
+ "parts": {
+  "head": {
+   "name": "head",
+   "at": [
+    300,
+    800
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "body": {
+   "name": "body",
+   "at": [
+    1100,
+    400
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "tail": {
+   "name": "tail",
+   "at": [
+    2100,
+    200
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  }
+ }
+}

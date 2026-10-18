@@ -1,0 +1,48 @@
+{
+ "parts": {
+  "ribs": {
+   "name": "ribs",
+   "at": [
+    150,
+    250
+   ],
+   "kind": "part",
+   "shapes": [
+    468
+   ]
+  },
+  "sternum": {
+   "name": "sternum (breastbone)",
+   "at": [
+    340,
+    350
+   ],
+   "kind": "part",
+   "shapes": [
+    538
+   ]
+  },
+  "lungs": {
+   "name": "lungs",
+   "at": [
+    245,
+    335
+   ],
+   "kind": "part",
+   "shapes": [
+    468
+   ]
+  },
+  "diaphragm": {
+   "name": "diaphragm",
+   "at": [
+    300,
+    622
+   ],
+   "kind": "part",
+   "shapes": [
+    558
+   ]
+  }
+ }
+}

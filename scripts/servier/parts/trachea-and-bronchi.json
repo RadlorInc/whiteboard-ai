@@ -1,0 +1,48 @@
+{
+ "parts": {
+  "trachea": {
+   "name": "trachea",
+   "at": [
+    405,
+    150
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  },
+  "rings": {
+   "name": "cartilage rings",
+   "at": [
+    405,
+    240
+   ],
+   "kind": "part",
+   "shapes": [
+    6
+   ]
+  },
+  "bronchus": {
+   "name": "main bronchus",
+   "at": [
+    510,
+    440
+   ],
+   "kind": "part",
+   "shapes": [
+    52
+   ]
+  },
+  "bronchioles": {
+   "name": "bronchioles",
+   "at": [
+    100,
+    640
+   ],
+   "kind": "part",
+   "shapes": [
+    52
+   ]
+  }
+ }
+}

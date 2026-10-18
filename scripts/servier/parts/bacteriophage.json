@@ -1,0 +1,57 @@
+{
+ "parts": {
+  "head": {
+   "name": "head (capsid)",
+   "at": [
+    270,
+    150
+   ],
+   "kind": "part",
+   "shapes": [
+    12
+   ]
+  },
+  "dna": {
+   "name": "DNA inside",
+   "at": [
+    1300,
+    200
+   ],
+   "kind": "part",
+   "shapes": [
+    1389
+   ]
+  },
+  "tail": {
+   "name": "tail",
+   "at": [
+    270,
+    600
+   ],
+   "kind": "part",
+   "shapes": [
+    22
+   ]
+  },
+  "fibres": {
+   "name": "tail fibres",
+   "at": [
+    60,
+    880
+   ],
+   "kind": "part",
+   "shapes": []
+  },
+  "collar": {
+   "name": "collar",
+   "at": [
+    270,
+    460
+   ],
+   "kind": "part",
+   "shapes": [
+    18
+   ]
+  }
+ }
+}

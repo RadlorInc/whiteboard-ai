@@ -1,0 +1,103 @@
+{
+ "parts": {
+  "membrane": {
+   "name": "cell membrane",
+   "at": [
+    60,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    77
+   ]
+  },
+  "nucleus": {
+   "name": "nucleus",
+   "at": [
+    330,
+    380
+   ],
+   "kind": "part",
+   "shapes": [
+    806
+   ]
+  },
+  "nucleolus": {
+   "name": "chromatin",
+   "at": [
+    380,
+    370
+   ],
+   "kind": "part",
+   "shapes": [
+    806
+   ]
+  },
+  "rer": {
+   "name": "rough ER (makes proteins)",
+   "at": [
+    350,
+    560
+   ],
+   "kind": "part",
+   "shapes": [
+    980
+   ]
+  },
+  "golgi": {
+   "name": "Golgi apparatus",
+   "at": [
+    300,
+    250
+   ],
+   "kind": "part",
+   "shapes": [
+    3
+   ]
+  },
+  "mito": {
+   "name": "mitochondrion (energy)",
+   "at": [
+    660,
+    400
+   ],
+   "kind": "part",
+   "shapes": [
+    3
+   ]
+  },
+  "lysosome": {
+   "name": "lysosome",
+   "at": [
+    560,
+    220
+   ],
+   "kind": "part",
+   "shapes": [
+    1147
+   ]
+  },
+  "vacuole": {
+   "name": "vesicle",
+   "at": [
+    230,
+    720
+   ],
+   "kind": "part",
+   "shapes": [
+    1281
+   ]
+  },
+  "cytoplasm": {
+   "name": "cytoplasm",
+   "at": [
+    550,
+    650
+   ],
+   "kind": "part",
+   "shapes": [
+    21
+   ]
+  }
+ }
+}

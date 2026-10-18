@@ -1,0 +1,79 @@
+{
+ "parts": {
+  "dendrites": {
+   "name": "dendrites",
+   "at": [
+    100,
+    180
+   ],
+   "kind": "part",
+   "shapes": []
+  },
+  "body": {
+   "name": "cell body",
+   "at": [
+    430,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    258
+   ]
+  },
+  "nucleus": {
+   "name": "nucleus",
+   "at": [
+    340,
+    260
+   ],
+   "kind": "part",
+   "shapes": [
+    21
+   ]
+  },
+  "myelin": {
+   "name": "myelin sheath",
+   "at": [
+    560,
+    400
+   ],
+   "kind": "part",
+   "shapes": [
+    260
+   ]
+  },
+  "node": {
+   "name": "node of Ranvier",
+   "at": [
+    612,
+    470
+   ],
+   "kind": "part",
+   "shapes": [
+    364
+   ]
+  },
+  "axon": {
+   "name": "axon",
+   "at": [
+    700,
+    530
+   ],
+   "kind": "part",
+   "shapes": [
+    375
+   ]
+  },
+  "terminals": {
+   "name": "axon terminals",
+   "at": [
+    1250,
+    680
+   ],
+   "kind": "part",
+   "shapes": [
+    1159
+   ]
+  }
+ }
+}

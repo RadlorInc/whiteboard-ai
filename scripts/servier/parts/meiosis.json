@@ -1,0 +1,59 @@
+{
+ "parts": {
+  "start": {
+   "name": "parent cell",
+   "at": [
+    100,
+    350
+   ],
+   "kind": "part",
+   "shapes": [
+    44
+   ]
+  },
+  "copied": {
+   "name": "chromosomes copy",
+   "at": [
+    550,
+    350
+   ],
+   "kind": "part",
+   "shapes": [
+    69
+   ]
+  },
+  "first": {
+   "name": "first division",
+   "at": [
+    1080,
+    240
+   ],
+   "kind": "part",
+   "shapes": [
+    35
+   ]
+  },
+  "second": {
+   "name": "second division",
+   "at": [
+    1080,
+    760
+   ],
+   "kind": "part",
+   "shapes": [
+    28
+   ]
+  },
+  "gametes": {
+   "name": "4 sex cells (half the DNA)",
+   "at": [
+    1530,
+    50
+   ],
+   "kind": "part",
+   "shapes": [
+    21
+   ]
+  }
+ }
+}

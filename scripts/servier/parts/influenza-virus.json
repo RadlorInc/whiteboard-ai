@@ -1,0 +1,46 @@
+{
+ "parts": {
+  "envelope": {
+   "name": "envelope",
+   "at": [
+    160,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "ha": {
+   "name": "haemagglutinin (spike)",
+   "at": [
+    70,
+    500
+   ],
+   "kind": "part",
+   "shapes": []
+  },
+  "na": {
+   "name": "neuraminidase",
+   "at": [
+    400,
+    200
+   ],
+   "kind": "part",
+   "shapes": [
+    1278
+   ]
+  },
+  "inside": {
+   "name": "genes inside",
+   "at": [
+    450,
+    650
+   ],
+   "kind": "part",
+   "shapes": [
+    1278
+   ]
+  }
+ }
+}

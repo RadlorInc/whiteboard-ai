@@ -1,0 +1,57 @@
+{
+ "parts": {
+  "chromatid": {
+   "name": "chromatid",
+   "at": [
+    40,
+    400
+   ],
+   "kind": "part",
+   "shapes": []
+  },
+  "centromere": {
+   "name": "centromere",
+   "at": [
+    150,
+    430
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "gene": {
+   "name": "gene",
+   "at": [
+    40,
+    120
+   ],
+   "kind": "part",
+   "shapes": [
+    1
+   ]
+  },
+  "allele": {
+   "name": "allele (other copy)",
+   "at": [
+    280,
+    120
+   ],
+   "kind": "part",
+   "shapes": [
+    6
+   ]
+  },
+  "pair": {
+   "name": "sister chromatid",
+   "at": [
+    280,
+    800
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  }
+ }
+}

@@ -37,7 +37,12 @@
       const tw = (part.kind === 'valve' ? 2 : 3.2) / s;   // valves are lacy: a thinner trace
       for (const i of part.shapes) mk('path', { d: h.place.data.shapes[i][0], fill: 'none', stroke: col, 'stroke-width': tw, 'stroke-linejoin': 'round', class: 'ink', opacity: .9 }, trace);
       const [ax, ay] = P(...part.at), left = part.label[0] === 'L';
-      const [lx, ly] = P(left ? -50 : w + 50, part.label[1]);
+      let [lx, ly] = P(left ? -50 : w + 50, part.label[1]);
+      // on the board: words stay inside it, and two pins' words on one side keep 20 px apart (a wide drawing is small)
+      lx = left ? Math.max(lx, 180) : Math.min(lx, 700);
+      const used = (h.usedY ||= { L: [], R: [] })[left ? 'L' : 'R'];
+      while (used.some(y => Math.abs(y - ly) < 20)) ly += 20;
+      used.push(ly);
       // one stroke: a small ring on the part, then the leader to the words (a separate circle left a speck before it was drawn)
       line(g, `M${ax - 3.5} ${ay} a3.5 3.5 0 1 0 7 0 a3.5 3.5 0 1 0 -7 0 M${ax} ${ay} L${lx + (left ? 6 : -6)} ${ly - 5}`, '#333', 1.5);
       label(g, lx, ly, t || part.name, col, 16, left ? 'end' : 'start');

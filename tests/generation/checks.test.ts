@@ -189,3 +189,17 @@ describe('realistic library', () => {
     expect(checkEls({ a: 'sv id=unicornx 480 270 460' })[0]).toMatch(/sv needs id=/);
   });
 });
+
+// Labelled realistic drawings (18 Oct 2026): 69 core drawings carry named parts that pins can point at.
+describe('realistic drawings with parts', () => {
+  it('the core drawings have parts in the catalogue, the prompt and their files; pins to them are checked', () => {
+    const core = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../scripts/servier/core.json'), 'utf8')) as string[];
+    expect(core.length).toBe(69);
+    for (const id of core) {
+      expect((P.svParts as Record<string, string[]>)[id]?.length, id).toBeGreaterThan(0);
+      expect(fs.readFileSync(path.resolve(__dirname, `../../public/player/lib/sv/${id}.js`), 'utf8')).toContain('"parts":');
+    }
+    expect(checkEls({ l: 'sv id=lungs 480 270 460', p: 'pin of=l part=trachea' })).toEqual([]);
+    expect(checkEls({ l: 'sv id=lungs 480 270 460', p: 'pin of=l part=spleen' })[0]).toMatch(/lungs has no part "spleen"/);
+  });
+});

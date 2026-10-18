@@ -34,7 +34,7 @@ const WB_CATS = cats('wb-load.js', 'WB_CATS');
 // found only through find_drawing (too many to list in a prompt). One search category per subject.
 const SV = JSON.parse(fs.readFileSync(path.join(genDir, '..', '..', '..', 'scripts', 'servier', 'sv-catalogue.json'), 'utf8'));
 const svCat = (cat, subject) => ({ cat, lines: SV.filter(d => d.subject === subject).map(d => ({ name: d.id, sig: `sv id=${d.id} cx cy height`,
-  example: `sv id=${d.id} 480 270 460`, desc: `${d.name} (realistic; width ${(d.w / 1000).toFixed(2)} x its height): ${d.tags.join(' ')}` })) });
+  example: `sv id=${d.id} 480 270 460`, desc: `${d.name} (realistic; width ${(d.w / 1000).toFixed(2)} x its height): ${d.tags.join(' ')}${d.parts ? `; parts: ${d.parts.join(' ')}` : ''}` })) });
 const SV_CATS = [svCat('servier', 'biology'), svCat('servier-chem', 'chemistry')];
 const isSv = c => c.cat.startsWith('servier');
 const WB_ALL = [...catalogueOf('wb', [...WB_CATS, ...cats('wb-load.js', 'WB_EXTRA')]), ...SV_CATS];
@@ -100,7 +100,9 @@ const SUBJECTS = {
   both sides; leave the left 200 and right 260 pixels free for them and put nothing else there.
 - For any other organ, cell, tissue, microbe or molecule, first search the realistic library: find_drawing with a
   short query (e.g. "lungs alveoli", "neuron synapse", "mitochondria"); draw a match with "sv id=<name> cx cy height"
-  (draw it, then fill it), one or two per lesson, big, and name its parts with your own label or tag elements beside it.` },
+  (draw it, then fill it), one or two per lesson, big. When its search result lists "parts: ...", point at them with
+  pins ("p1": "pin of=<its element id> part=<part>"), drawn one by one in the step that explains each part; centre the
+  drawing and keep the left 200 and right 260 pixels free for the pins' words. Otherwise label it with your own text.` },
   physics: { cats: ['physics', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
 - Teaching physics: show the cause and the effect, with forces, energy and waves drawn as arrows. Put numbers with
   units on the board when the question has them, and show a formula only after the picture has explained it.` },
@@ -205,6 +207,7 @@ export function buildPrompts() {
     // the named parts of each anatomy drawing (its catalogue line's "parts: ..."), so the checks can verify pins
     parts: Object.fromEntries(WB_ALL.flatMap(c => c.lines).filter(l => /parts: /.test(l.desc)).map(l => [l.name, l.desc.split('parts: ')[1].trim().split(/\s+/)])),
     svIds: SV.map(d => d.id),
+    svParts: Object.fromEntries(SV.filter(d => d.parts).map(d => [d.id, d.parts])),
     types: [...TYPES], commands: [...COMMANDS], loops: [...LOOPS],
     libNames: [...LIB_NAMES], flowItems: [...FLOW_ITEMS], bloodPaths: [...BLOOD_PATHS], textures: [...TEXTURES],
     wbLib: WB_ALL, paperLib: PAPER_LIB, mcLib: MC_LIB,

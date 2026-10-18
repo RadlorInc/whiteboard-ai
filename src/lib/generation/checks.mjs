@@ -6,7 +6,7 @@ import P from './prompts.json' with { type: 'json' };
 
 const TYPES = new Set(P.types), COMMANDS = new Set(P.commands), LOOPS = new Set(P.loops);
 const LIB_NAMES = new Set(P.libNames), FLOW_ITEMS = new Set(P.flowItems), BLOOD_PATHS = new Set(P.bloodPaths);
-const TEXTURES = new Set(P.textures), PARTS = P.parts ?? {}, SV_IDS = new Set(P.svIds ?? []);
+const TEXTURES = new Set(P.textures), PARTS = P.parts ?? {}, SV_IDS = new Set(P.svIds ?? []), SV_PARTS = P.svParts ?? {};
 export const MC_LIB = P.mcLib, WB_LIB = P.wbLib, PAPER_LIB = P.paperLib, EXAMPLES = P.examples;
 
 // ---------- whiteboard: check(a) = shape + checkEls + every checkStep (prototype `check`, split) ----------
@@ -18,9 +18,10 @@ export function checkEls(els) {
     if (type === 'sv' && !SV_IDS.has(/\bid=(\S+)/.exec(spec)?.[1])) errs.push(`els.${id}: sv needs id=<a name find_drawing returned>`);
     if (type === 'pin') {               // anatomy pins (18 Oct 2026): "pin of=<earlier drawing id> part=<one of its parts>"
       const of = /\bof=(\S+)/.exec(spec)?.[1], part = /\bpart=(\S+)/.exec(spec)?.[1];
-      const ofType = of in els ? String(els[of]).trim().split(/\s+/)[0] : null, before = Object.keys(els).indexOf(of) < Object.keys(els).indexOf(id);
-      if (!ofType || !PARTS[ofType] || !before) errs.push(`els.${id}: pin needs of=<an anatomy drawing listed before it>`);
-      else if (!PARTS[ofType].includes(part)) errs.push(`els.${id}: ${ofType} has no part "${part}" (parts: ${PARTS[ofType].join(' ')})`);
+      const ofSpec = of in els ? String(els[of]).trim() : '', ofType = ofSpec.split(/\s+/)[0] || null, before = Object.keys(els).indexOf(of) < Object.keys(els).indexOf(id);
+      const svId = ofType === 'sv' ? /\bid=(\S+)/.exec(ofSpec)?.[1] : null, list = svId ? SV_PARTS[svId] : PARTS[ofType], what = svId ?? ofType;
+      if (!ofType || !list || !before) errs.push(`els.${id}: pin needs of=<an anatomy drawing listed before it>`);
+      else if (!list.includes(part)) errs.push(`els.${id}: ${what} has no part "${part}" (parts: ${list.join(' ')})`);
     }
   }
   return errs;

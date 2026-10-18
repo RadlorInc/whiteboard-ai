@@ -1,0 +1,92 @@
+{
+ "parts": {
+  "pinna": {
+   "name": "outer ear (pinna)",
+   "at": [
+    60,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    123
+   ]
+  },
+  "canal": {
+   "name": "ear canal",
+   "at": [
+    500,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    403
+   ]
+  },
+  "drum": {
+   "name": "eardrum",
+   "at": [
+    770,
+    600
+   ],
+   "kind": "part",
+   "shapes": [
+    469
+   ]
+  },
+  "ossicles": {
+   "name": "ossicles (tiny bones)",
+   "at": [
+    820,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    128
+   ]
+  },
+  "canals": {
+   "name": "semicircular canals",
+   "at": [
+    850,
+    350
+   ],
+   "kind": "part",
+   "shapes": [
+    134
+   ]
+  },
+  "cochlea": {
+   "name": "cochlea (hearing)",
+   "at": [
+    970,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    659
+   ]
+  },
+  "nerve": {
+   "name": "auditory nerve",
+   "at": [
+    1050,
+    420
+   ],
+   "kind": "part",
+   "shapes": [
+    808
+   ]
+  },
+  "tube": {
+   "name": "Eustachian tube",
+   "at": [
+    950,
+    800
+   ],
+   "kind": "part",
+   "shapes": [
+    303
+   ]
+  }
+ }
+}

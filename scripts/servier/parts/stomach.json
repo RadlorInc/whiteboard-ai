@@ -1,0 +1,46 @@
+{
+ "parts": {
+  "oesophagus": {
+   "name": "oesophagus",
+   "at": [
+    300,
+    70
+   ],
+   "kind": "part",
+   "shapes": [
+    11
+   ]
+  },
+  "body": {
+   "name": "stomach",
+   "at": [
+    430,
+    250
+   ],
+   "kind": "part",
+   "shapes": [
+    11
+   ]
+  },
+  "pylorus": {
+   "name": "pylorus (exit valve)",
+   "at": [
+    175,
+    360
+   ],
+   "kind": "part",
+   "shapes": [
+    11
+   ]
+  },
+  "duodenum": {
+   "name": "duodenum",
+   "at": [
+    60,
+    450
+   ],
+   "kind": "part",
+   "shapes": []
+  }
+ }
+}

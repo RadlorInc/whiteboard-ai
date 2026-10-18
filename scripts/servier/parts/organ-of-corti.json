@@ -1,0 +1,68 @@
+{
+ "parts": {
+  "inner": {
+   "name": "inner hair cell",
+   "at": [
+    480,
+    600
+   ],
+   "kind": "part",
+   "shapes": [
+    451
+   ]
+  },
+  "outer": {
+   "name": "outer hair cells",
+   "at": [
+    900,
+    450
+   ],
+   "kind": "part",
+   "shapes": []
+  },
+  "tectorial": {
+   "name": "tectorial membrane",
+   "at": [
+    600,
+    100
+   ],
+   "kind": "part",
+   "shapes": [
+    112
+   ]
+  },
+  "nerve": {
+   "name": "nerve fibres",
+   "at": [
+    200,
+    840
+   ],
+   "kind": "part",
+   "shapes": [
+    465
+   ]
+  },
+  "support": {
+   "name": "supporting cells",
+   "at": [
+    1300,
+    700
+   ],
+   "kind": "part",
+   "shapes": [
+    42
+   ]
+  },
+  "basilar": {
+   "name": "basilar membrane",
+   "at": [
+    1300,
+    950
+   ],
+   "kind": "part",
+   "shapes": [
+    58
+   ]
+  }
+ }
+}

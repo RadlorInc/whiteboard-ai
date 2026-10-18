@@ -1,0 +1,59 @@
+{
+ "parts": {
+  "muscle": {
+   "name": "smooth muscle (media)",
+   "at": [
+    200,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    1
+   ]
+  },
+  "elastic": {
+   "name": "elastic layer",
+   "at": [
+    500,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    159
+   ]
+  },
+  "endothelium": {
+   "name": "endothelium (lining)",
+   "at": [
+    595,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    3
+   ]
+  },
+  "rbc": {
+   "name": "red blood cells",
+   "at": [
+    750,
+    420
+   ],
+   "kind": "part",
+   "shapes": [
+    136
+   ]
+  },
+  "wbc": {
+   "name": "white blood cell",
+   "at": [
+    650,
+    320
+   ],
+   "kind": "part",
+   "shapes": [
+    3
+   ]
+  }
+ }
+}

@@ -1,0 +1,81 @@
+{
+ "parts": {
+  "ovary": {
+   "name": "ovary",
+   "at": [
+    300,
+    580
+   ],
+   "kind": "part",
+   "shapes": [
+    46
+   ]
+  },
+  "follicle": {
+   "name": "follicle (egg growing)",
+   "at": [
+    260,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    170
+   ]
+  },
+  "egg": {
+   "name": "egg released",
+   "at": [
+    100,
+    380
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  },
+  "tube": {
+   "name": "fallopian tube",
+   "at": [
+    250,
+    250
+   ],
+   "kind": "part",
+   "shapes": [
+    11
+   ]
+  },
+  "embryo": {
+   "name": "dividing embryo",
+   "at": [
+    400,
+    290
+   ],
+   "kind": "part",
+   "shapes": [
+    9
+   ]
+  },
+  "implant": {
+   "name": "implants in uterus",
+   "at": [
+    950,
+    400
+   ],
+   "kind": "part",
+   "shapes": [
+    70
+   ]
+  },
+  "uterus": {
+   "name": "uterus",
+   "at": [
+    800,
+    600
+   ],
+   "kind": "part",
+   "shapes": [
+    51
+   ]
+  }
+ }
+}

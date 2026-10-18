@@ -1,0 +1,70 @@
+{
+ "parts": {
+  "frontal": {
+   "name": "frontal lobe",
+   "at": [
+    750,
+    330
+   ],
+   "kind": "part",
+   "shapes": [
+    156
+   ]
+  },
+  "parietal": {
+   "name": "parietal lobe",
+   "at": [
+    450,
+    120
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  },
+  "occipital": {
+   "name": "occipital lobe",
+   "at": [
+    100,
+    330
+   ],
+   "kind": "part",
+   "shapes": [
+    150
+   ]
+  },
+  "temporal": {
+   "name": "temporal lobe",
+   "at": [
+    350,
+    480
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  },
+  "cerebellum": {
+   "name": "cerebellum",
+   "at": [
+    300,
+    700
+   ],
+   "kind": "part",
+   "shapes": [
+    3
+   ]
+  },
+  "brainstem": {
+   "name": "brainstem",
+   "at": [
+    420,
+    850
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  }
+ }
+}
