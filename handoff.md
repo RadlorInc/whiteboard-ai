@@ -126,19 +126,13 @@
   prompt's; the categories are only the subject's (+ `diagrams`), plus a "- Teaching <subject>:" rule.
   - The plain prompt is unchanged (`332e6d…`) and is used outside a chat.
   - The subject shas are bound in `prompts.test.ts`.
-- The chat's subject picks:
-  - the `prompt_sha` (`promptSha(style, subject)`), so reserve and cost rows carry it;
-  - `prefix(style, subject)`;
-  - the `find_drawing` categories.
+- The chat's subject picks the `prompt_sha` (`promptSha(style, subject)`), `prefix(style, subject)` and the
+  `find_drawing` categories.
 - Keep-warm covers 6 prompts (`PROMPTS`). No migration: `prompt_cache_state` is keyed by `prompt_sha`.
-- Each subject prompt is ~10k tokens, so a cold write is ~$0.08 (estimated). Keeping all three warm costs
-  ~$0.17/day.
-- Biology library: `lib/wb/biology.*`, listed as `WB_EXTRA` in `wb-load.js`. The player loads it; only the biology
-  prompt lists it.
-  - Drawings: heartsection, circulation, breathing, gut, reflexarc, dnaladder, cellcycle, leafsection, plantparts.
-  - All labelled by default (`lab=0` hides the words), drawn polished (`.polished`: no wobble or watercolour).
-- Proof: biology-chat tests in `run.test.ts` and `localdb.test.ts`, and the mock "How does blood travel around the
-  body?" plays to the end.
+- A subject prompt is ~10k tokens: a cold write ~$0.08 (est.); all three warm ~$0.17/day.
+- Biology library `lib/wb/biology.*` (`WB_EXTRA` in `wb-load.js`; only the biology prompt lists it): 9 labelled,
+  polished drawings (`lab=0` hides words).
+- Proof: biology-chat tests in `run.test.ts` and `localdb.test.ts`.
 - **Next:** physics, then chemistry, the same way.
 
 ## 18 Oct 2026 session: chats, realistic biology, follow-up cost (PRs #16 → #17 → #18, stacked, none merged)
