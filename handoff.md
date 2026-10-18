@@ -117,7 +117,7 @@
 - 18 Oct late: new glowing logo; Collection (`saved_items`, `save_item`/`my_saved`, /saved, bookmark on cards);
   "videos left" not credits in the app (`lib/videos.ts`, 4 credits a video: an estimate); Recents = 10; video page
   shows before/after in its chat. Pricing/Help/legal copy still says credits.
-- Also: error screen, skip link, real titles + link previews, ⌘K chat search, ⌘⇧O new chat, toasts, chat header
+- Also: error screen, skip link, real titles + link previews, ⌘⇧O new chat (no sidebar chat search: founder), toasts, chat header
   (Share, Delete chat = delete_my_video each), Share per answer, jump-to-latest, Your videos as a grid + search.
 - Checked: tsc, eslint, vitest and screenshots at 1440 and 390 px. **e2e not run**: locally Playwright reuses
   the dev server on 3100, which was running the live model; two selectors updated for the sidebar.

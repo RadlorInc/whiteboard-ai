@@ -4,7 +4,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { flushSync } from "react-dom";
 import { PRODUCT_NAME } from "@/product";
 import { SignOutButton } from "./SignOutButton";
 import { ChatList, SUBJECT_NAME, type ChatRow, type Subject } from "./Chats";
@@ -31,11 +30,8 @@ export function AppFrame({ email, available, chats, children }: {
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(path);
-  const [find, setFind] = useState("");
-  const [searching, setSearching] = useState(false);     // the chat search opens from its icon or ⌘K
   const [only, setOnly] = useState<Subject | null>(null);       // the subject filter on Recents
   const menu = useRef<HTMLDetailsElement>(null);
-  const search = useRef<HTMLInputElement>(null);
   // A new page closes the drawer and the account menu.
   if (seen !== path) { setSeen(path); setOpen(false); }
   useEffect(() => { if (menu.current) menu.current.open = false; }, [path]);
@@ -49,13 +45,13 @@ export function AppFrame({ email, available, chats, children }: {
     document.addEventListener("click", close); document.addEventListener("keydown", close);
     return () => { document.removeEventListener("click", close); document.removeEventListener("keydown", close); };
   }, []);
-  // ⌘K / Ctrl+K: search chats (the drawer opens on phones). ⌘⇧O / Ctrl+Shift+O: new chat (Claude and ChatGPT's keys).
+  // ⌘⇧O / Ctrl+Shift+O: new chat. No chat search in the sidebar (founder, 18 Oct 2026: not a chat app; finding a
+  // lesson is the search on Your videos and Explore).
   useEffect(() => {
     const keys = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey)) return;
       const k = e.key.toLowerCase();
       // flushSync: the drawer must be open (visible) before focus moves, or the first letters land in the composer
-      if (k === "k" && !e.shiftKey) { e.preventDefault(); flushSync(() => { setOpen(true); setSearching(true); }); search.current?.focus(); }
       // a full load, like the New chat link, so a chat in progress starts over clean
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       if (k === "o" && e.shiftKey) { e.preventDefault(); location.href = "/ask"; }
@@ -77,8 +73,7 @@ export function AppFrame({ email, available, chats, children }: {
   const nav: [string, IconName, string][] = [["/explore", "compass", "Explore"], ["/saved", "bookmark", "Collection"], ["/library", "videos", "Your videos"]];
   const active = path.startsWith("/c/") ? path.slice(3) : undefined;
   const subjects = (Object.keys(SUBJECT_NAME) as Subject[]).filter((s) => chats.some((c) => c.subject === s));
-  const words = find.trim().toLowerCase();
-  const shown = chats.filter((c) => (!only || c.subject === only) && (!words || c.title.toLowerCase().includes(words)));
+  const shown = chats.filter((c) => !only || c.subject === only);
 
   return (
     <div className="app">
@@ -99,17 +94,6 @@ export function AppFrame({ email, available, chats, children }: {
           ))}
         </nav>
         <div className="side-recents">
-          {searching && (
-            <div className="side-search">
-              <Icon name="search" size={15} />
-              <label htmlFor="chat-search" className="sr-only">Search chats</label>
-              <input id="chat-search" ref={search} type="search" placeholder="Search chats" value={find} autoComplete="off" autoFocus
-                onChange={(e) => setFind(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Escape") { setFind(""); setSearching(false); } }}
-                onBlur={() => { if (!find) setSearching(false); }} />
-              <kbd aria-hidden="true">⌘K</kbd>
-            </div>
-          )}
           {/* One chip per subject the person has chats in, in SUBJECT_NAME's order: a new subject gets its chip by itself. */}
           {subjects.length > 1 && (
             <div className="side-filter" role="group" aria-label="Filter chats by subject">
@@ -119,15 +103,7 @@ export function AppFrame({ email, available, chats, children }: {
               ))}
             </div>
           )}
-          <div className="side-label-row">
-            <p className="side-label">Recents</p>
-            {chats.length > 0 && !searching && (
-              <button type="button" className="side-icon" aria-label="Search chats (⌘K)" title="Search chats (⌘K)"
-                onClick={() => { flushSync(() => setSearching(true)); search.current?.focus(); }}>
-                <Icon name="search" size={15} />
-              </button>
-            )}
-          </div>
+          <p className="side-label">Recents</p>
           {chats.length > 0 && shown.length === 0 ? <p className="side-empty">No chat matches.</p> : <ChatList chats={shown} active={active} />}
           {chats.length >= 10 && <Link href="/chats" className="side-all">All chats</Link>}
         </div>

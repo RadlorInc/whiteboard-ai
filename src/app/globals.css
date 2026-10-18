@@ -473,16 +473,6 @@ li.now .tick { border-color: transparent; }
   box-shadow: 0 12px 40px rgb(0 0 0 / 0.5); animation: toast-in .2s ease-out; max-width: calc(100vw - 32px); overflow-wrap: anywhere; }
 @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
 
-/* ---- Sidebar chat search ---- */
-.side-search { position: relative; margin: 0 2px 14px; }
-.side-search .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--faint); pointer-events: none; }
-.side-search input { min-height: 36px; height: 36px; padding: 0 44px 0 32px; font-size: 0.875rem; border-radius: 10px; background: var(--surface);
-  border-color: var(--border); }
-.side-search input::-webkit-search-cancel-button { display: none; }
-.side-search kbd { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font: inherit; font-size: 0.6875rem; color: var(--faint);
-  border: 1px solid var(--border-strong); border-radius: 5px; padding: 1px 5px; pointer-events: none; }
-@media (pointer: coarse) { .side-search kbd { display: none; } .side-search input { padding-right: 12px; font-size: 16px; } }
-
 /* ---- Chat header and answer actions ---- */
 .chat-head { display: flex; align-items: center; gap: 12px; padding: 4px 0 20px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
 .chat-head-text { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
@@ -573,9 +563,3 @@ li.now .tick { border-color: transparent; }
 .menu.profile > summary:focus-visible { outline-offset: 1px; border-radius: 50%; }
 .menu.profile > summary:focus:not(:focus-visible) { outline: none; }
 
-/* ---- The chat search behind an icon beside Recents ---- */
-.side-label-row { display: flex; align-items: center; justify-content: space-between; padding-right: 2px; }
-.side-label-row .side-label { padding-bottom: 6px; }
-.side-icon { width: 28px; height: 28px; margin-bottom: 6px; display: grid; place-items: center; border: 0; border-radius: 8px; background: none;
-  color: var(--faint); cursor: pointer; }
-.side-icon:hover { background: var(--surface-2); color: var(--text); }
