@@ -62,6 +62,12 @@
       while (my === gen) {
         if (i < A.steps.length) {
           const s = A.steps[i]; at = i++; where();
+          // Spotlight: a step that draws a flow (an arrow, line or travel) over a realistic drawing dims the drawing;
+          // flows from earlier steps fade back so only this step's movement stands out.
+          // (a flow this step still uses, e.g. "pop leak", stays bright and keeps the spotlight)
+          const ids = s.do.map(c => c.replace(/^&/, '').trim().split(/\s+/)).filter(([op]) => !['wait', 'cam'].includes(op)).flatMap(([, a = '']) => a.split(','));
+          scene.querySelectorAll('.flow').forEach(e => e.classList.toggle('old', !ids.some(id => els[id] === e)));
+          scene.classList.toggle('spot', ids.some(id => isFlow(els[id])));
           await Promise.all([s.wav ? playWav(s.wav, s.say) : say(s.say),
             (async () => { for (const c of s.do) { if (my !== gen) return; await run(c); } await penUp(); })()]);
           if (my !== gen) return;
@@ -69,7 +75,7 @@
         } else if (done) break;
         else await new Promise(r => setTimeout(r, 80));
       }
-      if (my === gen) { at = A.steps.length; where(); still(); tell({ type: 'ended' }); }
+      if (my === gen) { at = A.steps.length; where(); scene.classList.remove('spot'); still(); tell({ type: 'ended' }); }
     } catch (e) { tell({ type: 'error', message: String(e.message || e) }); }
   }
   // The end: nothing moves on (14 Oct 2026). Looping motion (a beat, a flow, rain) holds where it is; a travelling

@@ -15,7 +15,7 @@
     const a = key === 'sv' ? SV.data[o.id] : A[key];
     if (!a) throw new Error(`sv: no drawing "${o.id}"`);
     const s = H / a.h, ox = cx - a.w * s / 2, oy = cy - H / 2;
-    const g = mk('g', { class: 'polished anat', transform: `translate(${ox} ${oy}) scale(${s})` }, parent);
+    const g = mk('g', { class: 'polished anat anat-draw', transform: `translate(${ox} ${oy}) scale(${s})` }, parent);
     for (const [d, fill, alpha, stroke, w] of a.shapes) {
       if (fill !== 'none') mk('path', { d, fill, class: 'fillable', ...(alpha < 1 && { opacity: alpha }) }, g);
       if (stroke) mk('path', { d, fill: 'none', stroke, 'stroke-width': w, 'stroke-linejoin': 'round', class: 'ink' }, g);

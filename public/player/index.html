@@ -21,6 +21,13 @@
   .polished text { font-family: "Helvetica Neue", Arial, sans-serif; font-weight: 600; }
   /* anatomy drawings and pins: square line ends, so an undrawn line (dash offset = its length) shows no dot */
   .anat .ink { stroke-linecap: butt; }
+  .shimmer { stroke-dasharray: 3 16; opacity: .85; animation: flowrun .8s linear infinite; }
+  @keyframes flowrun { to { stroke-dashoffset: -38; } }
+  .anat-draw { transition: filter .6s; }
+  #scene.spot .anat-draw { filter: grayscale(.65) opacity(.38); }
+  .flow.old, .flow.old + .shimmer { opacity: .25; transition: opacity .6s; }
+  .flow.old + .shimmer { animation: none; }
+  @media (prefers-reduced-motion: reduce) { .shimmer { animation: none; } }
   #scene.on-anat .prim, #scene.on-anat .trip { filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1px #fff); }
   .fillable { transition: fill-opacity .7s ease; fill-opacity: 0; }
   .fillable.on { fill-opacity: 1; }
@@ -149,9 +156,25 @@ function drawEl(el, ms) {
   marker.style.opacity = 1;
   return frames(ms, t => { t = ease(t); el.style.strokeDashoffset = len * (1 - t); const p = el.getPointAtLength(len * t); markAt(el, p.x, p.y); });
 }
+// A flow over a realistic drawing (founder, 18 Oct 2026): once drawn, an arrow or line carries a white shimmer that
+// runs along it, so the movement reads; the step's spotlight (bridge.js) dims the drawing behind it.
+// a flow = an arrow, line or path lying over a realistic drawing (not, say, the arrows between the step tags)
+function isFlow(el) {
+  if (!el || !el.classList?.contains('prim') || !['arrow', 'line', 'path'].includes(el.kind)) return false;
+  const a = el.getBoundingClientRect();
+  return [...scene.querySelectorAll('.anat-draw')].some(g => { const b = g.getBoundingClientRect();
+    return Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 0; });
+}
+function flowify(el) {
+  if (!isFlow(el)) return;
+  el.classList.add('flow');
+  const w = parseFloat(el.getAttribute('stroke-width')) || 5;
+  el.shimmer = mk('path', { d: el.getAttribute('d'), fill: 'none', stroke: '#fff', 'stroke-width': Math.max(1.5, w * .45), 'stroke-linecap': 'round', class: 'shimmer', 'pointer-events': 'none' });
+  el.after(el.shimmer);
+}
 async function draw(id, ms = 800) {
   const el = strokeOf(id);
-  if (el.tagName !== 'g') return drawEl(el, ms);
+  if (el.tagName !== 'g') { await drawEl(el, ms); flowify(el); return; }
   // recipe: saari lines ek-ek karke (lambai ke hisaab se samay), phir uske labels
   // .linked: a pin's outline kept inside the drawing it points at; the pin draws it (el.linked), the drawing does not
   const inks = [...el.querySelectorAll('.ink:not(.linked)'), ...(el.linked || [])], total = inks.reduce((s, e) => s + e.getTotalLength(), 0);
