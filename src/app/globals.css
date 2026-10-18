@@ -473,3 +473,11 @@ li.now .tick { border-color: transparent; }
 @media (max-width: 480px) { .chat-head .chat-subject { display: none; } }
 .lib-search { width: min(320px, 100%); margin-top: 0; }
 .lib-search input { min-height: 44px; }
+
+/* ---- Sidebar subject filter ---- */
+.side-filter { display: flex; flex-wrap: wrap; gap: 6px; margin: -6px 2px 16px; }
+.side-filter button { min-height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--border-strong); background: none;
+  color: var(--muted); font: inherit; font-size: 0.75rem; font-weight: 500; cursor: pointer; transition: background-color .15s, color .15s; }
+.side-filter button:hover { color: var(--text); background: var(--surface-2); }
+.side-filter button[aria-pressed="true"] { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+@media (pointer: coarse) { .side-filter button { min-height: 36px; padding: 0 14px; font-size: 0.8125rem; } }

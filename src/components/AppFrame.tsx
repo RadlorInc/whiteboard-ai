@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { PRODUCT_NAME } from "@/product";
 import { SignOutButton } from "./SignOutButton";
-import { ChatList, type ChatRow } from "./Chats";
+import { ChatList, SUBJECT_NAME, type ChatRow, type Subject } from "./Chats";
 import { Icon, type IconName } from "./Icon";
 
 const HOLD_CREDITS = 6; // same value as lib/session.ts (server)
@@ -29,6 +29,7 @@ export function AppFrame({ email, available, chats, children }: {
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(path);
   const [find, setFind] = useState("");
+  const [only, setOnly] = useState<Subject | null>(null);       // the subject filter on Recents
   const menu = useRef<HTMLDetailsElement>(null);
   const search = useRef<HTMLInputElement>(null);
   // A new page closes the drawer and the account menu.
@@ -58,6 +59,9 @@ export function AppFrame({ email, available, chats, children }: {
   const low = available < HOLD_CREDITS;
   const nav: [string, IconName, string][] = [["/explore", "compass", "Explore"], ["/library", "videos", "Your videos"]];
   const active = path.startsWith("/c/") ? path.slice(3) : undefined;
+  const subjects = (Object.keys(SUBJECT_NAME) as Subject[]).filter((s) => chats.some((c) => c.subject === s));
+  const words = find.trim().toLowerCase();
+  const shown = chats.filter((c) => (!only || c.subject === only) && (!words || c.title.toLowerCase().includes(words)));
 
   return (
     <div className="app">
@@ -87,9 +91,17 @@ export function AppFrame({ email, available, chats, children }: {
               <kbd aria-hidden="true">⌘K</kbd>
             </div>
           )}
+          {/* One chip per subject the person has chats in, in SUBJECT_NAME's order: a new subject gets its chip by itself. */}
+          {subjects.length > 1 && (
+            <div className="side-filter" role="group" aria-label="Filter chats by subject">
+              <button type="button" aria-pressed={!only} onClick={() => setOnly(null)}>All</button>
+              {subjects.map((s) => (
+                <button key={s} type="button" aria-pressed={only === s} onClick={() => setOnly(only === s ? null : s)}>{SUBJECT_NAME[s]}</button>
+              ))}
+            </div>
+          )}
           <p className="side-label">Recents</p>
-          <ChatList chats={find.trim() ? chats.filter((c) => c.title.toLowerCase().includes(find.trim().toLowerCase())) : chats} active={active} />
-          {find.trim() && !chats.some((c) => c.title.toLowerCase().includes(find.trim().toLowerCase())) && <p className="side-empty">No chat matches.</p>}
+          {chats.length > 0 && shown.length === 0 ? <p className="side-empty">No chat matches.</p> : <ChatList chats={shown} active={active} />}
           {chats.length >= 30 && <Link href="/chats" className="side-all">All chats</Link>}
         </div>
         <div className="side-foot">
