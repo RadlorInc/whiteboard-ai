@@ -121,7 +121,7 @@ export function AppFrame({ email, available, chats, children }: {
           {/* Profile, top right (founder, 18 Oct 2026) */}
           <details className="menu down profile" ref={menu}>
             <summary aria-label={`Account menu, ${videos(left)} left`} data-credits={available}>
-              <span className={`ring ${ring}`} aria-hidden="true">
+              <span className={`vring ${ring}`} aria-hidden="true">
                 <svg viewBox="0 0 40 40" width="40" height="40">
                   <circle cx="20" cy="20" r="18" className="ring-track" />
                   <circle cx="20" cy="20" r="18" className="ring-fill" pathLength="100" strokeDasharray={`${Math.max(share * 100, left > 0 ? 4 : 0)} 100`} />
