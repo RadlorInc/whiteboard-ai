@@ -7,8 +7,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AskComposer } from "./AskComposer";
 import { Player, Watch, type Style } from "./Watch";
-import { startConversation } from "@/app/c/actions";
+import { startConversation } from "@/app/(app)/c/actions";
 import { SUBJECT_NAME, type Subject } from "./Chats";
+import { Icon } from "./Icon";
+import { BoardPreview } from "./BoardPreview";
+import { PRODUCT_NAME } from "@/product";
 
 export type Turn = { id: string; question: string; style: Style; status: string; script: Record<string, unknown> | null };
 type Live = { n: number; question: string; explore: boolean; conv: string; id?: string };
@@ -18,14 +21,17 @@ function PastTurn({ t }: { t: Turn }) {
   const [play, setPlay] = useState(false);
   const ok = (t.status === "succeeded" || t.status === "refunded") && t.script;
   return (
-    <section className="stack">
+    <section className="turn">
       <p className="chat-q">{t.question}</p>
-      {!ok ? <p className="muted small">{t.status === "failed" ? "This one didn't finish, so nothing was charged." : "Still being made. Refresh in a moment."}</p>
-        : play ? <Player style={t.style} script={t.script} />
-        : <div className="row">
-            <button type="button" className="btn secondary" onClick={() => setPlay(true)}>▶ Play this answer</button>
-            <Link href={`/videos/${t.id}`} className="muted small">Open</Link>
-          </div>}
+      {!ok ? <p className="answer-meta">{t.status === "failed" ? "This one didn't finish, so nothing was charged." : "Still being made. Refresh in a moment."}</p>
+        : <>
+            {play ? <Player style={t.style} script={t.script} />
+              : <button type="button" className="poster has-preview" onClick={() => setPlay(true)} aria-label="Play this answer">
+                  <BoardPreview style={t.style} script={t.script} label="" />
+                  <span className="poster-play"><Icon name="play" size={22} /></span>
+                </button>}
+            <p className="answer-meta"><Link href={`/videos/${t.id}`}>Open video</Link></p>
+          </>}
     </section>
   );
 }
@@ -70,27 +76,33 @@ export function Chat({ conversationId, subject: initialSubject, turns, available
   const empty = past.length === 0 && live.length === 0;
 
   return (
-    <div className="stack chat">
-      {empty ? (
-        <div className="stack">
-          <h1>What do you want to understand?</h1>
-          <div className="chips" role="radiogroup" aria-label="Subject">
-            {(Object.keys(SUBJECT_NAME) as Subject[]).map(s => (
-              <button key={s} type="button" role="radio" aria-checked={subject === s}
-                className={`chip${subject === s ? " on" : ""}`} onClick={() => setSubject(s)}>{SUBJECT_NAME[s]}</button>
+    <main className={`chat${empty ? " empty" : ""}`}>
+      <div className="chat-col">
+        {empty ? (
+          <div className="hero">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="" width={96} height={66} />
+            <h1>What do you want to understand?</h1>
+            <p className="muted">Ask {PRODUCT_NAME} a question. It draws and explains the answer, step by step.</p>
+          </div>
+        ) : <p className="chat-subject">{SUBJECT_NAME[subject]}</p>}
+        {!empty && (
+          <div className="thread">
+            {past.map(t => <PastTurn key={t.id} t={t} />)}
+            {live.map((l, i) => (
+              <div key={l.n} ref={i === live.length - 1 ? lastLive : undefined} className="turn-live">
+                <Watch question={l.question} style="whiteboard" explore={l.explore} conversationId={l.conv} onDone={done(l.n)} />
+              </div>
             ))}
           </div>
+        )}
+        {note && <p role="alert" className="error">{note}</p>}
+        <div className="dock">
+          <AskComposer available={available} firstRun={firstRun && empty} onAsk={ask} busy={busy}
+            placeholder={empty ? "Ask anything…" : "Ask a follow-up…"} subject={subject}
+            onSubject={conv ? undefined : setSubject} />
         </div>
-      ) : <p className="muted small">{SUBJECT_NAME[subject]}</p>}
-      {past.map(t => <PastTurn key={t.id} t={t} />)}
-      {live.map((l, i) => (
-        <div key={l.n} ref={i === live.length - 1 ? lastLive : undefined} style={{ scrollMarginTop: 72 }}>
-          <Watch question={l.question} style="whiteboard" explore={l.explore} conversationId={l.conv} onDone={done(l.n)} />
-        </div>
-      ))}
-      {note && <p role="alert" className="error">{note}</p>}
-      <AskComposer available={available} firstRun={firstRun && empty} onAsk={ask} busy={busy}
-        placeholder={empty ? "Ask anything…" : "Ask a follow-up…"} />
-    </div>
+      </div>
+    </main>
   );
 }

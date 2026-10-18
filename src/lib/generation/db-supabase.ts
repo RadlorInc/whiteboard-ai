@@ -77,4 +77,6 @@ export const supabaseDb: GenDb = {
   },
   attach: (generationId, conversationId, userId) =>
     rpc<boolean>('attach_to_conversation', { p_generation_id: generationId, p_conversation_id: conversationId, p_user_id: userId }),
+  explore: (generationId, userId) =>
+    rpc<'shown' | 'contact_info' | 'share_limit' | 'not_found'>('explore_on_finish', { p_generation_id: generationId, p_user_id: userId }),
 };

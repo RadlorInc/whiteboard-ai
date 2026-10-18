@@ -48,7 +48,8 @@ export async function completeSignup(userId: string, age: AgeOk): Promise<string
   jar.delete(AGE_OK_COOKIE);
   if (age.invite) await (await createClient()).rpc("redeem_invite", { p_code: age.invite });
   const account = await getAccount();
-  return account ? landing(account) : "/signin";
+  if (!account) return "/signin";
+  return age.next ? safeNext(age.next) : landing(account);    // back to the shared video it started from
 }
 
 /** After a verified sign-in (code or Google): age done → app; age cookie → complete_signup; neither → /age. */

@@ -1,10 +1,10 @@
 // The app page drives these prototype players by postMessage (PLAN.md §7.8). The player runs in an
 // <iframe sandbox="allow-scripts"> (opaque origin, connect-src 'none'), so it can only draw what it is sent.
-// Messages: {type:'seek', i} (whiteboard: jump to step i) · {type:'pause'} / {type:'resume'} (whiteboard) · {type:'reset'} · {type:'els', els} · {type:'els_add', els} · {type:'step', step, wav?} · {type:'done'}
+// Messages: {type:'poster', script} (whiteboard: the finished board at once, silent) · {type:'seek', i} (whiteboard: jump to step i) · {type:'pause'} / {type:'resume'} (whiteboard) · {type:'reset'} · {type:'els', els} · {type:'els_add', els} · {type:'step', step, wav?} · {type:'done'}
 //           · {type:'script', script, voice?} (a finished script: replay, or paper/match-cut after streaming; voice =
 //             how many spoken lines will follow as WAVs from the app's voice) · {type:'wav', i, wav} (line i's WAV, or null when
 //             the voice could not make it: that line gets the browser voice)
-// The player answers {type:'size', h} (its content height) · {type:'at', i, n, done, paused} as each step starts (and when a
+// The player answers {type:'posterDone'} · {type:'size', h} (its content height) · {type:'at', i, n, done, paused} as each step starts (and when a
 // click on a drawing jumps to its step), {type:'ended'} when a run finishes and {type:'error', message} if a run throws.
 // Sound: an iPhone refuses audio started in this frame (no tap ever lands here), so the player asks the page to play
 // each WAV — {type:'play', id, wav} → the page answers {type:'played', id} when it has ended — and {type:'hush'}
@@ -144,6 +144,21 @@
       (waiters[m.i] || []).forEach(f => f(w)); waiters[m.i] = [];
     }
     else if (style !== 'whiteboard') return;
+    // A still of the finished board for an Explore card (18 Oct 2026): every step drawn at once, silent, nothing moving.
+    else if (m.type === 'poster' && m.script && typeof m.script === 'object') {
+      const my = ++gen, a = A = { ...m.script, steps: [...(m.script.steps || [])] }; done = true; hush();
+      needSv(a.els).then(async () => {
+        if (my !== gen) return;
+        build(a); FAST = true; fastBy = my;
+        try { for (const s of a.steps) for (const c of s.do) { if (my !== gen) return; await run(c); } }
+        catch (e) { tell({ type: 'error', message: String(e.message || e) }); }
+        finally { if (fastBy === my) FAST = false; }
+        if (my !== gen) return;
+        marker.style.opacity = 0; still(); scene.classList.remove('spot');
+        document.getElementById('caption').textContent = '';
+        tell({ type: 'posterDone' });
+      });
+    }
     else if (m.type === 'els') { const my = gen, a = A = { els: { ...m.els }, steps: [] }; done = false; needSv(a.els).then(() => { if (my === gen && A === a) restart(); }); }
     else if (m.type === 'els_add' && A) { const a = A; Object.assign(a.els, m.els); needSv(m.els).then(() => { if (A === a) seek(at); }); }   // rare: redraw with the new drawings, same step
     else if (m.type === 'step' && A) A.steps.push(m.wav instanceof ArrayBuffer ? { ...m.step, wav: m.wav } : m.step);

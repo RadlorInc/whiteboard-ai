@@ -17,23 +17,16 @@ export async function listChats(sb: SupabaseClient, limit = 30): Promise<ChatRow
   return convs.filter(c => first.has(c.id)).map(c => ({ id: c.id, subject: c.subject as Subject, title: first.get(c.id)! }));
 }
 
-// The chat list: the left column on laptops, the /chats page on phones.
+// The chat list: the sidebar's Recents, and the /chats page. Titles only; the subject shows inside the chat.
 export function ChatList({ chats, active }: { chats: ChatRow[]; active?: string }) {
+  if (chats.length === 0) return <p className="side-empty">Your chats will show here.</p>;
   return (
-    <nav className="chat-list" aria-label="Your chats">
-      {/* a full load, so a chat in progress on /ask starts over clean */}
-      <a href="/ask" className="btn secondary block">+ New chat</a>
-      {chats.length === 0 && <p className="muted small">Your chats will show here.</p>}
-      <ul>
-        {chats.map(c => (
-          <li key={c.id}>
-            <Link href={`/c/${c.id}`} aria-current={c.id === active ? "page" : undefined}>
-              <span className="chat-title">{c.title}</span>
-              <span className="muted small">{SUBJECT_NAME[c.subject]}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    <ul className="chat-list">
+      {chats.map(c => (
+        <li key={c.id}>
+          <Link href={`/c/${c.id}`} title={c.title} aria-current={c.id === active ? "page" : undefined}>{c.title}</Link>
+        </li>
+      ))}
+    </ul>
   );
 }

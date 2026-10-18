@@ -24,7 +24,7 @@ test("ask, get charged, find it in the library, share it, unshare it", async ({ 
   expect(used).toBe(4);                                  // the mock rainbow: 515 spoken characters -> ceil(515/150) = 4
   await page.goto("/library");
   expect(await credits(page)).toBe(before - 4);
-  await page.getByRole("link", { name: question }).click();
+  await page.getByRole("main").getByRole("link", { name: question }).click();   // the sidebar lists the chat too
   // The step controls move the replay: forward one step, then straight to the last one, then back one.
   const where = page.locator(".player-controls span");
   await expect(where).toHaveText(/^Step 1 of (\d+)$/, { timeout: 30_000 });

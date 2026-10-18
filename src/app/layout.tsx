@@ -14,22 +14,18 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   interactiveWidget: "resizes-content",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#111317" },
-  ],
+  themeColor: "#0b0b0c",
+  colorScheme: "dark",
 };
 
-// Reading cookies makes every page dynamic, which the nonce CSP needs anyway (proxy.ts). The theme and motion
-// choices come from cookies so the server renders them with no flash (§5.11).
+// Reading cookies makes every page dynamic, which the nonce CSP needs anyway (proxy.ts). Always dark (founder,
+// 18 Oct 2026); the motion choice comes from a cookie so the server renders it with no flash (§5.11).
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const jar = await cookies();
-  const theme = jar.get("wb_theme")?.value;
   const motion = jar.get("wb_motion")?.value;
   return (
     <html
       lang="en"
-      data-theme={theme === "light" || theme === "dark" ? theme : undefined}
       data-motion={motion === "reduce" || motion === "full" ? motion : undefined}
     >
       <body>{children}</body>

@@ -21,9 +21,9 @@ export function VoiceProgress() {
     : s.stage === "prepare" ? "Getting the voice ready…"
     : "Loading the voice…";
   return (
-    <div className="stack" style={{ gap: 4 }} role="status">
-      <span className="muted small">{label}</span>
-      <progress style={{ width: "100%" }} aria-label="Voice loading" {...(s.stage === "download" ? { value: s.loaded, max: s.total } : {})} />
+    <div className="voice-progress" role="status">
+      <span>{label}</span>
+      <progress aria-label="Voice loading" {...(s.stage === "download" ? { value: s.loaded, max: s.total } : {})} />
     </div>
   );
 }
@@ -53,13 +53,13 @@ export function VoicePicker() {
   return (
     <div className="row" style={{ alignItems: "end", gap: 8 }}>
       <label className="stack" style={{ gap: 4, flex: 1 }}>
-        <span className="small">Voice</span>
+        <span className="small muted">Narrator</span>
         <select value={voice} onChange={(e) => setVoice(e.target.value)}>
           {VOICES.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
         </select>
       </label>
       <button type="button" className="btn secondary" onClick={hear} disabled={hearing || status.state !== "ready"}>
-        {hearing ? "…" : blocked ? "🔊 Tap to hear" : "▶ Hear"}
+        {hearing ? <span className="spinner sm" aria-label="Making the sample" /> : blocked ? "Tap to hear" : "Hear it"}
       </button>
     </div>
   );

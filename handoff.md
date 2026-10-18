@@ -21,7 +21,7 @@
   `insert into public.admins (user_id) select p.id from public.profiles p join auth.users u on u.id = p.id where
   u.email = '<email>' and p.deleted_at is null returning user_id;` (expect 1 row) → /admin enrols an authenticator.
 - CI (`ci.yml`) is green on main. The repo is public while we build; it goes private at launch.
-- Not yet: Stripe keys (checkout answers 503), Resend SMTP (Supabase's built-in mail sends few codes an hour),
+- Not yet: Stripe keys (checkout answers 503),
   Vercel Cron for keep-warm (no `vercel.json` crons yet), Turnstile.
 
 ## Built and checked (12 Oct; details in git history and PLAN.md)
@@ -90,9 +90,7 @@
 - The founder decides the first commit; accounts to create are PLAN.md §2 E1–E18.
 
 
-- Tooling debts (details in git history): break-check's DB-reset self-test never ran; `.env.local` uses older env
-  names than `.env.example`; gitleaks not installed (`scripts/secret-scan.mjs` stands in); `player-src/` still has
-  prototype HTML sinks; break-check's `cp -c` is macOS-only.
+- Tooling debts: see git history (break-check self-test, env names, gitleaks, player-src, `cp -c`).
 
 ## Local demo
 
@@ -101,6 +99,23 @@
 - Parked: local branch `paper-stream` (paper plays as it streams; e2e watched red). On the local stack,
   `admin.spec.ts` fails past 50 users (it reads only the first `listUsers` page), and `tests/db` needs a fresh
   `supabase db reset`.
+
+## UI redesign (18 Oct 2026, branch `ui-redesign` on top of #18, not committed)
+
+- Founder: layout like Claude, always dark, monochrome like the logo (white on black), subject picked in the composer.
+- `src/app/(app)/layout.tsx` + `AppFrame.tsx`: sidebar (New chat, Explore, Your videos, Recents, credits, account menu);
+  phones get a top bar + drawer. Signed out, the same pages get `PublicHeader` + footer. Pages moved into `(app)/`.
+- `globals.css` rewritten (no light theme; Settings lost Theme). `Icon.tsx` replaces emoji icons. Logo assets:
+  `public/logo.png` (transparent white), `app/icon.png`, `apple-icon.png`, `favicon.ico`.
+- Players (`public/player/*.html`, embed only): no board frame, light captions, body not 100vh (frame couldn't shrink).
+- **Explore by chat**: a card per chat ("N videos") with a board still (player `poster`, lazy iframe), search
+  (questions + narration), subject chips; `/v/[slug]` plays the chat in order + "More like this". Migration `20261018000200_explore_chats.sql` (DEFINER: explore_on_finish,
+  explore_feed/series/related); the server now puts each finished video on Explore (`db.explore` after finish), the
+  browser no longer does. pgTAP `56_explore_chats` (22).
+- Signed out, `/v/[slug]` plays only the opened video; the chat's rest is blurred under "Sign up to watch the rest"
+  (scripts not sent). Log in returns there; Sign up ends on /start (no `next` yet).
+- Checked: tsc, eslint, vitest and screenshots at 1440 and 390 px. **e2e not run**: locally Playwright reuses
+  the dev server on 3100, which was running the live model; two selectors updated for the sidebar.
 
 ## Subjects: own prompt + library per chat subject (18 Oct 2026, PR #17, on top of #16)
 
@@ -145,22 +160,16 @@
   - **Flows over a drawing** (founder chose B + C of a 4-style demo): an arrow/line over an anatomy drawing gets a
     white edge and a running shimmer; that step dims the drawing (spotlight); older flows fade. Player-only, so old
     videos get it too. Prompt: no tags/text over the drawing, one flow per step, pins for parts.
-- **Measured (local, real Opus, Sequence 1 = 5 heart follow-ups):** all correct, linked ("remember the mitral
-  valve…", "where our heart story began"); $0.53 for 5 videos / 23 credits; warm ≈ $0.064 a video (was ~$0.053;
-  +context and pins), cold +$0.09. Measured before the follow-up cache (#18 54df5ff), so rerun to see its effect.
+- **Measured (local, real Opus):** 5 linked heart follow-ups, all correct, $0.53; warm ≈ $0.064 a video, cold +$0.09.
 - **Cost by prompt version:** `npm run cost` (local) or `sql/cost-by-version.sql` in the SQL editor; "sha-test" rows
   are unit tests.
 - **Sequences 2 and 3 (after the follow-up cache):** 8 videos, all correct and linked; the deliberate wrong follow-up
   ("is urine made in the bladder?") was corrected ("No! … made in the kidneys"). $0.29 + $0.25; uncached input stays
   ~600–1,100 tokens per follow-up (was growing to 5,369), cache writes ~200–340. Warm ≈ $0.05 a video; a video that
   hand-draws its own diagram costs ~$0.10–0.12 (4,400–4,900 output tokens). All 13 test videos: $1.07.
-- Fixed from them (c4b3780): a looping `travel` without `&` froze the lesson; saved scripts lost element order in
-  jsonb (pins built before their drawing, replays failed) — now `script.order`, old videos build pins last; search
-  ranked junk ("a" matched everything), now 3+ letter stems and pin drawings first.
-- Later fixes (all in #18): a dot is never run along the step-tag arrows over a realistic drawing (player skips it,
-  prompt forbids it); the biology prompt makes the model search with 2–3 words before hand-drawing and, if it must,
-  draw curved real shapes, not a circle or box. Re-asked "tiny air sacs": it now picks the realistic alveoli drawing
-  with 4 pins ($0.065 + $0.094 cold write for the new prompt).
+- Fixed from them: c4b3780 (looping `travel`, jsonb element order → `script.order`, search ranking).
+- Later fixes (#18): no dot along step-tag arrows over a realistic drawing; the biology prompt searches 2–3 words
+  before hand-drawing. "Tiny air sacs" now picks the realistic alveoli with 4 pins.
 - **Pricing decided in talk, not built** (founder, 18 Oct): credits stay per spoken length, not per token (tokens
   rise when the library lacks a drawing — our gap, and the price would be unknown beforehand). Leaning to
   "1 question = 1 video": Plus "40 videos/month", Pro "Unlimited, fair use 150", 3 bonus videos when the balance hits
@@ -168,6 +177,5 @@
   Needs the money functions, Stripe prices and /pricing changed: decide before launch.
 - **Next session:** UI work (founder's choice), then the LAUNCH.md list. Physics and Chemistry get the same
   treatment later (`servier-chem` exists; no pins yet).
-- Local: the Anthropic key in `.env.local` was replaced on 18 Oct (the old one, still in `prototype/.env`, is revoked).
-  A 401 makes the app block generation ~10 min (`ops_state.provider_blocked_until`); delete that row locally.
+- Local: `.env.local`'s Anthropic key was replaced 18 Oct (the one in `prototype/.env` is revoked). A 401 makes the app block generation ~10 min (`ops_state.provider_blocked_until`); delete that row locally.
 

@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { PRODUCT_NAME } from "@/product";
 import { SIGNUP_SOURCES } from "@/lib/age";
 import { createClient } from "@/lib/supabase/server";
 import { signupMode } from "@/lib/session";
 import { Footer } from "@/components/Footer";
+import { PublicHeader } from "@/components/AppFrame";
+import { Icon } from "@/components/Icon";
 
 // Landing (§5.5), a placeholder until the demo player exists (M4). A valid session goes to /ask from the server,
 // before any HTML (§5.2).
@@ -27,45 +28,45 @@ export default async function Home({ searchParams }: PageProps<"/">) {
 
   return (
     <>
-      <main className="page stack">
-        <p className="muted" style={{ fontWeight: 700 }}>
-          {PRODUCT_NAME}
-        </p>
-        <h1>Ask anything. Watch it drawn.</h1>
-        <p style={{ fontSize: "1.125rem" }}>
-          Type a question and get a short voiced video that draws the answer step by step.
-        </p>
-        <div>
+      <PublicHeader />
+      <main className="landing">
+        <section className="landing-hero">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="" width={168} height={116} />
+          <h1>Ask anything. Watch it drawn.</h1>
+          <p className="lede">Type a question and get a short voiced video that draws the answer step by step.</p>
           {/* Two equal doors: a returning user once took the big button for sign-in and ended up in sign-up
               (invite code, then birth date) with no way through (13 Oct 2026). */}
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className="landing-cta">
             <Link href={`/signup${src ? `?src=${src}` : ""}`} className="btn">
-              {invite ? "New here? Join the private beta" : "Get started"}
+              {invite ? "Join the private beta" : "Get started"}
             </Link>
             <Link href="/signin" className="btn secondary">I have an account: sign in</Link>
           </div>
-          <p className="muted small" style={{ marginTop: 8 }}>
-            Plans from $9.99 a month, or $4.99 for 60 credits. No free plan.
-          </p>
-        </div>
-        <p className="small">
-          <Link href="/explore">Explore videos people made</Link>
-        </p>
+          <p className="muted small">Plans from $9.99 a month, or $4.99 for 60 credits. No free plan.</p>
+          <Link href="/explore" className="small">See videos people made</Link>
+        </section>
 
-        <h2 style={{ paddingTop: 16 }}>How it works</h2>
-        <ol style={{ listStyle: "decimal", paddingLeft: 24 }}>
-          <li>Type a question.</li>
-          <li>Watch it drawn on a whiteboard and voiced, step by step.</li>
-          <li>Replay it any time, free.</li>
-        </ol>
+        <section className="landing-section">
+          <p className="section-label">How it works</p>
+          <ol className="steps3">
+            <li className="card"><h3>Type a question</h3><p className="muted small">Biology, physics or chemistry. One question per video works best.</p></li>
+            <li className="card"><h3>Watch it drawn</h3><p className="muted small">A whiteboard lesson, voiced, step by step. Ask a follow-up in the same chat.</p></li>
+            <li className="card"><h3>Replay any time</h3><p className="muted small">Your videos stay in your library. Watching again is free.</p></li>
+          </ol>
+        </section>
 
-        <h2 style={{ paddingTop: 16 }}>Good to know</h2>
-        <ul style={{ listStyle: "disc", paddingLeft: 24 }}>
-          <li>1 credit = 10 seconds of video, rounded up. A video that fails is not charged.</li>
-          <li>Replaying your own videos is free. Cancel a plan any time.</li>
-          <li>For ages 13 and over.</li>
-          <li>Answers are written by AI and can be wrong.</li>
-        </ul>
+        <section className="landing-section">
+          <p className="section-label">Good to know</p>
+          <ul className="facts">
+            {[
+              "1 credit = 10 seconds of video, rounded up. A video that fails is not charged.",
+              "Replaying your own videos is free. Cancel a plan any time.",
+              "For ages 13 and over.",
+              "Answers are written by AI and can be wrong.",
+            ].map((t) => <li key={t}><Icon name="check" size={16} />{t}</li>)}
+          </ul>
+        </section>
       </main>
       <Footer />
     </>

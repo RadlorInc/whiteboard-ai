@@ -4,8 +4,10 @@ Things decided but deliberately left for launch (founder, 18 Oct 2026). Tick an 
 when every item is ticked. Agents never touch production: each step names who does it.
 
 ## Ship the chat and biology work (in this order)
-- [ ] Run `migrate-prod` (GitHub Actions, typed confirmation) for `20261018000100_conversations.sql` — founder.
-- [ ] Merge #16 (chats), then #17 (subject prompts), then #18 (realistic library, pins, flows, follow-up cache).
+- [ ] Run `migrate-prod` (GitHub Actions, typed confirmation) for `20261018000100_conversations.sql` and
+      `20261018000200_explore_chats.sql` (Explore by chat; the UI branch needs it) — founder.
+- [ ] Merge #16 (chats), then #17 (subject prompts), then #18 (realistic library, pins, flows, follow-up cache),
+      then the UI redesign + Explore (`ui-redesign`).
       Without the migration first, starting a chat fails.
 - [ ] Check the deploy size: #18 adds ~1,430 small files under `public/player/lib/sv` (68 MB). If Vercel refuses or
       slows, move them to Supabase Storage or R2 and point `SV.need` at that URL.

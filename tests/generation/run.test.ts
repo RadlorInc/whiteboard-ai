@@ -26,11 +26,33 @@ async function run(style: 'whiteboard' | 'paper' | 'matchcut', rounds: Round[] |
 const text = (a: unknown) => JSON.stringify(a);
 const clone = <T>(x: T): T => structuredClone(x);
 
+// Explore (founder, 18 Oct 2026): the server puts a saved video on Explore and says so in 'done'; a failure there
+// never turns a charged video into a failed one.
+describe('explore after a video is saved', () => {
+  it('done carries the outcome', async () => {
+    let calls = 0;
+    const r = await run('whiteboard', [{ text: text(rainbow) }], { explore: async () => { calls++; return 'contact_info'; } });
+    expect(calls).toBe(1);
+    expect(r.events.at(-1)).toMatchObject({ event: 'done', data: { creditsCharged: 4, explore: 'contact_info' } });
+  });
+  it('a failing call is reported as an error, the video is still done', async () => {
+    const r = await run('whiteboard', [{ text: text(rainbow) }], { explore: async () => { throw new Error('db down'); } });
+    expect(r.names.filter(n => n === 'failed')).toEqual([]);
+    expect(r.events.at(-1)).toMatchObject({ event: 'done', data: { explore: 'error' } });
+  });
+  it('a failed video is never put on Explore', async () => {
+    let calls = 0;
+    const r = await run('whiteboard', [{ text: 'not json' }, { text: 'still not json' }], { explore: async () => { calls++; return 'shown'; } });
+    expect(r.names.at(-1)).toBe('failed');
+    expect(calls).toBe(0);
+  });
+});
+
 describe('money paths: exactly one settle or release', () => {
   it('success: one finish with the hand-computed charge, no release', async () => {
     const r = await run('whiteboard', [{ tool: { names: ['sun', 'unicornx'] } }, { text: text(rainbow) }]);
     expect(r.closes).toBe(1); expect(r.log.finish.length).toBe(1);
-    expect(r.events.at(-1)).toEqual({ event: 'done', data: { id: ID, creditsCharged: 4, narrationChars: 515, available: 96 } });
+    expect(r.events.at(-1)).toEqual({ event: 'done', data: { id: ID, creditsCharged: 4, narrationChars: 515, available: 96, explore: null } });
     expect(r.log.finish[0].metrics).toMatchObject({ attempts: 1, repaired: false, misses: ['sun', 'unicornx'], steps_sent: 7 });
     expect(r.log.calls.map(c => c.kind)).toEqual(['round', 'round']);   // one cost row per model call
     // jsonb loses key order, so the saved script keeps it (a pin must be built after its drawing)

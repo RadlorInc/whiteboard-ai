@@ -6,7 +6,7 @@ import type { ModelClient, FinalMessage, StreamEvent, Block } from '../../src/li
 
 export function fakeDb(opts: { reserve?: Partial<Awaited<ReturnType<GenDb['reserve']>>>; finishThrows?: number; startOk?: boolean; thread?: Awaited<ReturnType<GenDb['thread']>> } = {}) {
   const log = { finish: [] as { id: string; script: unknown; metrics: Metrics }[], fail: [] as { id: string; code: FailCode; metrics: Metrics }[],
-    calls: [] as ModelCall[], stages: [] as string[], reserve: 0, start: 0, attach: [] as { id: string; conversationId: string }[] };
+    calls: [] as ModelCall[], stages: [] as string[], reserve: 0, start: 0, attach: [] as { id: string; conversationId: string }[], explore: [] as string[] };
   const rows = new Map<string, GenerationRow>();
   let finishThrows = opts.finishThrows ?? 0;
   const db: GenDb = {
@@ -40,6 +40,7 @@ export function fakeDb(opts: { reserve?: Partial<Awaited<ReturnType<GenDb['reser
     async cacheState() { return []; },
     async thread() { return opts.thread ?? null; },
     async attach(id, conversationId) { log.attach.push({ id, conversationId }); return true; },
+    async explore(id) { log.explore.push(id); return 'shown'; },
   };
   return { db, log, rows };
 }
