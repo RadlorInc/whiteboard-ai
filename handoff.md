@@ -1,4 +1,4 @@
-# Handoff: Whiteboard AI app
+# Handoff: askRadlor (repo and Vercel project still named whiteboard-ai)
 
 **Current state and open items only. Under 15 KB.** Delete an item when it is done. The spec is
 `../app-plan/PLAN.md` (build order §3); how to run things is in `README.md`.
@@ -24,55 +24,13 @@
 - Not yet: Stripe keys (checkout answers 503), Resend SMTP (Supabase's built-in mail sends few codes an hour),
   Vercel Cron for keep-warm (no `vercel.json` crons yet), Turnstile.
 
-## Where things stand (12 Oct 2026, evening)
+## Built and checked (12 Oct; details in git history and PLAN.md)
 
-Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run dev` (port 3100); `GENERATION_MOCK=1 npm run dev` = fake model, no spend.
-
-- **M0 foundation, M1 database, M2 auth/shell, M3 generation server: built.** 11 migrations apply on `supabase db reset`;
-  `supabase test db` 8 files / 1,054 pgTAP tests pass; `npx vitest run` 147 pass (4 skipped = opt-in local-DB files);
-  `WB_LOCAL_DB=1 npx vitest run tests/billing tests/db tests/generation/localdb.test.ts` 23 pass. tsc and eslint clean.
-- **M4 (core):** players reused from `public/player/` in `<iframe sandbox="allow-scripts">` fed by `bridge.js`
-  (postMessage; whiteboard streams step by step; paper/match-cut play the finished script). Player CSP in
-  `next.config.ts`: no network, framed only by our origin. A sandboxed frame has an opaque origin, so the CSP names the
-  app origin (APP_URL) instead of 'self' — with 'self' nothing ran (measured in Chromium and WebKit). Players start
-  blank. Pages: `/ask` (streams + transcript + "already own this" → watch free or make new), `/library`,
-  `/videos/[id]` (replay free, share, unshare, delete). Seen in real Chromium at 1280×800 and 320×568, no sideways scroll.
-  The Claude desktop browser pane does not run scripts in sandboxed iframes: test players in Chrome or Playwright.
-- **M5 (core):** `/buy`, `/buy/success`, `POST /api/billing/checkout` (Checkout; links the Stripe customer; 403 for
-  uninvited), `POST /api/billing/portal`, `POST /api/stripe/webhook` (signature-verified, one DEFINER function per
-  event, DB error → 500 so Stripe retries). `tests/billing/webhook.test.ts` signs events with a local secret: pack
-  granted once even when replayed, forged signature → 400 and no change, wrong amount → needs_review and no credits
-  (watched red with verification removed). No Stripe keys exist: checkout answers 503 payments_not_configured.
-- **M6 (core):** share page `/v/[slug]` (no login, noindex, no owner identity; revoke → 404, driven end to end),
-  `/account` with credits, billing portal, data export (`GET /api/account/export`), delete account.
-- **M7:** one live answer per style through the app (12 Oct): whiteboard vaccine 3 credits $0.160 (cold cache) 26 s;
-  paper seed 4 credits $0.056 13 s; match-cut bicycles 3 credits $0.138 (cold) 45 s. All charged ceil(chars/150).
-
-- **Also built (12 Oct, late):** `/admin` (admins row + authenticator code each sign-in: `/admin/mfa` enrols TOTP;
-  today's spend vs cap, made/failed counts, ledger-drift check, top missing drawings; audited switches for making
-  videos and purchases, credit grants, invite codes), `/api/health` and `/api/health/db` (booleans), legal beta drafts
-  in `src/content/legal.ts` (banner: not yet reviewed by a lawyer), `/pricing`, `/help`, `/contact`
-  (`NEXT_PUBLIC_SUPPORT_EMAIL`), web manifest, 6-digit code email templates + 10-minute codes, local TOTP on.
-- **Committed e2e** (`npx playwright test`, mock model, global setup clears local OTP limits): the core loop (ask →
-  4 credits → library → share → signed-out view → unshare → 404; watched red with unshare made a no-op), signed-out
-  redirects, `/admin` 404 for a normal user, the admin TOTP enrolment + an audited 5-credit grant, no sideways scroll on
-  public pages. 11 pass, 4 skipped by design (one-project tests), twice in a row. Run `npm run test:pgtap` (it resets
-  the DB first: the pgTAP counts assume fresh seed data). `.github/workflows/ci.yml` runs everything once the repo exists.
-
-- **Security review (12 Oct, late)** — probed, not assumed:
-  - Database as anon and as user B (`supabase-js` against the local stack): 40 probes all blocked — reading A's rows,
-    writing the ledger/balances/admins/profile access, admin, Stripe, money and deletion functions, the voice bucket.
-    Positive twins: B reads its own balance, profile and ledger.
-  - API routes: no session → 401, another origin → 403, forged or missing Stripe signature → 400, cron without the
-    secret → 401, health answers booleans only. `e2e/idor.spec.ts`: B gets 404 on A's video page and poll (watched red
-    with the owner filter removed).
-  - **Fixed an XSS:** the player loaders wrote `?cat=` / `?gallery=` into `document.write` unescaped, so a crafted
-    `/player/index.html?cat=…` link ran script on our origin, where the Supabase session cookies are readable
-    (`e2e/player-xss.spec.ts` showed "PWNED:true"). Removed the parameters from the app copies, removed the developer
-    gallery/shot/names files from `public/player`, and added CSP `sandbox allow-scripts` to every player page so even a
-    future injection runs in an opaque origin with no cookies. The prototype keeps the gallery (this machine only).
-  - `server-only` guards on every module holding a server key; npm audit (production deps): 0; headers: nonce CSP,
-    HSTS, X-Frame-Options DENY, nosniff; `next=` accepts only same-site paths.
+- M0–M7 core, `/admin` (TOTP), legal beta drafts, e2e and a probed security review (40 DB probes blocked, IDOR and a
+  player XSS fixed: the player runs in `<iframe sandbox="allow-scripts">`, CSP names APP_URL, not 'self'). The Claude
+  desktop browser pane does not run sandboxed iframes: test players in Chrome or Playwright.
+- Tests: `npm run test:pgtap` (resets the DB first; 1,125 pass), `npx vitest run` (171), `npx playwright test`
+  (mock model; idor needs user A to own a video, so rerun it after a fresh reset).
 
 ## Voice: Pocket TTS in the browser (live since 13 Oct 2026, #5, #7)
 
@@ -92,7 +50,7 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
 ## Explore and reports (live since 13 Oct 2026, #1; migration applied by migrate-prod)
 
 - Founder's decisions: a public feed at `/explore`, open without signing in (noindex for now); a video goes there
-  only by its maker's choice — "Show in Explore" on /ask, **ticked by default**, plus Show/Remove on the video page;
+  by default: since #12 /ask has no tick, so every new video goes there; the maker removes it on the video page.
   13–17 the same as adults.
 - An Explore item is a share with `shares.explore_at` set (migration `20261013001200_explore.sql`). **Security
   change:** DEFINER `set_explore(uuid, boolean)` (authenticated; owner only, goes through `create_share`, so the
@@ -174,3 +132,37 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
 - Proof: biology-chat tests in `run.test.ts` and `localdb.test.ts`, and the mock "How does blood travel around the
   body?" plays to the end.
 - **Next:** physics, then chemistry, the same way.
+
+## 18 Oct 2026 session: chats, realistic biology, follow-up cost (PRs #16 → #17 → #18, stacked, none merged)
+
+- **Merge order is in LAUNCH.md** (migrate-prod for conversations first). Live already: #12–#15 (askRadlor name and
+  logo, /ask cleanup, player pause + click-a-drawing-to-replay, chat-free composer).
+- **#16 Chats:** `conversations` (owner + subject; title = first question). /ask = new chat with a Biology / Physics /
+  Chemistry picker; /c/[id] reopens; list left on laptops, /chats on phones; a new question scrolls into view.
+  A follow-up's model call gets the subject + last 6 answered questions with their narration (no drawings), one text
+  block per turn, the last a 1-hour cache breakpoint (run.ts), so earlier turns are read at the cache price.
+- **#18 Realistic library (Servier Medical Art, CC BY 4.0, credited on /legal/copyright):**
+  - `scripts/servier/`: `pptx2svg.py` turns a kit's native vector slides into SVG (no tracing); `extract.py`,
+    `curate.py` (drops diseases, treatments, copies), `build-sv.py` → 1,428 drawings, one file each in
+    `public/player/lib/sv/<id>.js` (68 MB, loaded only when a lesson uses them: `SV.need` in anatomy.js/bridge.js).
+    The 32 downloaded kits live outside the repo (scratch); re-download from smart.servier.com to rebuild.
+  - Biology/chemistry prompts list them as search-only categories (`servier`, `servier-chem`); `sv id=<name> cx cy h`
+    draws one; checks reject unknown ids.
+  - **Pins:** `heartcut` (the hand-mapped heart) + 69 core drawings (`scripts/servier/core.json`) have named parts
+    (`parts/<id>.json` → `apply-parts.mjs`; review with `grid.mjs`, `preview-parts.mjs`). `pin of=<el> part=<name>`
+    traces the part (inside the drawing, so it beats with it) and writes its name with a haloed leader. `trace:false`
+    marks a label-only part.
+  - **Flows over a drawing** (founder chose B + C of a 4-style demo): an arrow/line over an anatomy drawing gets a
+    white edge and a running shimmer; that step dims the drawing (spotlight); older flows fade. Player-only, so old
+    videos get it too. Prompt: no tags/text over the drawing, one flow per step, pins for parts.
+- **Measured (local, real Opus, Sequence 1 = 5 heart follow-ups):** all correct, linked ("remember the mitral
+  valve…", "where our heart story began"); $0.53 for 5 videos / 23 credits; warm ≈ $0.064 a video (was ~$0.053;
+  +context and pins), cold +$0.09. Measured before the follow-up cache (#18 54df5ff), so rerun to see its effect.
+- **Cost by prompt version:** `npm run cost` (local) or `sql/cost-by-version.sql` in the SQL editor; "sha-test" rows
+  are unit tests.
+- **Next session:** run Sequences 2 and 3 (lungs → alveoli → mitochondria; kidney with a deliberate wrong
+  follow-up), check cost after the follow-up cache, then the LAUNCH.md list. Physics and Chemistry get the same
+  treatment later (`servier-chem` exists; no pins yet).
+- Local: the Anthropic key in `.env.local` was replaced on 18 Oct (the old one, still in `prototype/.env`, is revoked).
+  A 401 makes the app block generation ~10 min (`ops_state.provider_blocked_until`); delete that row locally.
+
