@@ -9,7 +9,6 @@ import { PRODUCT_NAME } from "@/product";
 import { SignOutButton } from "./SignOutButton";
 import { ChatList, SUBJECT_NAME, type ChatRow, type Subject } from "./Chats";
 import { Icon, type IconName } from "./Icon";
-import { BoardPreview } from "./BoardPreview";
 
 import { HOLD_CREDITS, videos, videosLeft } from "@/lib/videos";
 
@@ -26,24 +25,8 @@ function Brand() {
   );
 }
 
-export type Resume = (ChatRow & { n: number; style: string; script: unknown }) | null;
-
-// The top of the sidebar: pick up the latest lesson where it was left (a learning app's "continue", not a chat search).
-function ContinueCard({ r, active }: { r: NonNullable<Resume>; active: boolean }) {
-  return (
-    <Link href={`/c/${r.id}`} className="resume" aria-current={active ? "page" : undefined}>
-      <span className="resume-thumb"><BoardPreview style={r.style} script={r.script} label="" /></span>
-      <span className="resume-text">
-        <span className="resume-label">Continue</span>
-        <span className="resume-title">{r.title}</span>
-        <span className="resume-meta">{SUBJECT_NAME[r.subject]} · {r.n} {r.n === 1 ? "video" : "videos"}</span>
-      </span>
-    </Link>
-  );
-}
-
-export function AppFrame({ email, available, chats, resume = null, children }: {
-  email: string; available: number; chats: ChatRow[]; resume?: Resume; children: React.ReactNode;
+export function AppFrame({ email, available, chats, children }: {
+  email: string; available: number; chats: ChatRow[]; children: React.ReactNode;
 }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
@@ -116,7 +99,6 @@ export function AppFrame({ email, available, chats, resume = null, children }: {
           ))}
         </nav>
         <div className="side-recents">
-          {resume && <ContinueCard r={resume} active={active === resume.id} />}
           {searching && (
             <div className="side-search">
               <Icon name="search" size={15} />

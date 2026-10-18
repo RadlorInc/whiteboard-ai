@@ -573,19 +573,9 @@ li.now .tick { border-color: transparent; }
 .menu.profile > summary:focus-visible { outline-offset: 1px; border-radius: 50%; }
 .menu.profile > summary:focus:not(:focus-visible) { outline: none; }
 
-/* ---- Continue learning (sidebar top) and the search behind an icon ---- */
-.resume { display: grid; gap: 10px; margin: 0 2px 16px; padding: 10px; border-radius: 14px; border: 1px solid var(--border);
-  background: var(--surface); color: var(--text); text-decoration: none; transition: background-color .15s, border-color .15s; }
-.resume:hover, .resume[aria-current="page"] { background: var(--surface-2); border-color: var(--border-strong); }
-.resume-thumb { position: relative; display: block; aspect-ratio: 16 / 9; border-radius: 9px; overflow: hidden; background: var(--surface-2); }
-.resume-text { display: grid; gap: 2px; min-width: 0; }
-.resume-label { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #60a5fa; }
-.resume-title { font-size: 0.875rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.resume-meta { font-size: 0.75rem; color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* ---- The chat search behind an icon beside Recents ---- */
 .side-label-row { display: flex; align-items: center; justify-content: space-between; padding-right: 2px; }
 .side-label-row .side-label { padding-bottom: 6px; }
 .side-icon { width: 28px; height: 28px; margin-bottom: 6px; display: grid; place-items: center; border: 0; border-radius: 8px; background: none;
   color: var(--faint); cursor: pointer; }
 .side-icon:hover { background: var(--surface-2); color: var(--text); }
-.resume { grid-template-columns: 88px minmax(0, 1fr); align-items: center; gap: 10px; padding: 8px; }
-.resume-thumb { width: 88px; }
