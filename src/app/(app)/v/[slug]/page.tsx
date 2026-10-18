@@ -13,7 +13,16 @@ import { PRODUCT_NAME } from "@/product";
 // Explore videos with it, in order (explore_series), and related lessons below (explore_related). Signed out, only the
 // opened video plays; the rest of the chat shows blurred behind "Sign up to watch the rest" (founder, 18 Oct 2026),
 // and their scripts never leave the server.
-export const metadata: Metadata = { title: "Shared video", robots: { index: false, follow: false } };
+// The link preview (messages, socials) names the question: "Shared video" told the receiver nothing.
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const { data } = /^[A-Za-z0-9_-]{22}$/.test(slug) ? await (await createClient()).rpc("explore_series", { p_slug: slug }) : { data: null };
+  const v = (data ?? []).find((r: { slug: string }) => r.slug === slug) as { question: string } | undefined;
+  const title = v?.question ?? "Shared video";
+  const description = "A short lesson, drawn and explained step by step. Ask your own question on askRadlor.";
+  return { title, description, robots: { index: false, follow: false },
+    openGraph: { title, description, type: "video.other", images: ["/icon.png"] }, twitter: { card: "summary", title, description } };
+}
 
 export default async function Shared({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

@@ -102,7 +102,7 @@ if (qs.has('saved')) fetch('saved-answers.jsonl').then(r => r.text()).then(t => 
   ANS.push(s.answer); addTopic(ANS.length - 1).textContent = '▶ ★ ' + s.answer.q; }));
 
 // Ask anything: only when served by server.mjs (python http.server has no /api)
-fetch('api/health').then(r => r.ok && r.json()).then(h => { if (h) document.getElementById('askbar').style.display = 'flex'; }).catch(() => {});
+if (self === top) fetch('api/health').then(r => r.ok && r.json()).then(h => { if (h) document.getElementById('askbar').style.display = 'flex'; }).catch(() => {});
 document.getElementById('askbar').onsubmit = async e => {
   e.preventDefault();
   const qEl = document.getElementById('q'), ask = document.getElementById('ask'), question = qEl.value.trim(); if (!question) return;

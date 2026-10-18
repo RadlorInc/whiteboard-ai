@@ -329,7 +329,7 @@ if (new URLSearchParams(location.search).has('saved')) fetch('saved-answers.json
 });
 
 // Ask anything: only when the page is served by server.mjs (python http.server has no /api)
-fetch('api/health').then(r => r.ok && r.json()).then(h => { if (h) $('#askbar').style.display = 'flex'; }).catch(() => {});
+if (self === top) fetch('api/health').then(r => r.ok && r.json()).then(h => { if (h) $('#askbar').style.display = 'flex'; }).catch(() => {});
 $('#askbar').onsubmit = async e => {
   e.preventDefault();
   const question = $('#q').value.trim(); if (!question) return;

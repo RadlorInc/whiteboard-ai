@@ -2,10 +2,13 @@ import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { PRODUCT_NAME } from "@/product";
+import { Toaster } from "@/components/Toast";
 
 export const metadata: Metadata = {
   title: { default: PRODUCT_NAME, template: `%s · ${PRODUCT_NAME}` },
   description: "Ask any question and watch it drawn and explained.",
+  // Link previews need absolute image URLs.
+  metadataBase: process.env.APP_URL ? new URL(process.env.APP_URL) : undefined,
 };
 
 // §5.12: never maximum-scale or user-scalable=no.
@@ -28,7 +31,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       data-motion={motion === "reduce" || motion === "full" ? motion : undefined}
     >
-      <body>{children}</body>
+      <body>
+        <a href="#main" className="skip-link">Skip to content</a>
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }

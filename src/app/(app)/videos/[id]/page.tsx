@@ -4,7 +4,12 @@ import { requireAccount } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { VideoView } from "@/components/VideoView";
 
-export const metadata: Metadata = { title: "Video" };
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return { title: "Video" };
+  const { data } = await (await createClient()).from("generations").select("question").eq("id", id).maybeSingle();   // RLS: own only
+  return { title: data?.question ?? "Video" };
+}
 
 // §5.9: one of your own videos. Watching it again costs nothing (no generation).
 export default async function Video({ params }: { params: Promise<{ id: string }> }) {

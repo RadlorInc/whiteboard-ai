@@ -29,7 +29,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
   return (
     <>
       <PublicHeader />
-      <main className="landing">
+      <main className="landing" id="main">
         <section className="landing-hero">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="" width={168} height={116} />

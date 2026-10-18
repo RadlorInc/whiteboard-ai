@@ -6,6 +6,7 @@ import { pauseSound, playSound, resumeSound, speakLine, startVoice, stopSound, t
 import { VoiceProgress } from "./Voice";
 import { exploreRefusal } from "./VideoView";
 import { Icon } from "./Icon";
+import { ShareButton } from "./ShareButton";
 
 export type Style = "whiteboard" | "paper" | "matchcut";
 type Script = Record<string, unknown> & { steps?: { say: string }[]; objects?: { say: string }[] };
@@ -277,7 +278,13 @@ export function Watch({ question, style, explore = false, conversationId, onDone
           </div>
         </div>
       )}
-      {result && <p className="answer-meta">Done. {result.charged} credit{result.charged === 1 ? "" : "s"} used. <a href={`/videos/${result.id}`}>Open this video</a></p>}
+      {result && (
+        <p className="answer-meta">
+          <span>Done. {result.charged} credit{result.charged === 1 ? "" : "s"} used.</span>
+          <ShareButton id={result.id} title={question} />
+          <a href={`/videos/${result.id}`} className="btn ghost sm"><Icon name="external" size={16} /> Open this video</a>
+        </p>
+      )}
       {exploreNote && <p className="answer-meta" role="status">{exploreNote}</p>}
       {steps.length > 0 && (
         <details className="transcript"><summary>Transcript</summary><ol>{steps.map((s, i) => <li key={i}>{s}</li>)}</ol></details>

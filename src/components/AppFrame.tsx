@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { PRODUCT_NAME } from "@/product";
 import { SignOutButton } from "./SignOutButton";
 import { ChatList, type ChatRow } from "./Chats";
@@ -27,10 +28,26 @@ export function AppFrame({ email, available, chats, children }: {
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(path);
+  const [find, setFind] = useState("");
   const menu = useRef<HTMLDetailsElement>(null);
+  const search = useRef<HTMLInputElement>(null);
   // A new page closes the drawer and the account menu.
   if (seen !== path) { setSeen(path); setOpen(false); }
   useEffect(() => { if (menu.current) menu.current.open = false; }, [path]);
+  // ⌘K / Ctrl+K: search chats (the drawer opens on phones). ⌘⇧O / Ctrl+Shift+O: new chat (Claude and ChatGPT's keys).
+  useEffect(() => {
+    const keys = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const k = e.key.toLowerCase();
+      // flushSync: the drawer must be open (visible) before focus moves, or the first letters land in the composer
+      if (k === "k" && !e.shiftKey) { e.preventDefault(); flushSync(() => setOpen(true)); search.current?.focus(); }
+      // a full load, like the New chat link, so a chat in progress starts over clean
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      if (k === "o" && e.shiftKey) { e.preventDefault(); location.href = "/ask"; }
+    };
+    addEventListener("keydown", keys);
+    return () => removeEventListener("keydown", keys);
+  }, []);
   useEffect(() => {
     if (!open) return;
     const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
@@ -61,8 +78,18 @@ export function AppFrame({ email, available, chats, children }: {
           ))}
         </nav>
         <div className="side-recents">
+          {chats.length > 0 && (
+            <div className="side-search">
+              <Icon name="search" size={15} />
+              <label htmlFor="chat-search" className="sr-only">Search chats</label>
+              <input id="chat-search" ref={search} type="search" placeholder="Search chats" value={find} autoComplete="off"
+                onChange={(e) => setFind(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setFind(""); }} />
+              <kbd aria-hidden="true">⌘K</kbd>
+            </div>
+          )}
           <p className="side-label">Recents</p>
-          <ChatList chats={chats} active={active} />
+          <ChatList chats={find.trim() ? chats.filter((c) => c.title.toLowerCase().includes(find.trim().toLowerCase())) : chats} active={active} />
+          {find.trim() && !chats.some((c) => c.title.toLowerCase().includes(find.trim().toLowerCase())) && <p className="side-empty">No chat matches.</p>}
           {chats.length >= 30 && <Link href="/chats" className="side-all">All chats</Link>}
         </div>
         <div className="side-foot">
@@ -88,7 +115,7 @@ export function AppFrame({ email, available, chats, children }: {
         </div>
       </aside>
       {open && <div className="scrim" aria-hidden="true" onClick={() => setOpen(false)} />}
-      <div className="app-main">
+      <div className="app-main" id="main" tabIndex={-1}>
         <header className="topbar">
           <button type="button" className="icon-btn" aria-label="Open menu" aria-expanded={open} aria-controls="sidebar"
             onClick={() => setOpen(true)}>

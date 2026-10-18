@@ -18,7 +18,7 @@ export default async function Age({ searchParams }: PageProps<"/age">) {
     return (
       <>
         <PublicHeader />
-      <main className="auth stack">
+      <main className="auth stack" id="main">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="" width={64} height={44} className="auth-mark" />
           <h1>Sorry, you can&apos;t use {PRODUCT_NAME}.</h1>
@@ -43,7 +43,7 @@ export default async function Age({ searchParams }: PageProps<"/age">) {
   return (
     <>
       <PublicHeader />
-      <main className="auth stack">
+      <main className="auth stack" id="main">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="" width={64} height={44} className="auth-mark" />
         <h1>What&apos;s your birth month and year?</h1>

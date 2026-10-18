@@ -5,7 +5,13 @@ import { createClient } from "@/lib/supabase/server";
 import { Chat, type Turn } from "@/components/Chat";
 import type { Subject } from "@/components/Chats";
 
-export const metadata: Metadata = { title: "Chat" };
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return { title: "Chat" };
+  const { data } = await (await createClient()).from("generations").select("question").eq("conversation_id", id)
+    .not("question", "is", null).order("created_at", { ascending: true }).limit(1).maybeSingle();   // RLS: own only
+  return { title: data?.question ?? "Chat" };
+}
 
 // One conversation (founder, 18 Oct 2026): its questions and videos in order, and a box for a follow-up.
 export default async function Conversation({ params }: { params: Promise<{ id: string }> }) {

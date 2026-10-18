@@ -47,7 +47,7 @@ export default async function SignUp({ searchParams }: PageProps<"/signup">) {
   return (
     <>
       <PublicHeader />
-      <main className="auth stack">
+      <main className="auth stack" id="main">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="" width={64} height={44} className="auth-mark" />
         <h1>Create your account</h1>

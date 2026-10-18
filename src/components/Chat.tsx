@@ -7,7 +7,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AskComposer } from "./AskComposer";
 import { Player, Watch, type Style } from "./Watch";
-import { startConversation } from "@/app/(app)/c/actions";
+import { deleteChat, startConversation } from "@/app/(app)/c/actions";
+import { ShareButton } from "./ShareButton";
 import { SUBJECT_NAME, type Subject } from "./Chats";
 import { Icon } from "./Icon";
 import { BoardPreview } from "./BoardPreview";
@@ -30,7 +31,10 @@ function PastTurn({ t }: { t: Turn }) {
                   <BoardPreview style={t.style} script={t.script} label="" />
                   <span className="poster-play"><Icon name="play" size={22} /></span>
                 </button>}
-            <p className="answer-meta"><Link href={`/videos/${t.id}`}>Open video</Link></p>
+            <p className="answer-meta">
+              <ShareButton id={t.id} title={t.question} />
+              <Link href={`/videos/${t.id}`} className="btn ghost sm"><Icon name="external" size={16} /> Open</Link>
+            </p>
           </>}
     </section>
   );
@@ -46,6 +50,8 @@ export function Chat({ conversationId, subject: initialSubject, turns, available
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const lastLive = useRef<HTMLDivElement>(null);
+  const end = useRef<HTMLDivElement>(null);
+  const [atEnd, setAtEnd] = useState(true);
   // A new question scrolls its video into view (founder, 18 Oct 2026); reduced motion jumps instead of gliding.
   useEffect(() => {
     if (!live.length) return;
@@ -74,6 +80,14 @@ export function Chat({ conversationId, subject: initialSubject, turns, available
   const liveIds = new Set(live.map(l => l.id).filter(Boolean));
   const past = turns.filter(t => !liveIds.has(t.id));
   const empty = past.length === 0 && live.length === 0;
+  // "Jump to latest" shows while the end of the chat is out of view.
+  useEffect(() => {
+    const el = end.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setAtEnd(e.isIntersecting), { rootMargin: "0px 0px -120px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [empty]);
 
   return (
     <main className={`chat${empty ? " empty" : ""}`}>
@@ -85,7 +99,22 @@ export function Chat({ conversationId, subject: initialSubject, turns, available
             <h1>What do you want to understand?</h1>
             <p className="muted">Ask {PRODUCT_NAME} a question. It draws and explains the answer, step by step.</p>
           </div>
-        ) : <p className="chat-subject">{SUBJECT_NAME[subject]}</p>}
+        ) : (
+          <header className="chat-head">
+            <div className="chat-head-text">
+              <h1>{past[0]?.question ?? live[0]?.question}</h1>
+              <span className="chat-subject">{SUBJECT_NAME[subject]}</span>
+            </div>
+            {conv && past[0] && (
+              <div className="chat-head-actions">
+                <ShareButton id={past[0].id} title={past[0].question} />
+                <button type="button" className="icon-btn" aria-label="Delete chat" title="Delete chat" onClick={async () => {
+                  if (window.confirm("Delete this chat and all its videos? This can't be undone. Credits aren't returned.")) await deleteChat(conv);
+                }}><Icon name="trash" size={18} /></button>
+              </div>
+            )}
+          </header>
+        )}
         {!empty && (
           <div className="thread">
             {past.map(t => <PastTurn key={t.id} t={t} />)}
@@ -94,10 +123,17 @@ export function Chat({ conversationId, subject: initialSubject, turns, available
                 <Watch question={l.question} style="whiteboard" explore={l.explore} conversationId={l.conv} onDone={done(l.n)} />
               </div>
             ))}
+            <div ref={end} aria-hidden="true" />
           </div>
         )}
         {note && <p role="alert" className="error">{note}</p>}
         <div className="dock">
+          {!empty && !atEnd && (
+            <button type="button" className="jump" aria-label="Jump to latest"
+              onClick={() => end.current?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })}>
+              <Icon name="chevronDown" size={18} />
+            </button>
+          )}
           <AskComposer available={available} firstRun={firstRun && empty} onAsk={ask} busy={busy}
             placeholder={empty ? "Ask anything…" : "Ask a follow-up…"} subject={subject}
             onSubject={conv ? undefined : setSubject} />

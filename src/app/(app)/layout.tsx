@@ -11,7 +11,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!account?.ageBand) return (
     <>
       <PublicHeader />
-      {children}
+      <div id="main" tabIndex={-1} className="public-main">{children}</div>
       <Footer />
     </>
   );

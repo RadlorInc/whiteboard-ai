@@ -84,13 +84,11 @@
   Resend), the decline policy in the prompt + red-team run (a new prompt sha; ~$3 live), OG images, parent email for
   13–17 payers (C13), Turnstile captcha (needs a site key), `/api/telemetry`, per-category library loading, streaming
   for paper and match-cut, `/legal/accept` re-acceptance.
-- Admin "missing drawings" on the local stack lists primitives (arrow, circle, line, path, text ×17) from mock runs;
-  production showed None. Check whether the mock (or the miss counter) records primitives as misses.
-- Paper and match-cut do not stream (they play when the script is done); match-cut took 45 s.
+- Admin "missing drawings" (local) lists primitives from mock runs; production showed None. Check the miss counter.
+- Paper and match-cut do not stream (45 s for match-cut).
 - The founder decides the first commit; accounts to create are PLAN.md §2 E1–E18.
 
 
-- Tooling debts: see git history (break-check self-test, env names, gitleaks, player-src, `cp -c`).
 
 ## Local demo
 
@@ -113,7 +111,9 @@
   explore_feed/series/related); the server now puts each finished video on Explore (`db.explore` after finish), the
   browser no longer does. pgTAP `56_explore_chats` (22).
 - Signed out, `/v/[slug]` plays only the opened video; the chat's rest is blurred under "Sign up to watch the rest"
-  (scripts not sent). Log in returns there; Sign up ends on /start (no `next` yet).
+  (scripts not sent). Sign up / log in return there (`next` through invite → age → sign-in, `okNext`).
+- Also: error screen, skip link, real titles + link previews, ⌘K chat search, ⌘⇧O new chat, toasts, chat header
+  (Share, Delete chat = delete_my_video each), Share per answer, jump-to-latest, Your videos as a grid + search.
 - Checked: tsc, eslint, vitest and screenshots at 1440 and 390 px. **e2e not run**: locally Playwright reuses
   the dev server on 3100, which was running the live model; two selectors updated for the sidebar.
 
