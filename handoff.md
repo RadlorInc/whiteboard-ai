@@ -112,6 +112,7 @@
   browser no longer does. pgTAP `56_explore_chats` (22).
 - Signed out, `/v/[slug]` plays only the opened video; the chat's rest is blurred under "Sign up to watch the rest"
   (scripts not sent). Sign up / log in return there (`next` through invite → age → sign-in, `okNext`).
+- No `(app)/loading.tsx`: it streams early, so `notFound()` answered 200 (IDOR and unshare e2e want 404).
 - Also: error screen, skip link, real titles + link previews, ⌘K chat search, ⌘⇧O new chat, toasts, chat header
   (Share, Delete chat = delete_my_video each), Share per answer, jump-to-latest, Your videos as a grid + search.
 - Checked: tsc, eslint, vitest and screenshots at 1440 and 390 px. **e2e not run**: locally Playwright reuses

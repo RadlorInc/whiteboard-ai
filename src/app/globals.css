@@ -149,8 +149,6 @@ progress::-moz-progress-bar { background: var(--accent); }
 .spinner.xs { width: 12px; height: 12px; border-width: 1.5px; vertical-align: -1px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes breathe { 0%, 100% { opacity: 0.35; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-4px); } }
-.page-loading { flex: 1; display: grid; place-items: center; min-height: 60dvh; }
-.page-loading img { animation: breathe 1.6s ease-in-out infinite; }
 
 /* ---- Brand ---- */
 .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--text); text-decoration: none;
