@@ -167,8 +167,16 @@
 - Fixed from them (c4b3780): a looping `travel` without `&` froze the lesson; saved scripts lost element order in
   jsonb (pins built before their drawing, replays failed) — now `script.order`, old videos build pins last; search
   ranked junk ("a" matched everything), now 3+ letter stems and pin drawings first.
-- Cosmetic, not fixed: the model sometimes runs a looping dot along the arrows between the step tags.
-- **Next session:** the LAUNCH.md list. Physics and Chemistry get the same
+- Later fixes (all in #18): a dot is never run along the step-tag arrows over a realistic drawing (player skips it,
+  prompt forbids it); the biology prompt makes the model search with 2–3 words before hand-drawing and, if it must,
+  draw curved real shapes, not a circle or box. Re-asked "tiny air sacs": it now picks the realistic alveoli drawing
+  with 4 pins ($0.065 + $0.094 cold write for the new prompt).
+- **Pricing decided in talk, not built** (founder, 18 Oct): credits stay per spoken length, not per token (tokens
+  rise when the library lacks a drawing — our gap, and the price would be unknown beforehand). Leaning to
+  "1 question = 1 video": Plus "40 videos/month", Pro "Unlimited, fair use 150", 3 bonus videos when the balance hits
+  0, replays and Explore free, show "videos left". Full-use margins with keep-warm: Plus ~70%, Pro at 150 ~57%.
+  Needs the money functions, Stripe prices and /pricing changed: decide before launch.
+- **Next session:** UI work (founder's choice), then the LAUNCH.md list. Physics and Chemistry get the same
   treatment later (`servier-chem` exists; no pins yet).
 - Local: the Anthropic key in `.env.local` was replaced on 18 Oct (the old one, still in `prototype/.env`, is revoked).
   A 401 makes the app block generation ~10 min (`ops_state.provider_blocked_until`); delete that row locally.
