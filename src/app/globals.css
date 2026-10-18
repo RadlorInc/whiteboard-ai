@@ -541,3 +541,18 @@ li.now .tick { border-color: transparent; }
 .save-btn.sm.on { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 .v-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 6px 16px; }
 .v-head .page-sub { grid-column: 1 / -1; }
+
+/* ---- The top bar: phones get menu, brand, new chat; on laptops only the profile, top right (18 Oct 2026) ---- */
+.topbar-end { display: flex; align-items: center; gap: 4px; }
+.menu.profile > summary { min-height: 40px; padding: 0 2px; border-radius: 50%; }
+.menu.profile > summary:hover, .menu.profile[open] > summary { background: none; }
+.menu.profile .avatar { width: 32px; height: 32px; font-size: 0.875rem; transition: box-shadow .15s; }
+.menu.profile > summary:hover .avatar, .menu.profile[open] > summary .avatar { box-shadow: 0 0 0 3px var(--surface-3); }
+.menu.down .menu-list { top: calc(100% + 8px); bottom: auto; left: auto; right: 0; width: 260px; }
+.menu-who { display: flex; align-items: center; gap: 10px; padding: 8px 10px 10px; font-size: 0.8125rem; color: var(--muted); min-width: 0; }
+.menu-who span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu-list .menu-videos { color: var(--text); }
+@media (min-width: 900px) {
+  .topbar { display: flex; justify-content: flex-end; position: sticky; top: 0; z-index: 20; height: 56px; padding: 0 20px; background: transparent; }
+  .topbar > .icon-btn, .topbar > .brand, .topbar .topbar-new { display: none; }
+}

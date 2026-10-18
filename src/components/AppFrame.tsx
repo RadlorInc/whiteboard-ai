@@ -35,6 +35,16 @@ export function AppFrame({ email, available, chats, children }: {
   // A new page closes the drawer and the account menu.
   if (seen !== path) { setSeen(path); setOpen(false); }
   useEffect(() => { if (menu.current) menu.current.open = false; }, [path]);
+  // The profile menu closes on a click outside it or Escape, like any menu.
+  useEffect(() => {
+    const close = (e: Event) => {
+      const m = menu.current;
+      if (!m?.open) return;
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !m.contains(e.target as Node)) m.open = false;
+    };
+    document.addEventListener("click", close); document.addEventListener("keydown", close);
+    return () => { document.removeEventListener("click", close); document.removeEventListener("keydown", close); };
+  }, []);
   // ⌘K / Ctrl+K: search chats (the drawer opens on phones). ⌘⇧O / Ctrl+Shift+O: new chat (Claude and ChatGPT's keys).
   useEffect(() => {
     const keys = (e: KeyboardEvent) => {
@@ -108,22 +118,6 @@ export function AppFrame({ email, available, chats, children }: {
           <Link href="/buy" className={`pill${low ? " low" : ""}`} data-credits={available} aria-label={`${videos(videosLeft(available))} left. Get more`}>
             <Icon name="videos" size={16} /> {videos(videosLeft(available))} left
           </Link>
-          <details className="menu up" ref={menu}>
-            <summary aria-label="Account menu">
-              <span className="avatar" aria-hidden="true">{email.slice(0, 1).toUpperCase()}</span>
-              <span className="who">{email}</span>
-              <Icon name="chevronUp" size={16} />
-            </summary>
-            <div className="menu-list">
-              <Link href="/settings"><Icon name="settings" size={18} /> Settings</Link>
-              <Link href="/account"><Icon name="user" size={18} /> Account</Link>
-              <Link href="/buy"><Icon name="card" size={18} /> Get more videos</Link>
-              <Link href="/help"><Icon name="help" size={18} /> Help</Link>
-              <Link href="/legal/terms"><Icon name="file" size={18} /> Terms and privacy</Link>
-              <hr />
-              <SignOutButton className="" label="Sign out" icon />
-            </div>
-          </details>
         </div>
       </aside>
       {open && <div className="scrim" aria-hidden="true" onClick={() => setOpen(false)} />}
@@ -134,7 +128,26 @@ export function AppFrame({ email, available, chats, children }: {
             <Icon name="menu" />
           </button>
           <Brand />
-          <a href="/ask" className="icon-btn" aria-label="New chat"><Icon name="newChat" /></a>
+          <div className="topbar-end">
+            <a href="/ask" className="icon-btn topbar-new" aria-label="New chat"><Icon name="newChat" /></a>
+          {/* Profile, top right (founder, 18 Oct 2026) */}
+          <details className="menu down profile" ref={menu}>
+            <summary aria-label="Account menu">
+              <span className="avatar" aria-hidden="true">{email.slice(0, 1).toUpperCase()}</span>
+            </summary>
+            <div className="menu-list">
+              <p className="menu-who"><span className="avatar" aria-hidden="true">{email.slice(0, 1).toUpperCase()}</span><span>{email}</span></p>
+              <Link href="/buy" className="menu-videos"><Icon name="videos" size={18} /> {videos(videosLeft(available))} left · Get more</Link>
+              <hr />
+              <Link href="/settings"><Icon name="settings" size={18} /> Settings</Link>
+              <Link href="/account"><Icon name="user" size={18} /> Account</Link>
+              <Link href="/help"><Icon name="help" size={18} /> Help</Link>
+              <Link href="/legal/terms"><Icon name="file" size={18} /> Terms and privacy</Link>
+              <hr />
+              <SignOutButton className="" label="Sign out" icon />
+            </div>
+          </details>
+          </div>
         </header>
         {children}
       </div>
