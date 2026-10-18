@@ -1,7 +1,7 @@
 import { getAccount } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { listChats } from "@/components/Chats";
-import { AppFrame, PublicHeader } from "@/components/AppFrame";
+import { AppFrame, PublicHeader, type Resume } from "@/components/AppFrame";
 import { Footer } from "@/components/Footer";
 
 // Every page here gets the sidebar when signed in, and the public header and footer when not (Explore, a shared
@@ -18,6 +18,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <Footer />
     </>
   );
-  const chats = account.hasAccess ? await listChats(await createClient(), RECENTS) : [];
-  return <AppFrame email={account.user.email ?? ""} available={account.available} chats={chats}>{children}</AppFrame>;
+  const sb = await createClient();
+  const chats = account.hasAccess ? await listChats(sb, RECENTS) : [];
+  // "Continue learning" (founder, 18 Oct 2026): the latest chat, with a still of its first video. RLS: own only.
+  let resume: Resume = null;
+  if (chats[0]) {
+    const { data } = await sb.from("generations").select("style, script").eq("conversation_id", chats[0].id)
+      .eq("status", "succeeded").is("content_deleted_at", null).order("created_at", { ascending: true });
+    if (data?.length) resume = { ...chats[0], n: data.length, style: data[0].style, script: data[0].script };
+  }
+  return <AppFrame email={account.user.email ?? ""} available={account.available} chats={chats} resume={resume}>{children}</AppFrame>;
 }

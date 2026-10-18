@@ -9,6 +9,7 @@ import { PRODUCT_NAME } from "@/product";
 import { SignOutButton } from "./SignOutButton";
 import { ChatList, SUBJECT_NAME, type ChatRow, type Subject } from "./Chats";
 import { Icon, type IconName } from "./Icon";
+import { BoardPreview } from "./BoardPreview";
 
 import { HOLD_CREDITS, videos, videosLeft } from "@/lib/videos";
 
@@ -25,13 +26,30 @@ function Brand() {
   );
 }
 
-export function AppFrame({ email, available, chats, children }: {
-  email: string; available: number; chats: ChatRow[]; children: React.ReactNode;
+export type Resume = (ChatRow & { n: number; style: string; script: unknown }) | null;
+
+// The top of the sidebar: pick up the latest lesson where it was left (a learning app's "continue", not a chat search).
+function ContinueCard({ r, active }: { r: NonNullable<Resume>; active: boolean }) {
+  return (
+    <Link href={`/c/${r.id}`} className="resume" aria-current={active ? "page" : undefined}>
+      <span className="resume-thumb"><BoardPreview style={r.style} script={r.script} label="" /></span>
+      <span className="resume-text">
+        <span className="resume-label">Continue</span>
+        <span className="resume-title">{r.title}</span>
+        <span className="resume-meta">{SUBJECT_NAME[r.subject]} · {r.n} {r.n === 1 ? "video" : "videos"}</span>
+      </span>
+    </Link>
+  );
+}
+
+export function AppFrame({ email, available, chats, resume = null, children }: {
+  email: string; available: number; chats: ChatRow[]; resume?: Resume; children: React.ReactNode;
 }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(path);
   const [find, setFind] = useState("");
+  const [searching, setSearching] = useState(false);     // the chat search opens from its icon or ⌘K
   const [only, setOnly] = useState<Subject | null>(null);       // the subject filter on Recents
   const menu = useRef<HTMLDetailsElement>(null);
   const search = useRef<HTMLInputElement>(null);
@@ -54,7 +72,7 @@ export function AppFrame({ email, available, chats, children }: {
       if (!(e.metaKey || e.ctrlKey)) return;
       const k = e.key.toLowerCase();
       // flushSync: the drawer must be open (visible) before focus moves, or the first letters land in the composer
-      if (k === "k" && !e.shiftKey) { e.preventDefault(); flushSync(() => setOpen(true)); search.current?.focus(); }
+      if (k === "k" && !e.shiftKey) { e.preventDefault(); flushSync(() => { setOpen(true); setSearching(true); }); search.current?.focus(); }
       // a full load, like the New chat link, so a chat in progress starts over clean
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       if (k === "o" && e.shiftKey) { e.preventDefault(); location.href = "/ask"; }
@@ -98,12 +116,15 @@ export function AppFrame({ email, available, chats, children }: {
           ))}
         </nav>
         <div className="side-recents">
-          {chats.length > 0 && (
+          {resume && <ContinueCard r={resume} active={active === resume.id} />}
+          {searching && (
             <div className="side-search">
               <Icon name="search" size={15} />
               <label htmlFor="chat-search" className="sr-only">Search chats</label>
-              <input id="chat-search" ref={search} type="search" placeholder="Search chats" value={find} autoComplete="off"
-                onChange={(e) => setFind(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setFind(""); }} />
+              <input id="chat-search" ref={search} type="search" placeholder="Search chats" value={find} autoComplete="off" autoFocus
+                onChange={(e) => setFind(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Escape") { setFind(""); setSearching(false); } }}
+                onBlur={() => { if (!find) setSearching(false); }} />
               <kbd aria-hidden="true">⌘K</kbd>
             </div>
           )}
@@ -116,7 +137,15 @@ export function AppFrame({ email, available, chats, children }: {
               ))}
             </div>
           )}
-          <p className="side-label">Recents</p>
+          <div className="side-label-row">
+            <p className="side-label">Recents</p>
+            {chats.length > 0 && !searching && (
+              <button type="button" className="side-icon" aria-label="Search chats (⌘K)" title="Search chats (⌘K)"
+                onClick={() => { flushSync(() => setSearching(true)); search.current?.focus(); }}>
+                <Icon name="search" size={15} />
+              </button>
+            )}
+          </div>
           {chats.length > 0 && shown.length === 0 ? <p className="side-empty">No chat matches.</p> : <ChatList chats={shown} active={active} />}
           {chats.length >= 10 && <Link href="/chats" className="side-all">All chats</Link>}
         </div>
