@@ -3,6 +3,8 @@
 **Current state and open items only. Under 15 KB.** Delete an item when it is done. The spec is
 `../app-plan/PLAN.md` (build order §3); how to run things is in `README.md`.
 
+**Before going live: [LAUNCH.md](LAUNCH.md)** — the checklist of what was left for launch (migration + merge order, keep-warm, Stripe, legal).
+
 ## Production (12 Oct 2026, end of day)
 
 - **Live** on Vercel (project `whiteboard-ai`, Production env only) against its own Supabase project. The project ref
