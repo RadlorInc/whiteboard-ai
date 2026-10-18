@@ -38,7 +38,9 @@
     160
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    42
+   ]
   }
  }
 }

@@ -29,9 +29,8 @@
     850
    ],
    "kind": "part",
-   "shapes": [
-    486
-   ]
+   "shapes": [],
+   "trace": false
   }
  }
 }

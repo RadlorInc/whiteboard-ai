@@ -7,9 +7,8 @@
     300
    ],
    "kind": "part",
-   "shapes": [
-    123
-   ]
+   "shapes": [],
+   "trace": false
   },
   "canal": {
    "name": "ear canal",
@@ -84,9 +83,8 @@
     800
    ],
    "kind": "part",
-   "shapes": [
-    303
-   ]
+   "shapes": [],
+   "trace": false
   }
  }
 }

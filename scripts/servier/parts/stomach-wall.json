@@ -18,7 +18,8 @@
     500
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [],
+   "trace": false
   },
   "parietal": {
    "name": "parietal cells (make acid)",
@@ -28,7 +29,7 @@
    ],
    "kind": "part",
    "shapes": [
-    217
+    223
    ]
   },
   "capillary": {

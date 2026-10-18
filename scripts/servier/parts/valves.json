@@ -29,9 +29,8 @@
     560
    ],
    "kind": "part",
-   "shapes": [
-    4
-   ]
+   "shapes": [],
+   "trace": false
   },
   "pulmonary": {
    "name": "pulmonary valve",
@@ -51,9 +50,8 @@
     500
    ],
    "kind": "part",
-   "shapes": [
-    9
-   ]
+   "shapes": [],
+   "trace": false
   },
   "fat": {
    "name": "fat",

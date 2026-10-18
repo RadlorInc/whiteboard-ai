@@ -13,9 +13,8 @@ const here = path.dirname(new URL(import.meta.url).pathname), dir = path.join(he
 const svDir = path.join(here, '..', '..', 'public', 'player', 'lib', 'sv'), catFile = path.join(here, 'sv-catalogue.json');
 const ids = process.argv.slice(2).length ? process.argv.slice(2) : fs.readdirSync(dir).filter(f => f.endsWith('.json')).map(f => f.slice(0, -5));
 const readSv = id => { const t = fs.readFileSync(path.join(svDir, id + '.js'), 'utf8'); return JSON.parse(t.slice(t.indexOf(',') + 1).replace(/\);\s*$/, '')); };
-const GAP = 70;
 
-function spread(items) {                              // items sorted by y; push apart to GAP, inside 30..990
+function spread(items, GAP) {                         // items sorted by y; push apart to GAP, inside 30..990
   for (let i = 1; i < items.length; i++) items[i].y = Math.max(items[i].y, items[i - 1].y + GAP);
   if (items.length && items.at(-1).y > 990) { items.at(-1).y = 990; for (let i = items.length - 2; i >= 0; i--) items[i].y = Math.min(items[i].y, items[i + 1].y - GAP); }
   for (const it of items) it.y = Math.max(30, Math.round(it.y));
@@ -30,22 +29,30 @@ for (const id of ids) {
     d.shapes.map((s, i) => `<path data-i="${i}" d="${s[0]}" fill="${s[1]}"${s[3] ? ` stroke="${s[3]}" stroke-width="${s[4]}"` : ''}/>`).join('')}</svg></body>`);
   const parts = {};
   for (const [key, p] of Object.entries(spec.parts)) {
-    const shapes = p.shapes?.length ? p.shapes : await page.evaluate(([x, y, A]) => {
-      const hit = document.elementsFromPoint(x, y).filter(e => e.dataset.i).map(e => { const r = e.getBBox(); return [+e.dataset.i, r.width * r.height]; });
-      // a single-organ drawing's organ is nearly all of it: then the smallest real shape under the point will do
-      const ok = hit.find(([, a]) => a >= .0005 * A && a <= .9 * A) ?? hit.filter(([, a]) => a >= .0005 * A).sort((p, q) => p[1] - q[1])[0];
-      return ok ? [ok[0]] : [];                         // nothing under the point: a label with no trace
+    // trace: false = a label only (checked by eye: the shape under the point is the whole drawing or the wrong part)
+    const shapes = p.trace === false ? [] : p.shapes?.length ? p.shapes : await page.evaluate(([x0, y0, A]) => {
+      // the point, then rings round it out to 32 units: a thin part (a tube, a fibre) is often just beside the point
+      const near = [[0, 0], ...[8, 16, 24, 32].flatMap(r => [...Array(12)].map((_, k) => [r * Math.cos(k * Math.PI / 6), r * Math.sin(k * Math.PI / 6)]))];
+      for (const [dx, dy] of near) { const x = x0 + dx, y = y0 + dy;
+      const hit = document.elementsFromPoint(x, y).filter(e => e.dataset.i).map(e => { const r = e.getBBox(); return [+e.dataset.i, r.width * r.height, e.hasAttribute('stroke')]; });
+      // an outlined shape first (highlights and textures have no outline); a single-organ drawing's organ is nearly all
+      // of it, so then the smallest real shape under the point will do
+      const fit = ([, a]) => a >= .0005 * A && a <= .9 * A;
+      const ok = hit.find(h => fit(h) && h[2]) ?? hit.find(fit) ?? hit.filter(([, a]) => a >= .0005 * A).sort((p, q) => p[1] - q[1])[0];
+      if (ok) return [ok[0]]; }
+      return [];                                        // nothing near the point: a label with no trace
     }, [p.at[0], p.at[1], d.w * 1000]);
-    parts[key] = { name: p.name, at: p.at, shapes, kind: p.kind ?? 'part' };
+    parts[key] = { name: p.name, at: p.at, shapes, kind: p.kind ?? 'part', ...(p.trace === false && { trace: false }) };
   }
   for (const side of ['L', 'R']) {
     const items = Object.entries(parts).filter(([, p]) => (p.at[0] < d.w / 2 ? 'L' : 'R') === side).map(([k, p]) => ({ k, y: p.at[1] })).sort((a, b) => a.y - b.y);
-    spread(items);
+    // ~24 board pixels apart: a lesson draws it about min(470, 440 000 / w) px tall (the pins' words need the sides)
+    spread(items, Math.max(70, Math.ceil(24 * 1000 / Math.min(470, 440000 / d.w))));
     for (const it of items) parts[it.k].label = [side, it.y];
   }
   d.parts = parts;
   fs.writeFileSync(path.join(svDir, id + '.js'), `SV.add(${JSON.stringify(id)},${JSON.stringify(d)});\n`);
-  fs.writeFileSync(file, JSON.stringify({ parts: Object.fromEntries(Object.entries(parts).map(([k, p]) => [k, { name: p.name, at: p.at, kind: p.kind, shapes: p.shapes }])) }, null, 1));
+  fs.writeFileSync(file, JSON.stringify({ parts: Object.fromEntries(Object.entries(parts).map(([k, p]) => [k, { name: p.name, at: p.at, kind: p.kind, shapes: p.shapes, ...(p.trace === false && { trace: false }) }])) }, null, 1));
   const c = cat.find(x => x.id === id); if (c) c.parts = Object.keys(parts);
   console.log(id, Object.entries(parts).map(([k, p]) => `${k}${p.shapes.length ? '' : '(no trace)'}`).join(' '));
 }

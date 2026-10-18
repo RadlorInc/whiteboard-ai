@@ -7,9 +7,8 @@
     300
    ],
    "kind": "part",
-   "shapes": [
-    1
-   ]
+   "shapes": [],
+   "trace": false
   },
   "left": {
    "name": "left lobe",

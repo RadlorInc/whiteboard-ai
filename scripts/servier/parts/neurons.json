@@ -7,7 +7,9 @@
     180
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    260
+   ]
   },
   "body": {
    "name": "cell body",

@@ -7,7 +7,9 @@
     450
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    15
+   ]
   },
   "light": {
    "name": "light chain",

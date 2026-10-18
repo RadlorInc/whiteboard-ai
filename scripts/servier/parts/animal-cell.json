@@ -95,9 +95,8 @@
     650
    ],
    "kind": "part",
-   "shapes": [
-    21
-   ]
+   "shapes": [],
+   "trace": false
   }
  }
 }

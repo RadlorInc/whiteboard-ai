@@ -18,7 +18,9 @@
     600
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    29
+   ]
   },
   "alveoli": {
    "name": "alveoli (air sacs)",
@@ -39,7 +41,7 @@
    ],
    "kind": "part",
    "shapes": [
-    331
+    332
    ]
   }
  }

@@ -7,9 +7,8 @@
     330
    ],
    "kind": "part",
-   "shapes": [
-    156
-   ]
+   "shapes": [],
+   "trace": false
   },
   "parietal": {
    "name": "parietal lobe",
@@ -29,9 +28,8 @@
     330
    ],
    "kind": "part",
-   "shapes": [
-    150
-   ]
+   "shapes": [],
+   "trace": false
   },
   "temporal": {
    "name": "temporal lobe",
@@ -40,9 +38,8 @@
     480
    ],
    "kind": "part",
-   "shapes": [
-    2
-   ]
+   "shapes": [],
+   "trace": false
   },
   "cerebellum": {
    "name": "cerebellum",

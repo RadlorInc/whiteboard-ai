@@ -41,7 +41,7 @@
    ],
    "kind": "part",
    "shapes": [
-    5
+    152
    ]
   },
   "gum": {
@@ -62,9 +62,8 @@
     500
    ],
    "kind": "part",
-   "shapes": [
-    0
-   ]
+   "shapes": [],
+   "trace": false
   },
   "vessels": {
    "name": "nerve and blood vessels",

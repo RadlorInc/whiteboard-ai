@@ -8,7 +8,7 @@
    ],
    "kind": "part",
    "shapes": [
-    74
+    276
    ]
   },
   "av": {
@@ -19,7 +19,7 @@
    ],
    "kind": "part",
    "shapes": [
-    9
+    278
    ]
   },
   "his": {
@@ -62,9 +62,8 @@
     100
    ],
    "kind": "part",
-   "shapes": [
-    14
-   ]
+   "shapes": [],
+   "trace": false
   },
   "ra": {
    "name": "right atrium",

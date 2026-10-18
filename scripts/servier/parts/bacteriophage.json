@@ -40,7 +40,9 @@
     880
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    443
+   ]
   },
   "collar": {
    "name": "collar",

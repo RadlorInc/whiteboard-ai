@@ -51,9 +51,8 @@
     680
    ],
    "kind": "part",
-   "shapes": [
-    0
-   ]
+   "shapes": [],
+   "trace": false
   },
   "bladder": {
    "name": "bladder",
@@ -62,9 +61,8 @@
     520
    ],
    "kind": "part",
-   "shapes": [
-    12
-   ]
+   "shapes": [],
+   "trace": false
   }
  }
 }

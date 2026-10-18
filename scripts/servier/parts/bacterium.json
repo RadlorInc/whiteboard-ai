@@ -27,9 +27,8 @@
     170
    ],
    "kind": "part",
-   "shapes": [
-    606
-   ]
+   "shapes": [],
+   "trace": false
   },
   "membrane": {
    "name": "cell membrane",

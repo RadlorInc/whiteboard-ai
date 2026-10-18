@@ -18,7 +18,8 @@
     500
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [],
+   "trace": false
   },
   "na": {
    "name": "neuraminidase",
@@ -27,9 +28,8 @@
     200
    ],
    "kind": "part",
-   "shapes": [
-    1278
-   ]
+   "shapes": [],
+   "trace": false
   },
   "inside": {
    "name": "genes inside",
@@ -39,7 +39,7 @@
    ],
    "kind": "part",
    "shapes": [
-    1278
+    1171
    ]
   }
  }

@@ -55,17 +55,6 @@
     1
    ]
   },
-  "capillaries": {
-   "name": "capillaries",
-   "at": [
-    222,
-    560
-   ],
-   "kind": "part",
-   "shapes": [
-    50
-   ]
-  },
   "cortex": {
    "name": "cortex",
    "at": [

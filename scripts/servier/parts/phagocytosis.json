@@ -7,9 +7,8 @@
     650
    ],
    "kind": "part",
-   "shapes": [
-    52
-   ]
+   "shapes": [],
+   "trace": false
   },
   "pseudopod": {
    "name": "arms wrap around",

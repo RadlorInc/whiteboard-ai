@@ -40,7 +40,9 @@
     560
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    19
+   ]
   },
   "sacrum": {
    "name": "sacrum",
@@ -60,7 +62,9 @@
     980
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    15
+   ]
   }
  }
 }

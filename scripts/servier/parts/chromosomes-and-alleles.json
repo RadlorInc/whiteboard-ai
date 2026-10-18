@@ -7,7 +7,9 @@
     400
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    14
+   ]
   },
   "centromere": {
    "name": "centromere",

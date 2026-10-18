@@ -7,9 +7,8 @@
     250
    ],
    "kind": "part",
-   "shapes": [
-    468
-   ]
+   "shapes": [],
+   "trace": false
   },
   "sternum": {
    "name": "sternum (breastbone)",
@@ -29,9 +28,8 @@
     335
    ],
    "kind": "part",
-   "shapes": [
-    468
-   ]
+   "shapes": [],
+   "trace": false
   },
   "diaphragm": {
    "name": "diaphragm",

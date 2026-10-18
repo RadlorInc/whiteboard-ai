@@ -29,7 +29,9 @@
     900
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    1
+   ]
   },
   "hair": {
    "name": "hair",
@@ -93,9 +95,8 @@
     600
    ],
    "kind": "part",
-   "shapes": [
-    3
-   ]
+   "shapes": [],
+   "trace": false
   },
   "pressure": {
    "name": "pressure sensor",

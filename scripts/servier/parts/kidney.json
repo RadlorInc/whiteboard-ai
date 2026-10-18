@@ -29,7 +29,9 @@
     760
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    0
+   ]
   }
  }
 }

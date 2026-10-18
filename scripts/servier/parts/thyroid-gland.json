@@ -7,9 +7,8 @@
     400
    ],
    "kind": "part",
-   "shapes": [
-    0
-   ]
+   "shapes": [],
+   "trace": false
   },
   "left": {
    "name": "left lobe",
@@ -18,9 +17,8 @@
     400
    ],
    "kind": "part",
-   "shapes": [
-    0
-   ]
+   "shapes": [],
+   "trace": false
   },
   "isthmus": {
    "name": "isthmus",
@@ -29,9 +27,8 @@
     700
    ],
    "kind": "part",
-   "shapes": [
-    0
-   ]
+   "shapes": [],
+   "trace": false
   },
   "pyramid": {
    "name": "pyramidal lobe",

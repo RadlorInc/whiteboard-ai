@@ -18,9 +18,8 @@
     150
    ],
    "kind": "part",
-   "shapes": [
-    0
-   ]
+   "shapes": [],
+   "trace": false
   },
   "marrow": {
    "name": "marrow and vessels",

@@ -7,9 +7,8 @@
     800
    ],
    "kind": "part",
-   "shapes": [
-    0
-   ]
+   "shapes": [],
+   "trace": false
   },
   "body": {
    "name": "body",
@@ -18,9 +17,8 @@
     400
    ],
    "kind": "part",
-   "shapes": [
-    0
-   ]
+   "shapes": [],
+   "trace": false
   },
   "tail": {
    "name": "tail",
@@ -29,9 +27,8 @@
     200
    ],
    "kind": "part",
-   "shapes": [
-    0
-   ]
+   "shapes": [],
+   "trace": false
   }
  }
 }

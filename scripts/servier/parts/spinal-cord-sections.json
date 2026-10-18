@@ -29,7 +29,9 @@
     580
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    48
+   ]
   },
   "dorsal": {
    "name": "dorsal horn (sensory in)",

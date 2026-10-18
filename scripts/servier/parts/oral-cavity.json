@@ -18,9 +18,8 @@
     280
    ],
    "kind": "part",
-   "shapes": [
-    0
-   ]
+   "shapes": [],
+   "trace": false
   },
   "uvula": {
    "name": "uvula",

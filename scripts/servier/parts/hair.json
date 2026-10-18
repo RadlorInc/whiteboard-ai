@@ -8,7 +8,7 @@
    ],
    "kind": "part",
    "shapes": [
-    110
+    55
    ]
   },
   "sheath": {
@@ -30,7 +30,7 @@
    ],
    "kind": "part",
    "shapes": [
-    20
+    0
    ]
   },
   "papilla": {
@@ -40,7 +40,9 @@
     870
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    20
+   ]
   },
   "cortex": {
    "name": "cortex",

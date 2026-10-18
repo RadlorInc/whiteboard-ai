@@ -18,7 +18,9 @@
     450
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    3
+   ]
   },
   "tectorial": {
    "name": "tectorial membrane",

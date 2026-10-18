@@ -7,9 +7,8 @@
     640
    ],
    "kind": "part",
-   "shapes": [
-    301
-   ]
+   "shapes": [],
+   "trace": false
   },
   "capillary": {
    "name": "capillaries",
@@ -18,7 +17,9 @@
     450
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    303
+   ]
   },
   "venule": {
    "name": "venule (back to the heart)",

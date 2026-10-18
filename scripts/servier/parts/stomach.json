@@ -40,7 +40,9 @@
     450
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    34
+   ]
   }
  }
 }

@@ -73,7 +73,9 @@
     450
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    635
+   ]
   },
   "hand": {
    "name": "hand bones",
@@ -82,7 +84,9 @@
     520
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    962
+   ]
   },
   "femur": {
    "name": "femur",
@@ -91,7 +95,9 @@
     600
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    40
+   ]
   },
   "knee": {
    "name": "knee",
@@ -111,7 +117,9 @@
     820
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    1534
+   ]
   }
  }
 }

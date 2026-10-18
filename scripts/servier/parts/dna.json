@@ -7,7 +7,9 @@
     300
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    4
+   ]
   },
   "strand": {
    "name": "two strands",
@@ -27,7 +29,9 @@
     800
    ],
    "kind": "part",
-   "shapes": []
+   "shapes": [
+    219
+   ]
   }
  }
 }
