@@ -282,6 +282,8 @@ progress::-moz-progress-bar { background: var(--accent); }
 .subject-pick select { min-height: 0; height: 32px; padding: 0 30px 0 12px; border: 0; background: transparent; color: inherit;
   font-size: 0.8125rem; font-weight: 500; cursor: pointer; border-radius: 999px; }
 .subject-pick .icon { position: absolute; right: 10px; pointer-events: none; }
+/* The form rule for <label><select> (block, full width, 6 px down) must not reach this one: it sat low (18 Oct 2026). */
+label.subject-pick > select { display: block; width: auto; margin: 0; line-height: 32px; background-image: none; }
 .subject-pick.locked { padding: 0 12px; cursor: default; }
 .subject-pick.locked:hover { background: none; color: var(--muted); }
 .count { font-size: 0.75rem; color: var(--faint); font-variant-numeric: tabular-nums; }
