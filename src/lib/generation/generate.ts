@@ -2,7 +2,7 @@
 // route.ts passes the real database, model, user and after(); tests pass fakes.
 import { runGeneration } from './run';
 import { POLICY_VERSION } from './checks.mjs';
-import { PROMPT_SHA, STYLES, type ModelClient, type Style } from './model';
+import { promptSha, STYLES, type ModelClient, type Style } from './model';
 import type { GenDb, ReserveOutcome, Thread } from './db';
 
 export const HOLD_CREDITS = 6;
@@ -94,7 +94,7 @@ export async function handleGenerate(req: Request, d: GenerateDeps): Promise<Res
   if (!d.client) return json(503, { code: 'paused' });         // no model configured: nothing is reserved
 
   const r = await d.db.reserve({ userId: d.userId, clientRequestId: requestId, style, question, buildId: d.buildId,
-    promptSha: PROMPT_SHA[style], policyVersion: POLICY_VERSION });
+    promptSha: promptSha(style, thread?.subject), policyVersion: POLICY_VERSION });
   if (r.outcome === 'duplicate') return existing({ id: r.generation_id!, status: r.status ?? 'running' });
   if (r.outcome !== 'reserved' || !r.generation_id) return refused(r.outcome, r);
   const id = r.generation_id;
@@ -116,7 +116,7 @@ export async function handleGenerate(req: Request, d: GenerateDeps): Promise<Res
   send('accepted', { id, style, creditsHeld: HOLD_CREDITS, capChars: style === 'matchcut' ? 700 : 900 });
   const hb = setInterval(() => write(': hb\n\n'), d.heartbeatMs ?? HEARTBEAT_MS);
   const client = d.client;
-  const work = runGeneration({ id, style, question, context: thread ? threadContext(thread) : undefined, client, db: d.db, send })
+  const work = runGeneration({ id, style, question, context: thread ? threadContext(thread) : undefined, subject: thread?.subject, client, db: d.db, send })
     .catch(() => send('failed', { code: 'provider_error', refunded: false }))   // finish/fail itself failed: the sweep releases
     .finally(() => { clearInterval(hb); if (!clientGone) try { ctrl?.close(); } catch {} });
   d.waitUntil(work);

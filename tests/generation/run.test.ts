@@ -5,7 +5,8 @@ import { describe, it, expect } from 'vitest';
 import { APIError, APIConnectionError } from '@anthropic-ai/sdk';
 import { runGeneration, providerCode } from '../../src/lib/generation/run';
 import { handleGenerate } from '../../src/lib/generation/generate';
-import { mockClient, prefix, type ModelClient } from '../../src/lib/generation/model';
+import { mockClient, prefix, promptSha, type ModelClient } from '../../src/lib/generation/model';
+import P from '../../src/lib/generation/prompts.json' with { type: 'json' };
 import MOCK from '../../src/lib/generation/mock-answers.json' with { type: 'json' };
 import { fakeDb, fakeClient, readSse, type Round } from './fakes';
 
@@ -246,5 +247,40 @@ describe('POST /api/generate in a conversation', () => {
     expect(first.at(-1)!.text).toBe('New question: Why is red on the outside?');
     expect(log.attach).toEqual([{ id: expect.any(String), conversationId: CONV }]);
     expect(log.finish.length).toBe(1);
+  });
+
+  // Subjects (founder, 18 Oct 2026): the chat's subject picks the whiteboard prompt and the drawing library.
+  it('a biology chat: the biology prompt on every call, its prompt_sha reserved and costed, the biology library (GENERATION_MOCK)', async () => {
+    const { db, log } = fakeDb({ thread: { subject: 'biology', turns: [] } });
+    const shas: string[] = [], reserve = db.reserve.bind(db);
+    db.reserve = async a => { shas.push(a.promptSha); return reserve(a); };
+    const inner = mockClient({ cps: 0 }), seen: Any[] = [];
+    const client: ModelClient = { messages: { create: inner.messages.create, stream(body, opts) { seen.push(structuredClone(body)); return inner.messages.stream(body, opts); } } };
+    const ev = await readSse(await handleGenerate(req({ ...ask, question: 'How does blood travel around the body?' }),
+      { db, client, userId: 'u1', appUrl: 'http://localhost:3100', buildId: 't', waitUntil: () => {} }));
+    const bio = P.subjects.biology;
+    expect(shas).toEqual([bio.sha256]);
+    expect(seen.length).toBe(2);                                   // find_drawing round, then the script
+    for (const body of seen) { const { messages, max_tokens, ...rest } = body; expect(rest).toEqual(prefix('whiteboard', 'biology')); }
+    expect(seen[0].system[0].text).toBe(bio.system);
+    expect(bio.system).toContain('heartsection'); expect(bio.system).toContain('Teaching biology');
+    expect(bio.system).not.toMatch(/\bmagnet\b/);                 // physics drawings are not on a biology board
+    expect(log.calls.map(c => c.prompt_sha)).toEqual([bio.sha256, bio.sha256]);
+    const tool = seen[1].messages[2].content[0].content as string;  // the tool_result: the biology catalogue lines
+    expect(tool).toMatch(/^heartsection cx cy size lab=1 — heart cut open/m); expect(tool).toMatch(/^circulation /m);
+    expect(ev.find(e => e.event === 'els')!.data.els.heart).toBe('heartsection 270 300 280');
+    expect(ev.find(e => e.event === 'need' && e.data.cats.includes('biology'))).toBeTruthy();
+    expect(ev.at(-1)!.event).toBe('done');
+  });
+  it("find_drawing only searches the subject's categories; outside a chat the plain prompt and its library", async () => {
+    const good = { q: 'Magnets', els: { m: 'magnet 480 270 300' }, steps: [{ say: 'Step 1: A magnet.', do: ['draw m 600'] }] };
+    const r = await run('whiteboard', [{ tool: { names: ['magnet', 'heartsection'] } }, { text: text(good) }], { subject: 'biology' });
+    const out = (r.seen[1].messages as Any[]).at(-1).content[0].content as string;
+    expect(out).toMatch(/^magnet: not in the library/m); expect(out).toMatch(/^heartsection /m);
+    const plain = await run('whiteboard', [{ tool: { names: ['magnet', 'heartsection'] } }, { text: text(good) }]);
+    const out2 = (plain.seen[1].messages as Any[]).at(-1).content[0].content as string;
+    expect(out2).toMatch(/^magnet /m); expect(out2).toMatch(/^heartsection: not in the library/m);
+    expect((plain.seen[0] as Any).system[0].text).toBe(P.styles.whiteboard.system);
+    expect(plain.log.calls[0].prompt_sha).toBe(promptSha('whiteboard'));
   });
 });
