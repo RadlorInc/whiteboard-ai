@@ -107,7 +107,8 @@ const SUBJECTS = {
   lines. Name and explain its parts only with pins (a pin's "| words" can say what the part does, at most 4 words).
   To show something moving through it (blood, air, food, a signal), use at most one arrow or one travel per step,
   following the real path inside the drawing, in a colour that differs from the part under it (blue or dark on red);
-  it gets a white edge so it stands out. Put the numbered step tags in one row above or below it, clear of it.` },
+  it gets a white edge so it stands out. Put the numbered step tags in one row above or below it, clear of it.
+  Never travel along the arrows between the step tags: a moving dot means something flows there.` },
   physics: { cats: ['physics', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
 - Teaching physics: show the cause and the effect, with forces, energy and waves drawn as arrows. Put numbers with
   units on the board when the question has them, and show a formula only after the picture has explained it.` },

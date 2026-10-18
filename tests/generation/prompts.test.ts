@@ -55,7 +55,7 @@ describe('prompt sha parity', () => {
 
   // Subject prompts (founder, 18 Oct 2026): new prompts, so no prototype twin; these shas bind them the same way.
   const SUBJECT_EXPECTED = {
-    biology: 'de1d2af760756693e18cae20786e81d177c9d3fca02f33af46d0f7742786f8a7',
+    biology: '4c5cdcdb57d5ff76c36a76ae67ea9936ff7f16d0b5b9407840163375b4b4e64e',
     physics: '1f75c2088d47ff2f7f314b0a7309326a5862a7fb01bf30071f5119d8e83ac102',
     chemistry: '283c68b7407e04f098fa1d7e287a5fd7a559088d958e3abbe87a754bb1114d9d',
   } as const;

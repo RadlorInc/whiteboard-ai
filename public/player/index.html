@@ -214,6 +214,9 @@ function go(id, ms, pts) {             // tag ko waypoints se le jao (centre coo
 // Ek kan raaste par safar kare: "travel bodyIn,toLungs,fromLungs,toBody 6000 loop"
 // har raaste ka rang le leta hai; paas ke raaste jud jaate hain, door wale par kan chhup kar wahan nikalta hai
 async function travel(ids, ms, repeat, me = runId) {
+  // With a realistic drawing on the board, a dot running only along the arrows between the step tags looked like
+  // blood or urine flowing there (founder, 18 Oct 2026): a travel that touches none of the drawing is skipped.
+  if (scene.classList.contains('on-anat') && !ids.some(id => isFlow(els[id]) || els[id]?.closest?.('.anat'))) return;
   if (FAST) {                     // a one-off trip leaves nothing behind; a looping one starts once the seek is done
     if (repeat) setTimeout(() => me === runId && travel(ids, ms, repeat, me), 50);
     return;
