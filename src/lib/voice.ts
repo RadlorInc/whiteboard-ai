@@ -49,7 +49,7 @@ export function startVoice(): Promise<boolean> {
       if ("stage" in data) { set({ stage: data.stage }); return; }
       if (data.warm) { if (data.warm === "ok") { set({ state: "ready", stage: null }); resolve(true); } else fail(data.error); return; }
       const w = waiting.get(data.id); waiting.delete(data.id);
-      if (data.error) console.warn("The narration voice could not make a line:", data.error);
+      if (data.error && data.error !== "cancelled") console.warn("The narration voice could not make a line:", data.error);
       w?.(data.error ? null : data.wav);
     };
     worker.postMessage({ warm: true });
@@ -74,17 +74,29 @@ export function useVoiceChoice(): string {
 // A line made once (in one voice) is kept for the life of the tab: a Replay remounts the player and gets it at once.
 // Failures are not kept. ponytail: unbounded, ~250 KB a line; bound it if one tab plays hundreds of videos.
 const made = new Map<string, Promise<ArrayBuffer | null>>();
+const asked = new Map<string, number>();     // a line still being made (or queued): its worker id, for cancelLine
 export function speakLine(text: string, voice = getVoice()): Promise<ArrayBuffer | null> {
   const key = `${voice}\n${text}`, hit = made.get(key);
   if (hit) return hit;
   const p = (async () => {
     if (!(await startVoice()) || !worker) return null;
     const w = worker;
-    return new Promise<ArrayBuffer | null>((resolve) => { const id = nextId++; waiting.set(id, resolve); w.postMessage({ id, text, voice }); });
+    return new Promise<ArrayBuffer | null>((resolve) => {
+      const id = nextId++; asked.set(key, id);
+      waiting.set(id, (wav) => { asked.delete(key); resolve(wav); });
+      w.postMessage({ id, text, voice });
+    });
   })();
   made.set(key, p);
   p.then((wav) => { if (!wav) made.delete(key); });
   return p;
+}
+
+/** Stop making a line nobody needs now (a jump to another step): it resolves null and is not kept, so asking for it
+ *  again makes it afresh. */
+export function cancelLine(text: string, voice = getVoice()) {
+  const id = asked.get(`${voice}\n${text}`);
+  if (id !== undefined) worker?.postMessage({ cancel: id });
 }
 
 export function useVoiceStatus(): VoiceStatus {

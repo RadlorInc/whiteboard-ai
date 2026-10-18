@@ -2,7 +2,7 @@
 // Watching a video (PLAN.md §5.6–5.8, §7.3): reads /api/generate's SSE stream and feeds the sandboxed player.
 // The same component replays a finished script (library, video page, share page) with no network call.
 import { useCallback, useEffect, useRef, useState } from "react";
-import { pauseSound, playSound, resumeSound, speakLine, startVoice, stopSound, tapForSound, useSoundBlocked, useVoiceStatus, voiceOn } from "@/lib/voice";
+import { cancelLine, pauseSound, playSound, resumeSound, speakLine, startVoice, stopSound, tapForSound, useSoundBlocked, useVoiceStatus, voiceOn } from "@/lib/voice";
 import { VoiceProgress } from "./Voice";
 import { exploreRefusal } from "./VideoView";
 import { Icon } from "./Icon";
@@ -101,7 +101,8 @@ export function Player({ style, script, onEnded, bind, onStart, cover }: {
 
   // The voice is made behind the board, one line at a time, starting from the step the player is on (or was jumped
   // to: 'need'), so every step can be reached at once and a jump ahead is not stuck behind the lines before it.
-  const feed = useRef({ lines: [] as string[], labels: [] as string[], got: new Set<number>(), want: 0, busy: false, alive: true, epoch: 0 });
+  const feed = useRef({ lines: [] as string[], labels: [] as string[], got: new Set<number>(), want: 0, busy: false, alive: true, epoch: 0,
+    making: -1, dropped: new Set<number>() });
   const pump = useCallback(async () => {
     const f = feed.current;
     if (f.busy) return;
@@ -113,9 +114,11 @@ export function Player({ style, script, onEnded, bind, onStart, cover }: {
         let i = -1;
         for (let k = 0; k < n; k++) { const j = (f.want + k) % n; if (!f.got.has(j)) { i = j; break; } }
         if (i < 0) break;
-        f.got.add(i);
+        f.got.add(i); f.making = i;
         const wav = await speakLine(f.lines[i]);
+        f.making = -1;
         if (!f.alive || ep !== f.epoch) break;
+        if (f.dropped.delete(i)) continue;              // given up for a jump (need): made again when its turn comes
         raw({ type: "stepWav", i, wav });
       }
     } finally { if (ep === f.epoch) f.busy = false; }
@@ -140,7 +143,15 @@ export function Player({ style, script, onEnded, bind, onStart, cover }: {
       if (e.data.type === "ready" && !ready.current) { ready.current = true; pending.current.splice(0).forEach(raw); }
       if (e.data.type === "ended") onEnded?.();
       if (e.data.type === "size" && Number.isFinite(e.data.h) && e.data.h > 50 && e.data.h < 4000) setH(e.data.h);
-      if (e.data.type === "need" && Number.isInteger(e.data.i)) { feed.current.want = e.data.i; pump(); }
+      if (e.data.type === "need" && Number.isInteger(e.data.i)) {
+        // A jump to a step whose line is not being made: drop the line in progress so this one starts at once.
+        const f = feed.current;
+        f.want = e.data.i;
+        if (f.making >= 0 && f.making !== e.data.i && !f.got.has(e.data.i)) {
+          const k = f.making; f.dropped.add(k); f.got.delete(k); cancelLine(f.lines[k]);
+        }
+        pump();
+      }
       if (e.data.type === "at") {
         if (!e.data.waiting) onStart?.();
         setAt({ i: e.data.i, n: e.data.n, done: e.data.done, paused: e.data.paused === true, waiting: e.data.waiting === true });

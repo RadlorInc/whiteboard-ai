@@ -1015,6 +1015,7 @@ async function make(text, voice) {
     try { await runGenerationPipeline(id, chunks, framesAfterEos); }
     finally { isGenerating = false; }
     const parts = collecting; collecting = null;
+    if (stopped) throw new Error("cancelled");          // Radlor: half a line is no line
     const n = parts.reduce((a, p) => a + p.length, 0), audio = new Float32Array(n);
     let at = 0, bad = 0;
     for (const p of parts) { audio.set(p, at); at += p.length; }
@@ -1022,15 +1023,25 @@ async function make(text, voice) {
     return { wav: wavOf(audio, currentSampleRate), secs: n / currentSampleRate, ms: performance.now() - t, bad };
 }
 
-// One thing at a time, in the order asked.
-let chain = Promise.resolve();
+// One thing at a time, in the order asked. Radlor: {cancel: id} drops a line: one not started is skipped, the one being
+// made stops at its next frame (the generation loop checks isGenerating), so a jump to another step gets its line sooner.
+let chain = Promise.resolve(), current = null, stopped = false;
+const dropped = new Set();
 self.onmessage = ({ data }) => {
+    if (data.cancel !== undefined) {
+        if (data.cancel === current) { stopped = true; isGenerating = false; } else dropped.add(data.cancel);
+        return;
+    }
     if (data.warm) {
         chain = chain.then(load)
             .then(() => self.postMessage({ warm: "ok" }), (e) => self.postMessage({ warm: "error", error: String(e?.message || e) }));
         return;
     }
     const { id, text, voice } = data;
-    chain = chain.then(() => make(text, voice))
+    chain = chain.then(() => {
+        if (dropped.delete(id)) throw new Error("cancelled");
+        current = id; stopped = false;
+        return make(text, voice).finally(() => { current = null; });
+    })
         .then((r) => self.postMessage({ id, ...r }, [r.wav]), (e) => self.postMessage({ id, error: String(e?.message || e) }));
 };
