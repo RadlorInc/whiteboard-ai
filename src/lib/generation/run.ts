@@ -21,6 +21,9 @@ const textOf = (m: FinalMessage) => m.content.filter(b => b.type === 'text').map
 const codePoints = (s: unknown) => (typeof s === 'string' ? [...s].length : 0);
 const catsOf = (lib: Lib, names: string[]) => [...new Set(lib.filter(c => c.lines.some(l => names.includes(l.name))).map(c => c.cat))];
 
+const FOLLOW_UP = 'Answer the new question below with a new lesson. Build on what was already explained; do not repeat it, ' +
+  'and refer back to it where it helps.';
+
 class Stop extends Error { constructor(public code: FailCode, detail: string, public extra: Partial<Metrics> = {}) { super(detail); } }
 
 export function providerCode(e: unknown): FailCode {
@@ -30,7 +33,7 @@ export function providerCode(e: unknown): FailCode {
 }
 
 export async function runGeneration(o: {
-  id: string; style: Style; question: string; context?: string; subject?: Subject | null; client: ModelClient; db: GenDb; send: Send;
+  id: string; style: Style; question: string; context?: string[]; subject?: Subject | null; client: ModelClient; db: GenDb; send: Send;
   deadlineMs?: number; retryWaitMs?: (n: number) => number;
 }) {
   const { id, style, question, client, db, send } = o;
@@ -41,8 +44,12 @@ export async function runGeneration(o: {
   const misses: string[] = [], lib = (style === 'whiteboard' ? (WB_LIB as Lib).filter(c => cats.includes(c.cat)) : PAPER_LIB) as Lib;
   const sha = promptSha(style, o.subject);
   // A conversation's context (subject, earlier questions) goes first in the same user turn; the question stays last.
-  const messages: Json[] = [{ role: 'user', content: o.context
-    ? [{ type: 'text', text: o.context }, { type: 'text', text: `New question: ${question}` }] : question }];
+  // A follow-up's earlier turns end in a cache breakpoint: the next call of this video (after find_drawing) and the
+  // next follow-up read them from the cache instead of paying for them again.
+  const ctx = o.context ?? [], follow = ctx.length > 1;
+  const messages: Json[] = [{ role: 'user', content: ctx.length ? [
+    ...ctx.map((text, i) => ({ type: 'text', text, ...(follow && i === ctx.length - 1 && { cache_control: { type: 'ephemeral', ttl: '1h' } }) })),
+    { type: 'text', text: `${follow ? FOLLOW_UP + '\n' : ''}New question: ${question}` }] : question }];
   let sentEls: Json | null = null; const sent: Step[] = [];
   let attempts = 1, outputTokens = 0, settled = false;
   const abort = new AbortController(), timer = setTimeout(() => abort.abort(), o.deadlineMs ?? LIMITS.deadlineMs);

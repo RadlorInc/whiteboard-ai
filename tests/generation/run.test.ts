@@ -241,10 +241,13 @@ describe('POST /api/generate in a conversation', () => {
     const { db, log } = fakeDb({ thread: { subject: 'physics', turns: [{ question: 'How does a rainbow form?', says: ['Sunlight enters a drop.', 'It bends and splits.'] }] } });
     const f = fakeClient([{ tool: { names: ['sun'] } }, { text: text(rainbow) }]);
     await readSse(await handleGenerate(req(ask), { db, client: f.client, userId: 'u1', appUrl: 'http://localhost:3100', buildId: 't', waitUntil: () => {} }));
-    const first = (f.seen[0] as Any).messages[0].content as { text: string }[];
+    const first = (f.seen[0] as Any).messages[0].content as { text: string; cache_control?: unknown }[];
     expect(first[0].text).toContain('Subject: Physics.');
-    expect(first[0].text).toContain('1. Question: How does a rainbow form?\n   You explained: Sunlight enters a drop. It bends and splits.');
-    expect(first.at(-1)!.text).toBe('New question: Why is red on the outside?');
+    // each earlier turn is its own block and the last one is a cache breakpoint (the next call and follow-up reuse it)
+    expect(first[1]).toEqual({ type: 'text', text: '1. Question: How does a rainbow form?\n   You explained: Sunlight enters a drop. It bends and splits.',
+      cache_control: { type: 'ephemeral', ttl: '1h' } });
+    expect(first.at(-1)!.text).toMatch(/^Answer the new question below[^\n]*\nNew question: Why is red on the outside\?$/);
+    expect(first.at(-1)!.cache_control).toBeUndefined();
     expect(log.attach).toEqual([{ id: expect.any(String), conversationId: CONV }]);
     expect(log.finish.length).toBe(1);
   });

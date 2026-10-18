@@ -81,7 +81,7 @@ export function mockClient({ cps = Number(process.env.GENERATION_MOCK_CPS ?? 300
       stream(body, opts) {
         const style = styleOf(body), msgs = body.messages as { role: string; content: unknown }[];
         const c0 = msgs[0].content as string | { text: string }[];   // a follow-up's question is its last block
-        const question = (typeof c0 === 'string' ? c0 : c0.at(-1)!.text.replace(/^New question: /, '')).toLowerCase();
+        const question = (typeof c0 === 'string' ? c0 : c0.at(-1)!.text.split('New question: ').pop()!).toLowerCase();
         const list = answers[style] as { q: string; els?: Record<string, string> }[];
         const a = list.find(e => e.q.toLowerCase().includes(question) || question.includes(e.q.toLowerCase())) ?? list[0];
         if (style !== 'matchcut' && msgs.length === 1) {
