@@ -299,10 +299,36 @@ progress::-moz-progress-bar { background: var(--accent); }
 .player { position: relative; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--surface); }
 .player iframe { display: block; width: 100%; border: 0; }
 .tap-sound { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2; box-shadow: 0 8px 30px rgb(0 0 0 / 0.4); }
-.player-controls { display: flex; align-items: center; gap: 2px; padding: 6px 12px 6px 6px; background: var(--surface); border-top: 1px solid var(--border); }
-.player-controls input[type="range"] { flex: 1; min-width: 60px; margin: 0 10px; accent-color: var(--accent); height: 4px; }
-.player-controls span { font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-@media (max-width: 420px) { .player-controls span { display: none; } }
+.player { outline: none; }
+.player-controls { display: flex; align-items: center; gap: 4px; padding: 8px 10px; background: var(--surface); border-top: 1px solid var(--border); }
+.pc-btn { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: 10px; border: 0; background: none;
+  color: var(--muted); cursor: pointer; transition: background-color .15s, color .15s; }
+.pc-btn:hover:not([disabled]) { background: var(--surface-2); color: var(--text); }
+.pc-btn[disabled] { opacity: 0.3; cursor: not-allowed; }
+.pc-play { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: var(--accent-text); margin-right: 4px; }
+.pc-play:hover:not([disabled]) { background: #d9d9de; color: var(--accent-text); }
+.pc-play .icon { margin-left: 1px; }
+/* One segment per step: done = white, now = filling, ahead = grey. Each is a 24 px tall hit area around a 4 px bar. */
+.pc-steps { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; margin: 0 8px; }
+.pc-seg { position: relative; flex: 1; min-width: 6px; height: 24px; padding: 0; border: 0; background: none; cursor: pointer; }
+.pc-seg::before { content: ""; position: absolute; left: 0; right: 0; top: 10px; height: 4px; border-radius: 4px; background: var(--surface-3);
+  transition: background-color .2s, transform .15s; }
+.pc-seg::after { content: ""; position: absolute; left: 0; top: 10px; height: 4px; width: 0; border-radius: 4px; background: var(--accent); }
+.pc-seg:hover::before { transform: scaleY(1.6); background: #4a4a52; }
+.pc-seg.done::before { background: var(--accent); }
+.pc-seg.now::after { animation: seg-fill 6s linear forwards; }
+.pc-seg.now.held::after { animation-play-state: paused; }
+.pc-seg.now.wait::after { width: 30%; animation: seg-wait 1s ease-in-out infinite alternate; }
+.pc-seg.more { flex: 0.5; cursor: default; }
+.pc-seg.more::before { background: repeating-linear-gradient(90deg, var(--surface-3) 0 4px, transparent 4px 8px); }
+@keyframes seg-fill { from { width: 8%; } to { width: 92%; } }
+@keyframes seg-wait { from { opacity: 0.3; } to { opacity: 0.9; } }
+.pc-count { font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 76px; text-align: right; }
+@media (max-width: 480px) { .pc-count { display: none; } .player-controls .pc-btn[aria-label$="step"] { display: none; } .pc-steps { margin: 0 6px; } }
+/* Full screen: the board as large as fits, the bar under it. */
+.player.full { display: flex; flex-direction: column; justify-content: center; background: #000; border: 0; border-radius: 0; }
+.player.full iframe { width: min(100%, calc((100dvh - 60px) * 960 / 600)); margin: 0 auto; }
+.player.full .player-controls { width: min(100%, 1100px); margin: 0 auto; background: transparent; border: 0; }
 
 /* The cover over the board while a video is made */
 .making { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; padding: 16px; background: var(--surface); }
@@ -479,3 +505,6 @@ li.now .tick { border-color: transparent; }
 .side-filter button:hover { color: var(--text); background: var(--surface-2); }
 .side-filter button[aria-pressed="true"] { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 @media (pointer: coarse) { .side-filter button { min-height: 36px; padding: 0 14px; font-size: 0.8125rem; } }
+.pc-wait { position: absolute; left: 12px; top: 12px; z-index: 2; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px;
+  border-radius: 999px; background: rgb(0 0 0 / 0.75); color: #fff; font-size: 0.8125rem; backdrop-filter: blur(6px); pointer-events: none; }
+.pc-wait .spinner { border-color: rgb(255 255 255 / 0.3); border-top-color: #fff; }

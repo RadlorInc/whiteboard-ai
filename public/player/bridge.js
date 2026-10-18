@@ -1,10 +1,10 @@
 // The app page drives these prototype players by postMessage (PLAN.md §7.8). The player runs in an
 // <iframe sandbox="allow-scripts"> (opaque origin, connect-src 'none'), so it can only draw what it is sent.
-// Messages: {type:'poster', script} (whiteboard: the finished board at once, silent) · {type:'seek', i} (whiteboard: jump to step i) · {type:'pause'} / {type:'resume'} (whiteboard) · {type:'reset'} · {type:'els', els} · {type:'els_add', els} · {type:'step', step, wav?} · {type:'done'}
+// Messages: {type:'els', els, voice?} (voice: the page sends each step's line later as {type:'stepWav', i, wav}) · {type:'poster', script} (whiteboard: the finished board at once, silent) · {type:'seek', i} (whiteboard: jump to step i) · {type:'pause'} / {type:'resume'} (whiteboard) · {type:'reset'} · {type:'els', els} · {type:'els_add', els} · {type:'step', step, wav?} · {type:'done'}
 //           · {type:'script', script, voice?} (a finished script: replay, or paper/match-cut after streaming; voice =
 //             how many spoken lines will follow as WAVs from the app's voice) · {type:'wav', i, wav} (line i's WAV, or null when
 //             the voice could not make it: that line gets the browser voice)
-// The player answers {type:'posterDone'} · {type:'size', h} (its content height) · {type:'at', i, n, done, paused} as each step starts (and when a
+// The player answers {type:'need', i} (step i waits for its line) · {type:'posterDone'} · {type:'size', h} (its content height) · {type:'at', i, n, done, paused} as each step starts (and when a
 // click on a drawing jumps to its step), {type:'ended'} when a run finishes and {type:'error', message} if a run throws.
 // Sound: an iPhone refuses audio started in this frame (no tap ever lands here), so the player asks the page to play
 // each WAV — {type:'play', id, wav} → the page answers {type:'played', id} when it has ended — and {type:'hush'}
@@ -55,13 +55,23 @@
   // Whiteboard: steps play as they arrive, and the page can seek to any step that has arrived ({type:'seek', i}):
   // the steps before it are drawn at once (FAST, index.html), then it plays on from there. The player tells the page
   // where it is: {type:'at', i, n, done} (i = n once it has ended).
-  let A = null, done = false, gen = 0, at = 0, fastBy = 0;
+  let A = null, done = false, gen = 0, at = 0, fastBy = 0, wavWait = {};
   const where = () => tell({ type: 'at', i: at, n: A.steps.length, done, paused: PAUSED });
   async function streamPlay(my, i = 0) {
     try {
       while (my === gen) {
         if (i < A.steps.length) {
-          const s = A.steps[i]; at = i++; where();
+          const s = A.steps[i]; at = i++;
+          // The page makes the voice behind the board (every step is here at once, so any step can be jumped to): a
+          // step waits for its line, and asks for it first ('need'), so a jump ahead is not stuck behind the others.
+          if (A.voice && s.wav === undefined) {
+            tell({ type: 'at', i: at, n: A.steps.length, done, paused: PAUSED, waiting: true }); tell({ type: 'need', i: at });
+            document.getElementById('caption').textContent = s.say;
+            await new Promise(r => (wavWait[at] ||= []).push(r));
+            while (PAUSED && my === gen) await new Promise(r => setTimeout(r, 120));   // paused while it waited
+            if (my !== gen) return;
+          }
+          where();
           // Spotlight: a step that draws a flow (an arrow, line or travel) over a realistic drawing dims the drawing;
           // flows from earlier steps fade back so only this step's movement stands out.
           // (a flow this step still uses, e.g. "pop leak", stays bright and keeps the spotlight)
@@ -159,9 +169,13 @@
         tell({ type: 'posterDone' });
       });
     }
-    else if (m.type === 'els') { const my = gen, a = A = { els: { ...m.els }, steps: [] }; done = false; needSv(a.els).then(() => { if (my === gen && A === a) restart(); }); }
+    else if (m.type === 'els') { const my = gen, a = A = { els: { ...m.els }, steps: [], voice: m.voice === true }; done = false; wavWait = {}; needSv(a.els).then(() => { if (my === gen && A === a) restart(); }); }
     else if (m.type === 'els_add' && A) { const a = A; Object.assign(a.els, m.els); needSv(m.els).then(() => { if (A === a) seek(at); }); }   // rare: redraw with the new drawings, same step
     else if (m.type === 'step' && A) A.steps.push(m.wav instanceof ArrayBuffer ? { ...m.step, wav: m.wav } : m.step);
+    else if (m.type === 'stepWav' && A && Number.isInteger(m.i) && A.steps[m.i]) {
+      A.steps[m.i].wav = m.wav instanceof ArrayBuffer ? m.wav : null;      // null: the voice failed, the browser speaks it
+      (wavWait[m.i] || []).forEach(f => f()); delete wavWait[m.i];
+    }
     else if (m.type === 'done') { done = true; if (A) where(); }
     else if (m.type === 'seek' && Number.isInteger(m.i)) seek(m.i);
     else if (m.type === 'pause') pause();

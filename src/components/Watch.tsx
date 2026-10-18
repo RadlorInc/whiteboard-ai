@@ -43,32 +43,113 @@ const FAILED: Record<string, string> = {
 };
 const msg = (code: string) => FAILED[code] ?? "Something went wrong. Nothing was charged.";
 
+type At = { i: number; n: number; done: boolean; paused?: boolean; waiting?: boolean };
+
+// The bar under the board (founder, 18 Oct 2026: jump to any step as soon as the video exists): play/pause (replay at
+// the end), previous/next, one segment per step to jump straight to it, where it is, full screen.
+function Controls({ at, labels, seek, toggle, full, isFull }: {
+  at: At; labels: string[]; seek: (i: number) => void; toggle: () => void; full?: () => void; isFull: boolean;
+}) {
+  const ended = at.i >= at.n;
+  return (
+    <div className="player-controls">
+      <button type="button" className="pc-btn pc-play" aria-label={ended ? "Replay" : at.paused ? "Play" : "Pause"}
+        onClick={ended ? () => seek(0) : toggle}>
+        <Icon name={ended ? "replay" : at.paused ? "play" : "pause"} size={ended ? 18 : 16} />
+      </button>
+      <button type="button" className="pc-btn" aria-label="Previous step" disabled={at.i === 0} onClick={() => seek(at.i - 1)}>
+        <Icon name="prev" size={14} />
+      </button>
+      <button type="button" className="pc-btn" aria-label="Next step" disabled={at.i >= at.n - 1} onClick={() => seek(at.i + 1)}>
+        <Icon name="next" size={14} />
+      </button>
+      <div className="pc-steps" role="group" aria-label="Steps">
+        {Array.from({ length: at.n }, (_, k) => (
+          <button key={k} type="button" title={labels[k]} onClick={() => seek(k)}
+            className={`pc-seg${k < at.i || ended ? " done" : ""}${k === at.i && !ended ? ` now${at.paused ? " held" : ""}${at.waiting ? " wait" : ""}` : ""}`}
+            aria-label={`Go to step ${k + 1}${labels[k] ? `: ${labels[k]}` : ""}`} aria-current={k === at.i ? "step" : undefined} />
+        ))}
+        {!at.done && <i className="pc-seg more" aria-hidden="true" />}
+      </div>
+      <span className="pc-count" aria-live="off">{ended ? "End" : `Step ${at.i + 1} of ${at.n}${at.done ? "" : "…"}`}</span>
+      {full && (
+        <button type="button" className="pc-btn" aria-label={isFull ? "Exit full screen" : "Full screen"} onClick={full}>
+          <Icon name={isFull ? "shrink" : "expand"} size={16} />
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function Player({ style, script, onEnded, bind, onStart, cover }: {
   style: Style; script?: Script | null; onEnded?: () => void; bind?: (post: (m: unknown) => void) => void;
   onStart?: () => void; cover?: React.ReactNode;     // cover: shown over the board until the first step plays
 }) {
   const frame = useRef<HTMLIFrameElement>(null);
+  const box = useRef<HTMLDivElement>(null);
   const ready = useRef(false);
   const soundBlocked = useSoundBlocked();
   const pending = useRef<unknown[]>([]);
   const [h, setH] = useState<number | null>(null);    // the player's own content height, once it says
-  const [at, setAt] = useState<{ i: number; n: number; done: boolean; paused?: boolean } | null>(null);   // whiteboard: the step playing
-  const post = useCallback((m: unknown) => {
+  const [at, setAt] = useState<At | null>(null);       // whiteboard: the step playing
+  const [labels, setLabels] = useState<string[]>([]);  // each step's spoken line, for the segments' titles
+  const [isFull, setFull] = useState(false);
+  const raw = useCallback((m: unknown) => {
     if (ready.current) frame.current?.contentWindow?.postMessage(m, "*");
     else pending.current.push(m);
   }, []);
+
+  // The voice is made behind the board, one line at a time, starting from the step the player is on (or was jumped
+  // to: 'need'), so every step can be reached at once and a jump ahead is not stuck behind the lines before it.
+  const feed = useRef({ lines: [] as string[], labels: [] as string[], got: new Set<number>(), want: 0, busy: false, alive: true, epoch: 0 });
+  const pump = useCallback(async () => {
+    const f = feed.current;
+    if (f.busy) return;
+    f.busy = true;
+    const ep = f.epoch;
+    try {
+      while (f.alive && ep === f.epoch) {
+        const n = f.lines.length;
+        let i = -1;
+        for (let k = 0; k < n; k++) { const j = (f.want + k) % n; if (!f.got.has(j)) { i = j; break; } }
+        if (i < 0) break;
+        f.got.add(i);
+        const wav = await speakLine(f.lines[i]);
+        if (!f.alive || ep !== f.epoch) break;
+        raw({ type: "stepWav", i, wav });
+      }
+    } finally { if (ep === f.epoch) f.busy = false; }
+  }, [raw]);
+  // What callers post: steps go in at once; with the app's voice on, the board waits for each line (voice: true).
+  const post = useCallback((m: unknown) => {
+    const msg = m as { type?: string; step?: { say: string } };
+    const f = feed.current;
+    if (msg?.type === "reset") { f.epoch++; f.lines = []; f.labels = []; f.got = new Set(); f.want = 0; f.busy = false; }
+    if (style === "whiteboard" && msg?.type === "step" && msg.step) {
+      f.labels.push(msg.step.say);
+      if (voiceOn()) { f.lines.push(msg.step.say); raw({ type: "step", step: msg.step }); pump(); return; }
+    }
+    if (style === "whiteboard" && msg?.type === "els" && voiceOn()) { raw({ ...(m as object), voice: true }); return; }
+    raw(m);
+  }, [raw, pump, style]);
+  useEffect(() => { const f = feed.current; f.alive = true; return () => { f.alive = false; }; }, []);
+
   useEffect(() => {
     const on = (e: MessageEvent) => {
       if (e.source !== frame.current?.contentWindow || !e.data) return;    // only our own iframe
-      if (e.data.type === "ready" && !ready.current) { ready.current = true; pending.current.splice(0).forEach(post); }
+      if (e.data.type === "ready" && !ready.current) { ready.current = true; pending.current.splice(0).forEach(raw); }
       if (e.data.type === "ended") onEnded?.();
       if (e.data.type === "size" && Number.isFinite(e.data.h) && e.data.h > 50 && e.data.h < 4000) setH(e.data.h);
-      if (e.data.type === "at") onStart?.();
-      if (e.data.type === "at") setAt({ i: e.data.i, n: e.data.n, done: e.data.done, paused: e.data.paused === true });
+      if (e.data.type === "need" && Number.isInteger(e.data.i)) { feed.current.want = e.data.i; pump(); }
+      if (e.data.type === "at") {
+        if (!e.data.waiting) onStart?.();
+        setAt({ i: e.data.i, n: e.data.n, done: e.data.done, paused: e.data.paused === true, waiting: e.data.waiting === true });
+        setLabels(feed.current.labels.slice());
+      }
       // The player's lines play on this page (an iPhone refuses sound started in the iframe): see lib/voice.ts.
       if (e.data.type === "play" && e.data.wav instanceof ArrayBuffer) {
         const id = e.data.id;
-        playSound(e.data.wav).then(() => post({ type: "played", id }));
+        playSound(e.data.wav).then(() => raw({ type: "played", id }));
       }
       if (e.data.type === "hush") stopSound();
       if (e.data.type === "pauseSound") pauseSound();
@@ -78,52 +159,50 @@ export function Player({ style, script, onEnded, bind, onStart, cover }: {
     // If the iframe loaded before this listener existed, its 'ready' was lost: ask again (it answers 'ready').
     frame.current?.contentWindow?.postMessage({ type: "hello" }, "*");
     return () => { removeEventListener("message", on); stopSound(); };
-  }, [post, onEnded, onStart]);
+  }, [raw, pump, onEnded, onStart]);
   useEffect(() => { startVoice(); }, []);
-  // A finished whiteboard script goes in as a stream, each step with its spoken line (made in order, ahead of the
-  // board), so a replay sounds like the first watch. Paper and match-cut take the script whole (browser voice).
+  // A finished whiteboard script goes in whole: every step at once, so any step can be jumped to; the voice follows.
+  // Paper and match-cut take the script whole (their lines follow as WAVs).
   useEffect(() => {
     if (!script) return;
-    if (style !== "whiteboard") return sendScript(post, style, script);
-    let live = true;
-    (async () => {
-      post({ type: "reset" }); post({ type: "els", els: script.els });
-      for (const step of script.steps ?? []) {
-        const wav = await speakLine(step.say);
-        if (!live) return;
-        post({ type: "step", step, wav });
-      }
-      post({ type: "done" });
-    })();
-    return () => { live = false; };
-  }, [script, post, style]);
+    if (style !== "whiteboard") return sendScript(raw, style, script);
+    post({ type: "reset" }); post({ type: "els", els: script.els });
+    for (const step of script.steps ?? []) post({ type: "step", step });
+    post({ type: "done" });
+  }, [script, post, raw, style]);
   useEffect(() => { bind?.(post); }, [bind, post]);      // the streaming caller sends steps through this
+  useEffect(() => {
+    const on = () => setFull(document.fullscreenElement === box.current);
+    document.addEventListener("fullscreenchange", on);
+    return () => document.removeEventListener("fullscreenchange", on);
+  }, []);
+
+  const seek = (i: number) => { if (at) { feed.current.want = Math.max(0, i); raw({ type: "seek", i: Math.max(0, Math.min(i, at.n - 1)) }); } };
+  const toggle = () => { if (at) raw({ type: at.paused ? "resume" : "pause" }); };
+  const canFull = typeof document !== "undefined" && document.fullscreenEnabled;
   return (
-    <div className="player">
+    <div className={`player${isFull ? " full" : ""}`} ref={box}
+      onKeyDown={(e) => {
+        // ← → steps, space / k play-pause (a focused button keeps its own space)
+        if (!at || (e.target as HTMLElement).closest("input, textarea, select")) return;
+        if (e.key === "ArrowRight") { e.preventDefault(); seek(at.i + 1); }
+        else if (e.key === "ArrowLeft") { e.preventDefault(); seek(at.i - 1); }
+        else if ((e.key === " " && !(e.target as HTMLElement).closest("button")) || e.key === "k") { e.preventDefault(); toggle(); }
+      }}>
       {soundBlocked && (
         <button type="button" className="btn tap-sound" onClick={tapForSound}>
           <Icon name="sound" size={18} /> Tap for sound
         </button>
       )}
       {cover}
+      {at?.waiting && !cover && (
+        <div className="pc-wait" role="status"><span className="spinner xs" aria-hidden="true" /> Preparing the voice for step {at.i + 1}…</div>
+      )}
       <iframe ref={frame} src={PAGE[style]} sandbox="allow-scripts" allow="autoplay" title="Video player" loading="eager"
-        style={h ? { height: h } : { aspectRatio: style === "matchcut" ? "960/500" : style === "paper" ? "960/720" : "960/660" }} />
+        style={h && !isFull ? { height: h } : { aspectRatio: style === "matchcut" ? "960/500" : style === "paper" ? "960/720" : "960/660" }} />
       {at && at.n > 0 && (
-        <div className="player-controls">
-          <button type="button" className="icon-btn" aria-label="Previous step" disabled={at.i === 0}
-            onClick={() => post({ type: "seek", i: at.i - 1 })}><Icon name="prev" size={16} /></button>
-          {at.i < at.n && (
-            <button type="button" className="icon-btn" aria-label={at.paused ? "Play" : "Pause"}
-              onClick={() => post({ type: at.paused ? "resume" : "pause" })}><Icon name={at.paused ? "play" : "pause"} size={16} /></button>
-          )}
-          <button type="button" className="icon-btn" aria-label="Next step" disabled={at.i >= at.n - 1}
-            onClick={() => post({ type: "seek", i: at.i + 1 })}><Icon name="next" size={16} /></button>
-          <input type="range" min={1} max={at.n} value={Math.min(at.i + 1, at.n)} aria-label="Step"
-            onChange={(e) => post({ type: "seek", i: Number(e.target.value) - 1 })} />
-          <span aria-live="off">
-            {at.i >= at.n ? "End" : `Step ${at.i + 1} of ${at.n}${at.done ? "" : "…"}`}
-          </span>
-        </div>
+        <Controls at={at} labels={labels} seek={seek} toggle={toggle} isFull={isFull}
+          full={canFull ? () => (isFull ? document.exitFullscreen() : box.current?.requestFullscreen()) : undefined} />
       )}
     </div>
   );
@@ -197,13 +276,10 @@ export function Watch({ question, style, explore = false, conversationId, onDone
 
   const run = useCallback(async (confirmNew = false) => {
     const post = (m: unknown) => postRef.current(m);
-    // Whiteboard messages go to the player in order, a step only once its spoken line is made (the board and the
-    // voice start together). The stream keeps arriving meanwhile; on a first visit the first step also waits for
-    // the model, and the page shows that load.
-    let line: Promise<unknown> = Promise.resolve();
-    const send = (m: Record<string, unknown>, say?: string) => {
-      line = line.then(async () => post(say === undefined ? m : { ...m, wav: await speakLine(say) }));
-    };
+    // Whiteboard messages go to the player as they stream in; the Player makes each step's line behind the board, and
+    // a step waits for its line (the board and the voice start together). On a first visit the first line also waits
+    // for the voice model, and the cover shows that load.
+    const send = (m: Record<string, unknown>) => post(m);
     const sendWhole = (script: Script) => { sendScript(post, style, script); };
     setError(null); setOwned(null);
     let res: Response;
@@ -240,7 +316,7 @@ export function Watch({ question, style, explore = false, conversationId, onDone
         else if (ev === "step") {
           if (d.i === 0) setMaking(m => ({ ...m, at: 3 }));
           scriptParts.steps[d.i] = d.step; setSteps(s => { const n = [...s]; n[d.i] = d.step.say; return n; });
-          if (style === "whiteboard") send({ type: "step", step: d.step }, d.step.say);
+          if (style === "whiteboard") send({ type: "step", step: d.step });
         }
         else if (ev === "script") { setPlaying(true); sendWhole(d.script); setSteps(d.script.objects.map((o: { say: string }) => o.say)); }
         else if (ev === "done") {

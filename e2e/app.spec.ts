@@ -25,18 +25,19 @@ test("ask, get charged, find it in the library, share it, unshare it", async ({ 
   await page.goto("/library");
   expect(await credits(page)).toBe(before - 4);
   await page.getByRole("main").getByRole("link", { name: question }).click();   // the sidebar lists the chat too
-  // The step controls move the replay: forward one step, then straight to the last one, then back one.
+  // The step controls move the replay: forward one step, then straight to the last one (every step is there at once,
+  // 18 Oct 2026), then back one.
   const where = page.locator(".player-controls span");
   await expect(where).toHaveText(/^Step 1 of (\d+)$/, { timeout: 30_000 });
   const steps = Number((await where.textContent())!.match(/of (\d+)/)![1]);
   await page.getByRole("button", { name: "Next step" }).click();
   await expect(where).toHaveText(`Step 2 of ${steps}`);
-  await page.getByRole("slider", { name: "Step" }).fill(String(steps));
+  await page.getByRole("button", { name: new RegExp(`^Go to step ${steps}(:|$)`) }).click();   // a step segment
   await expect(where).toHaveText(`Step ${steps} of ${steps}`);
   await page.getByRole("button", { name: "Previous step" }).click();
   await expect(where).toHaveText(`Step ${steps - 1} of ${steps}`);
   // When it ends, nothing on the board moves on: no running animation, no travelling dot (14 Oct 2026).
-  await page.getByRole("slider", { name: "Step" }).fill(String(steps));
+  await page.getByRole("button", { name: new RegExp(`^Go to step ${steps}(:|$)`) }).click();   // a step segment
   await expect(where).toHaveText("End", { timeout: 60_000 });
   const board = page.frames().find(f => f.url().includes("/player/index.html"))!;
   const moving = () => board.evaluate(() => ({

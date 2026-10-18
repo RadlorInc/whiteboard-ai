@@ -112,6 +112,8 @@
   browser no longer does. pgTAP `56_explore_chats` (22).
 - Signed out, `/v/[slug]` plays only the opened video; the chat's rest is blurred under "Sign up to watch the rest"
   (scripts not sent). Sign up / log in return there (`next` through invite → age → sign-in, `okNext`).
+- Player: every step goes in at once (`voice: true` on els); the Player makes lines behind the board from the
+  current/jumped step (`need`, `stepWav`), so any step is reachable at once. Controls: step segments, keys, full screen.
 - No `(app)/loading.tsx`: it streams early, so `notFound()` answered 200 (IDOR and unshare e2e want 404).
 - Also: error screen, skip link, real titles + link previews, ⌘K chat search, ⌘⇧O new chat, toasts, chat header
   (Share, Delete chat = delete_my_video each), Share per answer, jump-to-latest, Your videos as a grid + search.
