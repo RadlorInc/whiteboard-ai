@@ -102,7 +102,10 @@ const SUBJECTS = {
   short query (e.g. "lungs alveoli", "neuron synapse", "mitochondria"); draw a match with "sv id=<name> cx cy height"
   (draw it, then fill it), one or two per lesson, big. When its search result lists "parts: ...", point at them with
   pins ("p1": "pin of=<its element id> part=<part>"), drawn one by one in the step that explains each part; centre the
-  drawing and keep the left 200 and right 260 pixels free for the pins' words. Otherwise label it with your own text.` },
+  drawing and keep the left 200 and right 260 pixels free for the pins' words. Otherwise label it with your own text.
+- Over a realistic drawing (heartcut or sv) draw nothing else: no arrows, tags, text or shapes on top of it, since
+  they hide the picture and cross the pins' lines. Name and explain its parts only with pins (a pin's "| words" can
+  say what the part does, at most 4 words). Put the numbered step tags in one row above or below it, clear of it.` },
   physics: { cats: ['physics', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
 - Teaching physics: show the cause and the effect, with forces, energy and waves drawn as arrows. Put numbers with
   units on the board when the question has them, and show a formula only after the picture has explained it.` },

@@ -149,7 +149,8 @@ async function draw(id, ms = 800) {
   const el = strokeOf(id);
   if (el.tagName !== 'g') return drawEl(el, ms);
   // recipe: saari lines ek-ek karke (lambai ke hisaab se samay), phir uske labels
-  const inks = [...el.querySelectorAll('.ink')], total = inks.reduce((s, e) => s + e.getTotalLength(), 0);
+  // .linked: a pin's outline kept inside the drawing it points at; the pin draws it (el.linked), the drawing does not
+  const inks = [...el.querySelectorAll('.ink:not(.linked)'), ...(el.linked || [])], total = inks.reduce((s, e) => s + e.getTotalLength(), 0);
   for (const e of inks) await drawEl(e, Math.max(50, ms * e.getTotalLength() / total));
   for (const t of el.querySelectorAll('.lbl')) await write(t, 500);
 }

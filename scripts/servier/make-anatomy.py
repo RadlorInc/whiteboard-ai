@@ -42,9 +42,12 @@ js = '''// Whiteboard library — anatomy: realistic drawings adapted from Servi
       if (!part) throw new Error(`pin: no part "${o.part}" on "${o.of}"`);
       const { ox, oy, s, w } = h.place, P = (x, y) => [ox + x * s, oy + y * s], col = COL[part.kind] || '#444';
       const g = mk('g', { class: 'polished anat' }, parent);
-      const trace = mk('g', { transform: `translate(${ox} ${oy}) scale(${s})` }, g);
-      const tw = (part.kind === 'valve' ? 2 : 3.2) / s;   // valves are lacy: a thinner trace
-      for (const i of part.shapes) mk('path', { d: h.place.data.shapes[i][0], fill: 'none', stroke: col, 'stroke-width': tw, 'stroke-linejoin': 'round', class: 'ink', opacity: .9 }, trace);
+      // The part's outline and the ring on it live inside the drawing (its moving layer), so they beat, sway or pop
+      // with it; they are this pin's ink all the same (g.linked: draw draws them, the drawing's own draw skips .linked).
+      const inside = h.anim || h, tw = (part.kind === 'valve' ? 2 : 3.2) / s;   // valves are lacy: a thinner trace
+      g.linked = part.shapes.map(i => mk('path', { d: h.place.data.shapes[i][0], fill: 'none', stroke: col, 'stroke-width': tw, 'stroke-linejoin': 'round', class: 'ink linked', opacity: .9 }, inside));
+      const [px, py] = part.at, r = 3.5 / s;
+      g.linked.push(mk('path', { d: `M${px - r} ${py} a${r} ${r} 0 1 0 ${2 * r} 0 a${r} ${r} 0 1 0 ${-2 * r} 0`, fill: 'none', stroke: '#333', 'stroke-width': 1.5 / s, class: 'ink linked' }, inside));
       const [ax, ay] = P(...part.at), left = part.label[0] === 'L';
       let [lx, ly] = P(left ? -50 : w + 50, part.label[1]);
       // on the board: words stay inside it, and two pins' words on one side keep 20 px apart (a wide drawing is small)
@@ -52,9 +55,11 @@ js = '''// Whiteboard library — anatomy: realistic drawings adapted from Servi
       const used = (h.usedY ||= { L: [], R: [] })[left ? 'L' : 'R'];
       while (used.some(y => Math.abs(y - ly) < 20)) ly += 20;
       used.push(ly);
-      // one stroke: a small ring on the part, then the leader to the words (a separate circle left a speck before it was drawn)
-      line(g, `M${ax - 3.5} ${ay} a3.5 3.5 0 1 0 7 0 a3.5 3.5 0 1 0 -7 0 M${ax} ${ay} L${lx + (left ? 6 : -6)} ${ly - 5}`, '#333', 1.5);
-      label(g, lx, ly, t || part.name, col, 16, left ? 'end' : 'start');
+      // the leader, over a white halo so it reads across the drawing; the words get a halo too
+      const lead = `M${ax} ${ay} L${lx + (left ? 6 : -6)} ${ly - 5}`;
+      line(g, lead, '#fff', 4, { opacity: .85 }); line(g, lead, '#4b5158', 1.3);
+      const tx = label(g, lx, ly, t || part.name, col, 16, left ? 'end' : 'start');
+      Object.assign(tx.style, { paintOrder: 'stroke', stroke: '#fff', strokeWidth: '4px', strokeLinejoin: 'round' });
       return g;
     },
   });
