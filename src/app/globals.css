@@ -556,3 +556,19 @@ li.now .tick { border-color: transparent; }
   .topbar { display: flex; justify-content: flex-end; position: sticky; top: 0; z-index: 20; height: 56px; padding: 0 20px; background: transparent; }
   .topbar > .icon-btn, .topbar > .brand, .topbar .topbar-new { display: none; }
 }
+
+/* ---- The videos-left ring round the avatar (top right) ---- */
+.ring { position: relative; display: grid; place-items: center; width: 40px; height: 40px; }
+.ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 3; }
+.ring .ring-track { stroke: var(--surface-3); }
+.ring .ring-fill { stroke-linecap: round; transition: stroke-dasharray .4s ease, stroke .4s; }
+.ring.green .ring-fill { stroke: #22c55e; }
+.ring.amber .ring-fill { stroke: #f59e0b; }
+.ring.red .ring-fill { stroke: #ef4444; }
+.menu.profile .ring .avatar { width: 30px; height: 30px; }
+.menu.profile > summary:hover .ring .avatar, .menu.profile[open] > summary .ring .avatar { box-shadow: none; }
+.menu.profile > summary:hover .ring-track { stroke: #3f3f46; }
+.menu.profile > summary { width: 44px; height: 44px; min-height: 44px; padding: 0; justify-content: center; border-radius: 50%; }
+.menu.profile > summary:focus-visible { outline-offset: 1px; border-radius: 50%; }
+.menu.profile > summary:focus:not(:focus-visible) { outline: none; }

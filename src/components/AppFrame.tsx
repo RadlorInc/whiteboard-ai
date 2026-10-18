@@ -12,6 +12,9 @@ import { Icon, type IconName } from "./Icon";
 
 import { HOLD_CREDITS, videos, videosLeft } from "@/lib/videos";
 
+// ponytail: a fixed "full" mark (Plus is ~37 videos, invite credits ~25); use the plan's own size once plans are videos.
+const RING_FULL = 25;
+
 function Brand() {
   return (
     <Link href="/ask" className="brand">
@@ -66,7 +69,10 @@ export function AppFrame({ email, available, chats, children }: {
     return () => removeEventListener("keydown", esc);
   }, [open]);
 
-  const low = available < HOLD_CREDITS;
+  // The ring round the avatar (founder, 18 Oct 2026): how many videos are left, at a glance. Full at RING_FULL or more;
+  // green, then amber under half, red under a fifth or at none.
+  const left = videosLeft(available), share = Math.min(left / RING_FULL, 1);
+  const ring = available < HOLD_CREDITS || share < 0.2 ? "red" : share < 0.5 ? "amber" : "green";
   const nav: [string, IconName, string][] = [["/explore", "compass", "Explore"], ["/saved", "bookmark", "Collection"], ["/library", "videos", "Your videos"]];
   const active = path.startsWith("/c/") ? path.slice(3) : undefined;
   const subjects = (Object.keys(SUBJECT_NAME) as Subject[]).filter((s) => chats.some((c) => c.subject === s));
@@ -114,11 +120,6 @@ export function AppFrame({ email, available, chats, children }: {
           {chats.length > 0 && shown.length === 0 ? <p className="side-empty">No chat matches.</p> : <ChatList chats={shown} active={active} />}
           {chats.length >= 10 && <Link href="/chats" className="side-all">All chats</Link>}
         </div>
-        <div className="side-foot">
-          <Link href="/buy" className={`pill${low ? " low" : ""}`} data-credits={available} aria-label={`${videos(videosLeft(available))} left. Get more`}>
-            <Icon name="videos" size={16} /> {videos(videosLeft(available))} left
-          </Link>
-        </div>
       </aside>
       {open && <div className="scrim" aria-hidden="true" onClick={() => setOpen(false)} />}
       <div className="app-main" id="main" tabIndex={-1}>
@@ -132,8 +133,14 @@ export function AppFrame({ email, available, chats, children }: {
             <a href="/ask" className="icon-btn topbar-new" aria-label="New chat"><Icon name="newChat" /></a>
           {/* Profile, top right (founder, 18 Oct 2026) */}
           <details className="menu down profile" ref={menu}>
-            <summary aria-label="Account menu">
-              <span className="avatar" aria-hidden="true">{email.slice(0, 1).toUpperCase()}</span>
+            <summary aria-label={`Account menu, ${videos(left)} left`} data-credits={available}>
+              <span className={`ring ${ring}`} aria-hidden="true">
+                <svg viewBox="0 0 40 40" width="40" height="40">
+                  <circle cx="20" cy="20" r="18" className="ring-track" />
+                  <circle cx="20" cy="20" r="18" className="ring-fill" pathLength="100" strokeDasharray={`${Math.max(share * 100, left > 0 ? 4 : 0)} 100`} />
+                </svg>
+                <span className="avatar">{email.slice(0, 1).toUpperCase()}</span>
+              </span>
             </summary>
             <div className="menu-list">
               <p className="menu-who"><span className="avatar" aria-hidden="true">{email.slice(0, 1).toUpperCase()}</span><span>{email}</span></p>

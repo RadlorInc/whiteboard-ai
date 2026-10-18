@@ -23,8 +23,8 @@ export async function signIn(page: Page, email: string) {
   await page.waitForURL(/\/(ask|start)/);
 }
 
-// The sidebar shows videos left; the credit balance behind it is on the pill as data-credits.
-export const credits = async (page: Page) => Number(await page.locator(".pill").first().getAttribute("data-credits"));
+// The profile ring shows videos left; the credit balance behind it is on the avatar as data-credits.
+export const credits = async (page: Page) => Number(await page.locator("[data-credits]").first().getAttribute("data-credits"));
 
 // RFC 6238 TOTP (SHA-1, 30 s, 6 digits) from a base32 secret: what an authenticator app shows.
 import { createHmac } from "node:crypto";
