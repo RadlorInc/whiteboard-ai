@@ -21,6 +21,7 @@
   .polished text { font-family: "Helvetica Neue", Arial, sans-serif; font-weight: 600; }
   /* anatomy drawings and pins: square line ends, so an undrawn line (dash offset = its length) shows no dot */
   .anat .ink { stroke-linecap: butt; }
+  #scene.on-anat .prim, #scene.on-anat .trip { filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1px #fff); }
   .fillable { transition: fill-opacity .7s ease; fill-opacity: 0; }
   .fillable.on { fill-opacity: 1; }
   .pivot { transform-box: fill-box; transform-origin: center; }
@@ -114,11 +115,14 @@ function build(answer) {
     }
     else throw new Error(`Unknown element type "${type}" in ${id}`);
     e.kind = type; e.off = [0, 0];
+    if (['line', 'arrow', 'path', 'circle', 'ellipse', 'rect'].includes(type)) e.classList.add('prim');
     els[id] = e;
   }
   marker = mk('g', { style: 'opacity:0' }, scene);
   marker.innerHTML = '<g transform="rotate(-35)"><path d="M0 0 L8 -14 L-8 -14Z" fill="#222"/><rect x="-11" y="-110" width="22" height="96" rx="6" fill="#2f7fd6" stroke="#1d1d1f" stroke-width="3"/><rect x="-11" y="-120" width="22" height="22" rx="5" fill="#1d1d1f"/></g>';
   // sab chhupa do
+  // Over a realistic drawing a plain arrow or line gets a white edge, or a red arrow vanishes on a red heart
+  scene.classList.toggle('on-anat', !!scene.querySelector('.anat'));
   scene.querySelectorAll('.ink').forEach(e => { const L = e.getTotalLength(); e.style.strokeDasharray = L; e.style.strokeDashoffset = L; });
   scene.querySelectorAll('text.hand:not(.fillable)').forEach(e => e.style.clipPath = 'inset(0 100% 0 0)');
   setCam(480, 270, 1, 0);

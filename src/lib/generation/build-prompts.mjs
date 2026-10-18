@@ -103,9 +103,11 @@ const SUBJECTS = {
   (draw it, then fill it), one or two per lesson, big. When its search result lists "parts: ...", point at them with
   pins ("p1": "pin of=<its element id> part=<part>"), drawn one by one in the step that explains each part; centre the
   drawing and keep the left 200 and right 260 pixels free for the pins' words. Otherwise label it with your own text.
-- Over a realistic drawing (heartcut or sv) draw nothing else: no arrows, tags, text or shapes on top of it, since
-  they hide the picture and cross the pins' lines. Name and explain its parts only with pins (a pin's "| words" can
-  say what the part does, at most 4 words). Put the numbered step tags in one row above or below it, clear of it.` },
+- Over a realistic drawing (heartcut or sv) put no tags, text or shapes: they hide the picture and cross the pins'
+  lines. Name and explain its parts only with pins (a pin's "| words" can say what the part does, at most 4 words).
+  To show something moving through it (blood, air, food, a signal), use at most one arrow or one travel per step,
+  following the real path inside the drawing, in a colour that differs from the part under it (blue or dark on red);
+  it gets a white edge so it stands out. Put the numbered step tags in one row above or below it, clear of it.` },
   physics: { cats: ['physics', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
 - Teaching physics: show the cause and the effect, with forces, energy and waves drawn as arrows. Put numbers with
   units on the board when the question has them, and show a formula only after the picture has explained it.` },
