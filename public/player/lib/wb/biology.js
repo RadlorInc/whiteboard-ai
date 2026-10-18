@@ -1,8 +1,9 @@
 // Whiteboard library — biology: detailed, labelled teaching diagrams for the core school topics (heart and
 // circulation, breathing, digestion, nerves, DNA and cell division, leaves and plants). Catalogue: biology.txt.
-// Every drawing names its parts by default (lab=0 hides the words). Only the biology subject prompt lists these.
+// Every drawing names its parts by default (lab=0 hides the words) and is drawn polished (class polished). Only the biology subject prompt lists these.
 (() => {
-  const G = (cx, cy, S, D, o, parent) => mk('g', { transform: `translate(${cx} ${cy}) rotate(${o.rot || 0}) scale(${S / D})` }, parent);
+  // class polished: clean lines, flat colour, plain labels (index.html), not the rough whiteboard look
+  const G = (cx, cy, S, D, o, parent) => mk('g', { class: 'polished', transform: `translate(${cx} ${cy}) rotate(${o.rot || 0}) scale(${S / D})` }, parent);
   const fill = (g, d, f, ex = {}) => mk('path', { d, fill: f, filter: 'url(#wc)', class: 'fillable', ...ex }, g);
   const part = (g, d, f, ink, w = 3) => { fill(g, d, f); return line(g, d, ink, w); };
   const ell = (x, y, rx, ry = rx) => `M${x - rx} ${y} a${rx} ${ry} 0 1 0 ${2 * rx} 0 a${rx} ${ry} 0 1 0 ${-2 * rx} 0 Z`;
