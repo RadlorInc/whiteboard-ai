@@ -3,7 +3,7 @@
 begin;
 set local search_path = public, extensions;
 \ir helpers.psql
-select plan(579);
+select plan(594);
 
 create temp table tbl (t text primary key);
 insert into tbl values ('profiles'),('invites'),('price_catalog'),('credit_balances'),('generations'),
@@ -34,6 +34,8 @@ insert into fn values
   ('get_shared_video','{anon,authenticated,service_role}'), ('health_ping','{anon,authenticated,service_role}'),
   ('explore_list','{anon,authenticated,service_role}'), ('set_explore','{authenticated}'),
   ('create_conversation','{authenticated}'), ('attach_to_conversation','{service_role}'),
+  ('explore_feed','{anon,authenticated,service_role}'), ('explore_series','{anon,authenticated,service_role}'),
+  ('explore_related','{anon,authenticated,service_role}'), ('explore_on_finish','{service_role}'),
   ('accept_terms','{authenticated}'), ('redeem_invite','{authenticated}'), ('is_live_user','{authenticated}'),
   ('search_my_videos','{authenticated}'), ('create_share','{authenticated}'), ('revoke_share','{authenticated}'),
   ('submit_feedback','{authenticated}'), ('admin_adjust_credits','{authenticated}'),
@@ -59,7 +61,7 @@ insert into fn values
   ('sweep','{}'), ('daily','{}'), ('check_credit_drift','{}'), ('is_admin','{}'), ('narration_chars','{}'),
   ('_ledger','{}'), ('_expire_bucket','{}'), ('_write_internal','{}'), ('_clips_ok','{}'), ('_fail_locked','{}'),
   ('_stripe_begin','{}'), ('_stripe_outcome','{}'), ('_stripe_args_ok','{}'), ('_has_contact_info','{}'),
-  ('_new_slug','{}'), ('_admin_check','{}'), ('_audit','{}');
+  ('_new_slug','{}'), ('_admin_check','{}'), ('_audit','{}'), ('_explore_items','{}');
 
 create function pg_temp.call_sql(p_f text) returns text language sql as $$
   select format('select public.%I(%s)::text', p_f, coalesce((select string_agg('null::' || format_type(t, null), ', ' order by o)

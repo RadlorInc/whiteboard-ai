@@ -55,12 +55,15 @@ insert into want_fn values
   -- anon, authenticated, service_role
   ('get_shared_video', '{anon,authenticated,service_role}', true),
   ('explore_list',     '{anon,authenticated,service_role}', true),
+  ('explore_feed',     '{anon,authenticated,service_role}', true), ('explore_series', '{anon,authenticated,service_role}', true),
+  ('explore_related',  '{anon,authenticated,service_role}', true),
   ('health_ping',      '{anon,authenticated,service_role}', false),
   -- authenticated
   ('accept_terms','{authenticated}',true), ('redeem_invite','{authenticated}',true), ('is_live_user','{authenticated}',true),
   ('search_my_videos','{authenticated}',false), ('create_share','{authenticated}',true), ('revoke_share','{authenticated}',true),
   ('submit_feedback','{authenticated}',true), ('set_explore','{authenticated}',true),
   ('create_conversation','{authenticated}',true), ('attach_to_conversation','{service_role}',true),
+  ('explore_on_finish','{service_role}',true),
   ('admin_adjust_credits','{authenticated}',true), ('admin_refund_generation','{authenticated}',true),
   ('admin_set_flags','{authenticated}',true), ('admin_set_settings','{authenticated}',true),
   ('admin_unpublish_share','{authenticated}',true), ('admin_view_generation','{authenticated}',true),
@@ -95,7 +98,7 @@ insert into want_fn values
   ('narration_chars','{}',false), ('generations_guard','{}',false), ('ledger_append_only','{}',false),
   ('_ledger','{}',false), ('_expire_bucket','{}',false), ('_write_internal','{}',false), ('_clips_ok','{}',false),
   ('_fail_locked','{}',false), ('_stripe_begin','{}',false), ('_stripe_outcome','{}',false),
-  ('_stripe_args_ok','{}',false), ('_has_contact_info','{}',false), ('_new_slug','{}',false),
+  ('_stripe_args_ok','{}',false), ('_has_contact_info','{}',false), ('_new_slug','{}',false), ('_explore_items','{}',true),
   ('_admin_check','{}',false), ('_audit','{}',false);
 
 create function pg_temp.fn_acl() returns table(f text, grantee text) language sql as $$
