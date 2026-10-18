@@ -11,12 +11,12 @@ insert into want_tables values ('profiles'),('invites'),('price_catalog'),('cred
   ('generation_calls'),('generation_internal'),('credit_ledger'),('prompt_cache_state'),('miss_counts'),('purchases'),
   ('subscriptions'),('stripe_events'),('shares'),('video_feedback'),('reports'),('support_messages'),('admins'),
   ('admin_audit'),('account_flags'),('ops_settings'),('ops_alerts'),('ops_state'),('rate_limits'),('client_errors'),
-  ('email_outbox');
+  ('email_outbox'),('conversations');
 
 select set_eq(
   $$select relname::text from pg_class where relnamespace = 'public'::regnamespace and relkind in ('r','p','v','m','f')$$,
   $$select t from want_tables$$,
-  'public holds exactly the 26 hand-listed tables (no views, no unlisted table)');
+  'public holds exactly the 27 hand-listed tables (no views, no unlisted table)');
 
 select is_empty(
   $$select relname from pg_class where relnamespace = 'public'::regnamespace and relkind in ('r','p') and not relrowsecurity$$,
@@ -28,7 +28,8 @@ insert into want_table_acl select t, 'service_role', 'SELECT' from want_tables;
 insert into want_table_acl values ('profiles','authenticated','SELECT'), ('credit_balances','authenticated','SELECT'),
   ('credit_ledger','authenticated','SELECT'), ('generations','authenticated','SELECT'),
   ('purchases','authenticated','SELECT'), ('subscriptions','authenticated','SELECT'),
-  ('shares','authenticated','SELECT'), ('video_feedback','authenticated','SELECT');
+  ('shares','authenticated','SELECT'), ('video_feedback','authenticated','SELECT'),
+  ('conversations','authenticated','SELECT');
 
 -- The query the posture rests on: every privilege of the three API roles (and PUBLIC) on public relations.
 create function pg_temp.table_acl() returns table(t text, grantee text, priv text) language sql as $$
@@ -59,6 +60,7 @@ insert into want_fn values
   ('accept_terms','{authenticated}',true), ('redeem_invite','{authenticated}',true), ('is_live_user','{authenticated}',true),
   ('search_my_videos','{authenticated}',false), ('create_share','{authenticated}',true), ('revoke_share','{authenticated}',true),
   ('submit_feedback','{authenticated}',true), ('set_explore','{authenticated}',true),
+  ('create_conversation','{authenticated}',true), ('attach_to_conversation','{service_role}',true),
   ('admin_adjust_credits','{authenticated}',true), ('admin_refund_generation','{authenticated}',true),
   ('admin_set_flags','{authenticated}',true), ('admin_set_settings','{authenticated}',true),
   ('admin_unpublish_share','{authenticated}',true), ('admin_view_generation','{authenticated}',true),
@@ -127,7 +129,8 @@ select set_eq(
     ('purchases','purchases_own','SELECT','{authenticated}','((user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_live_user() AS is_live_user))',null),
     ('subscriptions','subscriptions_own','SELECT','{authenticated}','((user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_live_user() AS is_live_user))',null),
     ('shares','shares_own','SELECT','{authenticated}','((user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_live_user() AS is_live_user))',null),
-    ('video_feedback','video_feedback_own','SELECT','{authenticated}','((user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_live_user() AS is_live_user))',null)$$,
+    ('video_feedback','video_feedback_own','SELECT','{authenticated}','((user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_live_user() AS is_live_user))',null),
+    ('conversations','conversations_own','SELECT','{authenticated}','((user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_live_user() AS is_live_user))',null)$$,
   'pg_policies equals the hand-written list');
 
 -- Positive controls: the same queries DO find each defect when one is planted (then rolled back).

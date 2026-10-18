@@ -3,7 +3,7 @@
 import { runGeneration } from './run';
 import { POLICY_VERSION } from './checks.mjs';
 import { PROMPT_SHA, STYLES, type ModelClient, type Style } from './model';
-import type { GenDb, ReserveOutcome } from './db';
+import type { GenDb, ReserveOutcome, Thread } from './db';
 
 export const HOLD_CREDITS = 6;
 export const HEARTBEAT_MS = 10_000;
@@ -45,6 +45,17 @@ function refused(outcome: ReserveOutcome, r: { generation_id: string | null; ava
 const existing = (g: { id: string; status: string }) =>
   g.status === 'succeeded' ? json(200, { id: g.id, status: 'succeeded' }) : json(409, { id: g.id, status: g.status === 'failed' ? 'failed' : 'running' });
 
+// What a follow-up's model call is told before the question: the subject and the conversation so far (questions and
+// their spoken lines; no drawings). It goes in the user turn, so the cached system prompt stays byte-identical.
+const SUBJECT = { biology: 'Biology', physics: 'Physics', chemistry: 'Chemistry' } as const;
+export function threadContext(t: Thread): string {
+  const head = `Subject: ${SUBJECT[t.subject]}.`;
+  if (t.turns.length === 0) return head;
+  const past = t.turns.map((x, i) => `${i + 1}. Question: ${x.question}\n   You explained: ${x.says.join(' ')}`).join('\n');
+  return `${head}\nThis question is a follow-up in a conversation. Earlier questions and the lessons you gave:\n${past}\n` +
+    'Answer the new question below with a new lesson. Build on what was already explained; do not repeat it, and refer back to it where it helps.';
+}
+
 export type GenerateDeps = {
   db: GenDb; client: ModelClient | null; userId: string | null; appUrl: string | undefined;
   buildId: string; waitUntil: (p: Promise<unknown>) => void; heartbeatMs?: number;
@@ -63,11 +74,20 @@ export async function handleGenerate(req: Request, d: GenerateDeps): Promise<Res
   const style = body.style as Style;
   if (!STYLES.includes(style) || !isUuid(body.client_request_id)) return json(400, { code: 'bad_request' });
   const requestId = body.client_request_id;
+  // A question inside a conversation (founder, 18 Oct 2026): the conversation must be the asker's own.
+  const conversationId = body.conversation_id ?? null;
+  if (conversationId !== null && !isUuid(conversationId)) return json(400, { code: 'bad_request' });
 
   // A retry of an accepted ask gets its id back before any other check (§6.6 step 1).
   const prior = await d.db.findByRequest(d.userId, requestId);
   if (prior) return existing(prior);
-  if (body.confirm_new !== true) {
+  let thread: Thread | null = null;
+  if (conversationId) {
+    thread = await d.db.thread(d.userId, conversationId);
+    if (!thread) return json(404, { code: 'conversation_not_found' });
+  }
+  // In a conversation every question gets its own video (a follow-up builds on the ones before), so no reuse offer.
+  if (body.confirm_new !== true && !conversationId) {
     const owned = await d.db.findOwned(d.userId, style, questionNorm(question));
     if (owned) return json(409, { code: 'already_owned', id: owned.id, created_at: owned.created_at });
   }
@@ -78,6 +98,7 @@ export async function handleGenerate(req: Request, d: GenerateDeps): Promise<Res
   if (r.outcome === 'duplicate') return existing({ id: r.generation_id!, status: r.status ?? 'running' });
   if (r.outcome !== 'reserved' || !r.generation_id) return refused(r.outcome, r);
   const id = r.generation_id;
+  if (conversationId) await d.db.attach(id, conversationId, d.userId).catch(() => false);   // unfiled still plays
   if (!(await d.db.start(id))) {
     const f = await d.db.fail(id, 'stale', { steps_sent: 0 });
     return json(503, { code: 'stale', refunded: true, available: f.available });
@@ -95,7 +116,7 @@ export async function handleGenerate(req: Request, d: GenerateDeps): Promise<Res
   send('accepted', { id, style, creditsHeld: HOLD_CREDITS, capChars: style === 'matchcut' ? 700 : 900 });
   const hb = setInterval(() => write(': hb\n\n'), d.heartbeatMs ?? HEARTBEAT_MS);
   const client = d.client;
-  const work = runGeneration({ id, style, question, client, db: d.db, send })
+  const work = runGeneration({ id, style, question, context: thread ? threadContext(thread) : undefined, client, db: d.db, send })
     .catch(() => send('failed', { code: 'provider_error', refunded: false }))   // finish/fail itself failed: the sweep releases
     .finally(() => { clearInterval(hb); if (!clientGone) try { ctrl?.close(); } catch {} });
   d.waitUntil(work);

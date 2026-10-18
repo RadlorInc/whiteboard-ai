@@ -23,6 +23,9 @@ export type GenerationRow = {
   stage: string | null; script: unknown; error_code: string | null; credits_charged: number; narration_chars: number;
   created_at: string; question: string | null;
 };
+export type Subject = 'biology' | 'physics' | 'chemistry';
+// A conversation's subject and its earlier answered questions, oldest first, each with its spoken lines.
+export type Thread = { subject: Subject; turns: { question: string; says: string[] }[] };
 export type CacheState = { style: Style; prompt_sha: string; last_touch_at: string | null; last_real_at: string | null };
 
 export interface GenDb {
@@ -37,4 +40,6 @@ export interface GenDb {
   getOwn(id: string, userId: string): Promise<GenerationRow | null>;
   expireIfStale(id: string): Promise<string>;
   cacheState(): Promise<CacheState[]>;
+  thread(userId: string, conversationId: string): Promise<Thread | null>;
+  attach(generationId: string, conversationId: string, userId: string): Promise<boolean>;
 }

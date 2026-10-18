@@ -29,14 +29,16 @@ export function providerCode(e: unknown): FailCode {
 }
 
 export async function runGeneration(o: {
-  id: string; style: Style; question: string; client: ModelClient; db: GenDb; send: Send;
+  id: string; style: Style; question: string; context?: string; client: ModelClient; db: GenDb; send: Send;
   deadlineMs?: number; retryWaitMs?: (n: number) => number;
 }) {
   const { id, style, question, client, db, send } = o;
   const t0 = Date.now(), at = () => Date.now() - t0;
   const timings: Record<string, number> = { accept: 0 };
   const misses: string[] = [], lib = (style === 'whiteboard' ? WB_LIB : PAPER_LIB) as Lib;
-  const messages: Json[] = [{ role: 'user', content: question }];
+  // A conversation's context (subject, earlier questions) goes first in the same user turn; the question stays last.
+  const messages: Json[] = [{ role: 'user', content: o.context
+    ? [{ type: 'text', text: o.context }, { type: 'text', text: `New question: ${question}` }] : question }];
   let sentEls: Json | null = null; const sent: Step[] = [];
   let attempts = 1, outputTokens = 0, settled = false;
   const abort = new AbortController(), timer = setTimeout(() => abort.abort(), o.deadlineMs ?? LIMITS.deadlineMs);

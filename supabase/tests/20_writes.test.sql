@@ -3,18 +3,18 @@
 begin;
 set local search_path = public, extensions;
 \ir helpers.psql
-select plan(561);
+select plan(579);
 
 create temp table tbl (t text primary key);
 insert into tbl values ('profiles'),('invites'),('price_catalog'),('credit_balances'),('generations'),
   ('generation_calls'),('generation_internal'),('credit_ledger'),('prompt_cache_state'),('miss_counts'),('purchases'),
   ('subscriptions'),('stripe_events'),('shares'),('video_feedback'),('reports'),('support_messages'),('admins'),
   ('admin_audit'),('account_flags'),('ops_settings'),('ops_alerts'),('ops_state'),('rate_limits'),('client_errors'),
-  ('email_outbox');
+  ('email_outbox'),('conversations');
 create temp table who (r text, sub uuid);
 insert into who values ('anon', null), ('authenticated', '00000000-0000-4000-8000-00000000000a'), ('service_role', null);
 
--- 26 tables x 3 roles x INSERT, UPDATE, DELETE, TRUNCATE = 312. The message names the privilege check, so a planted
+-- 27 tables x 3 roles x INSERT, UPDATE, DELETE, TRUNCATE = 324. The message names the privilege check, so a planted
 -- grant that RLS then blocks (a different error with the same SQLSTATE) still fails here.
 select is(pg_temp.q(w.r, w.sub, 'aal1', format(op.sql, t.t, (select attname from pg_attribute
             where attrelid = ('public.' || t.t)::regclass and attnum > 0 and not attisdropped
@@ -33,6 +33,7 @@ create temp table fn (f text primary key, roles text[]);
 insert into fn values
   ('get_shared_video','{anon,authenticated,service_role}'), ('health_ping','{anon,authenticated,service_role}'),
   ('explore_list','{anon,authenticated,service_role}'), ('set_explore','{authenticated}'),
+  ('create_conversation','{authenticated}'), ('attach_to_conversation','{service_role}'),
   ('accept_terms','{authenticated}'), ('redeem_invite','{authenticated}'), ('is_live_user','{authenticated}'),
   ('search_my_videos','{authenticated}'), ('create_share','{authenticated}'), ('revoke_share','{authenticated}'),
   ('submit_feedback','{authenticated}'), ('admin_adjust_credits','{authenticated}'),
