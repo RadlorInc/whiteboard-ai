@@ -104,6 +104,11 @@
   projected truncated icosahedron. Then: `unclutter` also fixes a word running across a library drawing's edge (a
   title shrinks first, others move then shrink; a word wholly inside a drawing stays), and a lone superscript sign
   (e⁻, Cl⁻) is drawn at 90% bold instead of 66%. Not handled: words over the model's own primitive shapes.
+- **Smoke test before merge (6 real videos on the new recipes, $0.32):** 5 picked the new recipes (krebs,
+  actionpotential + channelgating, doubleslit, sn2 + energyprofile, titration + burette); the Feynman one drew its
+  own. Found an old player bug: a tag drawn but never filled showed an empty box (3 of 6 videos); now a tag's words
+  show when its box is drawn. A tag may no longer sit on a library drawing (unclutter). Left: a model title or note
+  over a recipe's own heading where no free spot exists.
   Cost of the 6 test videos ~$2. Shas: biology `d15eff…`, physics `0aa6e0…`, chemistry `cc7eeb…`.
 
 ## Graduate (master's) layer, all three subjects (19 Oct 2026, not committed yet)

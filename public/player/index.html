@@ -106,17 +106,18 @@ function unclutter(movable, drawings) {
   const inside = (q, d) => q.x >= d.x - 2 && q.y >= d.y - 2 && q.x + q.w <= d.x + d.w + 2 && q.y + q.h <= d.y + d.h + 2;
   const placed = [...scene.querySelectorAll('text')].filter(t => !movable.some(e => e === t || e.contains(t))).map(box).filter(area);
   const boxes = drawings.map(box).filter(area);
-  const bad = q => placed.some(p => cross(p, q) > .2 * Math.min(area(p), area(q))) || boxes.some(d => cross(d, q) > 0 && !inside(q, d));
+  // a tag (a step box) never sits on a library drawing; plain text may sit wholly inside one (a note in a graph)
+  const bad = (q, tag) => placed.some(p => cross(p, q) > .2 * Math.min(area(p), area(q))) || boxes.some(d => cross(d, q) > 0 && (tag || !inside(q, d)));
   const shift = (e, dy) => { if (e.kind !== 'tag') e.setAttribute('y', +e.getAttribute('y') + dy);
     else { for (const c of e.querySelectorAll('rect, text')) c.setAttribute('y', +c.getAttribute('y') + dy); e.center[1] += dy; } };
   const shrink = e => { const t = e.kind === 'tag' ? null : e, s0 = t && +t.getAttribute('font-size'); if (!s0) return false;
-    for (let f = .92; f > .6; f -= .08) { t.setAttribute('font-size', (s0 * f).toFixed(1)); if (!bad(box(e))) return true; }
+    for (let f = .92; f > .6; f -= .08) { t.setAttribute('font-size', (s0 * f).toFixed(1)); if (!bad(box(e), false)) return true; }
     t.setAttribute('font-size', s0); return false; };
   const move = (e, b) => { for (const k of [1, -1, 2, -2, 3, -3]) { const dy = k * (b.h + 6), q = { ...b, y: b.y + dy };
-    if (q.y >= 0 && q.y + q.h <= 540 && !bad(q)) { shift(e, dy); return true; } } return false; };
+    if (q.y >= 0 && q.y + q.h <= 540 && !bad(q, e.kind === 'tag')) { shift(e, dy); return true; } } return false; };
   for (const e of movable) {
     const b = box(e); if (!area(b)) continue;
-    if (bad(b)) e.kind === 'title' ? shrink(e) || move(e, b) : move(e, b) || shrink(e);
+    if (bad(b, e.kind === 'tag')) e.kind === 'title' ? shrink(e) || move(e, b) : move(e, b) || shrink(e);
     placed.push(box(e));
   }
 }
@@ -207,7 +208,9 @@ function flowify(el) {
 }
 async function draw(id, ms = 800) {
   const el = strokeOf(id);
-  if (el.tagName !== 'g') { await drawEl(el, ms); flowify(el); return; }
+  // A tag's words show once its box is drawn; "fill" adds the colour. A script that drew a tag but never filled it
+  // showed an empty box (seen in 3 of 6 real videos, 19 Oct 2026).
+  if (el.tagName !== 'g') { await drawEl(el, ms); flowify(el); if (els[id].kind === 'tag') els[id].querySelector('text')?.classList.add('on'); return; }
   // recipe: saari lines ek-ek karke (lambai ke hisaab se samay), phir uske labels
   // .linked: a pin's outline kept inside the drawing it points at; the pin draws it (el.linked), the drawing does not
   const inks = [...el.querySelectorAll('.ink:not(.linked)'), ...(el.linked || [])], total = inks.reduce((s, e) => s + e.getTotalLength(), 0);
