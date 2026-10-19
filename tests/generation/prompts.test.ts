@@ -55,9 +55,9 @@ describe('prompt sha parity', () => {
 
   // Subject prompts (founder, 18 Oct 2026): new prompts, so no prototype twin; these shas bind them the same way.
   const SUBJECT_EXPECTED = {
-    biology: 'e7cebd9ddd2192f75d3e5524edb4d04035426d58c928edf2446b6166f4ef2164',
-    physics: 'f9f540e03b0817a3d6b7c5960328b52d087eca5cc6db55264b44a1d96c71b3fd',
-    chemistry: '9bb9c68c0395148caba5cebe9c9c3a3fa3b87a2fdb5ad1d12da4d2e4c8ffcef3',
+    biology: 'd15effe597e4c6c12cf3341780076af64379ad206498a8f1e1798cb83bc5d3f2',
+    physics: '0aa6e0cfdc3a3a2960d67aaab63279d4f6228cdb703d9c3131c99f8786c49ab1',
+    chemistry: 'cc7eeb6a712c98011d6db37f6b0ec5dbab5b2af79047c3a985895eac0904ff4c',
   } as const;
   for (const s of ['biology', 'physics', 'chemistry'] as const) it(`${s}: its own prompt, sha bound, only its categories listed`, () => {
     const t = P.subjects[s].system;
@@ -73,6 +73,15 @@ describe('prompt sha parity', () => {
     expect(P.subjects.biology.system).toMatch(/^  biology: heartsection circulation breathing gut reflexarc dnaladder cellcycle leafsection plantparts$/m);
     expect(P.styles.whiteboard.system).not.toContain('heartsection');
     expect(P.subjects.physics.system).not.toContain('heartsection');
+  });
+  it('the physics library (phys + colour drawings, 19 Oct 2026) is only in the physics prompt', () => {
+    expect(P.subjects.physics.system).toMatch(/^  phys: seriespar symbols /m);
+    expect(P.subjects.physics.system).toMatch(/servier-phys: \d+ realistic drawings, not listed/);
+    for (const s of [P.styles.whiteboard.system, P.subjects.biology.system, P.subjects.chemistry.system]) expect(s).not.toMatch(/seriespar|servier-phys/);
+    // university layer (19 Oct 2026): physuni recipes, physics prompt only
+    expect(P.subjects.physics.system).toMatch(/^  physuni: doubleslit diffraction /m);
+    expect(P.subjects.physics.system).toContain('university physics majors');
+    for (const s of [P.styles.whiteboard.system, P.subjects.biology.system, P.subjects.chemistry.system]) expect(s).not.toMatch(/doubleslit|pvcycle/);
   });
 
   it('the prompt carries the numbered-steps and no-zoom rules', () => {

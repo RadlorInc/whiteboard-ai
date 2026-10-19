@@ -8,7 +8,7 @@
    ],
    "kind": "part",
    "shapes": [
-    148
+    53
    ]
   },
   "deltoid": {
@@ -19,7 +19,7 @@
    ],
    "kind": "part",
    "shapes": [
-    235
+    112
    ]
   },
   "pectoral": {
@@ -30,7 +30,7 @@
    ],
    "kind": "part",
    "shapes": [
-    1061
+    513
    ]
   },
   "biceps": {
@@ -51,7 +51,7 @@
    ],
    "kind": "part",
    "shapes": [
-    301
+    154
    ]
   },
   "quads": {

@@ -18,7 +18,7 @@ export type Turn = { id: string; question: string; style: Style; status: string;
 type Live = { n: number; question: string; explore: boolean; conv: string; id?: string };
 
 // An earlier answer: it plays only when asked, so opening a chat does not start every video at once.
-function PastTurn({ t }: { t: Turn }) {
+function PastTurn({ t, subject }: { t: Turn; subject: Subject }) {
   const [play, setPlay] = useState(false);
   const ok = (t.status === "succeeded" || t.status === "refunded") && t.script;
   return (
@@ -26,9 +26,9 @@ function PastTurn({ t }: { t: Turn }) {
       <p className="chat-q">{t.question}</p>
       {!ok ? <p className="answer-meta">{t.status === "failed" ? "This one didn't finish, so nothing was charged." : "Still being made. Refresh in a moment."}</p>
         : <>
-            {play ? <Player style={t.style} script={t.script} />
+            {play ? <Player style={t.style} subject={subject} script={t.script} />
               : <button type="button" className="poster has-preview" onClick={() => setPlay(true)} aria-label="Play this answer">
-                  <BoardPreview style={t.style} script={t.script} label="" />
+                  <BoardPreview style={t.style} subject={subject} script={t.script} label="" />
                   <span className="poster-play"><Icon name="play" size={22} /></span>
                 </button>}
             <p className="answer-meta">
@@ -117,10 +117,10 @@ export function Chat({ conversationId, subject: initialSubject, turns, available
         )}
         {!empty && (
           <div className="thread">
-            {past.map(t => <PastTurn key={t.id} t={t} />)}
+            {past.map(t => <PastTurn key={t.id} t={t} subject={subject} />)}
             {live.map((l, i) => (
               <div key={l.n} ref={i === live.length - 1 ? lastLive : undefined} className="turn-live">
-                <Watch question={l.question} style="whiteboard" explore={l.explore} conversationId={l.conv} onDone={done(l.n)} />
+                <Watch question={l.question} style="whiteboard" subject={subject} explore={l.explore} conversationId={l.conv} onDone={done(l.n)} />
               </div>
             ))}
             <div ref={end} aria-hidden="true" />

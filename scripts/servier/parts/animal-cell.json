@@ -8,7 +8,7 @@
    ],
    "kind": "part",
    "shapes": [
-    77
+    61
    ]
   },
   "nucleus": {
@@ -19,7 +19,7 @@
    ],
    "kind": "part",
    "shapes": [
-    806
+    521
    ]
   },
   "nucleolus": {
@@ -30,7 +30,7 @@
    ],
    "kind": "part",
    "shapes": [
-    806
+    521
    ]
   },
   "rer": {
@@ -41,7 +41,7 @@
    ],
    "kind": "part",
    "shapes": [
-    980
+    598
    ]
   },
   "golgi": {
@@ -74,7 +74,7 @@
    ],
    "kind": "part",
    "shapes": [
-    1147
+    623
    ]
   },
   "vacuole": {
@@ -85,7 +85,7 @@
    ],
    "kind": "part",
    "shapes": [
-    1281
+    722
    ]
   },
   "cytoplasm": {

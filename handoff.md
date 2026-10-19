@@ -77,6 +77,108 @@
   `admin.spec.ts` fails past 50 users (it reads only the first `listUsers` page), and `tests/db` needs a fresh
   `supabase db reset`.
 
+## Audience: 18+ majors (founder, 19 Oct 2026)
+
+- The app is for the **18+ category**: undergraduate and postgraduate biology and physics majors, not only school
+  students. Build the library, prompts and examples from their view (university depth), still correct for a school
+  question.
+- Open: the biology prompt's "Keep the facts correct at school level" (build-prompts.mjs) and the school-only
+  library (phys, life, biology recipes) need a university layer: e.g. interference/diffraction, Maxwell, quantum,
+  relativity, solid state, thermodynamics cycles; molecular and cell biology, physiology, immunology, genetics.
+- Sources dropped as "no school topics" are worth a second look: NIH BioArt (~96% public domain, SVG) and Reactome
+  icons (CC BY 4.0, SVG: cell types, tissues, proteins, receptors). PNG tracing was tried and is not worth it in bulk
+  (engravings trace to 240-850 KB; colour plates turn to blobs).
+
+## Off-library drawing fixes (19 Oct 2026, not committed yet)
+
+- Real-model test on three topics the library lacks (tardigrade, Stirling engine, C60): biology was fine, the
+  physics device came out as loose boxes and the C60 cage with bent rings, words sat on a recipe's formula, and
+  e⁻ / C₆₀ lost their marks (the hand font has no super/subscript glyphs).
+- **Fixes:** `DRAW_OWN` is per subject in build-prompts.mjs (biology: organism layers + cells; physics: textbook
+  cutaway with joined moving parts and computed geometry; chemistry: fixed bond length, regular rings, CPK colours,
+  projected 3D with dashed back edges, curly arrows) plus a shared "keep words in free space" rule. Player:
+  `richText` in recipes.js turns Unicode super/subscripts, `_x`/`_{..}` and `^x`/`^{..}` into raised/lowered tspans
+  for script text, tags and every recipe label; `unclutter()` in index.html moves a script text or tag that sits on
+  other words up or down to the nearest free place (drawings never move; old videos get it too).
+- After: physics drew a proper alpha Stirling engine (flywheel, cranks, regenerator, leader lines), chemistry a
+  projected truncated icosahedron. Then: `unclutter` also fixes a word running across a library drawing's edge (a
+  title shrinks first, others move then shrink; a word wholly inside a drawing stays), and a lone superscript sign
+  (e⁻, Cl⁻) is drawn at 90% bold instead of 66%. Not handled: words over the model's own primitive shapes.
+  Cost of the 6 test videos ~$2. Shas: biology `d15eff…`, physics `0aa6e0…`, chemistry `cc7eeb…`.
+
+## Graduate (master's) layer, all three subjects (19 Oct 2026, not committed yet)
+
+- Checklist now 283 topics (HS, AP, UG, GR); `scripts/coverage/check.mjs` matches keys as whole id words (a loose
+  substring match had counted "bell" emoji as the Bell test). Coverage: biology 101/101, physics 102/102, chemistry
+  80/80; the test now requires 0 gaps.
+- New recipe files (subject-only, `WB_EXTRA`, listed in their prompts): `biogr` 27 (aminoacid, foldfunnel,
+  ramachandran, cryoem, alignment, phylotree, genenetwork, mapk, wnt, rtk, cyclins, methylation, splicing, rnai,
+  ngsflow, flowcytometry, vdj, nernst, channelgating, ltp, morphogen, allosteric, metabolicmap, geneticdrift,
+  lotkavolterra, quorum, qpcrcurve), `physgr` 26 (doublependulum … bindingenergy), `chemgr` 27 (pointgroup …
+  raoult). Molecules: 154 (added cisplatin, EDTA, 18-crown-6, porphine, heme b, 4 steroids, reagents/solvents,
+  Grignard, GABA, histamine, norepinephrine, adenosine, NAD+).
+- Prompt shas: biology `791092…`, physics `d30fb7…`, chemistry `93c1be…`. Subject prompts are 24-31k chars.
+- **Cost to watch:** today's recipe files add 464 KB (145 KB gzipped) to every player load, since wb-load.js loads
+  every category for every lesson. Loading subject-only categories per subject would remove it.
+- **Not done:** no real-model video with these; not reviewed by teachers.
+
+## US coverage pass: biology, physics, chemistry (19 Oct 2026, not committed yet)
+
+- **US market first** (founder): checklist `scripts/coverage/topics.json` (196 topics, NGSS/AP/college/grad), checker
+  `node scripts/coverage/check.mjs` -> `scripts/coverage/report.md`; a test keeps each subject at <= 2 gaps.
+  Now biology 70/71, physics 75/75, chemistry 49/50 (left: generic amino-acid R-group structure, nuclear chemistry
+  diagrams not in the chemistry prompt).
+- **New recipes:** `biouni` (17: michaelis, lightreactions, calvin, glycolysis, krebs, atpsynthase, codon, operon,
+  pedigree, hardyweinberg, pcrcycle, speciation, popgrowth, actionpotential, o2curve, proteinlevels, elisa),
+  `physadv` (19: kepler … blackbody, incl. feynman, standardmodel, hrdiagram), `chemuni` (27: econfig … rateorder,
+  incl. modiagram, titration, nmr/ir/mass spectra, sn2). Subject-only (`WB_EXTRA`), listed in each subject prompt.
+  The hand fonts lack superscript glyphs: physadv/chemuni draw them raised by hand (`sup`, `lb`).
+- **Molecules:** `scripts/molecules/` (molecules.json SMILES -> render.py with RDKit -> build.mjs), 124 structures,
+  kit `Molecules`, subject chemistry (0.5 MB). Biology search now covers `servier-chem` too (molecules, lab gear).
+- Prompts: chemistry gained the depth rule and recipe list. Shas: biology `8f0863…`, physics `2bbbe6…`, chemistry
+  `054a31…`.
+- **Not done:** no real-model video with any of it; not reviewed by teachers.
+
+## Physics university layer (19 Oct 2026, not committed yet)
+
+- `lib/wb/physuni.*` (physics prompt only, `WB_EXTRA`), 25 recipes: doubleslit, diffraction (single/grating),
+  thinfilm, polarisation, michelson, emwave, gauss (sphere/cylinder), capacitorfield, maxwelleqs
+  (integral/differential), wellbox, tunnelling, energylevels (hydrogen), compton, orbitals (s/p/d), sterngerlach,
+  wavepacket, lightclock, spacetime, contraction, pvcycle (carnot/otto/diesel; Carnot adiabat drawn steeper, as
+  textbooks do), heatengine (engine/fridge), speeddist, bands, crystal (sc/bcc/fcc), pnjunction (bias).
+- Physics prompt: depth matches the asker (school or university), lists the university recipes. Sha `ace863…`.
+- **Not done:** no real-model university physics video; not reviewed by a physics teacher.
+
+## Biology university layer (19 Oct 2026, not committed yet)
+
+- **Reactome Icon Library** (CC BY 4.0), `scripts/reactome/build.mjs`, kits `Reactome-*`: 754 drawings (cell types,
+  organelles, tissues, receptors, transporters, shaped proteins; 3.7 MB). Left out: compounds (hexagon tokens), ~1,200
+  capsule-shaped proteins, 37 MT-* gene glyphs, arrows, backgrounds, drugs. Designers in `credits.json`.
+- **NIH BioArt Source** (public domain only), `scripts/nih-bioart/build.mjs`, kits `NIHBioArt-*`: 633 drawings
+  (immune cells, parasites, viruses, proteins, lab gear, animals; 16.9 MB). No API: entry pages crawled for title,
+  licence, keywords and a `filemapping` of file ids; the most colourful colour version is used (first is often
+  beige); ns0: prefixes stripped; people, shapes/charts, one-colour blobs and house-rule words left out.
+- Both credited on /legal/copyright. 11 + 80 files over the cap were skipped.
+- **Prompt:** biology no longer says "school level": depth matches the asker (school or university), with
+  university search examples. Biology sha `db41d2…`.
+- **Search:** `findDrawing` glues a 1-2 letter word to the next ("B cell" -> "bcell"), so B/T cell queries work.
+- **Not done:** no real-model university video yet.
+
+## Physics library (19 Oct 2026, not committed yet)
+
+- **Size cap (founder, always):** every library drawing <= 150 KB (`MAX_BYTES` in `scripts/library/svg2sv.mjs`;
+  bigger ones are skipped and listed). Lesson JSON stores only the drawing's name, so the DB does not grow; the cost
+  is deploy size and phone download. Test `library size cap`: no drawing over it (the 235 older ones were shrunk by
+  the shrink session, 19 Oct; `lib/sv` is now 90 MB with the university layer).
+- **Sources:** no free Servier-like physics set exists (gwoptics optics = CC BY-NC, not for a paid app; Wikimedia
+  dropped earlier). So: 127 colour drawings from Fluent Emoji (MIT), `scripts/physics-emoji/build.mjs`, kit
+  `Physics-Fluent`, subject `physics`, search category `servier-phys` (0.2 MB, biggest 8 KB). Diagrams are recipes.
+- **New recipes `lib/wb/phys.*`** (physics prompt only, `WB_EXTRA`): seriespar, symbols, static, wirefield, induction,
+  refraction (slab/bent/tir/fibre), raydiagram (lens formula), curvedmirror, eyedefect, pinhole, shadow, periscope,
+  belljar, echo, wavecompare, collision, circular, moments, hooke, freefall, pressure, bimetal, penetration, halflife,
+  goldfoil, photoelectric, plug3 (uk/india colours), motiongraph. Physics prompt sha `c2a4ad…`.
+- **Not done:** no real-model physics video yet; drawings not reviewed by a teacher.
+
 ## Biology library complete + model-made drawings (19 Oct 2026; live since 19 Oct, #20, #21)
 
 - **Merged and live, in order:** #21 (only `supabase/`: the four migrations below, so `migrate-prod` could run from

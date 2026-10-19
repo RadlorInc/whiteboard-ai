@@ -27,6 +27,8 @@ const PAGE: Record<Style, string> = {
   paper: "/player/stopmotion-topics.html?mode=paper",
   matchcut: "/player/matchcut.html",
 };
+// The chat subject tells the whiteboard player which subject-only drawing files to load (lib/wb-load.js); none = all.
+const pageOf = (style: Style, subject?: string | null) => (style === "whiteboard" && subject ? `${PAGE.whiteboard}?subject=${encodeURIComponent(subject)}` : PAGE[style]);
 const STAGE: Record<string, string> = {
   reading: "Reading your question…", drawings: "Picking drawings…", writing: "Writing the lesson…", fixing: "Fixing a step…",
 };
@@ -81,8 +83,8 @@ function Controls({ at, labels, seek, toggle, full, isFull }: {
   );
 }
 
-export function Player({ style, script, onEnded, bind, onStart, cover }: {
-  style: Style; script?: Script | null; onEnded?: () => void; bind?: (post: (m: unknown) => void) => void;
+export function Player({ style, subject, script, onEnded, bind, onStart, cover }: {
+  style: Style; subject?: string | null; script?: Script | null; onEnded?: () => void; bind?: (post: (m: unknown) => void) => void;
   onStart?: () => void; cover?: React.ReactNode;     // cover: shown over the board until the first step plays
 }) {
   const frame = useRef<HTMLIFrameElement>(null);
@@ -209,7 +211,7 @@ export function Player({ style, script, onEnded, bind, onStart, cover }: {
       {at?.waiting && !cover && (
         <div className="pc-wait" role="status"><span className="spinner xs" aria-hidden="true" /> Preparing the voice for step {at.i + 1}…</div>
       )}
-      <iframe ref={frame} src={PAGE[style]} sandbox="allow-scripts" allow="autoplay" title="Video player" loading="eager"
+      <iframe ref={frame} src={pageOf(style, subject)} sandbox="allow-scripts" allow="autoplay" title="Video player" loading="eager"
         style={h && !isFull ? { height: h } : { aspectRatio: style === "matchcut" ? "960/500" : style === "paper" ? "960/720" : "960/660" }} />
       {at && at.n > 0 && (
         <Controls at={at} labels={labels} seek={seek} toggle={toggle} isFull={isFull}
@@ -264,8 +266,8 @@ function MakingCover({ making }: { making: Making }) {
   );
 }
 
-export function Watch({ question, style, explore = false, conversationId, onDone, onExit }: {
-  question: string; style: Style; explore?: boolean; conversationId?: string;
+export function Watch({ question, style, subject, explore = false, conversationId, onDone, onExit }: {
+  question: string; style: Style; subject?: string | null; explore?: boolean; conversationId?: string;
   onDone?: (available: number | null, id?: string) => void; onExit?: () => void;
 }) {
   const [exploreNote, setExploreNote] = useState<string | null>(null);
@@ -352,7 +354,7 @@ export function Watch({ question, style, explore = false, conversationId, onDone
     <section className="turn" aria-live="polite">
       <p className="chat-q">{question}</p>
       {playing && !error && !owned && <VoiceProgress />}
-      <Player style={style} bind={bind} onStart={onStart}
+      <Player style={style} subject={subject} bind={bind} onStart={onStart}
         cover={!playing && !error && !owned ? <MakingCover making={making} /> : null} />
       {playing && stage && !error && !owned && <p role="status" className="answer-meta"><span className="spinner xs" aria-hidden="true" /> {stage}</p>}
       {error && <p role="alert" className="error">{error}</p>}

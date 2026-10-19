@@ -8,7 +8,7 @@
    ],
    "kind": "part",
    "shapes": [
-    129
+    50
    ]
   },
   "sr": {
@@ -19,7 +19,7 @@
    ],
    "kind": "part",
    "shapes": [
-    146
+    58
    ]
   },
   "ttube": {
@@ -30,7 +30,7 @@
    ],
    "kind": "part",
    "shapes": [
-    130
+    51
    ]
   },
   "mito": {
@@ -41,7 +41,7 @@
    ],
    "kind": "part",
    "shapes": [
-    13
+    3
    ]
   },
   "membrane": {
@@ -52,7 +52,7 @@
    ],
    "kind": "part",
    "shapes": [
-    146
+    58
    ]
   }
  }

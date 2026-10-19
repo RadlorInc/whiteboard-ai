@@ -35,7 +35,8 @@ const WB_CATS = cats('wb-load.js', 'WB_CATS');
 const SV = JSON.parse(fs.readFileSync(path.join(genDir, '..', '..', '..', 'scripts', 'servier', 'sv-catalogue.json'), 'utf8'));
 const svCat = (cat, subject) => ({ cat, lines: SV.filter(d => d.subject === subject).map(d => ({ name: d.id, sig: `sv id=${d.id} cx cy height`,
   example: `sv id=${d.id} 480 270 460`, desc: `${d.name} (realistic; width ${(d.w / 1000).toFixed(2)} x its height): ${d.tags.join(' ')}${d.parts ? `; parts: ${d.parts.join(' ')}` : ''}` })) });
-const SV_CATS = [svCat('servier', 'biology'), svCat('servier-chem', 'chemistry')];
+// servier-phys: physics colour drawings (Fluent Emoji, scripts/physics-emoji; 19 Oct 2026), searched the same way.
+const SV_CATS = [svCat('servier', 'biology'), svCat('servier-chem', 'chemistry'), svCat('servier-phys', 'physics')];
 const isSv = c => c.cat.startsWith('servier');
 const WB_ALL = [...catalogueOf('wb', [...WB_CATS, ...cats('wb-load.js', 'WB_EXTRA')]), ...SV_CATS];
 const WB_LIB = WB_ALL.filter(c => WB_CATS.includes(c.cat));
@@ -88,18 +89,28 @@ const RULES = wbRules(WB_LIB);
 // Each subject prompt lists only its categories (plus the shared diagrams) and adds how to teach that subject.
 // find_drawing searches the same categories. Each is its own prompt cache entry (its own prompt_sha).
 const SUBJECTS = {
-  biology: { cats: ['anatomy', 'servier', 'biology', 'life', 'cells', 'body', 'health', 'world', 'earth', 'diagrams'], teach: `
+  biology: { cats: ['anatomy', 'servier', 'servier-chem', 'biology', 'biouni', 'biogr', 'life', 'cells', 'body', 'health', 'world', 'earth', 'diagrams'], teach: `
 - Teaching biology: name the real structures with their proper names (labelled drawings, lab=1), then show what they
   do: follow one thing (blood, air, food, a nerve signal, water, sugar) as it travels through them with travel or go.
   For these topics use the detailed diagrams: heartsection, circulation, breathing, gut, reflexarc, dnaladder,
   cellcycle, leafsection, plantparts. One big labelled diagram plus the step tags reads better than many small
-  pictures. Keep the facts correct at school level; the body's right side is on the viewer's left.
+  pictures. Match the depth to the asker (the app serves school students and university biology majors): a school
+  question gets the school picture; a university one gets the mechanism with its proper terms (named molecules,
+  receptors, pathways, cell types). Keep the facts correct; the body's right side is on the viewer's left.
+  University diagrams are recipes (biouni): michaelis, lightreactions, calvin, glycolysis, krebs, atpsynthase, codon,
+  operon, pedigree, hardyweinberg, pcrcycle, speciation, popgrowth, actionpotential, o2curve, proteinlevels, elisa.
+  Graduate (biogr): aminoacid, foldfunnel, ramachandran, cryoem, alignment, phylotree, genenetwork, mapk, wnt, rtk,
+  cyclins, methylation, splicing, rnai, ngsflow, flowcytometry, vdj, nernst, channelgating, ltp, morphogen, allosteric,
+  metabolicmap, geneticdrift, lotkavolterra, quorum, qpcrcurve.
+  Molecules (glucose, amino acids, ATP, lipids, bases) are structures: search "<name> structure".
 - For the heart, prefer heartcut (a realistic drawing) over heartsection. Draw it in step 1 (draw, then fill), then
   in each step add one pin for each part that step talks about (draw the pin when its part is spoken about), so the
   names appear one by one as they are explained. Keep heartcut near the middle (x 440-500) so the pins' words fit on
   both sides; leave the left 200 and right 260 pixels free for them and put nothing else there.
 - For any other organ, cell, tissue, plant, animal, microbe or molecule, first search the realistic library:
-  find_drawing with a short query (e.g. "lungs alveoli", "neuron synapse", "seedling root", "honey bee"); draw a match with "sv id=<name> cx cy height"
+  find_drawing with a short query (e.g. "lungs alveoli", "neuron synapse", "seedling root", "honey bee"; at university
+  level also cells, organelles, receptors and complexes: "T cell receptor MHC", "NADPH oxidase", "nucleosome",
+  "B cell", "antibody", "aquaporin"); draw a match with "sv id=<name> cx cy height"
   (draw it, then fill it), one or two per lesson, big. When its search result lists "parts: ...", point at them with
   pins ("p1": "pin of=<its element id> part=<part>"), drawn one by one in the step that explains each part; centre the
   drawing and keep the left 200 and right 260 pixels free for the pins' words. Otherwise label it with your own text.
@@ -132,16 +143,49 @@ const SUBJECTS = {
   when one fits. Only when none fits, draw it yourself the way a textbook would (the layers below): never a plain
   circle or box standing in for a body part (an alveolus is a cluster of round sacs on a branching tube; a cell is a
   soft blob with a nucleus and organelles).` },
-  physics: { cats: ['physics', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
+  physics: { cats: ['physics', 'phys', 'physuni', 'physadv', 'physgr', 'servier-phys', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
 - Teaching physics: show the cause and the effect, with forces, energy and waves drawn as arrows. Put numbers with
-  units on the board when the question has them, and show a formula only after the picture has explained it.` },
-  chemistry: { cats: ['servier-chem', 'chemistry', 'earth', 'math', 'diagrams'], teach: `
+  units on the board when the question has them, and show a formula only after the picture has explained it.
+- Match the depth to the asker (the app serves school students and university physics majors): a school question gets
+  the school picture; a university one gets the real model and its equations (fields, wavefunctions, frames, cycles),
+  with the symbols defined on the board. University diagrams are recipes (physuni): wave optics (doubleslit,
+  diffraction, thinfilm, polarisation, michelson), Maxwell (emwave, gauss, capacitorfield, maxwelleqs), quantum
+  (wellbox, tunnelling, energylevels, compton, orbitals, sterngerlach, wavepacket), relativity (lightclock, spacetime,
+  contraction), thermodynamics (pvcycle, heatengine, speeddist), solid state (bands, crystal, pnjunction).
+  More (physadv): kepler, rotation, resonance, bernoulli, standingwave, doppler, efield, rccircuit, phasor, righthand,
+  qho, curvedspace, standardmodel, feynman, transistor, laser, halleffect, hrdiagram, blackbody.
+  Graduate (physgr): doublependulum, phasespace, normalmodes, gyroscope, laminar, fourier, multipole, waveguide,
+  dipoleradiation, boltzmann, quantumstats, ising, bec, blochsphere, radialwave, zeeman, crosssection, belltest,
+  qcircuit, detector, phonons, bandstructure, superconductor, hubble, gravwave, bindingenergy.
+- Diagrams are recipes (physics, phys): circuits with symbols, ray diagrams, field lines, forces, waves, the atom.
+  Everyday objects the lesson talks about (a bulb, a magnet, a rocket, a bicycle, a guitar, a planet, a moon phase, a
+  stopwatch) are colour drawings: search "<thing> colour" and draw with "sv id=<name> cx cy height", one or two per
+  lesson, beside the diagram, never instead of it.` },
+  chemistry: { cats: ['servier-chem', 'chemistry', 'chemuni', 'chemgr', 'earth', 'math', 'diagrams'], teach: `
 - Teaching chemistry: show the particles (atoms, molecules, ions) and what changes and what stays the same. Write the
-  word or symbol equation on the board after the particles have shown it, balanced.` },
+  word or symbol equation on the board after the particles have shown it, balanced.
+- Match the depth to the asker (the app serves high-school, AP and college chemistry students): a school question gets
+  the particle picture; a college one gets the model and its equations. Diagrams are recipes (chemuni): econfig,
+  trends, lewis, vsepr, hybrid, modiagram, hbond, phasediagram, heatingcurve, gaslaw, mole, energyprofile,
+  collisiontheory, equilibrium, titration, buffer, electrolysis, calorimeter, bornhaber, irspectrum, nmrspectrum,
+  massspec, beerlambert, functionalgroups, sn2, crystalfield, rateorder. Graduate (chemgr): pointgroup, huckel, pes, marcus,
+  dielsalder, fmo, aldol, grignard, wittig, eas, retrosynthesis, catcycle, complexgeom, bragg, cosy, jcoupling,
+  jablonski, cyclicvolt, chromatogram, arrhenius, gibbs, langmuir, polymerization, bandofstability, binaryphase,
+  colligative, raoult. A named molecule (benzene, glucose, aspirin,
+  an amino acid) is a drawn structure: search "<name> structure" and draw it with sv.` },
 };
 // Drawing what the library lacks (founder, 19 Oct 2026): the layers our own recipes use (lib/wb/world.js frogx), and
-// names that let the server keep the drawing for a person to approve (drawings.ts, /admin).
-const DRAW_OWN = `
+// names that let the server keep the drawing for a person to approve (drawings.ts, /admin). Per subject since the
+// first real off-library videos (19 Oct): the animal layers suit biology, but a physics device came out as loose boxes
+// and a chemistry cage with bent rings, so physics and chemistry get their own way of drawing.
+const OWN_NAMES = `
+  Name every element of it new_<name>_<part>, where <name> is one lowercase word for the object (new_hedgehog_body,
+  new_hedgehog_eye), and keep its parts together in one place on the board: a person checks it and it becomes a
+  library drawing for later lessons. Draw it in one step: draw its parts, then fill them.
+- Keep every word in free space: never write over a drawing's own labels or formula (recipes carry their own), over
+  another label or across a line; leave about 10 px around each.`;
+const DRAW_OWN = {
+  biology: `
 - Drawing what the library lacks: when find_drawing has nothing that fits an object, draw it yourself with "path"
   elements in layers, back to front, the way our library drawings are made:
   1. the far parts (the far legs, the far wing) in a darker shade of the body colour;
@@ -151,11 +195,34 @@ const DRAW_OWN = `
   5. the details that make it recognisable: spots, stripes, veins, joints, toes, petals;
   6. an eye: a coloured iris, a dark pupil and a small white shine;
   7. one thin white highlight line along its top edge (c=#ffffff w=3).
-  Name every element of it new_<name>_<part>, where <name> is one lowercase word for the object (new_hedgehog_body,
-  new_hedgehog_eye), and keep its parts together in one place on the board: a person checks it and it becomes a
-  library drawing for later lessons. Draw it in one step: draw its parts, then fill them.`;
+  A cell, organelle or tissue: a soft irregular outline (never a perfect circle) with a double-line membrane, its
+  contents in their real places and proportions (nucleus, organelles), each part its textbook colour.` + OWN_NAMES,
+  physics: `
+- Drawing what the library lacks: when find_drawing has nothing that fits a device or set-up, draw it yourself as a
+  textbook cutaway, with "path", "rect" and "circle" elements, back to front:
+  1. the frame or housing: light grey fill, dark edge (c=#455a64 w=3);
+  2. each moving part in its own colour, joined the way it really is: a piston inside its cylinder, a rod from the
+     piston to a crank pin on the wheel's rim, a shaft through the wheel's centre; compute the coordinates so parts
+     meet (no gaps, no part floating);
+  3. what works inside it (gas, liquid, current, light) as a coloured fill, dots or a ray, in the space it fills;
+  4. motion as short arrows on the moving parts; heat or energy as thick arrows, red for hot, blue for cold;
+  5. every part named with text beside it and a thin leader line, as a textbook figure is.
+  Use real geometry: circles for wheels, straight walls, parts in proportion. Put formulas below the drawing.` + OWN_NAMES,
+  chemistry: `
+- Drawing what the library lacks: a named molecule is first searched as "<name> structure". When nothing fits, draw
+  it yourself with real geometry, computed, not guessed:
+  1. bonds as straight lines of one length (about 40 px): rings are regular (hexagon corners every 60 degrees,
+     pentagons every 72), a double bond is two parallel lines, a triple bond three;
+  2. atoms as small circles in CPK colours: C #333333, H #ffffff with a grey edge, O #e53935, N #1e88e5, S #fdd835,
+     Cl #43a047, metals #b0bec5; label them with their symbol;
+  3. a 3D shape (a cage, a crystal, a tetrahedron) as a projection: work out the corner points, draw the back edges
+     dashed and lighter, the front ones solid; a sphere-like cage gets regular faces, not bent ones;
+  4. a reaction step: curly arrows as curved paths from the electron pair to where it goes, charges and lone pairs
+     shown;
+  5. labels beside the structure with thin leader lines.` + OWN_NAMES,
+};
 const SUBJECT_RULES = Object.fromEntries(Object.entries(SUBJECTS).map(([s, { cats: cs, teach }]) =>
-  [s, wbRules(cs.map(c => WB_ALL.find(x => x.cat === c)), teach + DRAW_OWN)]));
+  [s, wbRules(cs.map(c => WB_ALL.find(x => x.cat === c)), teach + DRAW_OWN[s])]));
 
 // ---------- Paper motion (stop-motion / paper): scenes of library drawings on a 960x600 canvas ----------
 const smCtx = { window: {} };

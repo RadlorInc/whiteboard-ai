@@ -8,7 +8,7 @@
    ],
    "kind": "part",
    "shapes": [
-    12
+    5
    ]
   },
   "dna": {
@@ -19,7 +19,7 @@
    ],
    "kind": "part",
    "shapes": [
-    1389
+    282
    ]
   },
   "tail": {
@@ -30,7 +30,7 @@
    ],
    "kind": "part",
    "shapes": [
-    22
+    14
    ]
   },
   "fibres": {
@@ -41,7 +41,7 @@
    ],
    "kind": "part",
    "shapes": [
-    443
+    50
    ]
   },
   "collar": {
@@ -52,7 +52,7 @@
    ],
    "kind": "part",
    "shapes": [
-    18
+    11
    ]
   }
  }

@@ -1,0 +1,17 @@
+michaelis cx cy width k=mm|lineweaver inhib=none|competitive|noncompetitive |text | michaelis 480 270 440 k=mm inhib=competitive | Michaelis–Menten v vs [S], Vmax, Km; Lineweaver–Burk; optional inhibitor curve
+lightreactions cx cy width |text | lightreactions 480 270 520 | thylakoid light reactions: PSII, b6f, PSI, ATP synthase, e⁻ and H⁺ flow
+calvin cx cy size |text | calvin 470 260 300 | Calvin cycle: CO₂ fixation by rubisco, reduction, RuBP regeneration, G3P out
+glycolysis cx cy height |text | glycolysis 480 270 440 | glycolysis steps glucose → 2 pyruvate, ATP/NADH, investment and payoff phases
+krebs cx cy size |text | krebs 480 280 340 | citric acid cycle ring with NADH, FADH₂, GTP, CO₂ outputs
+atpsynthase cx cy size |text | atpsynthase 480 260 300 | ATP synthase in inner mitochondrial membrane; flow moves H⁺ and rotation
+codon cx cy width |text | codon 490 280 520 | genetic code table: 64 mRNA codons, amino acids, start and stops
+operon cx cy width k=off|on |text | operon 480 270 500 k=off | lac operon: repressor on operator (off) or allolactose, transcription (on)
+pedigree cx cy width k=dominant|recessive|xlinked |text | pedigree 480 270 480 k=dominant | three-generation pedigree: autosomal dominant, recessive or X-linked example
+hardyweinberg cx cy width |text | hardyweinberg 480 270 440 | Hardy–Weinberg genotype frequencies p², 2pq, q² vs allele frequency
+pcrcycle cx cy width |text | pcrcycle 480 270 500 | PCR cycle: denature, anneal, extend panels and temperature-time steps
+speciation cx cy width k=allopatric|sympatric |text | speciation 480 270 480 k=allopatric | speciation over time: river barrier (allopatric) or same area (sympatric)
+popgrowth cx cy width |text | popgrowth 480 270 440 | population growth: exponential J curve, logistic S curve, carrying capacity K
+actionpotential cx cy width |text | actionpotential 480 270 460 | action potential mV vs ms: resting, threshold, Na⁺ in, K⁺ out
+o2curve cx cy width |text | o2curve 480 270 440 | oxygen–hemoglobin dissociation curve with Bohr right shift
+proteinlevels cx cy width |text | proteinlevels 480 270 520 | protein structure levels: primary, secondary, tertiary, quaternary side by side
+elisa cx cy width k=elisa|western |text | elisa 480 270 520 k=elisa | sandwich ELISA steps in wells, or western blot gel to bands

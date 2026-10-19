@@ -1,0 +1,25 @@
+doubleslit cx cy width |text | doubleslit 470 270 480 | Young's double slit: waves from two slits, fringe pattern on screen, d, L
+diffraction cx cy width k=single|grating |text | diffraction 480 280 440 k=single | diffraction intensity: single-slit sinc² pattern, or grating orders m = 0, ±1, ±2
+thinfilm cx cy width |text | thinfilm 480 270 400 | thin-film interference: two reflected rays, thickness t, path difference 2nt
+polarisation cx cy width |text | polarisation 480 270 480 | unpolarised light, polariser, analyser at θ, Malus's law
+michelson cx cy size |text | michelson 470 270 320 | Michelson interferometer: source, beam splitter, two mirrors, detector
+emwave cx cy width |text | emwave 480 270 480 | electromagnetic wave: E and B at right angles, travelling at c; flow moves
+gauss cx cy size k=sphere|cylinder |text | gauss 480 270 300 k=sphere | Gauss's law: charge inside a Gaussian surface, field lines out
+capacitorfield cx cy width |text | capacitorfield 480 270 440 | charging capacitor: E between plates, B round the gap, displacement current
+maxwelleqs cx cy width k=integral|differential |text | maxwelleqs 480 270 520 k=integral | Maxwell's four equations in labelled cards, integral or differential form
+wellbox cx cy width n=3 |text | wellbox 450 290 400 n=3 | particle in a box: energy levels n², wavefunctions on each level
+tunnelling cx cy width |text | tunnelling 480 280 460 | quantum tunnelling: wave hits a barrier, decays inside, smaller wave out
+energylevels cx cy height |text | energylevels 470 280 320 | hydrogen energy levels n=1..5 in eV, Lyman and Balmer transitions
+compton cx cy width |text | compton 480 270 440 | Compton scattering: photon in, longer-wavelength photon out, electron recoils
+orbitals cx cy size k=s|p|d |text | orbitals 480 270 300 k=p | atomic orbital shapes: s sphere, p dumbbells, d four lobes
+sterngerlach cx cy width |text | sterngerlach 470 280 480 | Stern–Gerlach: beam through magnets splits into spin up and down spots
+wavepacket cx cy width |text | wavepacket 480 280 440 | wave packet with envelope and Δx, uncertainty principle
+lightclock cx cy width |text | lightclock 480 290 460 | light clock at rest vs moving: longer path, time dilation γ
+spacetime cx cy size v=0.5 |text | spacetime 480 270 320 v=0.5 | Minkowski diagram: x and ct axes, light cone, tilted moving-frame axes
+contraction cx cy width |text | contraction 470 280 440 | length contraction: rod at rest L₀ vs moving rod L₀/γ
+pvcycle cx cy width k=carnot|otto|diesel |text | pvcycle 480 270 420 k=carnot | P–V diagram of a heat-engine cycle, states 1–4, heat in/out, work = area
+heatengine cx cy size k=engine|fridge |text | heatengine 480 270 300 k=engine | heat engine or fridge between hot and cold reservoirs, Q_H, Q_C, W
+speeddist cx cy width |text | speeddist 480 270 420 | Maxwell–Boltzmann speed distribution at low and high temperature
+bands cx cy width k=all|metal|semi|insulator |text | bands 480 270 460 k=all | energy bands: valence, conduction, gap, Fermi level for metal, semiconductor, insulator
+crystal cx cy size k=sc|bcc|fcc |text | crystal 480 270 300 k=bcc | cubic unit cell: simple, body-centred or face-centred
+pnjunction cx cy width k=none|forward|reverse |text | pnjunction 480 250 460 k=forward | p–n junction: holes, electrons, depletion ions, field E, optional bias

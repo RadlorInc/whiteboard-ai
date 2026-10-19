@@ -8,7 +8,7 @@
    ],
    "kind": "part",
    "shapes": [
-    727
+    472
    ]
   },
   "dermis": {
@@ -19,7 +19,7 @@
    ],
    "kind": "part",
    "shapes": [
-    618
+    425
    ]
   },
   "fat": {
@@ -41,7 +41,7 @@
    ],
    "kind": "part",
    "shapes": [
-    680
+    455
    ]
   },
   "follicle": {
@@ -52,7 +52,7 @@
    ],
    "kind": "part",
    "shapes": [
-    325
+    231
    ]
   },
   "sweat": {
@@ -63,7 +63,7 @@
    ],
    "kind": "part",
    "shapes": [
-    260
+    207
    ]
   },
   "oil": {
@@ -74,7 +74,7 @@
    ],
    "kind": "part",
    "shapes": [
-    247
+    201
    ]
   },
   "nerve": {
@@ -85,7 +85,7 @@
    ],
    "kind": "part",
    "shapes": [
-    618
+    425
    ]
   },
   "vessels": {
@@ -106,7 +106,7 @@
    ],
    "kind": "part",
    "shapes": [
-    663
+    443
    ]
   }
  }

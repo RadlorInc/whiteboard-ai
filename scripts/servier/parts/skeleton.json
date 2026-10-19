@@ -8,7 +8,7 @@
    ],
    "kind": "part",
    "shapes": [
-    1313
+    497
    ]
   },
   "clavicle": {
@@ -19,7 +19,7 @@
    ],
    "kind": "part",
    "shapes": [
-    950
+    348
    ]
   },
   "humerus": {
@@ -30,7 +30,7 @@
    ],
    "kind": "part",
    "shapes": [
-    957
+    355
    ]
   },
   "ribs": {
@@ -41,7 +41,7 @@
    ],
    "kind": "part",
    "shapes": [
-    1816
+    760
    ]
   },
   "spine": {
@@ -52,7 +52,7 @@
    ],
    "kind": "part",
    "shapes": [
-    223
+    103
    ]
   },
   "pelvis": {
@@ -63,7 +63,7 @@
    ],
    "kind": "part",
    "shapes": [
-    82
+    48
    ]
   },
   "forearm": {
@@ -74,7 +74,7 @@
    ],
    "kind": "part",
    "shapes": [
-    635
+    211
    ]
   },
   "hand": {
@@ -85,7 +85,7 @@
    ],
    "kind": "part",
    "shapes": [
-    962
+    356
    ]
   },
   "femur": {
@@ -96,7 +96,7 @@
    ],
    "kind": "part",
    "shapes": [
-    40
+    23
    ]
   },
   "knee": {
@@ -107,7 +107,7 @@
    ],
    "kind": "part",
    "shapes": [
-    1744
+    706
    ]
   },
   "tibia": {
@@ -118,7 +118,7 @@
    ],
    "kind": "part",
    "shapes": [
-    1534
+    598
    ]
   }
  }
