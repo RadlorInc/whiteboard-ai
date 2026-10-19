@@ -90,10 +90,12 @@ function arrowD([x1, y1, x2, y2]) {
   return `M${x1} ${y1} L${x2} ${y2} M${p(-.45)} L${x2} ${y2} L${p(.45)}`;
 }
 
-// Words written on top of other words (the model's text over a recipe's own label or formula, two tags in one spot),
-// or running across the edge of a library drawing (a long title into a diagram's box), are fixed at build: a title
-// shrinks first, other words move up or down to the nearest free place, then shrink. A word wholly inside a drawing
-// (a note inside a graph) is meant to be there and stays. Drawings never move; old videos get it too (19 Oct 2026).
+// Words written on top of other words (the model's text over a recipe's own label, heading or formula, two tags in one
+// spot) or running across the edge of a library drawing are fixed at build. Each crowded word tries nearby spots (up,
+// down, and for text also left and right) and smaller sizes (a title shrinks most readily) and takes the one with the
+// least overlap, even when the board has no fully free place (19 Oct 2026: a title over a Krebs cycle's own heading
+// had nowhere wholly clear to go and stayed put). A word wholly inside a drawing (a note in a graph) is meant to be
+// there. Drawings never move; old videos get it too.
 const PRIMS = new Set(['text', 'tag', 'title', 'circle', 'ellipse', 'rect', 'line', 'arrow', 'path', 'pin']);
 function unclutter(movable, drawings) {
   const m = scene.getScreenCTM(); if (!m || !movable.length) return;
@@ -104,18 +106,31 @@ function unclutter(movable, drawings) {
   const inside = (q, d) => q.x >= d.x - 2 && q.y >= d.y - 2 && q.x + q.w <= d.x + d.w + 2 && q.y + q.h <= d.y + d.h + 2;
   const placed = [...scene.querySelectorAll('text')].filter(t => !movable.some(e => e === t || e.contains(t))).map(box).filter(area);
   const boxes = drawings.map(box).filter(area);
-  // a tag (a step box) never sits on a library drawing; plain text may sit wholly inside one (a note in a graph)
-  const bad = (q, tag) => placed.some(p => cross(p, q) > .2 * Math.min(area(p), area(q))) || boxes.some(d => cross(d, q) > 0 && (tag || !inside(q, d)));
-  const shift = (e, dy) => { if (e.kind !== 'tag') e.setAttribute('y', +e.getAttribute('y') + dy);
+  // how crowded a spot is: the area it shares with other words and with library drawings it runs across (or, for a tag, sits on)
+  // (a word the model put wholly inside a drawing may stay inside it; one from outside is not pushed into it)
+  const onWords = q => placed.reduce((s, p) => s + cross(p, q), 0);
+  const onDrawings = (q, tag, home) => boxes.reduce((s, d) => s + (cross(d, q) && (tag || !(inside(q, d) && inside(home, d))) ? cross(d, q) : 0), 0);
+  const cost = (q, tag, home) => onWords(q) + onDrawings(q, tag, home);
+  const off = q => q.x < 0 || q.y < 0 || q.x + q.w > 960 || q.y + q.h > 540;
+  const shift = (e, dx, dy) => { if (e.kind !== 'tag') { e.setAttribute('x', +e.getAttribute('x') + dx); e.setAttribute('y', +e.getAttribute('y') + dy); }
     else { for (const c of e.querySelectorAll('rect, text')) c.setAttribute('y', +c.getAttribute('y') + dy); e.center[1] += dy; } };
-  const shrink = e => { const t = e.kind === 'tag' ? null : e, s0 = t && +t.getAttribute('font-size'); if (!s0) return false;
-    for (let f = .92; f > .6; f -= .08) { t.setAttribute('font-size', (s0 * f).toFixed(1)); if (!bad(box(e), false)) return true; }
-    t.setAttribute('font-size', s0); return false; };
-  const move = (e, b) => { for (const k of [1, -1, 2, -2, 3, -3]) { const dy = k * (b.h + 6), q = { ...b, y: b.y + dy };
-    if (q.y >= 0 && q.y + q.h <= 540 && !bad(q, e.kind === 'tag')) { shift(e, dy); return true; } } return false; };
   for (const e of movable) {
     const b = box(e); if (!area(b)) continue;
-    if (bad(b, e.kind === 'tag')) e.kind === 'title' ? shrink(e) || move(e, b) : move(e, b) || shrink(e);
+    const tag = e.kind === 'tag', c0 = cost(b, tag, b);
+    if (onWords(b) <= .05 * area(b) && !onDrawings(b, tag, b)) { placed.push(b); continue; }   // clear: leave it where the model put it
+    const s0 = tag ? 0 : +e.getAttribute('font-size'), size = f => { if (s0) e.setAttribute('font-size', (s0 * f).toFixed(1)); };
+    const dys = [0, 1, -1, 2, -2, 3, -3].map(k => k * (b.h + 6)), dxs = tag ? [0] : [0, -40, 40, -80, 80, -140, 140];
+    let best = { c: c0, f: 1, dx: 0, dy: 0 };
+    for (const f of s0 ? [1, .9, .8, .7] : [1]) {
+      size(f); const s = f === 1 ? b : box(e);
+      for (const dy of dys) for (const dx of dxs) {
+        const q = { ...s, x: s.x + dx, y: s.y + dy }; if ((f === 1 && !dx && !dy) || off(q)) continue;
+        // a small price for each change, so the nearest fix wins; a title gives up size more easily than place
+        const c = cost(q, tag, b) + (1 - f) * area(b) * (e.kind === 'title' ? .05 : .3) + (Math.abs(dx) + Math.abs(dy)) * b.h * .05;
+        if (c < best.c) best = { c, f, dx, dy };
+      }
+    }
+    if (best.c < c0 * .6) { size(best.f); shift(e, best.dx, best.dy); } else size(1);
     placed.push(box(e));
   }
 }
@@ -156,7 +171,10 @@ function build(answer) {
     if (['line', 'arrow', 'path', 'circle', 'ellipse', 'rect'].includes(type)) e.classList.add('prim');
     els[id] = e;
   }
-  unclutter(keys.filter(k => ['text', 'tag', 'title'].includes(els[k].kind)).map(k => els[k]), keys.filter(k => !PRIMS.has(els[k].kind)).map(k => els[k]));
+  const words = keys.filter(k => ['text', 'tag', 'title'].includes(els[k].kind)).map(k => els[k]), drawings = keys.filter(k => !PRIMS.has(els[k].kind)).map(k => els[k]);
+  unclutter(words, drawings);
+  // measured again once the hand font has loaded: before it, a fallback font made a long title look short enough
+  if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(() => { if (words[0]?.isConnected) unclutter(words, drawings); });
   marker = mk('g', { style: 'opacity:0' }, scene);
   marker.innerHTML = '<g transform="rotate(-35)"><path d="M0 0 L8 -14 L-8 -14Z" fill="#222"/><rect x="-11" y="-110" width="22" height="96" rx="6" fill="#2f7fd6" stroke="#1d1d1f" stroke-width="3"/><rect x="-11" y="-120" width="22" height="22" rx="5" fill="#1d1d1f"/></g>';
   // sab chhupa do
