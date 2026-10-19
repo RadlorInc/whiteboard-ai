@@ -3,18 +3,9 @@
 Things decided but deliberately left for launch (founder, 18 Oct 2026). Tick an item when it is done; delete the file
 when every item is ticked. Agents never touch production: each step names who does it.
 
-## Ship the chat and biology work (in this order)
-- [ ] Run `migrate-prod` (GitHub Actions, typed confirmation) for `20261018000100_conversations.sql` and
-      `20261018000200_explore_chats.sql` (Explore by chat) and `20261018000300_saved_items.sql` (Collection); the UI
-      branch needs both — founder.
-- [ ] Merge #16 (chats), then #17 (subject prompts), then #18 (realistic library, pins, flows, follow-up cache),
-      then the UI redesign + Explore (`ui-redesign`).
-      Without the migration first, starting a chat fails.
-- [ ] Branch `bioicons-library` (stacked on `ui-redesign`): run `migrate-prod` for
-      `20261019000100_library_drawings.sql` first (model-made drawings, reviewed under /admin → Drawings to review).
-      Without it videos still work (the drawing calls fail quietly), but nothing is kept for review.
-- [ ] Check the deploy size: #18 adds ~1,430 small files under `public/player/lib/sv` (68 MB). If Vercel refuses or
-      slows, move them to Supabase Storage or R2 and point `SV.need` at that URL.
+## Shipped 19 Oct 2026 (all four migrations applied by migrate-prod; #16 to #21 merged; see handoff.md)
+- [ ] Watch the deploy size: `public/player/lib/sv` now holds ~2,100 drawings (~125 MB). Vercel took it on 19 Oct;
+      if a later deploy is refused or slow, move them to Supabase Storage or R2 and point `SV.need` at that URL.
 
 ## Keep the prompt cache warm (saves ~$0.09 on every cold video)
 - [ ] Vercel Pro plan (Hobby runs cron only once a day) — founder.
