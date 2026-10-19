@@ -11,12 +11,12 @@ insert into want_tables values ('profiles'),('saved_items'),('invites'),('price_
   ('generation_calls'),('generation_internal'),('credit_ledger'),('prompt_cache_state'),('miss_counts'),('purchases'),
   ('subscriptions'),('stripe_events'),('shares'),('video_feedback'),('reports'),('support_messages'),('admins'),
   ('admin_audit'),('account_flags'),('ops_settings'),('ops_alerts'),('ops_state'),('rate_limits'),('client_errors'),
-  ('email_outbox'),('conversations');
+  ('email_outbox'),('conversations'),('library_drawings');
 
 select set_eq(
   $$select relname::text from pg_class where relnamespace = 'public'::regnamespace and relkind in ('r','p','v','m','f')$$,
   $$select t from want_tables$$,
-  'public holds exactly the 28 hand-listed tables (no views, no unlisted table)');
+  'public holds exactly the 29 hand-listed tables (no views, no unlisted table)');
 
 select is_empty(
   $$select relname from pg_class where relnamespace = 'public'::regnamespace and relkind in ('r','p') and not relrowsecurity$$,
@@ -64,6 +64,8 @@ insert into want_fn values
   ('submit_feedback','{authenticated}',true), ('set_explore','{authenticated}',true),
   ('create_conversation','{authenticated}',true), ('attach_to_conversation','{service_role}',true),
   ('explore_on_finish','{service_role}',true), ('save_item','{authenticated}',true), ('my_saved','{authenticated}',true),
+  ('save_drawing_candidates','{service_role}',true), ('approved_drawings','{service_role}',true),
+  ('admin_list_drawings','{authenticated}',true), ('admin_review_drawing','{authenticated}',true),
   ('admin_adjust_credits','{authenticated}',true), ('admin_refund_generation','{authenticated}',true),
   ('admin_set_flags','{authenticated}',true), ('admin_set_settings','{authenticated}',true),
   ('admin_unpublish_share','{authenticated}',true), ('admin_view_generation','{authenticated}',true),
