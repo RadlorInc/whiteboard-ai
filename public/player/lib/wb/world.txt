@@ -1,8 +1,8 @@
 animal cx cy size k=cow|horse|sheep|goat|camel|cat|rabbit|mouse flip=1 | animal 480 300 300 k=cow | side-view farm or pet animal; |text = caption; flip=1 faces left
-wild cx cy size k=lion|tiger|elephant|giraffe|bear flip=1 | wild 480 300 300 k=lion | side-view wild animal; |text = caption; flip=1 faces left
+wild cx cy size k=lion|tiger|elephant|giraffe|bear|fox|polarbear|deer flip=1 | wild 480 300 300 k=lion | side-view wild animal (fox, polar bear, deer for food chains and adaptation); |text = caption; flip=1 faces left
 bird cx cy size k=bird|eagle|owl|penguin | bird 480 270 260 k=owl | songbird on branch, flying eagle, owl on branch, penguin
-seacreature cx cy size k=fish|shark|whale|dolphin|turtle flip=1 | seacreature 480 280 320 k=whale | side-view sea animal; whale spouts, fish blows bubbles
-critter cx cy size k=frog|snake|butterfly|bee|ant|spider | critter 480 280 260 k=butterfly | small creature: frog, snake, butterfly, bee, ant, spider on thread
+seacreature cx cy size k=fish|shark|whale|dolphin|turtle|jellyfish|starfish|crab|octopus flip=1 | seacreature 480 280 320 k=whale | side-view sea animal; jellyfish, starfish, crab, octopus (invertebrates); whale spouts, fish blows bubbles
+critter cx cy size k=frog|snake|butterfly|bee|ant|spider|grasshopper|lizard|caterpillar|chrysalis|larva|pupa|eggs|tadpole|spawn|worm|snail | critter 480 280 260 k=butterfly | small creature: frog, snake, butterfly, bee, ant, spider on thread, grasshopper, lizard, earthworm, snail; life-cycle stages: eggs on a leaf, caterpillar, chrysalis, larva (grub), pupa, frogspawn, tadpole
 tree cx cy height k=oak|pine|palm | tree 480 270 300 k=oak | tree on a ground line: round oak, pine, palm with coconuts
 flower cx cy height k=daisy|tulip|sunflower | flower 480 260 260 k=sunflower | flower on stem with two leaves
 grass x1 x2 y | grass 200 760 340 | strip of ground with tufts of grass

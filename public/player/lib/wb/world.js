@@ -150,6 +150,49 @@
     },
   };
   const WILD = {
+    // 19 Oct 2026: food chains and adaptation lessons
+    fox: g => {
+      const ink = '#7a3a10', c = '#e8742a', lt = '#fff3e6';
+      P(g, smooth([[-80, -6], [-126, -40], [-150, -10], [-130, 22], [-96, 18]]), c, ink);                 // bushy tail
+      P(g, smooth([[-138, -14], [-150, -10], [-136, 14], [-124, 6]]), lt, ink, 2);                         // white tip
+      legs(g, [-62, -44, 30, 48], 6, 90, 12, '#5a2a10', '#3a1a08');
+      P(g, 'M-86 -14 Q-86 -46 -50 -48 L30 -48 Q58 -46 60 -16 Q60 14 36 18 L-58 18 Q-86 16 -86 -14 Z', c, ink);
+      F(g, 'M-80 6 Q-20 22 50 8 Q44 18 30 18 L-58 18 Q-76 16 -80 6 Z', '#c75a18', { opacity: .7 });
+      P(g, 'M40 -40 L62 -96 L76 -48 Z', c, ink, 2.6); P(g, 'M66 -42 L92 -94 L98 -40 Z', c, ink, 2.6);       // ears
+      P(g, 'M52 -46 L62 -82 L70 -50 Z', '#3a1a08', ink, 1.6);
+      P(g, smooth([[40, -44], [96, -50], [132, -24], [104, -8], [56, -6]]), c, ink);                       // head and snout
+      P(g, smooth([[70, -14], [104, -12], [130, -22], [116, -6], [80, -2]]), lt, ink, 2);
+      dot(g, 132, -24, '#1a1008', 9); dot(g, 88, -32, '#1a1008', 8); dot(g, 86, -34, '#fff', 3);
+      line(g, 'M-60 -42 Q-10 -54 40 -44', '#fff', 3, { opacity: .45 });
+      return 120;
+    },
+    polarbear: g => {
+      const ink = '#7a8899', c = '#f7f9fb', sh = '#d8e2ec';
+      legs(g, [-70, -46, 36, 60], 10, 90, 22, c, ink);
+      P(g, smooth([[-100, -6], [-90, -50], [-30, -64], [40, -56], [72, -30], [70, 14], [40, 24], [-60, 26], [-98, 18]]), c, ink);
+      F(g, smooth([[-96, 10], [-40, 24], [40, 22], [68, 8], [40, 26], [-60, 28]]), sh);
+      P(g, smooth([[56, -40], [96, -48], [128, -30], [130, -10], [96, -2], [64, -10]]), c, ink);             // head
+      F(g, smooth([[70, -8], [100, -4], [126, -12], [100, 0]]), sh);
+      P(g, E(74, -50, 9), c, ink, 2.2); dot(g, 74, -50, '#9aa6b2', 6);
+      dot(g, 130, -22, '#1a1a1a', 11); dot(g, 102, -34, '#1a1a1a', 7); dot(g, 100, -36, '#fff', 2.5);
+      for (const x of [-70, -46, 36, 60]) line(g, `M${x - 8} 90 l0 -6 M${x} 90 l0 -6 M${x + 8} 90 l0 -6`, ink, 1.6);
+      line(g, 'M-80 -40 Q-20 -64 40 -52', '#fff', 4, { opacity: .8 });
+      return 120;
+    },
+    deer: g => {
+      const ink = '#6a3a14', c = '#c98a4a', lt = '#f6e6d0';
+      legs(g, [-56, -40, 30, 46], -4, 100, 9, c, ink, '#3a2010');
+      P(g, smooth([[-70, -10], [-60, -40], [0, -44], [44, -38], [56, -10], [40, 10], [-50, 12]]), c, ink);
+      F(g, smooth([[-64, 4], [0, 10], [44, 4], [30, 12], [-50, 12]]), lt, { opacity: .8 });
+      for (const [x, y] of [[-40, -26], [-20, -32], [0, -24], [-28, -14], [12, -34]]) dot(g, x, y, '#fff7ea', 6);
+      P(g, 'M-70 -20 l-12 -6 l4 14 Z', lt, ink, 1.8);                                                    // tail
+      P(g, smooth([[36, -34], [56, -84], [72, -86], [62, -40], [50, -24]]), c, ink);                       // neck
+      P(g, smooth([[56, -86], [90, -92], [110, -76], [96, -66], [64, -70]]), c, ink);                      // head
+      P(g, E(56, -98, 12, 6), c, ink, 2); dot(g, 108, -78, '#1a1008', 7); dot(g, 80, -84, '#1a1008', 6); dot(g, 79, -86, '#fff', 2);
+      line(g, 'M70 -94 L64 -124 L52 -136 M64 -124 L76 -140 M66 -112 L56 -114', '#7a5230', 3.4);           // antlers
+      line(g, 'M80 -94 L88 -126 L80 -142 M88 -126 L102 -136 M86 -114 L96 -112', '#7a5230', 3.4);
+      return 126;
+    },
     lion: g => {
       const ink = '#8a5a1c', c = '#e8b25a', m = '#c9772a';
       line(g, 'M-88 -30 Q-122 -10 -112 28', ink, 4); P(g, E(-112, 34, 8, 11), m, ink, 2);
@@ -277,6 +320,51 @@
     },
   };
   const SEA = {
+    // 19 Oct 2026: invertebrates for classification lessons
+    jellyfish: g => {
+      const ink = '#7a4a9a', c = '#e6c8f4';
+      for (const x of [-40, -20, 0, 20, 40]) line(g, `M${x} 10 q-10 30 0 56 q10 26 -4 56`, '#b58ad0', 2.6);
+      for (const x of [-14, 10]) P(g, `M${x - 6} 10 q-8 40 4 80 q4 10 8 0 q-6 -40 6 -80 Z`, '#d6a8ec', ink, 1.6);
+      P(g, 'M-62 12 Q-64 -70 0 -72 Q64 -70 62 12 Q30 22 0 14 Q-30 22 -62 12 Z', c, ink);
+      F(g, 'M-50 -4 Q0 -40 50 -4 Q30 4 0 0 Q-30 4 -50 -4 Z', '#cfa0ea', { opacity: .8 });
+      line(g, 'M-40 -40 Q-20 -62 10 -64', '#fff', 4, { opacity: .7 });
+      return 140;
+    },
+    starfish: g => {
+      const ink = '#a03a1a', c = '#f07a4a';
+      P(g, star(0, 0, 100, 40), c, ink, 3);
+      for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * 2 * Math.PI / 5;
+        for (let r = 20; r < 90; r += 16) dot(g, r * Math.cos(a), r * Math.sin(a), '#ffd0b4', 7); }
+      P(g, E(0, 0, 10), '#d0582a', ink, 2);
+      return 110;
+    },
+    crab: g => {
+      const ink = '#8a1f12', c = '#e0452e';
+      for (const s of [-1, 1]) for (const [y, e] of [[6, 40], [18, 50], [30, 56]]) line(g, `M${s * 40} ${y} L${s * 74} ${y + 20} L${s * 84} ${y + e}`, ink, 4);
+      for (const s of [-1, 1]) {
+        line(g, `M${s * 46} -14 L${s * 70} -44`, ink, 5);
+        P(g, `M${s * 62} -46 Q${s * 70} -92 ${s * 104} -76 L${s * 84} -62 L${s * 102} -52 Q${s * 84} -36 ${s * 62} -46 Z`, c, ink, 2.6);  // claw
+        line(g, `M${s * 14} -30 L${s * 18} -56`, ink, 3); P(g, E(s * 18, -60, 7), '#fff', ink, 2); dot(g, s * 18, -60, '#111', 5);
+      }
+      P(g, 'M-58 -4 Q-56 -40 0 -42 Q56 -40 58 -4 Q50 28 0 30 Q-50 28 -58 -4 Z', c, ink);
+      F(g, 'M-52 6 Q0 34 52 6 Q40 28 0 30 Q-40 28 -52 6 Z', '#b52e1c', { opacity: .6 });
+      line(g, 'M-30 -30 Q0 -40 26 -32', '#fff', 3, { opacity: .5 });
+      line(g, 'M-10 -2 Q0 4 10 -2', ink, 2.4);
+      return 100;
+    },
+    octopus: g => {
+      const ink = '#7a2a4a', c = '#e07aa0';
+      for (let i = 0; i < 8; i++) { const x = -70 + i * 20, b = i % 2 ? 1 : -1;
+        line(g, `M${x * .6} 20 Q${x} 60 ${x + b * 20} 80 Q${x + b * 40} 96 ${x + b * 24} 110`, ink, 15);
+        line(g, `M${x * .6} 20 Q${x} 60 ${x + b * 20} 80 Q${x + b * 40} 96 ${x + b * 24} 110`, c, 10);
+        for (const t of [.45, .7]) dot(g, x * (1 - t) * .6 + (x + b * 20) * t, 20 + 60 * t, '#f6c4d6', 5); }
+      P(g, smooth([[0, -100], [52, -80], [62, -20], [40, 26], [0, 32], [-40, 26], [-62, -20], [-52, -80]]), c, ink);
+      F(g, smooth([[-50, 0], [0, 28], [50, 0], [40, 26], [0, 32], [-40, 26]]), '#c75a84', { opacity: .6 });
+      for (const s of [-1, 1]) { P(g, E(s * 22, -14, 12, 14), '#fff', ink, 2); dot(g, s * 22, -12, '#111', 8); dot(g, s * 20, -16, '#fff', 3); }
+      for (const [x, y] of [[-20, -66], [16, -74], [30, -50], [-34, -44]]) dot(g, x, y, '#c75a84', 8);
+      line(g, 'M-30 -82 Q0 -98 30 -84', '#fff', 4, { opacity: .55 });
+      return 130;
+    },
     fish: g => {
       const ink = '#a0560f', c = '#f4a531';
       P(g, 'M-72 0 L-118 -40 L-108 0 L-118 40 Z', '#f08a2c', ink);
@@ -408,6 +496,191 @@
       dot(g, -7, -32, '#fff', 9); dot(g, 7, -32, '#fff', 9); dot(g, -7, -32, '#111', 4); dot(g, 7, -32, '#111', 4);
       line(g, 'M-6 -20 Q0 -15 6 -20', '#fff', 2);
       return 70;
+    },
+    // detailed versions (19 Oct 2026, founder: "level up"): shading, highlights, real anatomy
+    frogx: g => {
+      const ink = '#1f4a17', c = '#5fae3a', dk = '#3f8a2a', belly = '#e6f0b8';
+      const toes = (x, y, dir, n = 4) => { for (let i = 0; i < n; i++) { const a = dir > 0 ? -30 + i * 22 : 210 - i * 22, r = 40,
+        ex = x + r * Math.cos(a * Math.PI / 180), ey = y + r * Math.sin(a * Math.PI / 180) * .5 + 6;
+        line(g, `M${x} ${y} Q${(x + ex) / 2} ${(y + ey) / 2 + 4} ${ex.toFixed(1)} ${ey.toFixed(1)}`, ink, 4.2); P(g, E(ex, ey, 4.6), '#8cc63f', ink, 1.6); } };
+      // back legs: big folded thighs, shins, long webbed feet
+      for (const s of [-1, 1]) {
+        F(g, `M${s * 70} 92 L${s * 104} 72 Q${s * 112} 92 ${s * 108} 118 L${s * 84} 110 Z`, '#a8d65a', { opacity: .75 });   // web
+        toes(s * 70, 92, s, 4);
+        P(g, smooth([[s * 30, 40], [s * 76, 14], [s * 104, 46], [s * 92, 84], [s * 46, 88]]), c, ink);
+        F(g, smooth([[s * 50, 70], [s * 90, 58], [s * 92, 82], [s * 54, 88]]), dk, { opacity: .55 });
+        for (const [x, y, r] of [[78, 40, 8], [94, 62, 6], [62, 60, 5]]) P(g, E(s * x, y, r, r * .8), '#2f6e22', '#2f6e22', 1);
+        line(g, `M${s * 46} 22 Q${s * 76} 10 ${s * 96} 34`, '#fff', 3, { opacity: .45 });
+      }
+      // body and belly
+      P(g, smooth([[0, -28], [52, -18], [70, 30], [52, 82], [0, 92], [-52, 82], [-70, 30], [-52, -18]]), c, ink, 3.2);
+      F(g, smooth([[-56, 40], [-40, 78], [0, 88], [40, 78], [56, 40], [30, 62], [0, 66], [-30, 62]]), dk, { opacity: .5 });
+      P(g, smooth([[0, 4], [32, 14], [40, 48], [26, 78], [0, 84], [-26, 78], [-40, 48], [-32, 14]]), belly, '#9ab060', 2);
+      for (const y of [30, 46, 62]) line(g, `M-18 ${y} Q0 ${y + 6} 18 ${y}`, '#c2d48a', 1.8);
+      // front legs and four splayed fingers
+      for (const s of [-1, 1]) {
+        P(g, `M${s * 34} 30 Q${s * 46} 62 ${s * 40} 88 L${s * 28} 88 Q${s * 30} 62 ${s * 22} 38 Z`, c, ink, 2.6);
+        for (const dx of [-12, -4, 4, 12]) { line(g, `M${s * 34} 88 L${s * 34 + dx * 1.1} 100`, ink, 3.2); dot(g, s * 34 + dx * 1.1, 101, '#8cc63f', 7); }
+      }
+      // head: wide, with eye bumps, ear drums, nostrils, mouth
+      P(g, smooth([[0, -86], [44, -84], [84, -54], [80, -26], [40, -10], [0, -6], [-40, -10], [-80, -26], [-84, -54], [-44, -84]]), c, ink, 3.2);
+      F(g, smooth([[-76, -30], [-40, -16], [0, -12], [40, -16], [76, -30], [40, -6], [0, -2], [-40, -6]]), dk, { opacity: .5 });
+      for (const s of [-1, 1]) {
+        P(g, E(s * 42, -84, 28, 24), c, ink, 3);                                      // eye bump
+        P(g, E(s * 42, -86, 19, 17), '#e8c33a', '#6a4a10', 2);                        // golden iris
+        mk('ellipse', { cx: s * 42, cy: -86, rx: 12, ry: 5.5, fill: '#111', class: 'fillable' }, g);   // horizontal pupil (no rough edge)
+        dot(g, s * 42 - 6, -92, '#fff', 7); dot(g, s * 42 + 6, -80, '#fff', 3);
+        P(g, E(s * 70, -50, 11, 10), '#8a6a2a', '#5a3a10', 2); P(g, E(s * 70, -50, 5, 4.5), '#b08a40', '#b08a40', 1);   // ear drum
+        dot(g, s * 10, -60, '#1f4a17', 5);                                            // nostril
+        P(g, E(s * 62, -100, 3, 2), '#2f6e22', '#2f6e22', 1);
+      }
+      line(g, 'M-66 -34 Q-30 -12 0 -16 Q30 -12 66 -34', ink, 3.2);                   // mouth
+      line(g, 'M-58 -32 l-6 -6 M58 -32 l6 -6', ink, 2.4);
+      for (const [x, y, r] of [[-20, -48, 6], [24, -44, 5], [0, -66, 4]]) P(g, E(x, y, r, r * .8), '#2f6e22', '#2f6e22', 1);
+      line(g, 'M-30 -74 Q-10 -80 12 -78', '#fff', 4, { opacity: .5 });                 // sheen
+      line(g, 'M-50 -6 Q-62 20 -60 44', '#fff', 3, { opacity: .35 });
+      return 118;
+    },
+    grasshopperx: g => {
+      const ink = '#2b4f14', c = '#86c13c', lt = '#d3ea8c', dk = '#5c9128';
+      // far legs, behind the body
+      line(g, 'M40 14 L34 48 L42 62 M58 14 L66 46 L60 62', dk, 3);
+      line(g, 'M10 6 L-50 -40 L-80 40', dk, 4);
+      // abdomen: segments, pale underside, spiracles, tip
+      P(g, smooth([[30, -16], [-30, -20], [-96, -14], [-122, 0], [-100, 16], [-30, 22], [30, 18]]), c, ink, 3);
+      F(g, smooth([[24, 12], [-30, 16], [-100, 10], [-112, 6], [-96, 18], [-30, 22], [26, 18]]), lt);
+      for (let x = -100; x <= 10; x += 15) line(g, `M${x} -14 Q${x - 4} 2 ${x} 18`, dk, 1.6);
+      for (let x = -92; x <= 10; x += 15) dot(g, x, -2, '#4e7f1e', 3.4);
+      P(g, 'M-120 -2 L-136 -6 L-128 6 Z', '#6ea32f', ink, 2);
+      // forewing: narrow, leathery brown-green, along the back; the abdomen's tip shows beyond it
+      P(g, smooth([[44, -26], [-20, -34], [-96, -30], [-108, -22], [-90, -16], [-20, -18]]), '#a8b04a', '#4e5a1a', 2.4);
+      line(g, 'M40 -26 Q-30 -30 -100 -24 M-10 -32 l-4 12 M-40 -32 l-4 12 M-70 -30 l-4 12', '#6e7a28', 1.4);
+      // thorax: saddle-shaped pronotum, dark side band, keel highlight
+      P(g, smooth([[30, -30], [66, -36], [80, -8], [72, 22], [30, 20]]), c, ink, 3);
+      F(g, smooth([[34, -14], [72, -20], [76, -6], [36, 0]]), dk, { opacity: .7 });
+      line(g, 'M34 -30 Q52 -38 70 -34', '#fff', 3, { opacity: .5 });
+      // near front and middle legs, jointed, with little feet
+      line(g, 'M52 18 L44 46 L52 64 L62 66 M68 16 L82 42 L80 62 L92 64', ink, 3.2);
+      // near hind leg: a big drumstick thigh up to the knee, herringbone muscle, spiny shin down to the foot
+      P(g, smooth([[30, 8], [20, -14], [-20, -42], [-58, -66], [-70, -60], [-50, -32], [-6, 6]]), '#b5dc5a', ink, 3);
+      for (let i = 0; i < 6; i++) { const x = 8 - i * 11, y = -10 - i * 8.5; line(g, `M${x + 2} ${y - 7} L${x - 5} ${y + 1} L${x + 4} ${y + 7}`, '#5c9128', 1.6); }
+      line(g, 'M-24 -36 Q-46 -54 -60 -62', '#fff', 3, { opacity: .45 });
+      line(g, 'M-64 -62 L-92 40', ink, 4);
+      for (let i = 1; i < 7; i++) { const t = i / 7, x = -64 - 28 * t, y = -62 + 102 * t; line(g, `M${x} ${y} l7 2`, ink, 1.8); }
+      line(g, 'M-92 40 L-112 44 M-100 42 l-3 6 M-108 44 l-3 6', ink, 2.6);
+      // head: big, compound eye, mouthparts, segmented antennae
+      P(g, smooth([[70, -34], [100, -38], [116, -12], [112, 22], [92, 34], [74, 18]]), c, ink, 3);
+      F(g, smooth([[78, 14], [96, 26], [110, 16], [96, 32]]), dk, { opacity: .6 });
+      P(g, E(98, -16, 12, 14), '#7a4a1e', '#3a220c', 2); dot(g, 94, -22, '#fff', 5);
+      P(g, 'M104 24 L116 30 L106 36 Z', '#6a4a20', ink, 1.8);
+      line(g, 'M108 14 q8 6 6 16', ink, 2);
+      line(g, 'M92 -34 Q84 -84 52 -110 M100 -36 Q102 -88 82 -120', ink, 2.2);
+      for (const [x, y] of [[88, -56], [78, -78], [66, -96], [100, -60], [96, -84], [88, -104]]) dot(g, x, y, ink, 4);
+      line(g, 'M82 -30 Q96 -36 108 -28', '#fff', 3, { opacity: .5 });
+      return 92;
+    },
+    // food chains and life cycles (19 Oct 2026): the animals and stages a school lesson needs
+    grasshopper: g => {
+      const ink = '#2d5a17', c = '#8cc63f';
+      line(g, 'M-20 30 L-34 66 L-46 70 M2 30 L-4 64 L-14 70', ink, 3.2);                                  // middle legs
+      P(g, smooth([[-96, 4], [-60, -24], [20, -30], [70, -20], [80, 8], [40, 30], [-40, 30]]), c, ink);
+      P(g, smooth([[-90, 0], [-40, -30], [30, -34], [24, -18], [-40, -10]]), '#b9dc6a', ink, 2.4);         // folded wing
+      for (const x of [-60, -40, -20]) line(g, `M${x} 12 q4 8 0 16`, ink, 2);
+      P(g, smooth([[-4, 2], [-40, -40], [-78, -52], [-82, -40], [-40, -18]]), '#7ab734', ink, 2.8);       // big hind leg
+      line(g, 'M-80 -46 L-100 36 L-116 42', ink, 3.4);
+      line(g, 'M48 24 L60 58 L72 62', ink, 3.2);                                                            // front leg
+      P(g, E(84, -4, 26, 28), c, ink);
+      P(g, E(92, -12, 9, 11), '#5a3a1a', ink, 2); dot(g, 94, -15, '#fff', 4);
+      line(g, 'M80 -30 Q60 -86 10 -104 M90 -30 Q84 -90 50 -116', ink, 2.4);
+      return 90;
+    },
+    lizard: g => {
+      const ink = '#2c5a1a', c = '#79b94a';
+      for (const [x, s] of [[-30, -1], [40, 1]]) {
+        line(g, `M${x} 6 L${x - 18} -22 L${x - 30} -26 M${x - 18} -22 L${x - 22} -36`, ink, 3.4);
+        line(g, `M${x} 20 L${x - 14} 46 L${x - 26} 50 M${x - 14} 46 L${x - 12} 58`, ink, 3.4);
+      }
+      P(g, smooth([[-56, 8], [-110, 20], [-150, 2], [-120, 34], [-56, 30], [0, 32], [60, 26], [96, 22], [118, 12], [100, -4], [60, -6], [0, -2]]), c, ink);
+      for (const [x, y] of [[-20, 12], [10, 10], [40, 10], [-46, 16]]) dot(g, x, y, '#4e8f2a', 7);
+      P(g, E(88, 2, 12, 9), '#fff', ink, 1.6); dot(g, 90, 2, '#111', 6);
+      line(g, 'M108 14 l12 0', '#c0392b', 2);
+      return 96;
+    },
+    caterpillar: g => {
+      const ink = '#2d5a17';
+      line(g, 'M-110 40 Q0 52 110 40', '#5a8f2a', 4);
+      for (let i = 0; i < 7; i++) { const x = -84 + i * 26, y = 6 - 10 * Math.sin(i / 6 * Math.PI);
+        line(g, `M${x - 4} ${y + 18} l-2 14 M${x + 6} ${y + 18} l2 14`, ink, 2.6);
+        P(g, E(x, y, 18, 20), i % 2 ? '#8cc63f' : '#a8d65a', ink, 2.4); dot(g, x, y - 6, '#f3c33b', 6); }
+      P(g, E(100, -8, 22, 22), '#e2873a', '#7a3a10');
+      dot(g, 108, -12, '#111', 7); dot(g, 110, -14, '#fff', 3);
+      line(g, 'M94 -28 Q90 -46 80 -52 M106 -28 Q112 -46 120 -50', '#7a3a10', 2.4);
+      return 70;
+    },
+    chrysalis: g => {
+      const ink = '#3e5a1f';
+      line(g, 'M-90 -96 L90 -96', '#7a5230', 7);
+      line(g, 'M0 -96 L0 -78', '#5a3a1a', 3);
+      P(g, smooth([[0, -80], [24, -52], [34, 0], [20, 54], [0, 86], [-20, 54], [-34, 0], [-24, -52]]), '#9cc85a', ink);
+      for (const y of [-30, -6, 18, 42]) line(g, `M${-30 + Math.abs(y) / 6} ${y} Q0 ${y + 10} ${30 - Math.abs(y) / 6} ${y}`, ink, 1.8);
+      for (const [x, y] of [[-14, -56], [12, -56]]) dot(g, x, y, '#e9c23b', 6);
+      line(g, 'M-16 -64 Q-26 -20 -18 30', '#fff', 4, { opacity: .5 });
+      return 110;
+    },
+    larva: g => {                                                     // a bee or beetle grub, curled like a C
+      const ink = '#8a7660';
+      for (let i = 0; i < 9; i++) { const a = Math.PI * (0.15 + i * 0.17), r = 50;
+        P(g, E(r * Math.cos(a), -r * Math.sin(a) + 10, 26 - i * .8, 22 - i * .6), i % 2 ? '#fbf3e1' : '#f3e6c8', ink, 2.2); }
+      dot(g, 44, -16, '#3a2f28', 6);
+      return 110;
+    },
+    pupa: g => {                                                      // a bee pupa: the adult's shape, pale, wings folded
+      const ink = '#8a7660', c = '#f3e6c8';
+      for (const x of [-10, 10, 30]) line(g, `M${x} 14 L${x - 6} 40 L${x - 16} 48`, ink, 3);
+      P(g, smooth([[-100, 4], [-80, -20], [-40, -26], [-30, 0], [-44, 26], [-84, 26]]), '#efdcb6', ink);
+      for (const x of [-84, -66, -50]) line(g, `M${x} -18 q-6 22 0 40`, ink, 1.8);
+      P(g, E(6, 0, 34, 26), c, ink);
+      P(g, smooth([[-20, -16], [20, -18], [40, -6], [10, 6]]), '#fbf3e1', ink, 1.8);
+      P(g, E(58, -4, 22, 24), c, ink);
+      P(g, E(66, -10, 9, 12), '#c9a38a', ink, 1.8);
+      line(g, 'M64 -26 Q70 -40 84 -44', ink, 2);
+      return 70;
+    },
+    eggs: g => {                                                      // tiny insect eggs laid on a leaf
+      P(g, smooth([[-110, 30], [-40, -40], [60, -50], [116, -20], [60, 40], [-30, 52]]), '#7cc04f', '#2f6a1e');
+      line(g, 'M-104 30 Q0 0 112 -22', '#2f6a1e', 2.4);
+      for (const [x, y] of [[-30, -6], [-8, -14], [14, -18], [-20, 14], [2, 6], [24, 0], [-42, 16], [36, -14], [12, 22]])
+        { P(g, E(x, y, 8, 10), '#fff8dc', '#b59a5a', 1.6); line(g, `M${x - 3} ${y - 4} l2 -2`, '#fff', 2); }
+      return 70;
+    },
+    tadpole: g => {
+      const ink = '#1e2a20';
+      P(g, 'M-20 0 C-60 -26 -90 18 -130 -6 C-96 30 -60 14 -20 10 Z', '#4a5a48', ink, 2.4);
+      P(g, E(10, 4, 36, 28), '#4a5a48', ink);
+      dot(g, 26, -6, '#fff', 9); dot(g, 28, -6, '#111', 5);
+      line(g, 'M-6 -12 q8 -6 16 -4', '#8a9a88', 3);
+      return 66;
+    },
+    spawn: g => {                                                     // frogspawn: eggs in clear jelly
+      for (const [x, y] of [[-60, 0], [-30, -24], [0, 0], [30, -24], [60, 0], [-30, 24], [30, 24], [0, -46], [0, 46], [-60, -44], [60, 44]])
+        { P(g, E(x, y, 20), '#e6f4fb', '#7aa8c4', 2); dot(g, x, y, '#1e2a20', 12); line(g, `M${x - 10} ${y - 8} l4 -3`, '#fff', 2.4); }
+      return 80;
+    },
+    worm: g => {                                                      // earthworm
+      const ink = '#9a4a52';
+      const pts = Array.from({ length: 31 }, (_, i) => { const u = i / 30; return [-120 + 240 * u, 26 * Math.sin(u * Math.PI * 2.4)]; });
+      line(g, smooth(pts, false), ink, 30); line(g, smooth(pts, false), '#e9a2a8', 24);
+      for (let i = 3; i < 30; i += 2) { const [x, y] = pts[i]; line(g, `M${x} ${y - 10} l0 20`, '#c46a74', 2); }
+      P(g, E(pts[19][0], pts[19][1], 16, 14), '#d98088', ink, 2);
+      return 50;
+    },
+    snail: g => {
+      const ink = '#5a3a1a';
+      P(g, 'M-110 50 Q-80 30 -40 34 L70 34 Q100 30 110 4 Q118 -14 106 -20 Q96 -10 90 6 Q80 22 60 22 L-60 22 Q-100 26 -110 50 Z', '#d9c2a0', '#7a6040');
+      line(g, 'M100 -16 L106 -48 M110 -14 L122 -42', '#7a6040', 2.6); dot(g, 106, -50, '#3a2f28', 7); dot(g, 122, -44, '#3a2f28', 7);
+      P(g, E(-4, -26, 62, 56), '#e2a54a', ink);
+      line(g, 'M-4 -26 m0 -5 a5 5 0 1 1 -5 5 a11 11 0 1 1 11 11 a19 19 0 1 1 -19 -19 a29 29 0 1 1 29 29 a40 40 0 1 1 -40 -36', ink, 3);
+      return 84;
     },
   };
 

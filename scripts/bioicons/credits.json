@@ -312,18 +312,6 @@
   "licence": "CC BY 3.0"
  },
  {
-  "id": "dog",
-  "name": "dog",
-  "author": "Servier",
-  "licence": "CC BY 3.0"
- },
- {
-  "id": "dog-beagle",
-  "name": "dog beagle",
-  "author": "Servier",
-  "licence": "CC BY 3.0"
- },
- {
   "id": "fish",
   "name": "fish",
   "author": "Servier",
@@ -344,12 +332,6 @@
  {
   "id": "fruitfly-drosophila-redeyes",
   "name": "fruitfly drosophila redeyes",
-  "author": "Servier",
-  "licence": "CC BY 3.0"
- },
- {
-  "id": "guineapig",
-  "name": "guineapig",
   "author": "Servier",
   "licence": "CC BY 3.0"
  },
@@ -410,12 +392,6 @@
  {
   "id": "ox",
   "name": "ox",
-  "author": "Servier",
-  "licence": "CC BY 3.0"
- },
- {
-  "id": "pig-3",
-  "name": "pig",
   "author": "Servier",
   "licence": "CC BY 3.0"
  },
@@ -1076,12 +1052,6 @@
  {
   "id": "nematode-detailled",
   "name": "Nematode detailled",
-  "author": "DBCLS",
-  "licence": "CC BY 4.0"
- },
- {
-  "id": "north-pacific-spiny-dogfish",
-  "name": "North pacific Spiny dogfish",
   "author": "DBCLS",
   "licence": "CC BY 4.0"
  },
