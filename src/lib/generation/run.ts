@@ -4,7 +4,8 @@
 import { AuthenticationError, PermissionDeniedError, NotFoundError, APIError, APIUserAbortError } from '@anthropic-ai/sdk';
 import { STYLE_CHECK, checkEls, checkStep, checkPaperStep, checkPolicy, checkSafety, findDrawing, guardFindInput, parse, WB_LIB, PAPER_LIB } from './checks.mjs';
 import { createScanner } from './scan.mjs';
-import { prefix, cost, PROMPT_SHA, type ModelClient, type FinalMessage, type Style, type Block } from './model';
+import P from './prompts.json' with { type: 'json' };
+import { prefix, cost, promptSha, type ModelClient, type FinalMessage, type Style, type Subject, type Block } from './model';
 import type { GenDb, FailCode, Metrics } from './db';
 
 export const LIMITS = { deadlineMs: 240_000, maxTokens: 16_000, toolRounds: 5, outputBudget: 40_000 };
@@ -29,13 +30,16 @@ export function providerCode(e: unknown): FailCode {
 }
 
 export async function runGeneration(o: {
-  id: string; style: Style; question: string; context?: string; client: ModelClient; db: GenDb; send: Send;
+  id: string; style: Style; question: string; context?: string; subject?: Subject | null; client: ModelClient; db: GenDb; send: Send;
   deadlineMs?: number; retryWaitMs?: (n: number) => number;
 }) {
   const { id, style, question, client, db, send } = o;
   const t0 = Date.now(), at = () => Date.now() - t0;
   const timings: Record<string, number> = { accept: 0 };
-  const misses: string[] = [], lib = (style === 'whiteboard' ? WB_LIB : PAPER_LIB) as Lib;
+  // A subject's find_drawing searches only the categories its prompt lists.
+  const cats: string[] = o.subject ? P.subjects[o.subject].cats : P.wbCats;
+  const misses: string[] = [], lib = (style === 'whiteboard' ? (WB_LIB as Lib).filter(c => cats.includes(c.cat)) : PAPER_LIB) as Lib;
+  const sha = promptSha(style, o.subject);
   // A conversation's context (subject, earlier questions) goes first in the same user turn; the question stays last.
   const messages: Json[] = [{ role: 'user', content: o.context
     ? [{ type: 'text', text: o.context }, { type: 'text', text: `New question: ${question}` }] : question }];
@@ -87,7 +91,7 @@ export async function runGeneration(o: {
   async function call(kind: 'round' | 'repair', round: number): Promise<FinalMessage> {
     const startedAt = new Date(), c0 = Date.now(), scan = createScanner(style);
     let ttft: number | null = null;
-    const stream = client.messages.stream({ ...prefix(style), max_tokens: LIMITS.maxTokens, messages },
+    const stream = client.messages.stream({ ...prefix(style, o.subject), max_tokens: LIMITS.maxTokens, messages },
       { signal: abort.signal, timeout: Math.max(1000, (o.deadlineMs ?? LIMITS.deadlineMs) - at()) });
     for await (const ev of stream) {
       if (ttft == null) ttft = Date.now() - c0;
@@ -103,7 +107,7 @@ export async function runGeneration(o: {
     outputTokens += u.output_tokens || 0;
     if (timings.ttft1 == null) timings.ttft1 = ttft ?? 0; else timings.ttft2 ??= ttft ?? 0;
     await db.recordCall({
-      generation_id: id, style, kind, round, prompt_sha: PROMPT_SHA[style], started_at: startedAt.toISOString(),
+      generation_id: id, style, kind, round, prompt_sha: sha, started_at: startedAt.toISOString(),
       ttft_ms: ttft, ms: Date.now() - c0, stop_reason: msg.stop_reason, input_tokens: u.input_tokens ?? null,
       cache_read_tokens: u.cache_read_input_tokens ?? null, cache_write_1h_tokens: u.cache_creation_input_tokens ?? null,
       output_tokens: u.output_tokens ?? null, cost_usd: cost(u), anthropic_request_id: stream.request_id ?? null, raw_text: textOf(msg),

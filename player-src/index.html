@@ -16,6 +16,9 @@
   svg { width: 100%; height: auto; background: var(--board); border: 10px solid #b9c0c7; border-radius: 14px; box-shadow: 0 10px 30px #0002; display: block; overflow: hidden; }
   .ink { stroke-linecap: round; stroke-linejoin: round; }
   .hand { font-family: Caveat, cursive; }
+  /* Polished drawings (founder, 18 Oct 2026: Biology only for now): no wobble or watercolour, labels in a clean font. */
+  .polished [filter] { filter: none; }
+  .polished text { font-family: "Helvetica Neue", Arial, sans-serif; font-weight: 600; }
   .fillable { transition: fill-opacity .7s ease; fill-opacity: 0; }
   .fillable.on { fill-opacity: 1; }
   .pivot { transform-box: fill-box; transform-origin: center; }

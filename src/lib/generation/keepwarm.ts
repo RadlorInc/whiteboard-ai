@@ -2,7 +2,7 @@
 // so the window is read from prompt_cache_state (record_model_call keeps it).
 import { timingSafeEqual } from 'node:crypto';
 import { BadRequestError } from '@anthropic-ai/sdk';
-import { prefix, cost, PROMPT_SHA, STYLES, type ModelClient, type Style } from './model';
+import { prefix, cost, promptSha, PROMPTS, type ModelClient, type Style, type Subject } from './model';
 import type { GenDb, CacheState } from './db';
 
 export const WARM_HORIZON_MS = 24 * 60 * 60e3;     // D3
@@ -25,28 +25,29 @@ export function cronAuth(req: Request, secret = process.env.CRON_SECRET): Respon
 }
 
 export async function keepWarm(db: GenDb, client: ModelClient, now = Date.now()) {
-  const rows = await db.cacheState(), done: { style: Style; pinged: boolean; wrote?: number; cost?: number; error?: string }[] = [];
-  for (const style of STYLES) {
-    const row = rows.find(r => r.style === style && r.prompt_sha === PROMPT_SHA[style]);
-    if (!shouldPing(row, now)) { done.push({ style, pinged: false }); continue; }
+  const rows = await db.cacheState(), done: { style: Style; subject: Subject | null; pinged: boolean; wrote?: number; cost?: number; error?: string }[] = [];
+  for (const { style, subject } of PROMPTS) {               // each style's prompt and each subject's (own prompt_sha, own row)
+    const sha = promptSha(style, subject);
+    const row = rows.find(r => r.style === style && r.prompt_sha === sha);
+    if (!shouldPing(row, now)) { done.push({ style, subject, pinged: false }); continue; }
     const started = new Date();
     try {
-      const body = { ...prefix(style), messages: [{ role: 'user', content: 'ping' }] };
+      const body = { ...prefix(style, subject), messages: [{ role: 'user', content: 'ping' }] };
       // ASSUMPTION (§7.6): max_tokens 0 is accepted with tools and adaptive thinking; on a 400, 1 (measured live).
       const msg = await client.messages.create({ ...body, max_tokens: 0 }).catch(e => {
         if (e instanceof BadRequestError) return client.messages.create({ ...body, max_tokens: 1 });
         throw e;
       });
       const u = msg.usage ?? {};
-      await db.recordCall({ generation_id: null, style, kind: 'ping', round: null, prompt_sha: PROMPT_SHA[style],
+      await db.recordCall({ generation_id: null, style, kind: 'ping', round: null, prompt_sha: sha,
         started_at: started.toISOString(), ttft_ms: null, ms: Date.now() - started.getTime(), stop_reason: msg.stop_reason,
         input_tokens: u.input_tokens ?? null, cache_read_tokens: u.cache_read_input_tokens ?? null,
         cache_write_1h_tokens: u.cache_creation_input_tokens ?? null, output_tokens: u.output_tokens ?? null,
         cost_usd: cost(u), anthropic_request_id: null, raw_text: null });
       const wrote = u.cache_creation_input_tokens ?? 0;
-      if (wrote) console.warn(JSON.stringify({ event: 'ping_wrote', style, tokens: wrote }));   // §7.11: >0 a day = wrong window
-      done.push({ style, pinged: true, wrote, cost: cost(u) });
-    } catch (e) { done.push({ style, pinged: true, error: (e as Error).message }); }
+      if (wrote) console.warn(JSON.stringify({ event: 'ping_wrote', style, subject, tokens: wrote }));   // §7.11: >0 a day = wrong window
+      done.push({ style, subject, pinged: true, wrote, cost: cost(u) });
+    } catch (e) { done.push({ style, subject, pinged: true, error: (e as Error).message }); }
   }
   return done;
 }

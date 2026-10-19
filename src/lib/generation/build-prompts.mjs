@@ -6,7 +6,7 @@
 // 12 Oct 2026). Only two lines differ: `here` is app/player-src (the library's home since D6), and the recipe
 // catalogue is read from recipe-catalogue.md (the "## Recipe catalogue" section of PROCESS.md, copied byte for byte).
 // tests/generation/prompts.test.ts proves each style's sha256 equals the prototype's. Any change here is a
-// deliberate new prompt_sha.
+// deliberate new prompt_sha. The subject prompts (SUBJECTS below, 18 Oct 2026) are new and have no prototype twin.
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -28,15 +28,21 @@ const cats = (loader, v) => JSON.parse(fs.readFileSync(path.join(here, 'lib', lo
 const catalogueOf = (dir, list) => list.map(c => ({ cat: c, lines: fs.readFileSync(path.join(here, 'lib', dir, `${c}.txt`), 'utf8').split('\n')
   .filter(l => l.trim() && !l.startsWith('#')).map(l => { const p = l.split(' | '), sig = p[0], desc = p.at(-1), example = p.slice(1, -1).join(' | ');   // the example may carry "| text"
     return { name: sig.split(/\s+/)[0], sig, example, desc }; }) }));
-const WB_LIB = catalogueOf('wb', cats('wb-load.js', 'WB_CATS'));
-const WB_LIB_INDEX = WB_LIB.map(c => `  ${c.cat}: ${c.lines.map(l => l.name).join(' ')}`).join('\n');
+// WB_CATS = the plain whiteboard prompt's categories; WB_EXTRA = subject-only ones (the player loads both).
+const WB_CATS = cats('wb-load.js', 'WB_CATS');
+const WB_ALL = catalogueOf('wb', [...WB_CATS, ...cats('wb-load.js', 'WB_EXTRA')]);
+const WB_LIB = WB_ALL.filter(c => WB_CATS.includes(c.cat));
+const libIndex = lib => lib.map(c => `  ${c.cat}: ${c.lines.map(l => l.name).join(' ')}`).join('\n');
 const PRIMITIVES = ['circle', 'ellipse', 'rect', 'line', 'arrow', 'path', 'text', 'tag'];
-const TYPES = new Set([...PRIMITIVES, ...RECIPE_NAMES, ...WB_LIB.flatMap(c => c.lines.map(l => l.name))]);
+const typesOf = lib => new Set([...PRIMITIVES, ...RECIPE_NAMES, ...lib.flatMap(c => c.lines.map(l => l.name))]);
+const TYPES = typesOf(WB_ALL);                                    // what the checks accept: every loaded drawing
 const COMMANDS = new Set(['draw', 'write', 'fill', 'pop', 'fade', 'go', 'cam', 'wait', 'loop', 'travel']);
 const LOOPS = new Set(['beat', 'flow', 'fall', 'rise', 'sway', 'swing']);
 const catalogue = fs.readFileSync(path.join(genDir, 'recipe-catalogue.md'), 'utf8');
 
-const RULES = `You turn a question into a 30-60 second voiced whiteboard lesson, written as ONE JSON object that our
+// lib = the categories this prompt lists; teach = a subject's teaching rules ('' for the plain prompt, which must stay
+// byte-identical to the prototype's).
+const wbRules = (lib, teach = '') => `You turn a question into a 30-60 second voiced whiteboard lesson, written as ONE JSON object that our
 player draws live on a 960x540 board. Reply with the JSON object only: no prose, no code fences.
 
 Shape: {"q": "<the question>", "els": {"<id>": "<element line>", ...}, "steps": [{"say": "<one spoken sentence>", "do": ["<command>", ...]}, ...]}
@@ -58,15 +64,36 @@ Shape: {"q": "<the question>", "els": {"<id>": "<element line>", ...}, "steps": 
   that step), placed in reading order (left to right, then the next row) and never over a drawing. From step 2 on,
   draw an arrow or flow from the previous step's part of the board to this step's, so the eye follows 1 → 2 → 3.
   The worked examples below were made before this rule: follow the rule, not them, on numbering.
-- Only these element types exist: ${[...TYPES].join(', ')}.
+- Only these element types exist: ${[...typesOf(lib)].join(', ')}.${teach}
 
 Recipe catalogue (one line draws a full illustrated object):
 ${catalogue}
 More recipes, by subject (names only). Before you write the script, call find_drawing with the names you want
 (or a query like "blood pressure") to get each one's exact signature and options; use only signatures you fetched.
-${WB_LIB_INDEX}
+${libIndex(lib)}
 Worked examples (hand-made, approved; match their quality):
 ${EXAMPLES.map(a => JSON.stringify(a)).join('\n')}`;
+const RULES = wbRules(WB_LIB);
+
+// ---------- Subjects (founder, 18 Oct 2026): a chat's subject picks its own whiteboard prompt and drawing library ----------
+// Each subject prompt lists only its categories (plus the shared diagrams) and adds how to teach that subject.
+// find_drawing searches the same categories. Each is its own prompt cache entry (its own prompt_sha).
+const SUBJECTS = {
+  biology: { cats: ['biology', 'cells', 'body', 'health', 'diagrams'], teach: `
+- Teaching biology: name the real structures with their proper names (labelled drawings, lab=1), then show what they
+  do: follow one thing (blood, air, food, a nerve signal, water, sugar) as it travels through them with travel or go.
+  For these topics use the detailed diagrams: heartsection, circulation, breathing, gut, reflexarc, dnaladder,
+  cellcycle, leafsection, plantparts. One big labelled diagram plus the step tags reads better than many small
+  pictures. Keep the facts correct at school level; the body's right side is on the viewer's left.` },
+  physics: { cats: ['physics', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
+- Teaching physics: show the cause and the effect, with forces, energy and waves drawn as arrows. Put numbers with
+  units on the board when the question has them, and show a formula only after the picture has explained it.` },
+  chemistry: { cats: ['chemistry', 'earth', 'math', 'diagrams'], teach: `
+- Teaching chemistry: show the particles (atoms, molecules, ions) and what changes and what stays the same. Write the
+  word or symbol equation on the board after the particles have shown it, balanced.` },
+};
+const SUBJECT_RULES = Object.fromEntries(Object.entries(SUBJECTS).map(([s, { cats: cs, teach }]) =>
+  [s, wbRules(cs.map(c => WB_ALL.find(x => x.cat === c)), teach)]));
 
 // ---------- Paper motion (stop-motion / paper): scenes of library drawings on a 960x600 canvas ----------
 const smCtx = { window: {} };
@@ -156,9 +183,12 @@ export function buildPrompts() {
       paper: { system: PAPER_RULES, sha256: sha(PAPER_RULES) },
       matchcut: { system: MC_RULES, sha256: sha(MC_RULES) },
     },
+    // whiteboard prompts per chat subject; cats = the library categories it lists and find_drawing searches
+    subjects: Object.fromEntries(Object.entries(SUBJECT_RULES).map(([s, t]) => [s, { system: t, sha256: sha(t), cats: SUBJECTS[s].cats }])),
+    wbCats: WB_CATS,
     types: [...TYPES], commands: [...COMMANDS], loops: [...LOOPS],
     libNames: [...LIB_NAMES], flowItems: [...FLOW_ITEMS], bloodPaths: [...BLOOD_PATHS], textures: [...TEXTURES],
-    wbLib: WB_LIB, paperLib: PAPER_LIB, mcLib: MC_LIB,
+    wbLib: WB_ALL, paperLib: PAPER_LIB, mcLib: MC_LIB,
     examples: { whiteboard: EXAMPLES, paper: SM_EXAMPLES, matchcut: MC_EXAMPLES },
   };
 }
@@ -174,6 +204,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   } else {
     fs.writeFileSync(PROMPTS_FILE, next);
     const p = buildPrompts();
-    for (const [s, v] of Object.entries(p.styles)) console.log(s, v.sha256);
+    for (const [s, v] of [...Object.entries(p.styles), ...Object.entries(p.subjects)]) console.log(s, v.sha256);
   }
 }
