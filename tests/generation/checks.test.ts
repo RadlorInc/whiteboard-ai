@@ -190,6 +190,44 @@ describe('realistic library', () => {
   });
 });
 
+// Founder, 19 Oct 2026: every library drawing stays under MAX_BYTES (scripts/library/svg2sv.mjs). The older biology and
+// chemistry files over it were shrunk by scripts/library/shrink-sv.mjs (two that could not shrink unseen were dropped).
+describe('library size cap', () => {
+  const cat = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../scripts/servier/sv-catalogue.json'), 'utf8')) as { id: string; subject: string }[];
+  const size = (id: string) => fs.statSync(path.resolve(__dirname, `../../public/player/lib/sv/${id}.js`)).size;
+  it('no drawing is over 150 KB', () => {
+    const phys = cat.filter(c => c.subject === 'physics');
+    expect(phys.length).toBeGreaterThan(100);
+    for (const c of phys) expect(size(c.id), c.id).toBeLessThanOrEqual(150_000);
+    expect(cat.filter(c => size(c.id) > 150_000).map(c => c.id)).toEqual([]);
+  });
+  it('university biology (Reactome, NIH BioArt; 19 Oct 2026): under the cap, found by search, "B cell" survives the 3-letter cut', () => {
+    const uni = cat.filter(c => /^(Reactome|NIHBioArt)/.test((c as unknown as { kit: string }).kit));
+    expect(uni.length).toBeGreaterThan(1000);
+    for (const c of uni) expect(size(c.id), c.id).toBeLessThanOrEqual(150_000);
+    const sv = (WB_LIB as Any[]).find(c => c.cat === 'servier').lines;
+    const find = (q: string) => (findDrawingJs as (lib: unknown, q: { names: string[]; query: string }) => string)([{ cat: 'servier', lines: sv }], { names: [], query: q });
+    expect(find('T cell receptor MHC')).toMatch(/^sv id=tcr-mhc/m);
+    expect(find('NADPH oxidase')).toMatch(/^sv id=nadph-oxidase/m);
+    expect(find('B cell').split('\n').slice(0, 3).join('\n')).toMatch(/b-cell|bcell/);
+    expect(P.subjects.biology.system).not.toMatch(/at school level/);
+  });
+  it('US coverage checklist (19 Oct 2026): every topic, school to graduate, has a drawing', async () => {
+    const T = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../scripts/coverage/topics.json'), 'utf8'));
+    for (const s of ['biology', 'physics', 'chemistry'] as const) {
+      const cats = (P.subjects as Any)[s].cats as string[], lib = (WB_LIB as Any[]).filter(c => cats.includes(c.cat));
+      const recipes = new Set(lib.filter(c => !c.cat.startsWith('servier')).flatMap(c => c.lines.map((l: Any) => l.name)));
+      const sv = lib.filter(c => c.cat.startsWith('servier')).flatMap(c => c.lines.map((l: Any) => l.name as string));
+      const miss = T[s].filter((x: Any) => !x.key.some((k: string) => recipes.has(k) || sv.some((id: string) => `-${id}-`.includes(`-${k}-`))));
+      expect(miss.length, `${s}: ${miss.map((x: Any) => x.t).join('; ')}`).toEqual(0);
+    }
+  });
+  it('physics search finds colour drawings', () => {
+    const lines = (WB_LIB as Any[]).find(c => c.cat === 'servier-phys').lines;
+    expect((findDrawingJs as (lib: unknown, q: { names: string[]; query: string }) => string)([{ cat: 'servier-phys', lines }], { names: [], query: 'magnet colour' })).toMatch(/^sv id=magnet-physics/m);
+  });
+});
+
 // Labelled realistic drawings (18 Oct 2026): 69 core drawings carry named parts that pins can point at.
 describe('realistic drawings with parts', () => {
   it('the core drawings have parts in the catalogue, the prompt and their files; pins to them are checked', () => {

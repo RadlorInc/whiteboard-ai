@@ -70,19 +70,21 @@ export async function openFlattener() {
 }
 
 // Replace one source's drawings (its kits start with prefix): items = [{name, kit, tags, data}] -> [{id, ...item}].
-// Ids never collide with another source's; drawings over 1 MB are left out (too heavy for a phone).
-export function replaceSource(prefix, items) {
+// Ids never collide with another source's. Founder, 19 Oct 2026: every library drawing stays under MAX_BYTES (a lesson
+// loads it on a phone); bigger ones are left out and listed in `skipped`, to simplify by hand or drop.
+export const MAX_BYTES = 150_000;
+export function replaceSource(prefix, items, subject = 'biology') {
   const old = JSON.parse(fs.readFileSync(catFile, 'utf8'));
   for (const c of old) if (c.kit.startsWith(prefix)) fs.rmSync(path.join(dest, c.id + '.js'), { force: true });
   const cat = old.filter(c => !c.kit.startsWith(prefix)), taken = new Set(cat.map(c => c.id)), out = [];
-  let bytes = 0;
+  let bytes = 0; const skipped = [];
   for (const it of items) {
-    const body = JSON.stringify(it.data); if (body.length > 1_000_000) continue;
+    const body = JSON.stringify(it.data); if (body.length > MAX_BYTES) { skipped.push(`${it.name} (${Math.round(body.length / 1000)} KB)`); continue; }
     let id = slug(it.id || it.name), n = 1; const base = id; while (taken.has(id)) id = `${base}-${++n}`; taken.add(id);
     fs.writeFileSync(path.join(dest, id + '.js'), `SV.add(${JSON.stringify(id)},${body});\n`); bytes += body.length;
-    cat.push({ id, name: it.name, subject: 'biology', kit: it.kit, w: it.data.w, tags: it.tags });
+    cat.push({ id, name: it.name, subject, kit: it.kit, w: it.data.w, tags: it.tags });
     out.push({ ...it, id });
   }
   fs.writeFileSync(catFile, JSON.stringify(cat));
-  return { kept: out, mb: (bytes / 1e6).toFixed(1) };
+  return { kept: out, mb: (bytes / 1e6).toFixed(1), skipped };
 }

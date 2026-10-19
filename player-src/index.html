@@ -90,6 +90,36 @@ function arrowD([x1, y1, x2, y2]) {
   return `M${x1} ${y1} L${x2} ${y2} M${p(-.45)} L${x2} ${y2} L${p(.45)}`;
 }
 
+// Words written on top of other words (the model's text over a recipe's own label or formula, two tags in one spot),
+// or running across the edge of a library drawing (a long title into a diagram's box), are fixed at build: a title
+// shrinks first, other words move up or down to the nearest free place, then shrink. A word wholly inside a drawing
+// (a note inside a graph) is meant to be there and stays. Drawings never move; old videos get it too (19 Oct 2026).
+const PRIMS = new Set(['text', 'tag', 'title', 'circle', 'ellipse', 'rect', 'line', 'arrow', 'path', 'pin']);
+function unclutter(movable, drawings) {
+  const m = scene.getScreenCTM(); if (!m || !movable.length) return;
+  const inv = m.inverse(), box = e => { const r = e.getBoundingClientRect();
+    const a = new DOMPoint(r.left, r.top).matrixTransform(inv), b = new DOMPoint(r.right, r.bottom).matrixTransform(inv);
+    return { x: a.x, y: a.y, w: b.x - a.x, h: b.y - a.y }; };
+  const area = q => q.w * q.h, cross = (p, q) => Math.max(0, Math.min(p.x + p.w, q.x + q.w) - Math.max(p.x, q.x)) * Math.max(0, Math.min(p.y + p.h, q.y + q.h) - Math.max(p.y, q.y));
+  const inside = (q, d) => q.x >= d.x - 2 && q.y >= d.y - 2 && q.x + q.w <= d.x + d.w + 2 && q.y + q.h <= d.y + d.h + 2;
+  const placed = [...scene.querySelectorAll('text')].filter(t => !movable.some(e => e === t || e.contains(t))).map(box).filter(area);
+  const boxes = drawings.map(box).filter(area);
+  // a tag (a step box) never sits on a library drawing; plain text may sit wholly inside one (a note in a graph)
+  const bad = (q, tag) => placed.some(p => cross(p, q) > .2 * Math.min(area(p), area(q))) || boxes.some(d => cross(d, q) > 0 && (tag || !inside(q, d)));
+  const shift = (e, dy) => { if (e.kind !== 'tag') e.setAttribute('y', +e.getAttribute('y') + dy);
+    else { for (const c of e.querySelectorAll('rect, text')) c.setAttribute('y', +c.getAttribute('y') + dy); e.center[1] += dy; } };
+  const shrink = e => { const t = e.kind === 'tag' ? null : e, s0 = t && +t.getAttribute('font-size'); if (!s0) return false;
+    for (let f = .92; f > .6; f -= .08) { t.setAttribute('font-size', (s0 * f).toFixed(1)); if (!bad(box(e), false)) return true; }
+    t.setAttribute('font-size', s0); return false; };
+  const move = (e, b) => { for (const k of [1, -1, 2, -2, 3, -3]) { const dy = k * (b.h + 6), q = { ...b, y: b.y + dy };
+    if (q.y >= 0 && q.y + q.h <= 540 && !bad(q, e.kind === 'tag')) { shift(e, dy); return true; } } return false; };
+  for (const e of movable) {
+    const b = box(e); if (!area(b)) continue;
+    if (bad(b, e.kind === 'tag')) e.kind === 'title' ? shrink(e) || move(e, b) : move(e, b) || shrink(e);
+    placed.push(box(e));
+  }
+}
+
 function build(answer) {
   scene.replaceChildren(); els = {};
   // the order the model wrote (answer.order: saved scripts, whose jsonb lost it); older saved videos: pins last
@@ -108,13 +138,13 @@ function build(answer) {
     else if (type === 'path') e = mk('path', { d: content, ...stroke }, scene);
     else if (type === 'text') {
       e = mk('text', { x: n[0], y: n[1], class: 'hand pivot', 'font-size': o.s || 32, fill: o.f || '#222' }, scene);
-      e.textContent = content;
+      richText(e, content);
     } else if (type === 'tag') {                       // dabba + beech mein likha text, saath hilte hain
       const [cx, cy, w, h] = n;
       e = mk('g', { class: 'pivot' }, scene);
       mk('rect', { x: cx - w / 2, y: cy - h / 2, width: w, height: h, rx: 8, stroke: '#222', 'stroke-width': 4, fill: o.f || '#fff3c4', class: 'ink fillable' }, e);
       const t = mk('text', { x: cx, y: cy + 9, 'text-anchor': 'middle', class: 'hand fillable', 'font-size': o.s || 28, fill: '#222' }, e);
-      t.textContent = content;
+      richText(t, content);
       e.center = [cx, cy];
     } else if (RECIPES[type]) {
       e = RECIPES[type](n, o, content, scene);
@@ -126,6 +156,7 @@ function build(answer) {
     if (['line', 'arrow', 'path', 'circle', 'ellipse', 'rect'].includes(type)) e.classList.add('prim');
     els[id] = e;
   }
+  unclutter(keys.filter(k => ['text', 'tag', 'title'].includes(els[k].kind)).map(k => els[k]), keys.filter(k => !PRIMS.has(els[k].kind)).map(k => els[k]));
   marker = mk('g', { style: 'opacity:0' }, scene);
   marker.innerHTML = '<g transform="rotate(-35)"><path d="M0 0 L8 -14 L-8 -14Z" fill="#222"/><rect x="-11" y="-110" width="22" height="96" rx="6" fill="#2f7fd6" stroke="#1d1d1f" stroke-width="3"/><rect x="-11" y="-120" width="22" height="22" rx="5" fill="#1d1d1f"/></g>';
   // sab chhupa do
@@ -174,7 +205,9 @@ function flowify(el) {
 }
 async function draw(id, ms = 800) {
   const el = strokeOf(id);
-  if (el.tagName !== 'g') { await drawEl(el, ms); flowify(el); return; }
+  // A tag's words show once its box is drawn; "fill" adds the colour. A script that drew a tag but never filled it
+  // showed an empty box (seen in 3 of 6 real videos, 19 Oct 2026).
+  if (el.tagName !== 'g') { await drawEl(el, ms); flowify(el); if (els[id].kind === 'tag') els[id].querySelector('text')?.classList.add('on'); return; }
   // recipe: saari lines ek-ek karke (lambai ke hisaab se samay), phir uske labels
   // .linked: a pin's outline kept inside the drawing it points at; the pin draws it (el.linked), the drawing does not
   const inks = [...el.querySelectorAll('.ink:not(.linked)'), ...(el.linked || [])], total = inks.reduce((s, e) => s + e.getTotalLength(), 0);

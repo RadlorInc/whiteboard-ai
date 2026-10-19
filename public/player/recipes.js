@@ -32,9 +32,43 @@ let clipN = 0;
 
 const line = (g, d, color, w = 3, extra = {}) =>
   mk('path', { d, stroke: color, 'stroke-width': w, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', filter: 'url(#rough)', class: 'ink', ...extra }, g);
+// Sub- and superscripts (19 Oct 2026): the hand fonts have no glyphs for ⁺ ⁻ ² ₆₀ …, so "e⁻", "C₆₀", "x²" lost their
+// marks. Unicode super/subscript characters, "^{..}" / "^x" and "_{..}" / "_x" become smaller raised or lowered
+// tspans in the same font (Q_H, E_{ion}, e^{-x}). Plain text is left as it is.
+const SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿⁱ', SUB = '₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₒₓₙ', NORM = '0123456789+–=()ni', NORMSUB = '0123456789+–=()aeoxn';
+const richText = (t, text) => {
+  text = String(text ?? '');
+  if (!/[_^⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿⁱ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₒₓₙ]/.test(text)) { t.textContent = text; return t; }
+  const ch = [...text], runs = []; let i = 0, buf = '';
+  const push = (s, k) => { if (s) runs.push([s, k]); };
+  while (i < ch.length) {
+    const c = ch[i];
+    if ((c === '_' || c === '^') && i + 1 < ch.length && ch[i + 1] !== ' ') {
+      push(buf, 0); buf = ''; let body;
+      if (ch[i + 1] === '{') { const j = ch.indexOf('}', i + 2); body = ch.slice(i + 2, j < 0 ? ch.length : j).join(''); i = j < 0 ? ch.length : j + 1; }
+      else { body = ch[i + 1]; i += 2; }
+      push(body, c === '^' ? 1 : -1);
+    } else if (SUP.includes(c) || SUB.includes(c)) {
+      push(buf, 0); buf = ''; const sup = SUP.includes(c); let s = '';
+      while (i < ch.length && (sup ? SUP : SUB).includes(ch[i])) { s += (sup ? NORM[SUP.indexOf(ch[i])] : NORMSUB[SUB.indexOf(ch[i])]); i++; }
+      push(s, sup ? 1 : -1);
+    } else { buf += c; i++; }
+  }
+  push(buf, 0);
+  let at = 0;                                                     // current baseline offset, in em of the main size
+  for (const [s, k] of runs) {
+    const to = k > 0 ? -.42 : k < 0 ? .22 : 0;
+    const sp = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+    sp.setAttribute('dy', `${((to - at) * (k ? (/^[+–=]+$/.test(s) ? 1.1 : 1.5) : 1)).toFixed(2)}em`);   // a 66% run's em is smaller: 1.5x
+    if (k) sp.setAttribute('font-size', '66%');
+    if (k && /^[+–=]+$/.test(s)) { sp.setAttribute('font-size', '90%'); sp.setAttribute('font-weight', 700); }   // a lone charge sign at 66% all but vanished
+    sp.textContent = s; t.append(sp); at = to;
+  }
+  return t;
+};
 const label = (g, x, y, text, color, size = 22, anchor = 'start') => {
   const t = mk('text', { x, y, class: 'hand lbl', 'font-family': 'Kalam, cursive', 'font-size': size, fill: color, 'text-anchor': anchor }, g);
-  t.textContent = text; return t;
+  return richText(t, text);
 };
 // teer ka sira: aakhri point aur uski disha se
 const head = (x, y, ax, ay, h = 13) => {

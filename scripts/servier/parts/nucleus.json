@@ -8,7 +8,7 @@
    ],
    "kind": "part",
    "shapes": [
-    10
+    1
    ]
   },
   "pore": {
@@ -19,7 +19,7 @@
    ],
    "kind": "part",
    "shapes": [
-    10
+    1
    ]
   },
   "chromatin": {
@@ -30,7 +30,7 @@
    ],
    "kind": "part",
    "shapes": [
-    10
+    1
    ]
   },
   "nucleolus": {
@@ -41,7 +41,7 @@
    ],
    "kind": "part",
    "shapes": [
-    10
+    1
    ]
   }
  }

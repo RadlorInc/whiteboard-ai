@@ -8,7 +8,7 @@
    ],
    "kind": "part",
    "shapes": [
-    260
+    93
    ]
   },
   "body": {
@@ -19,7 +19,7 @@
    ],
    "kind": "part",
    "shapes": [
-    258
+    91
    ]
   },
   "nucleus": {
@@ -30,7 +30,7 @@
    ],
    "kind": "part",
    "shapes": [
-    21
+    19
    ]
   },
   "myelin": {
@@ -41,7 +41,7 @@
    ],
    "kind": "part",
    "shapes": [
-    260
+    93
    ]
   },
   "node": {
@@ -52,7 +52,7 @@
    ],
    "kind": "part",
    "shapes": [
-    364
+    160
    ]
   },
   "axon": {
@@ -63,7 +63,7 @@
    ],
    "kind": "part",
    "shapes": [
-    375
+    169
    ]
   },
   "terminals": {
@@ -74,7 +74,7 @@
    ],
    "kind": "part",
    "shapes": [
-    1159
+    348
    ]
   }
  }

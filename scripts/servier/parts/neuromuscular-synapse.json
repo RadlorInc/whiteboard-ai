@@ -8,7 +8,7 @@
    ],
    "kind": "part",
    "shapes": [
-    39
+    19
    ]
   },
   "myelin": {
@@ -19,7 +19,7 @@
    ],
    "kind": "part",
    "shapes": [
-    37
+    17
    ]
   },
   "endings": {
@@ -30,7 +30,7 @@
    ],
    "kind": "part",
    "shapes": [
-    56
+    26
    ]
   },
   "fibre": {
@@ -52,7 +52,7 @@
    ],
    "kind": "part",
    "shapes": [
-    7
+    5
    ]
   }
  }

@@ -8,7 +8,7 @@
    ],
    "kind": "part",
    "shapes": [
-    311
+    242
    ]
   },
   "wall": {
@@ -19,7 +19,7 @@
    ],
    "kind": "part",
    "shapes": [
-    138
+    108
    ]
   },
   "blood": {
@@ -30,7 +30,7 @@
    ],
    "kind": "part",
    "shapes": [
-    85
+    63
    ]
   }
  }

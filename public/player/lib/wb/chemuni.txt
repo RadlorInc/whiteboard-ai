@@ -1,0 +1,27 @@
+econfig cx cy width el=O |text | econfig 480 270 480 el=Fe | orbital box diagram and written electron configuration for H to Kr
+trends cx cy width k=all|radius|ionization|electronegativity |text | trends 480 270 460 k=all | periodic table outline with arrows for radius, ionization energy, electronegativity
+lewis cx cy size k=h2o|co2|nh3|ch4|o2|n2|hcl |text | lewis 480 260 300 k=h2o | Lewis dot structure: bond lines, lone pairs as dot pairs
+vsepr cx cy size k=tetrahedral|linear|trigonal|pyramidal|bent|tbp|octahedral|all |text | vsepr 480 270 300 k=tetrahedral | VSEPR shape, wedge/dash bonds, bond angle; all = grid of seven
+hybrid cx cy width k=sp3|sp|sp2 |text | hybrid 480 270 480 k=sp3 | sp, sp², sp³ hybrid orbital lobes and s+p energy boxes
+modiagram cx cy width k=o2|n2|h2 |text | modiagram 480 270 480 k=o2 | molecular orbital diagram for O₂, N₂ or H₂ with bond order
+hbond cx cy size k=hbond|dipole|dispersion |text | hbond 480 270 320 k=hbond | intermolecular forces: water hydrogen bonds, dipole–dipole, London dispersion
+phasediagram cx cy width k=generic|water |text | phasediagram 480 270 440 k=generic | pressure–temperature phase diagram, triple and critical points, 1 atm line
+heatingcurve cx cy width |text | heatingcurve 480 270 460 | heating curve of water: warming slopes, melting and boiling plateaus
+gaslaw cx cy width k=boyle|charles|gaylussac|ideal |text | gaslaw 480 270 460 k=boyle | gas law graphs: Boyle, Charles, Gay-Lussac, or PV = nRT box
+mole cx cy width |text | mole 480 270 520 | mole map: mass, moles, particles, gas volume at STP conversions
+energyprofile cx cy width k=exo|endo cat=1 |text | energyprofile 480 270 440 k=exo cat=1 | reaction energy diagram: Ea, ΔH, transition state, optional catalysed path
+collisiontheory cx cy width |text | collisiontheory 480 270 520 | effective vs ineffective collisions and Maxwell–Boltzmann curve with Ea
+equilibrium cx cy width |text | equilibrium 480 270 460 | concentration vs time reaching equilibrium, reactant added, Le Chatelier shift
+titration cx cy width k=strongstrong|weakstrong |text | titration 480 270 440 k=weakstrong | titration curve pH vs base added, equivalence and half-equivalence points
+buffer cx cy width |text | buffer 480 270 480 | buffer HA/A⁻ absorbing added H⁺ and OH⁻, Henderson–Hasselbalch; flow moves
+electrolysis cx cy size k=nacl|water |text | electrolysis 480 280 360 k=nacl | electrolytic cell: power supply, anode, cathode, moving ions, half-reactions
+calorimeter cx cy size k=coffee|bomb |text | calorimeter 480 280 340 k=coffee | coffee-cup or bomb calorimeter with thermometer, stirrer, q equations
+bornhaber cx cy width |text | bornhaber 480 270 520 | Born–Haber cycle for NaCl as energy ladder with kJ/mol values
+irspectrum cx cy width k=alcohol|ketone|acid |text | irspectrum 480 270 460 k=alcohol | IR spectrum, wavenumber 4000→500, labelled O–H, C–H, C=O peaks
+nmrspectrum cx cy width |text | nmrspectrum 480 270 460 | ¹H NMR of ethanol: triplet, quartet, singlet, integration 3:2:1, TMS
+massspec cx cy width k=generic|chlorine |text | massspec 480 270 440 k=generic | mass spectrum bars: molecular ion, base peak, fragments, or Cl M+2
+beerlambert cx cy width |text | beerlambert 480 270 500 | UV-Vis: source, cuvette path b, detector, A = εbc, absorbance line
+functionalgroups cx cy width |text | functionalgroups 480 270 520 | grid of twelve organic functional groups with structures and formulas
+sn2 cx cy width k=sn2|sn1|e2 |text | sn2 480 270 520 k=sn2 | SN2, SN1 or E2 mechanism with curly arrows; arrows move
+crystalfield cx cy width k=oct|tet n=6 spin=high|low |text | crystalfield 480 270 480 k=oct n=6 | d-orbital splitting, octahedral or tetrahedral, high/low spin electron filling
+rateorder cx cy width k=all|zero|first|second |text | rateorder 480 270 500 k=all | integrated rate law plots: [A], ln[A], 1/[A] vs time with slopes

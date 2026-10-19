@@ -18,7 +18,7 @@
    ],
    "kind": "part",
    "shapes": [
-    403
+    117
    ]
   },
   "drum": {
@@ -29,7 +29,7 @@
    ],
    "kind": "part",
    "shapes": [
-    469
+    125
    ]
   },
   "ossicles": {
@@ -40,7 +40,7 @@
    ],
    "kind": "part",
    "shapes": [
-    128
+    49
    ]
   },
   "canals": {
@@ -51,7 +51,7 @@
    ],
    "kind": "part",
    "shapes": [
-    134
+    53
    ]
   },
   "cochlea": {
@@ -62,7 +62,7 @@
    ],
    "kind": "part",
    "shapes": [
-    659
+    175
    ]
   },
   "nerve": {
@@ -73,7 +73,7 @@
    ],
    "kind": "part",
    "shapes": [
-    808
+    229
    ]
   },
   "tube": {

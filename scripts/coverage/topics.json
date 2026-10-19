@@ -1,0 +1,2043 @@
+{
+ "_about": "US topic checklist for the drawing library (founder, 19 Oct 2026: US market first, high school to graduate). lvl: HS = NGSS high school, AP = AP course, UG = US college, GR = graduate. key = recipe names or realistic-drawing id words; a topic counts as covered when any key is a recipe in the subject's categories or a word inside a realistic drawing id of that subject. node scripts/coverage/check.mjs writes report.md.",
+ "biology": [
+  {
+   "t": "Animal cell organelles",
+   "lvl": "HS",
+   "key": [
+    "animalcell",
+    "animal-cell"
+   ]
+  },
+  {
+   "t": "Plant cell",
+   "lvl": "HS",
+   "key": [
+    "plantcell",
+    "plant-cell"
+   ]
+  },
+  {
+   "t": "Prokaryote vs eukaryote",
+   "lvl": "HS",
+   "key": [
+    "bacterium",
+    "prokaryot"
+   ]
+  },
+  {
+   "t": "Cell membrane, fluid mosaic",
+   "lvl": "AP",
+   "key": [
+    "cellmembrane",
+    "cell-membrane"
+   ]
+  },
+  {
+   "t": "Diffusion and osmosis",
+   "lvl": "HS",
+   "key": [
+    "osmosis",
+    "diffusion"
+   ]
+  },
+  {
+   "t": "Active transport, Na/K pump",
+   "lvl": "AP",
+   "key": [
+    "sodium-potassium-pump"
+   ]
+  },
+  {
+   "t": "Endocytosis and exocytosis",
+   "lvl": "AP",
+   "key": [
+    "endocytosis",
+    "exocytosis",
+    "endosome"
+   ]
+  },
+  {
+   "t": "Enzyme and active site",
+   "lvl": "HS",
+   "key": [
+    "enzyme"
+   ]
+  },
+  {
+   "t": "Enzyme kinetics, Michaelis-Menten",
+   "lvl": "UG",
+   "key": [
+    "michaelis"
+   ]
+  },
+  {
+   "t": "Photosynthesis overview",
+   "lvl": "HS",
+   "key": [
+    "photosynth"
+   ]
+  },
+  {
+   "t": "Light reactions, thylakoid",
+   "lvl": "AP",
+   "key": [
+    "lightreactions",
+    "thylakoid"
+   ]
+  },
+  {
+   "t": "Calvin cycle",
+   "lvl": "AP",
+   "key": [
+    "calvin"
+   ]
+  },
+  {
+   "t": "Cellular respiration overview",
+   "lvl": "HS",
+   "key": [
+    "respiration"
+   ]
+  },
+  {
+   "t": "Glycolysis",
+   "lvl": "AP",
+   "key": [
+    "glycolysis"
+   ]
+  },
+  {
+   "t": "Krebs (citric acid) cycle",
+   "lvl": "AP",
+   "key": [
+    "krebs"
+   ]
+  },
+  {
+   "t": "Electron transport chain",
+   "lvl": "AP",
+   "key": [
+    "electron-transport"
+   ]
+  },
+  {
+   "t": "ATP synthase",
+   "lvl": "AP",
+   "key": [
+    "atpsynthase",
+    "atp-synthase"
+   ]
+  },
+  {
+   "t": "ATP molecule",
+   "lvl": "HS",
+   "key": [
+    "atp"
+   ]
+  },
+  {
+   "t": "Fermentation",
+   "lvl": "HS",
+   "key": [
+    "fermentation"
+   ]
+  },
+  {
+   "t": "Mitosis stages",
+   "lvl": "HS",
+   "key": [
+    "mitosis"
+   ]
+  },
+  {
+   "t": "Meiosis and crossing over",
+   "lvl": "HS",
+   "key": [
+    "meiosis"
+   ]
+  },
+  {
+   "t": "Cell cycle and checkpoints",
+   "lvl": "AP",
+   "key": [
+    "cellcycle"
+   ]
+  },
+  {
+   "t": "DNA double helix",
+   "lvl": "HS",
+   "key": [
+    "dnaladder",
+    "dna"
+   ]
+  },
+  {
+   "t": "DNA replication fork",
+   "lvl": "AP",
+   "key": [
+    "replication"
+   ]
+  },
+  {
+   "t": "Transcription",
+   "lvl": "AP",
+   "key": [
+    "transcription"
+   ]
+  },
+  {
+   "t": "Translation, ribosome",
+   "lvl": "AP",
+   "key": [
+    "translation"
+   ]
+  },
+  {
+   "t": "Genetic code table",
+   "lvl": "AP",
+   "key": [
+    "codon"
+   ]
+  },
+  {
+   "t": "Lac operon",
+   "lvl": "AP",
+   "key": [
+    "operon"
+   ]
+  },
+  {
+   "t": "Mutations",
+   "lvl": "HS",
+   "key": [
+    "mutation"
+   ]
+  },
+  {
+   "t": "Punnett square",
+   "lvl": "HS",
+   "key": [
+    "punnett"
+   ]
+  },
+  {
+   "t": "Pedigree chart",
+   "lvl": "AP",
+   "key": [
+    "pedigree"
+   ]
+  },
+  {
+   "t": "Hardy-Weinberg",
+   "lvl": "AP",
+   "key": [
+    "hardyweinberg"
+   ]
+  },
+  {
+   "t": "PCR",
+   "lvl": "AP",
+   "key": [
+    "pcrcycle",
+    "thermocycler"
+   ]
+  },
+  {
+   "t": "Gel electrophoresis",
+   "lvl": "AP",
+   "key": [
+    "electrophoresis"
+   ]
+  },
+  {
+   "t": "CRISPR-Cas9",
+   "lvl": "UG",
+   "key": [
+    "crispr"
+   ]
+  },
+  {
+   "t": "Recombinant DNA, plasmid",
+   "lvl": "AP",
+   "key": [
+    "plasmid",
+    "geneticengineering"
+   ]
+  },
+  {
+   "t": "Natural selection",
+   "lvl": "HS",
+   "key": [
+    "pepperedmoth",
+    "finch"
+   ]
+  },
+  {
+   "t": "Phylogenetic tree / cladogram",
+   "lvl": "HS",
+   "key": [
+    "cladogram"
+   ]
+  },
+  {
+   "t": "Speciation",
+   "lvl": "AP",
+   "key": [
+    "speciation"
+   ]
+  },
+  {
+   "t": "Food web and energy pyramid",
+   "lvl": "HS",
+   "key": [
+    "energypyramid"
+   ]
+  },
+  {
+   "t": "Carbon and nitrogen cycles",
+   "lvl": "HS",
+   "key": [
+    "carboncycle",
+    "nitrogencycle"
+   ]
+  },
+  {
+   "t": "Population growth (exponential, logistic)",
+   "lvl": "AP",
+   "key": [
+    "popgrowth"
+   ]
+  },
+  {
+   "t": "Neuron structure",
+   "lvl": "HS",
+   "key": [
+    "neuron"
+   ]
+  },
+  {
+   "t": "Action potential graph",
+   "lvl": "AP",
+   "key": [
+    "actionpotential"
+   ]
+  },
+  {
+   "t": "Synapse",
+   "lvl": "AP",
+   "key": [
+    "synapse"
+   ]
+  },
+  {
+   "t": "Reflex arc",
+   "lvl": "HS",
+   "key": [
+    "reflexarc"
+   ]
+  },
+  {
+   "t": "Muscle sarcomere, sliding filament",
+   "lvl": "UG",
+   "key": [
+    "sarcomere"
+   ]
+  },
+  {
+   "t": "Heart and circulation",
+   "lvl": "HS",
+   "key": [
+    "heartsection",
+    "heartcut"
+   ]
+  },
+  {
+   "t": "Lungs and gas exchange",
+   "lvl": "HS",
+   "key": [
+    "alveolus",
+    "lungs"
+   ]
+  },
+  {
+   "t": "Oxygen dissociation curve",
+   "lvl": "UG",
+   "key": [
+    "o2curve"
+   ]
+  },
+  {
+   "t": "Digestive system",
+   "lvl": "HS",
+   "key": [
+    "digestive",
+    "gut"
+   ]
+  },
+  {
+   "t": "Kidney nephron",
+   "lvl": "HS",
+   "key": [
+    "nephron"
+   ]
+  },
+  {
+   "t": "Endocrine system, hormones",
+   "lvl": "HS",
+   "key": [
+    "gland",
+    "pituitary"
+   ]
+  },
+  {
+   "t": "Negative feedback (homeostasis)",
+   "lvl": "AP",
+   "key": [
+    "feedbackloop",
+    "homeostasis"
+   ]
+  },
+  {
+   "t": "Signal transduction, GPCR",
+   "lvl": "AP",
+   "key": [
+    "gpcr"
+   ]
+  },
+  {
+   "t": "Innate immunity, phagocytosis",
+   "lvl": "HS",
+   "key": [
+    "phagocyte",
+    "macrophage"
+   ]
+  },
+  {
+   "t": "Antibody structure",
+   "lvl": "AP",
+   "key": [
+    "antibody"
+   ]
+  },
+  {
+   "t": "T cells and MHC",
+   "lvl": "UG",
+   "key": [
+    "tcr-mhc",
+    "mhc"
+   ]
+  },
+  {
+   "t": "B cells and plasma cells",
+   "lvl": "UG",
+   "key": [
+    "b-cell",
+    "plasma-cell"
+   ]
+  },
+  {
+   "t": "Viruses and replication",
+   "lvl": "HS",
+   "key": [
+    "virus"
+   ]
+  },
+  {
+   "t": "Bacteria structure",
+   "lvl": "HS",
+   "key": [
+    "bacterium"
+   ]
+  },
+  {
+   "t": "Plant transport, xylem/phloem",
+   "lvl": "HS",
+   "key": [
+    "vessels",
+    "transpiration"
+   ]
+  },
+  {
+   "t": "Leaf cross-section",
+   "lvl": "HS",
+   "key": [
+    "leafsection"
+   ]
+  },
+  {
+   "t": "Flower and pollination",
+   "lvl": "HS",
+   "key": [
+    "flowerparts"
+   ]
+  },
+  {
+   "t": "Embryo development, gastrulation",
+   "lvl": "UG",
+   "key": [
+    "gastrula",
+    "blastocyst",
+    "embryo"
+   ]
+  },
+  {
+   "t": "Microscope",
+   "lvl": "HS",
+   "key": [
+    "microscope"
+   ]
+  },
+  {
+   "t": "Protein structure levels",
+   "lvl": "AP",
+   "key": [
+    "proteinlevels"
+   ]
+  },
+  {
+   "t": "Amino acid general structure",
+   "lvl": "AP",
+   "key": [
+    "aminoacid"
+   ]
+  },
+  {
+   "t": "Lipids, phospholipid",
+   "lvl": "AP",
+   "key": [
+    "phospholipid"
+   ]
+  },
+  {
+   "t": "Carbohydrates, glucose",
+   "lvl": "AP",
+   "key": [
+    "glucose"
+   ]
+  },
+  {
+   "t": "Western blot / ELISA",
+   "lvl": "UG",
+   "key": [
+    "elisa",
+    "westernblot"
+   ]
+  },
+  {
+   "t": "Protein folding energy landscape",
+   "lvl": "GR",
+   "key": [
+    "foldfunnel"
+   ]
+  },
+  {
+   "t": "Ramachandran plot",
+   "lvl": "GR",
+   "key": [
+    "ramachandran"
+   ]
+  },
+  {
+   "t": "Cryo-EM / X-ray structure workflow",
+   "lvl": "GR",
+   "key": [
+    "cryoem"
+   ]
+  },
+  {
+   "t": "Sequence alignment",
+   "lvl": "GR",
+   "key": [
+    "alignment"
+   ]
+  },
+  {
+   "t": "Phylogenetic tree with branch lengths",
+   "lvl": "GR",
+   "key": [
+    "phylotree"
+   ]
+  },
+  {
+   "t": "Gene regulatory network motifs",
+   "lvl": "GR",
+   "key": [
+    "genenetwork"
+   ]
+  },
+  {
+   "t": "MAPK signalling cascade",
+   "lvl": "GR",
+   "key": [
+    "mapk"
+   ]
+  },
+  {
+   "t": "Wnt / Notch / Hedgehog pathways",
+   "lvl": "GR",
+   "key": [
+    "wnt"
+   ]
+  },
+  {
+   "t": "Receptor tyrosine kinase activation",
+   "lvl": "GR",
+   "key": [
+    "rtk"
+   ]
+  },
+  {
+   "t": "Apoptosis pathways",
+   "lvl": "GR",
+   "key": [
+    "apoptosis"
+   ]
+  },
+  {
+   "t": "Cyclin-CDK oscillation",
+   "lvl": "GR",
+   "key": [
+    "cyclins"
+   ]
+  },
+  {
+   "t": "Chromatin and histone modification",
+   "lvl": "GR",
+   "key": [
+    "chromatin",
+    "nucleosome"
+   ]
+  },
+  {
+   "t": "DNA methylation, epigenetics",
+   "lvl": "GR",
+   "key": [
+    "methylation"
+   ]
+  },
+  {
+   "t": "RNA splicing",
+   "lvl": "GR",
+   "key": [
+    "splicing"
+   ]
+  },
+  {
+   "t": "RNA interference, miRNA",
+   "lvl": "GR",
+   "key": [
+    "rnai"
+   ]
+  },
+  {
+   "t": "Next-generation sequencing",
+   "lvl": "GR",
+   "key": [
+    "ngsflow"
+   ]
+  },
+  {
+   "t": "Flow cytometry plot",
+   "lvl": "GR",
+   "key": [
+    "flowcytometry"
+   ]
+  },
+  {
+   "t": "V(D)J recombination, clonal selection",
+   "lvl": "GR",
+   "key": [
+    "vdj"
+   ]
+  },
+  {
+   "t": "Complement cascade",
+   "lvl": "GR",
+   "key": [
+    "complement"
+   ]
+  },
+  {
+   "t": "Nernst / Goldman membrane potential",
+   "lvl": "GR",
+   "key": [
+    "nernst"
+   ]
+  },
+  {
+   "t": "Ion channel gating states",
+   "lvl": "GR",
+   "key": [
+    "channelgating"
+   ]
+  },
+  {
+   "t": "Long-term potentiation",
+   "lvl": "GR",
+   "key": [
+    "ltp"
+   ]
+  },
+  {
+   "t": "Morphogen gradient",
+   "lvl": "GR",
+   "key": [
+    "morphogen"
+   ]
+  },
+  {
+   "t": "Hematopoiesis lineage tree",
+   "lvl": "GR",
+   "key": [
+    "hematopoiesis"
+   ]
+  },
+  {
+   "t": "Allosteric regulation",
+   "lvl": "GR",
+   "key": [
+    "allosteric"
+   ]
+  },
+  {
+   "t": "Metabolic pathway map",
+   "lvl": "GR",
+   "key": [
+    "metabolicmap"
+   ]
+  },
+  {
+   "t": "Genetic drift",
+   "lvl": "GR",
+   "key": [
+    "geneticdrift"
+   ]
+  },
+  {
+   "t": "Lotka-Volterra predator-prey",
+   "lvl": "GR",
+   "key": [
+    "lotkavolterra"
+   ]
+  },
+  {
+   "t": "Quorum sensing",
+   "lvl": "GR",
+   "key": [
+    "quorum"
+   ]
+  },
+  {
+   "t": "Western/qPCR amplification curve",
+   "lvl": "GR",
+   "key": [
+    "qpcrcurve"
+   ]
+  }
+ ],
+ "physics": [
+  {
+   "t": "Motion graphs (x-t, v-t)",
+   "lvl": "HS",
+   "key": [
+    "motiongraph"
+   ]
+  },
+  {
+   "t": "Projectile motion",
+   "lvl": "HS",
+   "key": [
+    "projectile"
+   ]
+  },
+  {
+   "t": "Free-body diagram",
+   "lvl": "HS",
+   "key": [
+    "forcebox"
+   ]
+  },
+  {
+   "t": "Inclined plane",
+   "lvl": "HS",
+   "key": [
+    "incline"
+   ]
+  },
+  {
+   "t": "Friction",
+   "lvl": "HS",
+   "key": [
+    "friction"
+   ]
+  },
+  {
+   "t": "Newton's third law",
+   "lvl": "HS",
+   "key": [
+    "rocket"
+   ]
+  },
+  {
+   "t": "Momentum and collisions",
+   "lvl": "AP",
+   "key": [
+    "collision"
+   ]
+  },
+  {
+   "t": "Work and energy, PE/KE",
+   "lvl": "HS",
+   "key": [
+    "energy"
+   ]
+  },
+  {
+   "t": "Circular motion",
+   "lvl": "AP",
+   "key": [
+    "circular"
+   ]
+  },
+  {
+   "t": "Gravitation",
+   "lvl": "AP",
+   "key": [
+    "gravity"
+   ]
+  },
+  {
+   "t": "Kepler's laws, orbits",
+   "lvl": "AP",
+   "key": [
+    "kepler"
+   ]
+  },
+  {
+   "t": "Torque and moments",
+   "lvl": "AP",
+   "key": [
+    "moments",
+    "lever"
+   ]
+  },
+  {
+   "t": "Rotational motion, moment of inertia",
+   "lvl": "AP",
+   "key": [
+    "rotation"
+   ]
+  },
+  {
+   "t": "Simple harmonic motion, spring",
+   "lvl": "AP",
+   "key": [
+    "hooke",
+    "spring"
+   ]
+  },
+  {
+   "t": "Pendulum",
+   "lvl": "HS",
+   "key": [
+    "pendulum"
+   ]
+  },
+  {
+   "t": "Damped and driven oscillation, resonance",
+   "lvl": "UG",
+   "key": [
+    "resonance"
+   ]
+  },
+  {
+   "t": "Fluid pressure",
+   "lvl": "AP",
+   "key": [
+    "pressure"
+   ]
+  },
+  {
+   "t": "Buoyancy",
+   "lvl": "AP",
+   "key": [
+    "density"
+   ]
+  },
+  {
+   "t": "Bernoulli, fluid flow",
+   "lvl": "AP",
+   "key": [
+    "bernoulli"
+   ]
+  },
+  {
+   "t": "Temperature and heat transfer",
+   "lvl": "HS",
+   "key": [
+    "heat"
+   ]
+  },
+  {
+   "t": "Ideal gas, kinetic theory",
+   "lvl": "AP",
+   "key": [
+    "speeddist",
+    "gasbox"
+   ]
+  },
+  {
+   "t": "PV diagrams and cycles",
+   "lvl": "AP",
+   "key": [
+    "pvcycle"
+   ]
+  },
+  {
+   "t": "Heat engines and entropy",
+   "lvl": "UG",
+   "key": [
+    "heatengine"
+   ]
+  },
+  {
+   "t": "Waves: transverse, longitudinal",
+   "lvl": "HS",
+   "key": [
+    "wave"
+   ]
+  },
+  {
+   "t": "Standing waves, harmonics",
+   "lvl": "AP",
+   "key": [
+    "standingwave"
+   ]
+  },
+  {
+   "t": "Doppler effect",
+   "lvl": "AP",
+   "key": [
+    "doppler"
+   ]
+  },
+  {
+   "t": "Sound and echo",
+   "lvl": "HS",
+   "key": [
+    "echo",
+    "wavecompare"
+   ]
+  },
+  {
+   "t": "Reflection, mirrors",
+   "lvl": "HS",
+   "key": [
+    "mirror",
+    "curvedmirror"
+   ]
+  },
+  {
+   "t": "Refraction, Snell's law",
+   "lvl": "HS",
+   "key": [
+    "refraction"
+   ]
+  },
+  {
+   "t": "Lenses and ray diagrams",
+   "lvl": "AP",
+   "key": [
+    "raydiagram"
+   ]
+  },
+  {
+   "t": "Double slit interference",
+   "lvl": "AP",
+   "key": [
+    "doubleslit"
+   ]
+  },
+  {
+   "t": "Diffraction",
+   "lvl": "AP",
+   "key": [
+    "diffraction"
+   ]
+  },
+  {
+   "t": "Polarization",
+   "lvl": "UG",
+   "key": [
+    "polarisation"
+   ]
+  },
+  {
+   "t": "Electromagnetic spectrum",
+   "lvl": "HS",
+   "key": [
+    "spectrum"
+   ]
+  },
+  {
+   "t": "Static charge, Coulomb",
+   "lvl": "HS",
+   "key": [
+    "static"
+   ]
+  },
+  {
+   "t": "Electric field lines",
+   "lvl": "AP",
+   "key": [
+    "efield"
+   ]
+  },
+  {
+   "t": "Gauss's law",
+   "lvl": "UG",
+   "key": [
+    "gauss"
+   ]
+  },
+  {
+   "t": "Capacitors",
+   "lvl": "AP",
+   "key": [
+    "capacitor",
+    "capacitorfield"
+   ]
+  },
+  {
+   "t": "Series and parallel circuits",
+   "lvl": "HS",
+   "key": [
+    "seriespar"
+   ]
+  },
+  {
+   "t": "Circuit symbols",
+   "lvl": "HS",
+   "key": [
+    "symbols"
+   ]
+  },
+  {
+   "t": "RC circuit charging",
+   "lvl": "AP",
+   "key": [
+    "rccircuit"
+   ]
+  },
+  {
+   "t": "RLC and AC, phasors",
+   "lvl": "UG",
+   "key": [
+    "phasor",
+    "rlc"
+   ]
+  },
+  {
+   "t": "Magnetic field of wire, solenoid",
+   "lvl": "AP",
+   "key": [
+    "wirefield"
+   ]
+  },
+  {
+   "t": "Right-hand rule, force on charge",
+   "lvl": "AP",
+   "key": [
+    "righthand"
+   ]
+  },
+  {
+   "t": "Electromagnetic induction",
+   "lvl": "AP",
+   "key": [
+    "induction"
+   ]
+  },
+  {
+   "t": "Motor and generator",
+   "lvl": "HS",
+   "key": [
+    "motor"
+   ]
+  },
+  {
+   "t": "Transformer",
+   "lvl": "HS",
+   "key": [
+    "transformer"
+   ]
+  },
+  {
+   "t": "Maxwell's equations",
+   "lvl": "UG",
+   "key": [
+    "maxwelleqs"
+   ]
+  },
+  {
+   "t": "EM wave",
+   "lvl": "UG",
+   "key": [
+    "emwave"
+   ]
+  },
+  {
+   "t": "Photoelectric effect",
+   "lvl": "AP",
+   "key": [
+    "photoelectric"
+   ]
+  },
+  {
+   "t": "Atomic energy levels, spectra",
+   "lvl": "AP",
+   "key": [
+    "energylevels"
+   ]
+  },
+  {
+   "t": "Bohr model",
+   "lvl": "HS",
+   "key": [
+    "bohr"
+   ]
+  },
+  {
+   "t": "Radioactive decay, half-life",
+   "lvl": "HS",
+   "key": [
+    "halflife"
+   ]
+  },
+  {
+   "t": "Alpha, beta, gamma",
+   "lvl": "HS",
+   "key": [
+    "penetration"
+   ]
+  },
+  {
+   "t": "Fission and fusion",
+   "lvl": "HS",
+   "key": [
+    "fission",
+    "fusion"
+   ]
+  },
+  {
+   "t": "Rutherford scattering",
+   "lvl": "AP",
+   "key": [
+    "goldfoil"
+   ]
+  },
+  {
+   "t": "Particle in a box",
+   "lvl": "UG",
+   "key": [
+    "wellbox"
+   ]
+  },
+  {
+   "t": "Quantum harmonic oscillator",
+   "lvl": "UG",
+   "key": [
+    "qho"
+   ]
+  },
+  {
+   "t": "Tunnelling",
+   "lvl": "UG",
+   "key": [
+    "tunnelling"
+   ]
+  },
+  {
+   "t": "Uncertainty, wave packet",
+   "lvl": "UG",
+   "key": [
+    "wavepacket"
+   ]
+  },
+  {
+   "t": "Spin, Stern-Gerlach",
+   "lvl": "UG",
+   "key": [
+    "sterngerlach"
+   ]
+  },
+  {
+   "t": "Hydrogen orbitals",
+   "lvl": "UG",
+   "key": [
+    "orbitals"
+   ]
+  },
+  {
+   "t": "Special relativity: time dilation",
+   "lvl": "UG",
+   "key": [
+    "lightclock"
+   ]
+  },
+  {
+   "t": "Spacetime diagram",
+   "lvl": "UG",
+   "key": [
+    "spacetime"
+   ]
+  },
+  {
+   "t": "General relativity, curved spacetime",
+   "lvl": "GR",
+   "key": [
+    "curvedspace"
+   ]
+  },
+  {
+   "t": "Standard Model particles",
+   "lvl": "UG",
+   "key": [
+    "standardmodel"
+   ]
+  },
+  {
+   "t": "Feynman diagram",
+   "lvl": "GR",
+   "key": [
+    "feynman"
+   ]
+  },
+  {
+   "t": "Band theory, semiconductors",
+   "lvl": "UG",
+   "key": [
+    "bands"
+   ]
+  },
+  {
+   "t": "p-n junction, diode",
+   "lvl": "UG",
+   "key": [
+    "pnjunction"
+   ]
+  },
+  {
+   "t": "Transistor",
+   "lvl": "UG",
+   "key": [
+    "transistor"
+   ]
+  },
+  {
+   "t": "Crystal lattice",
+   "lvl": "UG",
+   "key": [
+    "crystal"
+   ]
+  },
+  {
+   "t": "Laser (stimulated emission)",
+   "lvl": "UG",
+   "key": [
+    "laser"
+   ]
+  },
+  {
+   "t": "Hall effect",
+   "lvl": "UG",
+   "key": [
+    "halleffect"
+   ]
+  },
+  {
+   "t": "HR diagram, stellar evolution",
+   "lvl": "UG",
+   "key": [
+    "hrdiagram"
+   ]
+  },
+  {
+   "t": "Blackbody radiation",
+   "lvl": "UG",
+   "key": [
+    "blackbody"
+   ]
+  },
+  {
+   "t": "Lagrangian mechanics, double pendulum",
+   "lvl": "GR",
+   "key": [
+    "doublependulum"
+   ]
+  },
+  {
+   "t": "Phase space portrait",
+   "lvl": "GR",
+   "key": [
+    "phasespace"
+   ]
+  },
+  {
+   "t": "Coupled oscillators, normal modes",
+   "lvl": "GR",
+   "key": [
+    "normalmodes"
+   ]
+  },
+  {
+   "t": "Gyroscope precession",
+   "lvl": "GR",
+   "key": [
+    "gyroscope"
+   ]
+  },
+  {
+   "t": "Laminar vs turbulent flow",
+   "lvl": "GR",
+   "key": [
+    "laminar"
+   ]
+  },
+  {
+   "t": "Fourier series and transform",
+   "lvl": "GR",
+   "key": [
+    "fourier"
+   ]
+  },
+  {
+   "t": "Multipole expansion",
+   "lvl": "GR",
+   "key": [
+    "multipole"
+   ]
+  },
+  {
+   "t": "Waveguide modes",
+   "lvl": "GR",
+   "key": [
+    "waveguide"
+   ]
+  },
+  {
+   "t": "Dipole radiation pattern",
+   "lvl": "GR",
+   "key": [
+    "dipoleradiation"
+   ]
+  },
+  {
+   "t": "Boltzmann distribution, partition function",
+   "lvl": "GR",
+   "key": [
+    "boltzmann"
+   ]
+  },
+  {
+   "t": "Fermi-Dirac and Bose-Einstein",
+   "lvl": "GR",
+   "key": [
+    "quantumstats"
+   ]
+  },
+  {
+   "t": "Ising model, phase transition",
+   "lvl": "GR",
+   "key": [
+    "ising"
+   ]
+  },
+  {
+   "t": "Bose-Einstein condensate",
+   "lvl": "GR",
+   "key": [
+    "bec"
+   ]
+  },
+  {
+   "t": "Bloch sphere",
+   "lvl": "GR",
+   "key": [
+    "blochsphere"
+   ]
+  },
+  {
+   "t": "Hydrogen radial wavefunctions",
+   "lvl": "GR",
+   "key": [
+    "radialwave"
+   ]
+  },
+  {
+   "t": "Zeeman / Stark splitting",
+   "lvl": "GR",
+   "key": [
+    "zeeman"
+   ]
+  },
+  {
+   "t": "Scattering cross-section",
+   "lvl": "GR",
+   "key": [
+    "crosssection"
+   ]
+  },
+  {
+   "t": "Entanglement, Bell test",
+   "lvl": "GR",
+   "key": [
+    "belltest"
+   ]
+  },
+  {
+   "t": "Quantum circuit",
+   "lvl": "GR",
+   "key": [
+    "qcircuit"
+   ]
+  },
+  {
+   "t": "Particle detector layers",
+   "lvl": "GR",
+   "key": [
+    "detector"
+   ]
+  },
+  {
+   "t": "Phonon dispersion",
+   "lvl": "GR",
+   "key": [
+    "phonons"
+   ]
+  },
+  {
+   "t": "Band structure E(k), Brillouin zone",
+   "lvl": "GR",
+   "key": [
+    "bandstructure"
+   ]
+  },
+  {
+   "t": "Superconductivity, Meissner effect",
+   "lvl": "GR",
+   "key": [
+    "superconductor"
+   ]
+  },
+  {
+   "t": "Hubble law, expanding universe",
+   "lvl": "GR",
+   "key": [
+    "hubble"
+   ]
+  },
+  {
+   "t": "Gravitational waves",
+   "lvl": "GR",
+   "key": [
+    "gravwave"
+   ]
+  },
+  {
+   "t": "Nuclear binding energy curve",
+   "lvl": "GR",
+   "key": [
+    "bindingenergy"
+   ]
+  },
+  {
+   "t": "Schwarzschild black hole",
+   "lvl": "GR",
+   "key": [
+    "blackhole"
+   ]
+  }
+ ],
+ "chemistry": [
+  {
+   "t": "Atomic structure",
+   "lvl": "HS",
+   "key": [
+    "atom"
+   ]
+  },
+  {
+   "t": "Electron configuration, orbital boxes",
+   "lvl": "HS",
+   "key": [
+    "econfig"
+   ]
+  },
+  {
+   "t": "Periodic table",
+   "lvl": "HS",
+   "key": [
+    "ptable"
+   ]
+  },
+  {
+   "t": "Periodic trends",
+   "lvl": "AP",
+   "key": [
+    "trends"
+   ]
+  },
+  {
+   "t": "Ionic bonding, lattice",
+   "lvl": "HS",
+   "key": [
+    "lattice",
+    "ion"
+   ]
+  },
+  {
+   "t": "Covalent bonding, Lewis structures",
+   "lvl": "HS",
+   "key": [
+    "lewis"
+   ]
+  },
+  {
+   "t": "VSEPR shapes",
+   "lvl": "AP",
+   "key": [
+    "vsepr"
+   ]
+  },
+  {
+   "t": "Hybridization",
+   "lvl": "AP",
+   "key": [
+    "hybrid"
+   ]
+  },
+  {
+   "t": "Molecular orbital diagram",
+   "lvl": "UG",
+   "key": [
+    "modiagram"
+   ]
+  },
+  {
+   "t": "Intermolecular forces, H-bonding",
+   "lvl": "AP",
+   "key": [
+    "imf",
+    "hbond"
+   ]
+  },
+  {
+   "t": "States of matter",
+   "lvl": "HS",
+   "key": [
+    "matterbox",
+    "statechange"
+   ]
+  },
+  {
+   "t": "Phase diagram",
+   "lvl": "AP",
+   "key": [
+    "phasediagram"
+   ]
+  },
+  {
+   "t": "Heating curve",
+   "lvl": "HS",
+   "key": [
+    "heatingcurve"
+   ]
+  },
+  {
+   "t": "Gas laws",
+   "lvl": "HS",
+   "key": [
+    "gaslaw"
+   ]
+  },
+  {
+   "t": "Solutions and dissolving",
+   "lvl": "HS",
+   "key": [
+    "dissolve"
+   ]
+  },
+  {
+   "t": "Stoichiometry, mole",
+   "lvl": "HS",
+   "key": [
+    "mole"
+   ]
+  },
+  {
+   "t": "Reaction types",
+   "lvl": "HS",
+   "key": [
+    "reaction"
+   ]
+  },
+  {
+   "t": "Reaction energy profile, activation energy",
+   "lvl": "AP",
+   "key": [
+    "energyprofile"
+   ]
+  },
+  {
+   "t": "Catalyst",
+   "lvl": "HS",
+   "key": [
+    "catalyst"
+   ]
+  },
+  {
+   "t": "Rate vs concentration, collision theory",
+   "lvl": "AP",
+   "key": [
+    "collisiontheory"
+   ]
+  },
+  {
+   "t": "Equilibrium, Le Chatelier",
+   "lvl": "AP",
+   "key": [
+    "equilibrium"
+   ]
+  },
+  {
+   "t": "pH scale",
+   "lvl": "HS",
+   "key": [
+    "phscale"
+   ]
+  },
+  {
+   "t": "Titration curve",
+   "lvl": "AP",
+   "key": [
+    "titration"
+   ]
+  },
+  {
+   "t": "Buffers",
+   "lvl": "AP",
+   "key": [
+    "buffer"
+   ]
+  },
+  {
+   "t": "Redox, galvanic cell",
+   "lvl": "AP",
+   "key": [
+    "ecell"
+   ]
+  },
+  {
+   "t": "Electrolysis",
+   "lvl": "AP",
+   "key": [
+    "electrolysis"
+   ]
+  },
+  {
+   "t": "Thermochemistry, calorimeter",
+   "lvl": "AP",
+   "key": [
+    "calorimeter"
+   ]
+  },
+  {
+   "t": "Born-Haber cycle",
+   "lvl": "UG",
+   "key": [
+    "bornhaber"
+   ]
+  },
+  {
+   "t": "Lab glassware",
+   "lvl": "HS",
+   "key": [
+    "beaker",
+    "flask",
+    "burette"
+   ]
+  },
+  {
+   "t": "Distillation",
+   "lvl": "HS",
+   "key": [
+    "distill"
+   ]
+  },
+  {
+   "t": "Chromatography",
+   "lvl": "HS",
+   "key": [
+    "chroma"
+   ]
+  },
+  {
+   "t": "Spectroscopy: IR",
+   "lvl": "UG",
+   "key": [
+    "irspectrum"
+   ]
+  },
+  {
+   "t": "Spectroscopy: NMR",
+   "lvl": "UG",
+   "key": [
+    "nmrspectrum"
+   ]
+  },
+  {
+   "t": "Mass spectrometry",
+   "lvl": "UG",
+   "key": [
+    "massspec"
+   ]
+  },
+  {
+   "t": "Beer-Lambert, UV-Vis",
+   "lvl": "UG",
+   "key": [
+    "beerlambert"
+   ]
+  },
+  {
+   "t": "Functional groups",
+   "lvl": "AP",
+   "key": [
+    "functionalgroups"
+   ]
+  },
+  {
+   "t": "Alkanes, alkenes, alkynes",
+   "lvl": "HS",
+   "key": [
+    "ethane",
+    "ethene",
+    "ethyne"
+   ]
+  },
+  {
+   "t": "Benzene, aromaticity",
+   "lvl": "UG",
+   "key": [
+    "benzene"
+   ]
+  },
+  {
+   "t": "Isomers, chirality",
+   "lvl": "UG",
+   "key": [
+    "chiral",
+    "2-butanol"
+   ]
+  },
+  {
+   "t": "SN1 / SN2 mechanisms",
+   "lvl": "UG",
+   "key": [
+    "sn2"
+   ]
+  },
+  {
+   "t": "Polymers",
+   "lvl": "HS",
+   "key": [
+    "polymer"
+   ]
+  },
+  {
+   "t": "Water molecule, polarity",
+   "lvl": "HS",
+   "key": [
+    "water"
+   ]
+  },
+  {
+   "t": "Glucose",
+   "lvl": "HS",
+   "key": [
+    "glucose"
+   ]
+  },
+  {
+   "t": "Amino acids",
+   "lvl": "AP",
+   "key": [
+    "glycine",
+    "alanine"
+   ]
+  },
+  {
+   "t": "Nucleotides, DNA bases",
+   "lvl": "AP",
+   "key": [
+    "adenine",
+    "guanine"
+   ]
+  },
+  {
+   "t": "Common acids and bases",
+   "lvl": "HS",
+   "key": [
+    "sulfuric",
+    "acetic",
+    "ammonia"
+   ]
+  },
+  {
+   "t": "Common drugs (aspirin, caffeine)",
+   "lvl": "UG",
+   "key": [
+    "aspirin",
+    "caffeine"
+   ]
+  },
+  {
+   "t": "Crystal field splitting",
+   "lvl": "GR",
+   "key": [
+    "crystalfield"
+   ]
+  },
+  {
+   "t": "Nuclear chemistry",
+   "lvl": "HS",
+   "key": [
+    "bandofstability",
+    "fission",
+    "halflife"
+   ]
+  },
+  {
+   "t": "Kinetics graphs (zero, first, second order)",
+   "lvl": "UG",
+   "key": [
+    "rateorder"
+   ]
+  },
+  {
+   "t": "Symmetry elements, point groups",
+   "lvl": "GR",
+   "key": [
+    "pointgroup"
+   ]
+  },
+  {
+   "t": "Hückel MO (butadiene, benzene)",
+   "lvl": "GR",
+   "key": [
+    "huckel"
+   ]
+  },
+  {
+   "t": "Potential energy surface",
+   "lvl": "GR",
+   "key": [
+    "pes"
+   ]
+  },
+  {
+   "t": "Marcus theory",
+   "lvl": "GR",
+   "key": [
+    "marcus"
+   ]
+  },
+  {
+   "t": "Diels-Alder reaction",
+   "lvl": "GR",
+   "key": [
+    "dielsalder"
+   ]
+  },
+  {
+   "t": "Frontier orbitals HOMO/LUMO",
+   "lvl": "GR",
+   "key": [
+    "fmo"
+   ]
+  },
+  {
+   "t": "Aldol reaction",
+   "lvl": "GR",
+   "key": [
+    "aldol"
+   ]
+  },
+  {
+   "t": "Grignard reaction",
+   "lvl": "GR",
+   "key": [
+    "grignard"
+   ]
+  },
+  {
+   "t": "Wittig reaction",
+   "lvl": "GR",
+   "key": [
+    "wittig"
+   ]
+  },
+  {
+   "t": "Electrophilic aromatic substitution",
+   "lvl": "GR",
+   "key": [
+    "eas"
+   ]
+  },
+  {
+   "t": "Retrosynthesis",
+   "lvl": "GR",
+   "key": [
+    "retrosynthesis"
+   ]
+  },
+  {
+   "t": "Catalytic cycle (cross-coupling)",
+   "lvl": "GR",
+   "key": [
+    "catcycle"
+   ]
+  },
+  {
+   "t": "Coordination complex geometry",
+   "lvl": "GR",
+   "key": [
+    "complexgeom"
+   ]
+  },
+  {
+   "t": "Bragg diffraction, XRD",
+   "lvl": "GR",
+   "key": [
+    "bragg"
+   ]
+  },
+  {
+   "t": "2D NMR (COSY)",
+   "lvl": "GR",
+   "key": [
+    "cosy"
+   ]
+  },
+  {
+   "t": "NMR splitting tree, J-coupling",
+   "lvl": "GR",
+   "key": [
+    "jcoupling"
+   ]
+  },
+  {
+   "t": "Jablonski diagram",
+   "lvl": "GR",
+   "key": [
+    "jablonski"
+   ]
+  },
+  {
+   "t": "Cyclic voltammogram",
+   "lvl": "GR",
+   "key": [
+    "cyclicvolt"
+   ]
+  },
+  {
+   "t": "HPLC / GC chromatogram",
+   "lvl": "GR",
+   "key": [
+    "chromatogram"
+   ]
+  },
+  {
+   "t": "Arrhenius plot",
+   "lvl": "GR",
+   "key": [
+    "arrhenius"
+   ]
+  },
+  {
+   "t": "Gibbs energy vs temperature",
+   "lvl": "GR",
+   "key": [
+    "gibbs"
+   ]
+  },
+  {
+   "t": "Langmuir adsorption isotherm",
+   "lvl": "GR",
+   "key": [
+    "langmuir"
+   ]
+  },
+  {
+   "t": "Polymerization mechanism",
+   "lvl": "GR",
+   "key": [
+    "polymerization"
+   ]
+  },
+  {
+   "t": "Band of stability, nuclear decay",
+   "lvl": "GR",
+   "key": [
+    "bandofstability"
+   ]
+  },
+  {
+   "t": "Binary phase diagram, eutectic",
+   "lvl": "GR",
+   "key": [
+    "binaryphase"
+   ]
+  },
+  {
+   "t": "Colligative properties",
+   "lvl": "GR",
+   "key": [
+    "colligative"
+   ]
+  },
+  {
+   "t": "Raoult's law",
+   "lvl": "GR",
+   "key": [
+    "raoult"
+   ]
+  },
+  {
+   "t": "Organometallics, ferrocene, cisplatin",
+   "lvl": "GR",
+   "key": [
+    "cisplatin",
+    "ferrocene"
+   ]
+  },
+  {
+   "t": "Steroids",
+   "lvl": "GR",
+   "key": [
+    "testosterone",
+    "cortisol"
+   ]
+  },
+  {
+   "t": "Porphyrin, heme",
+   "lvl": "GR",
+   "key": [
+    "porphyrin",
+    "heme"
+   ]
+  }
+ ]
+}

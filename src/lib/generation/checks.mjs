@@ -114,9 +114,12 @@ export function findDrawing(lib, { names = [], query = '' }) {
   // Search (18 Oct 2026): words of 3+ letters ("a" matched everything), matched on a shared stem of up to 5 letters
   // ("alveolus" finds "alveoli"); a drawing with named parts (pins) wins a tie, being the better teaching picture, and
   // one whose name is a query word ranks above stem matches ("transpiration" above "transport").
-  const stem = w => w.slice(0, Math.min(5, w.length)), q = words(query).filter(w => w.length >= 3);
-  if (q.length) all.map(l => { const ws = words(`${l.name} ${l.desc}`).filter(x => x.length >= 3);
-      const own = words(l.name);                                   // 19 Oct 2026: a word that is the drawing's own name wins
+  // 19 Oct 2026 (university biology): a 1-2 letter word is glued to the next, so "B cell", "T cell", "NK cell" are
+  // searchable as "bcell", "tcell", "nkcell" (on both sides) instead of falling to the 3-letter cut.
+  const glue = ws => [...ws, ...ws.slice(0, -1).flatMap((w, i) => w.length <= 2 ? [w + ws[i + 1]] : [])];
+  const stem = w => w.slice(0, Math.min(5, w.length)), q = glue(words(query)).filter(w => w.length >= 3);
+  if (q.length) all.map(l => { const ws = glue(words(`${l.name} ${l.desc}`)).filter(x => x.length >= 3);
+      const own = glue(words(l.name));                                   // 19 Oct 2026: a word that is the drawing's own name wins
       return [l, q.filter(w => ws.some(x => x.startsWith(stem(w)) || w.startsWith(stem(x)))).length + (/; parts: /.test(l.desc) ? .5 : 0)
         + (q.some(w => own.includes(w)) ? 1 : 0)]; })
     .filter(([, s]) => s >= 1).sort((a, b) => b[1] - a[1]).slice(0, 12).forEach(([l]) => out.push(`${l.sig} — ${l.desc}`));
