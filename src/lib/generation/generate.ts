@@ -78,6 +78,8 @@ export async function handleGenerate(req: Request, d: GenerateDeps): Promise<Res
   // A question inside a conversation (founder, 18 Oct 2026): the conversation must be the asker's own.
   const conversationId = body.conversation_id ?? null;
   if (conversationId !== null && !isUuid(conversationId)) return json(400, { code: 'bad_request' });
+  // Every new video goes on Explore (founder, 15 Oct 2026); explore: false keeps it off (tests that share by hand).
+  const explore = body.explore !== false;
 
   // A retry of an accepted ask gets its id back before any other check (§6.6 step 1).
   const prior = await d.db.findByRequest(d.userId, requestId);
@@ -117,7 +119,9 @@ export async function handleGenerate(req: Request, d: GenerateDeps): Promise<Res
   send('accepted', { id, style, creditsHeld: HOLD_CREDITS, capChars: style === 'matchcut' ? 700 : 900 });
   const hb = setInterval(() => write(': hb\n\n'), d.heartbeatMs ?? HEARTBEAT_MS);
   const client = d.client;
-  const work = runGeneration({ id, style, question, context: thread ? threadContext(thread) : undefined, subject: thread?.subject, client, db: d.db, send })
+  const userId = d.userId;
+  const work = runGeneration({ id, style, question, context: thread ? threadContext(thread) : undefined, subject: thread?.subject, client, db: d.db, send,
+    explore: explore ? () => d.db.explore(id, userId) : undefined })
     .catch(() => send('failed', { code: 'provider_error', refunded: false }))   // finish/fail itself failed: the sweep releases
     .finally(() => { clearInterval(hb); if (!clientGone) try { ctrl?.close(); } catch {} });
   d.waitUntil(work);

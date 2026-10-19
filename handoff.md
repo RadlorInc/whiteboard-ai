@@ -21,7 +21,7 @@
   `insert into public.admins (user_id) select p.id from public.profiles p join auth.users u on u.id = p.id where
   u.email = '<email>' and p.deleted_at is null returning user_id;` (expect 1 row) → /admin enrols an authenticator.
 - CI (`ci.yml`) is green on main. The repo is public while we build; it goes private at launch.
-- Not yet: Stripe keys (checkout answers 503), Resend SMTP (Supabase's built-in mail sends few codes an hour),
+- Not yet: Stripe keys (checkout answers 503),
   Vercel Cron for keep-warm (no `vercel.json` crons yet), Turnstile.
 
 ## Built and checked (12 Oct; details in git history and PLAN.md)
@@ -84,15 +84,10 @@
   Resend), the decline policy in the prompt + red-team run (a new prompt sha; ~$3 live), OG images, parent email for
   13–17 payers (C13), Turnstile captcha (needs a site key), `/api/telemetry`, per-category library loading, streaming
   for paper and match-cut, `/legal/accept` re-acceptance.
-- Admin "missing drawings" on the local stack lists primitives (arrow, circle, line, path, text ×17) from mock runs;
-  production showed None. Check whether the mock (or the miss counter) records primitives as misses.
-- Paper and match-cut do not stream (they play when the script is done); match-cut took 45 s.
+- Paper and match-cut do not stream (45 s for match-cut).
 - The founder decides the first commit; accounts to create are PLAN.md §2 E1–E18.
 
 
-- Tooling debts (details in git history): break-check's DB-reset self-test never ran; `.env.local` uses older env
-  names than `.env.example`; gitleaks not installed (`scripts/secret-scan.mjs` stands in); `player-src/` still has
-  prototype HTML sinks; break-check's `cp -c` is macOS-only.
 
 ## Local demo
 
@@ -102,25 +97,48 @@
   `admin.spec.ts` fails past 50 users (it reads only the first `listUsers` page), and `tests/db` needs a fresh
   `supabase db reset`.
 
+## UI redesign + Explore + Collection (18 Oct 2026, PR #19 `ui-redesign`, stacked on #18, not merged)
+
+- **Look (founder):** like Claude, always dark, monochrome + the glowing robot logo (`public/logo.png`, app icons
+  RGBA: an RGB favicon 500s every page). `globals.css` rewritten, no light theme. `Icon.tsx`, no emoji icons.
+- **Frame:** `src/app/(app)/layout.tsx` + `AppFrame.tsx`. Sidebar: New chat, Explore, Collection, Your videos,
+  subject chips, Recents (latest 10, "All chats"). **No chat search in any form** (founder: not a chat app).
+  Profile top right: avatar with a videos-left ring (green / amber / red, full at 25), menu with videos left.
+  Phones: top bar + drawer. Signed out: `PublicHeader` + footer. No `(app)/loading.tsx` (made `notFound()` a 200).
+- **Videos left, not credits** (`lib/videos.ts`: 4 credits a video, an estimate); Your videos show no credits.
+  Pricing/Help/legal copy still says credits. e2e reads balances from `data-credits` / `data-charged`.
+- **Chat:** composer with the subject picker inside; header with Share and Delete chat; Share per answer;
+  jump-to-latest; AI note at the bottom of a new chat.
+- **Player:** every step goes in at once and the Player makes the voice behind it from the current step; a jump
+  draws at once (only step 1 waits for its line), cancels the line in progress (worker `{cancel}`), its line joins
+  when made (~4–7 s). Controls: step segments, play/pause, keys, full screen. Embedded players: no frame, light
+  captions, no 100vh, `place-items: normal`.
+- **Explore** (migration `20261018000200_explore_chats.sql`): one card per chat with a board still (player
+  `poster`), search over questions + narration, subject chips; the server puts each finished video on Explore.
+  `/v/[slug]` plays the chat in order + "More like this". Signed out: only the opened video plays, the rest is
+  blurred behind sign-up (scripts not sent); sign up / log in return there (`next` + `okNext`).
+- **Collection** (migration `20261018000300_saved_items.sql`): bookmark on cards and lessons, `/saved`.
+- **Video page:** before/after links within its chat. Your videos: grid + search. Error/404 screens, skip link,
+  link previews, toasts.
+- **Tests:** pgTAP 56 (22) and 57 (11), security catalogues (00, 20, 60) updated; vitest 178. Locally, 20_writes
+  and 60_deletion fail 3–4 fixture checks because seed users A/B hold dev data (fresh CI is the judge).
+  **e2e only runs in CI**: locally Playwright would reuse the dev server on the live model.
+- **Open:** CI on the last push (60_deletion's FK list was just fixed); `migrate-prod` for both migrations
+  before merge (LAUNCH.md); the founder's look at the whole UI on a phone.
+
 ## Subjects: own prompt + library per chat subject (18 Oct 2026, PR #17, on top of #16)
 
 - `build-prompts.mjs` → `prompts.json` `subjects.*` = `{system, sha256, cats}`. The rules and examples are the plain
   prompt's; the categories are only the subject's (+ `diagrams`), plus a "- Teaching <subject>:" rule.
   - The plain prompt is unchanged (`332e6d…`) and is used outside a chat.
   - The subject shas are bound in `prompts.test.ts`.
-- The chat's subject picks:
-  - the `prompt_sha` (`promptSha(style, subject)`), so reserve and cost rows carry it;
-  - `prefix(style, subject)`;
-  - the `find_drawing` categories.
+- The chat's subject picks the `prompt_sha` (`promptSha(style, subject)`), `prefix(style, subject)` and the
+  `find_drawing` categories.
 - Keep-warm covers 6 prompts (`PROMPTS`). No migration: `prompt_cache_state` is keyed by `prompt_sha`.
-- Each subject prompt is ~10k tokens, so a cold write is ~$0.08 (estimated). Keeping all three warm costs
-  ~$0.17/day.
-- Biology library: `lib/wb/biology.*`, listed as `WB_EXTRA` in `wb-load.js`. The player loads it; only the biology
-  prompt lists it.
-  - Drawings: heartsection, circulation, breathing, gut, reflexarc, dnaladder, cellcycle, leafsection, plantparts.
-  - All labelled by default (`lab=0` hides the words), drawn polished (`.polished`: no wobble or watercolour).
-- Proof: biology-chat tests in `run.test.ts` and `localdb.test.ts`, and the mock "How does blood travel around the
-  body?" plays to the end.
+- A subject prompt is ~10k tokens: a cold write ~$0.08 (est.); all three warm ~$0.17/day.
+- Biology library `lib/wb/biology.*` (`WB_EXTRA` in `wb-load.js`; only the biology prompt lists it): 9 labelled,
+  polished drawings (`lab=0` hides words).
+- Proof: biology-chat tests in `run.test.ts` and `localdb.test.ts`.
 - **Next:** physics, then chemistry, the same way.
 
 ## 18 Oct 2026 session: chats, realistic biology, follow-up cost (PRs #16 → #17 → #18, stacked, none merged)
@@ -145,29 +163,18 @@
   - **Flows over a drawing** (founder chose B + C of a 4-style demo): an arrow/line over an anatomy drawing gets a
     white edge and a running shimmer; that step dims the drawing (spotlight); older flows fade. Player-only, so old
     videos get it too. Prompt: no tags/text over the drawing, one flow per step, pins for parts.
-- **Measured (local, real Opus, Sequence 1 = 5 heart follow-ups):** all correct, linked ("remember the mitral
-  valve…", "where our heart story began"); $0.53 for 5 videos / 23 credits; warm ≈ $0.064 a video (was ~$0.053;
-  +context and pins), cold +$0.09. Measured before the follow-up cache (#18 54df5ff), so rerun to see its effect.
-- **Cost by prompt version:** `npm run cost` (local) or `sql/cost-by-version.sql` in the SQL editor; "sha-test" rows
-  are unit tests.
-- **Sequences 2 and 3 (after the follow-up cache):** 8 videos, all correct and linked; the deliberate wrong follow-up
-  ("is urine made in the bladder?") was corrected ("No! … made in the kidneys"). $0.29 + $0.25; uncached input stays
-  ~600–1,100 tokens per follow-up (was growing to 5,369), cache writes ~200–340. Warm ≈ $0.05 a video; a video that
-  hand-draws its own diagram costs ~$0.10–0.12 (4,400–4,900 output tokens). All 13 test videos: $1.07.
-- Fixed from them (c4b3780): a looping `travel` without `&` froze the lesson; saved scripts lost element order in
-  jsonb (pins built before their drawing, replays failed) — now `script.order`, old videos build pins last; search
-  ranked junk ("a" matched everything), now 3+ letter stems and pin drawings first.
-- Later fixes (all in #18): a dot is never run along the step-tag arrows over a realistic drawing (player skips it,
-  prompt forbids it); the biology prompt makes the model search with 2–3 words before hand-drawing and, if it must,
-  draw curved real shapes, not a circle or box. Re-asked "tiny air sacs": it now picks the realistic alveoli drawing
-  with 4 pins ($0.065 + $0.094 cold write for the new prompt).
+- **Measured (local, real Opus):** 5 linked heart follow-ups, all correct, $0.53; warm ≈ $0.064 a video, cold +$0.09.
+- **Cost by prompt version:** `npm run cost` (local) or `sql/cost-by-version.sql`.
+- **Sequences 2 and 3** (after the follow-up cache): 8 videos, all correct; a wrong follow-up was corrected. Warm
+  ≈ $0.05 a video; a hand-drawn diagram ~$0.10–0.12. All 13 test videos: $1.07.
+- Fixed from them: c4b3780 (looping `travel`, jsonb element order → `script.order`, search ranking).
+- Later fixes (#18): no dot along step-tag arrows over a realistic drawing; the biology prompt searches 2–3 words
+  before hand-drawing. "Tiny air sacs" now picks the realistic alveoli with 4 pins.
 - **Pricing decided in talk, not built** (founder, 18 Oct): credits stay per spoken length, not per token (tokens
   rise when the library lacks a drawing — our gap, and the price would be unknown beforehand). Leaning to
   "1 question = 1 video": Plus "40 videos/month", Pro "Unlimited, fair use 150", 3 bonus videos when the balance hits
   0, replays and Explore free, show "videos left". Full-use margins with keep-warm: Plus ~70%, Pro at 150 ~57%.
   Needs the money functions, Stripe prices and /pricing changed: decide before launch.
-- **Next session:** UI work (founder's choice), then the LAUNCH.md list. Physics and Chemistry get the same
-  treatment later (`servier-chem` exists; no pins yet).
-- Local: the Anthropic key in `.env.local` was replaced on 18 Oct (the old one, still in `prototype/.env`, is revoked).
-  A 401 makes the app block generation ~10 min (`ops_state.provider_blocked_until`); delete that row locally.
+- **Next:** UI done (PR #19, above); then the LAUNCH.md list. Physics and Chemistry later (`servier-chem`, no pins).
+- Local: `.env.local`'s Anthropic key was replaced 18 Oct (the one in `prototype/.env` is revoked). A 401 makes the app block generation ~10 min (`ops_state.provider_blocked_until`); delete that row locally.
 

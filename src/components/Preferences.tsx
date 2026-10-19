@@ -1,5 +1,5 @@
 "use client";
-// Theme and motion (§5.11), kept in localStorage and a cookie so the server renders them with no flash.
+// Motion (§5.11); the app is always dark (founder, 18 Oct 2026), kept in localStorage and a cookie so the server renders them with no flash.
 import { useState } from "react";
 
 function save(name: string, attr: string, value: string) {
@@ -18,7 +18,7 @@ function Choice({ legend, name, attr, options, initial }: {
   const [value, setValue] = useState(options.some(([v]) => v === initial) ? initial : "system");
   return (
     <fieldset>
-      <legend style={{ fontWeight: 600, marginBottom: 6 }}>{legend}</legend>
+      <legend style={{ fontWeight: 600, marginBottom: 8 }}>{legend}</legend>
       <div className="segmented">
         {options.map(([v, label]) => (
           <label key={v}>
@@ -31,11 +31,9 @@ function Choice({ legend, name, attr, options, initial }: {
   );
 }
 
-export function Preferences({ theme, motion }: { theme?: string; motion?: string }) {
+export function Preferences({ motion }: { motion?: string }) {
   return (
     <section className="stack">
-      <Choice legend="Theme" name="wb_theme" attr="data-theme" initial={theme ?? "system"}
-        options={[["system", "System"], ["light", "Light"], ["dark", "Dark"]]} />
       <Choice legend="Motion" name="wb_motion" attr="data-motion" initial={motion ?? "system"}
         options={[["system", "System"], ["full", "Full"], ["reduce", "Reduced"]]} />
     </section>

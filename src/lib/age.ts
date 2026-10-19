@@ -58,6 +58,18 @@ export function verify<T extends Record<string, unknown>>(value: string | undefi
   }
 }
 
-export type AgeOk = { month: number; year: number; gate_version: string; source: string | null; invite: string | null };
+// next: where a sign-up started from (a shared video, 18 Oct 2026); the new account lands there instead of /start.
+export type AgeOk = { month: number; year: number; gate_version: string; source: string | null; invite: string | null; next?: string | null };
 
 export const SIGNUP_SOURCES = ["tiktok", "instagram", "youtube", "reddit", "discord", "ref", "share", "direct"];
+
+/** A same-site path only (`/x`, never `//host` or `/\\host`), else null. */
+export const okNext = (n: unknown) => (typeof n === "string" && /^\/[^/\\]/.test(n) && n.length <= 200 ? n : null);
+/** The sign-up steps pass the source and the return path along: `?src=…&next=…`, or "". */
+export function signupQuery(src: unknown, next: unknown) {
+  const q = new URLSearchParams();
+  if (typeof src === "string" && SIGNUP_SOURCES.includes(src)) q.set("src", src);
+  const n = okNext(next);
+  if (n) q.set("next", n);
+  return q.size ? `?${q}` : "";
+}

@@ -35,6 +35,7 @@ export function providerCode(e: unknown): FailCode {
 export async function runGeneration(o: {
   id: string; style: Style; question: string; context?: string[]; subject?: Subject | null; client: ModelClient; db: GenDb; send: Send;
   deadlineMs?: number; retryWaitMs?: (n: number) => number;
+  explore?: () => Promise<string>;      // after a video is saved: put it on Explore (the outcome goes in 'done')
 }) {
   const { id, style, question, client, db, send } = o;
   const t0 = Date.now(), at = () => Date.now() - t0;
@@ -218,8 +219,11 @@ export async function runGeneration(o: {
       }
       timings.done = at();
       const chars = ((style === 'matchcut' ? a.objects : a.steps) as Step[]).reduce((n, s) => n + codePoints(s.say), 0);
-      if (r.outcome === 'settled' || r.outcome === 'already_final')
-        send('done', { id, creditsCharged: r.credits_charged, narrationChars: chars, available: r.available });
+      if (r.outcome === 'settled' || r.outcome === 'already_final') {
+        // A video that cannot go on Explore (a refusal, or the call failing) still counts as done.
+        const explore = o.explore ? await o.explore().catch(() => 'error') : null;
+        send('done', { id, creditsCharged: r.credits_charged, narrationChars: chars, available: r.available, explore });
+      }
       else send('failed', { code: r.outcome === 'too_late' ? 'timeout' : chars < 1 ? 'empty' : r.outcome === 'rejected' ? 'too_long' : 'stale', refunded: true, available: r.available });
     });
   }

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isInAppBrowser, safeNext } from "@/lib/session";
 import { SignInMethods } from "@/components/SignInMethods";
 import { Footer } from "@/components/Footer";
+import { PublicHeader } from "@/components/AppFrame";
 
 export const metadata: Metadata = { title: "Sign in" };
 
@@ -28,15 +29,19 @@ export default async function SignIn({ searchParams }: PageProps<"/signin">) {
   const inApp = isInAppBrowser((await headers()).get("user-agent"));
   return (
     <>
-      <main className="page narrow stack">
+      <PublicHeader />
+      <main className="auth stack" id="main">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="" width={64} height={44} className="auth-mark" />
         <h1>Sign in</h1>
+        <p className="auth-sub">Welcome back.</p>
         {e && (
           <p role="alert" className="error">
             {e}
           </p>
         )}
         <SignInMethods next={next} inApp={inApp} showGoogle={process.env.NEXT_PUBLIC_GOOGLE_ENABLED === "1" && !inApp} />
-        <p className="small">
+        <p className="small muted" style={{ textAlign: "center" }}>
           New here? <Link href="/signup">Create an account</Link>
         </p>
       </main>

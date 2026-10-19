@@ -42,4 +42,6 @@ export interface GenDb {
   cacheState(): Promise<CacheState[]>;
   thread(userId: string, conversationId: string): Promise<Thread | null>;
   attach(generationId: string, conversationId: string, userId: string): Promise<boolean>;
+  // A finished video goes on Explore (founder, 18 Oct 2026); the share refusals pass through.
+  explore(generationId: string, userId: string): Promise<'shown' | 'contact_info' | 'share_limit' | 'not_found'>;
 }

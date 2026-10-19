@@ -1,6 +1,8 @@
 // Who is signed in, and where they must go (PLAN.md §5.3). Server only.
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { cache } from "react";
+import { okNext } from "@/lib/age";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 
 export const HOLD_CREDITS = 6; // ponytail: belongs in src/billing/constants.ts once M3/M5 add it (§5.6)
@@ -8,13 +10,14 @@ export const START_SEEN_COOKIE = "wb_start_seen";
 
 /** `?next=` is accepted only as a same-site path (§5.2). */
 export function safeNext(next: string | null | undefined, fallback = "/ask") {
-  return next && /^\/[^/\\]/.test(next) ? next : fallback;
+  return okNext(next) ?? fallback;
 }
 
 export type Account = Awaited<ReturnType<typeof getAccount>>;
 
-/** The verified user plus the profile and balance rows (RLS: own rows only). Null when signed out. */
-export async function getAccount() {
+/** The verified user plus the profile and balance rows (RLS: own rows only). Null when signed out. Once per request:
+ * the (app) layout and its page both ask. */
+export const getAccount = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const user = data.user;
@@ -34,7 +37,7 @@ export async function getAccount() {
     available: b ? b.sub + b.topup - b.held : 0,
     everPaid: (paid.data?.length ?? 0) > 0,
   };
-}
+});
 
 /** Every signed-in page: signed out → /signin, no age → /age. */
 export async function requireAccount(path: string) {
