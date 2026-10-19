@@ -177,7 +177,7 @@ export function Player({ style, script, onEnded, bind, onStart, cover }: {
   useEffect(() => {
     if (!script) return;
     if (style !== "whiteboard") return sendScript(raw, style, script);
-    post({ type: "reset" }); post({ type: "els", els: script.els });
+    post({ type: "reset" }); post({ type: "els", els: script.els, drawings: script.drawings });
     for (const step of script.steps ?? []) post({ type: "step", step });
     post({ type: "done" });
   }, [script, post, raw, style]);
@@ -322,8 +322,8 @@ export function Watch({ question, style, explore = false, conversationId, onDone
           setMaking(m => d.stage === "drawings" ? { at: 1, names: d.names } : d.stage === "writing" ? { ...m, at: 2 }
             : d.stage === "fixing" ? { ...m, at: 2, fixing: true } : m);
         }
-        else if (ev === "els") { scriptParts.els = d.els; if (style === "whiteboard") send({ type: "els", els: d.els }); }
-        else if (ev === "els_add") { scriptParts.els = { ...scriptParts.els, ...d.els }; if (style === "whiteboard") send({ type: "els_add", els: d.els }); }
+        else if (ev === "els") { scriptParts.els = d.els; if (style === "whiteboard") send({ type: "els", els: d.els, drawings: d.drawings }); }
+        else if (ev === "els_add") { scriptParts.els = { ...scriptParts.els, ...d.els }; if (style === "whiteboard") send({ type: "els_add", els: d.els, drawings: d.drawings }); }
         else if (ev === "step") {
           if (d.i === 0) setMaking(m => ({ ...m, at: 3 }));
           scriptParts.steps[d.i] = d.step; setSteps(s => { const n = [...s]; n[d.i] = d.step.say; return n; });

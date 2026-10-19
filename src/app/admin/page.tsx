@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { requireAdmin } from "@/lib/admin";
 import { createAdminClient } from "@/lib/supabase/server";
-import { CreditsForm, InviteForm, ReportRow, SwitchForm, UnpublishForm } from "@/components/AdminForms";
+import { CreditsForm, DrawingRow, InviteForm, ReportRow, SwitchForm, UnpublishForm } from "@/components/AdminForms";
+import { toDrawing } from "@/lib/generation/drawings.mjs";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
 const usd = (n: number) => `$${n.toFixed(2)}`;
@@ -13,7 +14,7 @@ export default async function Admin() {
   const db = createAdminClient();
   const day = new Date(); day.setUTCHours(0, 0, 0, 0);
   const since = day.toISOString();
-  const [gens, calls, settings, drift, misses, users, reports] = await Promise.all([
+  const [gens, calls, settings, drift, misses, users, reports, drawings] = await Promise.all([
     db.from("generations").select("id, created_at, style, status, credits_charged, error_code").gte("created_at", since).order("created_at", { ascending: false }).limit(500),
     db.from("generation_calls").select("cost_usd").gte("started_at", since),
     db.from("ops_settings").select("*").single(),
@@ -21,7 +22,14 @@ export default async function Admin() {
     sb.rpc("admin_top_misses", { p_days: 30 }),
     db.from("profiles").select("id", { count: "exact", head: true }),
     db.from("reports").select("id, slug, reason, note, created_at").is("resolved_at", null).order("created_at", { ascending: false }).limit(50),
+    sb.rpc("admin_list_drawings", { p_status: "pending", p_limit: 30 }),
   ]);
+  // Each waiting drawing, normalised the way approving it would, shown on the player as "sv id=candidate".
+  const waiting = ((drawings.data ?? []) as { id: string; name: string; subject: string | null; created_at: string; lines: Record<string, string> }[]).map(d => {
+    try { return { d, problem: null, preview: { q: d.name, els: { p: "sv id=candidate 480 270 460" }, steps: [{ say: "", do: ["draw p", "fill p"] }],
+      drawings: { candidate: toDrawing(d.lines) } } }; }
+    catch (e) { return { d, problem: (e as Error).message, preview: null }; }
+  });
   const g = gens.data ?? [], s = settings.data!;
   const spend = (calls.data ?? []).reduce((t, c) => t + Number(c.cost_usd ?? 0), 0);
   const by = (st: string) => g.filter(x => x.status === st).length;
@@ -56,6 +64,12 @@ export default async function Admin() {
           <tbody>{g.slice(0, 30).map(x => (
             <tr key={x.id}><td>{new Date(x.created_at).toISOString().slice(11, 16)}</td><td>{x.style}</td><td>{x.status}</td><td>{x.credits_charged}</td><td>{x.error_code ?? ""}</td></tr>
           ))}</tbody></table>
+      </section>
+      <section className="card stack">
+        <h2>Drawings to review ({waiting.length})</h2>
+        <p className="muted">Drawn by the model for something the library lacked. Approve the good ones: lessons then find them like any library drawing.</p>
+        {waiting.length === 0 ? <p className="muted">None waiting.</p>
+          : <ul className="stack" style={{ listStyle: "none", padding: 0 }}>{waiting.map(w => <DrawingRow key={w.d.id} d={w.d} preview={w.preview} problem={w.problem} />)}</ul>}
       </section>
       <section className="card stack">
         <h2>Drawings asked for but missing (30 days)</h2>
