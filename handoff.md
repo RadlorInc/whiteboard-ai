@@ -108,7 +108,10 @@
   actionpotential + channelgating, doubleslit, sn2 + energyprofile, titration + burette); the Feynman one drew its
   own. Found an old player bug: a tag drawn but never filled showed an empty box (3 of 6 videos); now a tag's words
   show when its box is drawn. A tag may no longer sit on a library drawing (unclutter). Left: a model title or note
-  over a recipe's own heading where no free spot exists.
+  over a recipe's own heading where no free spot exists. **Fixed (20 Oct):** unclutter now scores nearby spots
+  (up/down, left/right for text) and sizes (a title shrinks most readily) and takes the least overlap even when no
+  spot is wholly free; crossing a library drawing counts in full; a word from outside is never pushed into a
+  drawing; it runs again once the hand font has loaded. Checked on 10 saved boards.
   Cost of the 6 test videos ~$2. Shas: biology `d15eff…`, physics `0aa6e0…`, chemistry `cc7eeb…`.
 
 ## Graduate (master's) layer, all three subjects (19 Oct 2026, not committed yet)
