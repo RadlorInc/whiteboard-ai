@@ -171,8 +171,9 @@ function MakingCover({ making }: { making: Making }) {
   );
 }
 
-export function Watch({ question, style, explore = false, onDone, onExit }: {
-  question: string; style: Style; explore?: boolean; onDone?: (available: number | null) => void; onExit: () => void;
+export function Watch({ question, style, explore = false, conversationId, onDone, onExit }: {
+  question: string; style: Style; explore?: boolean; conversationId?: string;
+  onDone?: (available: number | null, id?: string) => void; onExit?: () => void;
 }) {
   const [exploreNote, setExploreNote] = useState<string | null>(null);
   const [stage, setStage] = useState("Starting…");
@@ -206,11 +207,12 @@ export function Watch({ question, style, explore = false, onDone, onExit }: {
     try {
       res = await fetch("/api/generate", {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ question, style, client_request_id: requestId.current, confirm_new: confirmNew }),
+        body: JSON.stringify({ question, style, client_request_id: requestId.current, confirm_new: confirmNew,
+          ...(conversationId && { conversation_id: conversationId }) }),
       });
-    } catch { setError("You're offline. Check your connection and try again."); return; }
-    if (res.status === 409) { const j = await res.json(); if (j.code === "already_owned") { setOwned(j.id); setStage(""); return; } }
-    if (!res.ok || !res.body) { const j = await res.json().catch(() => ({})); setError(msg(j.code ?? "provider_error")); return; }
+    } catch { setError("You're offline. Check your connection and try again."); onDone?.(null); return; }
+    if (res.status === 409) { const j = await res.json(); if (j.code === "already_owned") { setOwned(j.id); setStage(""); return; } setError(msg(j.code ?? "provider_error")); onDone?.(null); return; }
+    if (!res.ok || !res.body) { const j = await res.json().catch(() => ({})); setError(msg(j.code ?? "provider_error")); onDone?.(null); return; }
     post({ type: "reset" });
     const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
     let buf = "", finished = false;
@@ -244,19 +246,20 @@ export function Watch({ question, style, explore = false, onDone, onExit }: {
           if (style === "whiteboard") send({ type: "done" });
           else if (style === "paper") setPlaying(true);
           if (style === "paper") sendWhole({ q: question, ...scriptParts } as Script);
-          onDone?.(d.available ?? null);
+          onDone?.(d.available ?? null, d.id);
         }
         else if (ev === "failed") { finished = true; setError(msg(d.code)); onDone?.(d.available ?? null); }
       }
     }
+    if (!finished) onDone?.(null);
     if (!finished) setError("The connection dropped. If the video finishes it will be in your library, and failed videos are never charged.");
-  }, [question, style, explore, onDone]);
+  }, [question, style, explore, conversationId, onDone]);
 
   useEffect(() => { if (!started.current) { started.current = true; run(); } }, [run]);
 
   return (
     <section className="stack" aria-live="polite">
-      <p className="muted">{question}</p>
+      <p className={conversationId ? "chat-q" : "muted"}>{question}</p>
       {playing && !error && !owned && <VoiceProgress />}
       <Player style={style} bind={bind} onStart={onStart}
         cover={!playing && !error && !owned ? <MakingCover making={making} /> : null} />
@@ -276,7 +279,7 @@ export function Watch({ question, style, explore = false, onDone, onExit }: {
       {steps.length > 0 && (
         <details><summary>Transcript</summary><ol>{steps.map((s, i) => <li key={i}>{s}</li>)}</ol></details>
       )}
-      <button className="btn secondary" type="button" onClick={onExit}>Ask another question</button>
+      {onExit && <button className="btn secondary" type="button" onClick={onExit}>Ask another question</button>}
     </section>
   );
 }

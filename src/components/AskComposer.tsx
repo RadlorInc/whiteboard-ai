@@ -18,7 +18,11 @@ const EXAMPLES = [
 ];
 const MAX = 500;
 
-export function AskComposer({ available, firstRun }: { available: number; firstRun: boolean }) {
+// onAsk: a chat takes the question itself (founder, 18 Oct 2026) instead of this composer playing it; busy holds the
+// Ask button while that chat's video is being made (one video at a time).
+export function AskComposer({ available, firstRun, onAsk, busy = false, placeholder = "Ask anything…" }: {
+  available: number; firstRun: boolean; onAsk?: (question: string, explore: boolean) => void; busy?: boolean; placeholder?: string;
+}) {
   const [question, setQuestion] = useState("");
   const [note, setNote] = useState<string | null>(null);
   const [asking, setAsking] = useState<{ question: string; explore: boolean; n: number } | null>(null);
@@ -64,9 +68,10 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
   const empty = question.trim().length === 0;
 
   function submit() {
-    if (empty || !enough) return;
+    if (empty || !enough || busy) return;
     box.current?.blur();
     setNote(null);
+    if (onAsk) { onAsk(question.trim(), explore); setQuestion(""); return; }
     setAsking({ question: question.trim(), explore, n: Date.now() });
     // Asked, so no longer a draft: leaving mid-video and coming back must not bring the question back.
     setQuestion("");
@@ -96,7 +101,7 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
           rows={1}
           maxLength={MAX}
           enterKeyHint="go"
-          placeholder="Ask anything…"
+          placeholder={placeholder}
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           onKeyDown={(e) => {
@@ -113,7 +118,7 @@ export function AskComposer({ available, firstRun }: { available: number; firstR
       <VoiceProgress />
 
       {enough ? (
-        <button type="submit" className="btn block" disabled={empty}>
+        <button type="submit" className="btn block" disabled={empty || busy}>
           Ask
         </button>
       ) : (

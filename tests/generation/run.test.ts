@@ -222,3 +222,29 @@ describe('POST /api/generate refusals reserve nothing', () => {
     expect(ev.map(e => e.event).filter(e => e !== 'stage' && e !== 'need')).toEqual(['accepted', 'els', ...rainbow.steps.map(() => 'step'), 'done']);
   });
 });
+
+// Conversations (founder, 18 Oct 2026): a follow-up is told the subject and the earlier questions and narration.
+describe('POST /api/generate in a conversation', () => {
+  const CONV = '22222222-2222-4222-8222-222222222222';
+  const req = (body: Any) => new Request('http://localhost:3100/api/generate', { method: 'POST',
+    headers: { origin: 'http://localhost:3100', 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  const ask = { question: 'Why is red on the outside?', style: 'whiteboard', client_request_id: crypto.randomUUID(), conversation_id: CONV };
+  it('a bad id is 400 and a conversation that is not yours is 404; nothing reserved', async () => {
+    const { db, log } = fakeDb();
+    const client = fakeClient([{ text: text(rainbow) }]).client, d = { db, client, userId: 'u1', appUrl: 'http://localhost:3100', buildId: 't', waitUntil: () => {} };
+    expect((await handleGenerate(req({ ...ask, conversation_id: 'nope' }), d)).status).toBe(400);
+    expect((await handleGenerate(req(ask), d)).status).toBe(404);
+    expect(log.reserve).toBe(0);
+  });
+  it('the model gets the subject and the earlier turn before the question, and the video is filed', async () => {
+    const { db, log } = fakeDb({ thread: { subject: 'physics', turns: [{ question: 'How does a rainbow form?', says: ['Sunlight enters a drop.', 'It bends and splits.'] }] } });
+    const f = fakeClient([{ tool: { names: ['sun'] } }, { text: text(rainbow) }]);
+    await readSse(await handleGenerate(req(ask), { db, client: f.client, userId: 'u1', appUrl: 'http://localhost:3100', buildId: 't', waitUntil: () => {} }));
+    const first = (f.seen[0] as Any).messages[0].content as { text: string }[];
+    expect(first[0].text).toContain('Subject: Physics.');
+    expect(first[0].text).toContain('1. Question: How does a rainbow form?\n   You explained: Sunlight enters a drop. It bends and splits.');
+    expect(first.at(-1)!.text).toBe('New question: Why is red on the outside?');
+    expect(log.attach).toEqual([{ id: expect.any(String), conversationId: CONV }]);
+    expect(log.finish.length).toBe(1);
+  });
+});

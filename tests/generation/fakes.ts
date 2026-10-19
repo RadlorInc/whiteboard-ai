@@ -4,9 +4,9 @@
 import type { GenDb, Metrics, FailCode, ModelCall, GenerationRow } from '../../src/lib/generation/db';
 import type { ModelClient, FinalMessage, StreamEvent, Block } from '../../src/lib/generation/model';
 
-export function fakeDb(opts: { reserve?: Partial<Awaited<ReturnType<GenDb['reserve']>>>; finishThrows?: number; startOk?: boolean } = {}) {
+export function fakeDb(opts: { reserve?: Partial<Awaited<ReturnType<GenDb['reserve']>>>; finishThrows?: number; startOk?: boolean; thread?: Awaited<ReturnType<GenDb['thread']>> } = {}) {
   const log = { finish: [] as { id: string; script: unknown; metrics: Metrics }[], fail: [] as { id: string; code: FailCode; metrics: Metrics }[],
-    calls: [] as ModelCall[], stages: [] as string[], reserve: 0, start: 0 };
+    calls: [] as ModelCall[], stages: [] as string[], reserve: 0, start: 0, attach: [] as { id: string; conversationId: string }[] };
   const rows = new Map<string, GenerationRow>();
   let finishThrows = opts.finishThrows ?? 0;
   const db: GenDb = {
@@ -38,6 +38,8 @@ export function fakeDb(opts: { reserve?: Partial<Awaited<ReturnType<GenDb['reser
     async getOwn(id, userId) { const r = rows.get(id); return r && r.user_id === userId ? r : null; },
     async expireIfStale() { return 'not_stale'; },
     async cacheState() { return []; },
+    async thread() { return opts.thread ?? null; },
+    async attach(id, conversationId) { log.attach.push({ id, conversationId }); return true; },
   };
   return { db, log, rows };
 }

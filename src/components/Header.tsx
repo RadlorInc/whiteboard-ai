@@ -25,6 +25,7 @@ export function Header({ available }: { available: number }) {
             </svg>
           </summary>
           <div className="menu-list">
+            <Link href="/chats">Your chats</Link>
             <Link href="/library">Your videos</Link>
             <Link href="/explore">Explore</Link>
             <Link href="/settings">Settings</Link>
