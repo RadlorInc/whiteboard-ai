@@ -1,0 +1,513 @@
+[
+ {
+  "id": "lion-silhouette",
+  "name": "Lion (silhouette)",
+  "species": "Panthera leo",
+  "author": "Natalie Kestel",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "tiger-silhouette",
+  "name": "Tiger (silhouette)",
+  "species": "Panthera tigris altaica",
+  "author": "Andy Wilson",
+  "licence": "CC0"
+ },
+ {
+  "id": "cheetah-silhouette",
+  "name": "Cheetah (silhouette)",
+  "species": "Acinonyx jubatus",
+  "author": "Margot Michaud",
+  "licence": "CC0"
+ },
+ {
+  "id": "elephant-silhouette",
+  "name": "Elephant (silhouette)",
+  "species": "Loxodonta africana",
+  "author": "Natalie Kestel",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "giraffe-silhouette",
+  "name": "Giraffe (silhouette)",
+  "species": "Giraffa",
+  "author": "Jody Taylor",
+  "licence": "CC0"
+ },
+ {
+  "id": "zebra-silhouette",
+  "name": "Zebra (silhouette)",
+  "species": "Equus quagga",
+  "author": "Natalie Kestel",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "rhinoceros-silhouette",
+  "name": "Rhinoceros (silhouette)",
+  "species": "Ceratotherium simum",
+  "author": "Christophe Mallet",
+  "licence": "CC0"
+ },
+ {
+  "id": "hippopotamus-silhouette",
+  "name": "Hippopotamus (silhouette)",
+  "species": "Hippopotamus amphibius",
+  "author": "Ivan Iofrida",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "gorilla-silhouette",
+  "name": "Gorilla (silhouette)",
+  "species": "Gorilla gorilla",
+  "author": "Andy Wilson",
+  "licence": "CC0"
+ },
+ {
+  "id": "chimpanzee-silhouette",
+  "name": "Chimpanzee (silhouette)",
+  "species": "Pan troglodytes",
+  "author": "Kai Caspar",
+  "licence": "CC BY 3.0"
+ },
+ {
+  "id": "wolf-silhouette",
+  "name": "Wolf (silhouette)",
+  "species": "Canis lupus italicus",
+  "author": "Margot Michaud",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "fox-silhouette",
+  "name": "Fox (silhouette)",
+  "species": "Vulpes vulpes",
+  "author": "painting Guo",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "brown-bear-silhouette",
+  "name": "Brown bear (silhouette)",
+  "species": "Ursus arctos beringianus",
+  "author": "Kai Caspar",
+  "licence": "CC0"
+ },
+ {
+  "id": "polar-bear-silhouette",
+  "name": "Polar bear (silhouette)",
+  "species": "Ursus maritimus",
+  "author": "Margot Michaud",
+  "licence": "CC0"
+ },
+ {
+  "id": "deer-silhouette",
+  "name": "Deer (silhouette)",
+  "species": "Cervus elaphus",
+  "author": "Ferran Sayol",
+  "licence": "CC0"
+ },
+ {
+  "id": "camel-silhouette",
+  "name": "Camel (silhouette)",
+  "species": "Camelus dromedarius",
+  "author": "Katy Lawler",
+  "licence": "CC0"
+ },
+ {
+  "id": "horse-silhouette",
+  "name": "Horse (silhouette)",
+  "species": "Equus ferus przewalskii",
+  "author": "Andy Wilson",
+  "licence": "CC0"
+ },
+ {
+  "id": "cow-silhouette",
+  "name": "Cow (silhouette)",
+  "species": "Bos primigenius",
+  "author": "Ivan Iofrida",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "sheep-silhouette",
+  "name": "Sheep (silhouette)",
+  "species": "Ovis aries",
+  "author": "Mozillian",
+  "licence": "CC0"
+ },
+ {
+  "id": "goat-silhouette",
+  "name": "Goat (silhouette)",
+  "species": "Capra caucasica",
+  "author": "Kai Caspar",
+  "licence": "CC0"
+ },
+ {
+  "id": "rabbit-silhouette",
+  "name": "Rabbit (silhouette)",
+  "species": "Oryctolagus cuniculus",
+  "author": "Ferran Sayol",
+  "licence": "CC0"
+ },
+ {
+  "id": "mouse-silhouette",
+  "name": "Mouse (silhouette)",
+  "species": "Mus musculus",
+  "author": "Natalie Kestel",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "squirrel-silhouette",
+  "name": "Squirrel (silhouette)",
+  "species": "Sciurus vulgaris",
+  "author": "Ferran Sayol",
+  "licence": "CC0"
+ },
+ {
+  "id": "hedgehog-silhouette",
+  "name": "Hedgehog (silhouette)",
+  "species": "Erinaceus europaeus",
+  "author": "Guillaume Dera",
+  "licence": "CC0"
+ },
+ {
+  "id": "bat-silhouette",
+  "name": "Bat (silhouette)",
+  "species": "Pipistrellus pipistrellus",
+  "author": "Margot Michaud",
+  "licence": "CC0"
+ },
+ {
+  "id": "kangaroo-silhouette",
+  "name": "Kangaroo (silhouette)",
+  "species": "Macropus giganteus",
+  "author": "Natalie Kestel",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "platypus-silhouette",
+  "name": "Platypus (silhouette)",
+  "species": "Ornithorhynchus anatinus",
+  "author": "Margot Michaud",
+  "licence": "CC0"
+ },
+ {
+  "id": "blue-whale-silhouette",
+  "name": "Blue whale (silhouette)",
+  "species": "Balaenoptera musculus",
+  "author": "T. Michael Keesey",
+  "licence": "Public domain"
+ },
+ {
+  "id": "dolphin-silhouette",
+  "name": "Dolphin (silhouette)",
+  "species": "Tursiops truncatus",
+  "author": "Olesja Bogomaz",
+  "licence": "CC0"
+ },
+ {
+  "id": "eagle-silhouette",
+  "name": "Eagle (silhouette)",
+  "species": "Haliaeetus leucocephalus",
+  "author": "Andy Wilson",
+  "licence": "CC0"
+ },
+ {
+  "id": "owl-silhouette",
+  "name": "Owl (silhouette)",
+  "species": "Tyto alba furcata",
+  "author": "Alyssa",
+  "licence": "Public domain"
+ },
+ {
+  "id": "penguin-silhouette",
+  "name": "Penguin (silhouette)",
+  "species": "Aptenodytes forsteri",
+  "author": "Edwin Price",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "ostrich-silhouette",
+  "name": "Ostrich (silhouette)",
+  "species": "Struthio camelus",
+  "author": "Marie Attard",
+  "licence": "Public domain"
+ },
+ {
+  "id": "parrot-silhouette",
+  "name": "Parrot (silhouette)",
+  "species": "Ara macao",
+  "author": "Myriam Ramirez",
+  "licence": "CC0"
+ },
+ {
+  "id": "hen-silhouette",
+  "name": "Hen (silhouette)",
+  "species": "Gallus gallus",
+  "author": "Edwin Price",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "duck-silhouette",
+  "name": "Duck (silhouette)",
+  "species": "Anas platyrhynchos",
+  "author": "Caleb M. Gordon",
+  "licence": "CC0"
+ },
+ {
+  "id": "sparrow-silhouette",
+  "name": "Sparrow (silhouette)",
+  "species": "Passer domesticus",
+  "author": "Guillaume Dera",
+  "licence": "CC0"
+ },
+ {
+  "id": "hummingbird-silhouette",
+  "name": "Hummingbird (silhouette)",
+  "species": "Archilochus colubris",
+  "author": "Andy Wilson",
+  "licence": "CC0"
+ },
+ {
+  "id": "flamingo-silhouette",
+  "name": "Flamingo (silhouette)",
+  "species": "Phoenicopterus roseus",
+  "author": "Ferran Sayol",
+  "licence": "CC0"
+ },
+ {
+  "id": "darwin-finch-silhouette",
+  "name": "Darwin finch (silhouette)",
+  "species": "Geospiza fuliginosa",
+  "author": "Manabu Sakamoto",
+  "licence": "CC BY 3.0"
+ },
+ {
+  "id": "crocodile-silhouette",
+  "name": "Crocodile (silhouette)",
+  "species": "Crocodylus niloticus",
+  "author": "Ananth Srinivas",
+  "licence": "CC0"
+ },
+ {
+  "id": "turtle-silhouette",
+  "name": "Turtle (silhouette)",
+  "species": "Chelonia mydas",
+  "author": "Danny Anduza",
+  "licence": "CC0"
+ },
+ {
+  "id": "tortoise-silhouette",
+  "name": "Tortoise (silhouette)",
+  "species": "Chelonoidis carbonarius",
+  "author": "Kai Caspar",
+  "licence": "CC0"
+ },
+ {
+  "id": "cobra-silhouette",
+  "name": "Cobra (silhouette)",
+  "species": "Ophiophagus hannah",
+  "author": "Deepak Veerappan",
+  "licence": "CC BY 3.0"
+ },
+ {
+  "id": "chameleon-silhouette",
+  "name": "Chameleon (silhouette)",
+  "species": "Chamaeleo calyptratus",
+  "author": "Margot Michaud",
+  "licence": "CC0"
+ },
+ {
+  "id": "tyrannosaurus-silhouette",
+  "name": "Tyrannosaurus (silhouette)",
+  "species": "Tyrannosaurus rex",
+  "author": "Richard Rich",
+  "licence": "CC0"
+ },
+ {
+  "id": "archaeopteryx-silhouette",
+  "name": "Archaeopteryx (silhouette)",
+  "species": "Archaeopteryx lithographica",
+  "author": "T. Michael Keesey",
+  "licence": "CC0"
+ },
+ {
+  "id": "frog-silhouette",
+  "name": "Frog (silhouette)",
+  "species": "Rana temporaria",
+  "author": "Luca Leicht",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "salamander-silhouette",
+  "name": "Salamander (silhouette)",
+  "species": "Salamandra salamandra",
+  "author": "Luca Leicht",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "shark-silhouette",
+  "name": "Shark (silhouette)",
+  "species": "Carcharodon carcharias",
+  "author": "Guillaume Dera",
+  "licence": "CC0"
+ },
+ {
+  "id": "salmon-silhouette",
+  "name": "Salmon (silhouette)",
+  "species": "Salmo salar",
+  "author": "Caleb M. Gordon",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "seahorse-silhouette",
+  "name": "Seahorse (silhouette)",
+  "species": "Hippocampus",
+  "author": "Corrine Avidan",
+  "licence": "CC0"
+ },
+ {
+  "id": "coelacanth-silhouette",
+  "name": "Coelacanth (silhouette)",
+  "species": "Latimeria chalumnae",
+  "author": "Danny Anduza",
+  "licence": "CC0"
+ },
+ {
+  "id": "octopus-silhouette",
+  "name": "Octopus (silhouette)",
+  "species": "Octopus vulgaris",
+  "author": "Margot Michaud",
+  "licence": "CC0"
+ },
+ {
+  "id": "jellyfish-silhouette",
+  "name": "Jellyfish (silhouette)",
+  "species": "Aurelia aurita",
+  "author": "Lodewijk van Walraven",
+  "licence": "CC0"
+ },
+ {
+  "id": "crab-silhouette",
+  "name": "Crab (silhouette)",
+  "species": "Carcinus maenas",
+  "author": "Caleb M. Gordon",
+  "licence": "CC0"
+ },
+ {
+  "id": "lobster-silhouette",
+  "name": "Lobster (silhouette)",
+  "species": "Homarus gammarus",
+  "author": "Guillaume Dera",
+  "licence": "CC0"
+ },
+ {
+  "id": "earthworm-silhouette",
+  "name": "Earthworm (silhouette)",
+  "species": "Lumbricus terrestris",
+  "author": "Carlo De Rito",
+  "licence": "CC0"
+ },
+ {
+  "id": "spider-silhouette",
+  "name": "Spider (silhouette)",
+  "species": "Araneus diadematus",
+  "author": "Amy Beauvois",
+  "licence": "CC0"
+ },
+ {
+  "id": "scorpion-silhouette",
+  "name": "Scorpion (silhouette)",
+  "species": "Scorpio indicus",
+  "author": "T. Michael Keesey",
+  "licence": "CC0"
+ },
+ {
+  "id": "butterfly-silhouette",
+  "name": "Butterfly (silhouette)",
+  "species": "Danaus plexippus",
+  "author": "Andy Wilson",
+  "licence": "CC0"
+ },
+ {
+  "id": "honey-bee-silhouette",
+  "name": "Honey bee (silhouette)",
+  "species": "Apis mellifera",
+  "author": "Melissa Broussard",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "ant-silhouette",
+  "name": "Ant (silhouette)",
+  "species": "Formica rufa",
+  "author": "Pascal Abel",
+  "licence": "Public domain"
+ },
+ {
+  "id": "dragonfly-silhouette",
+  "name": "Dragonfly (silhouette)",
+  "species": "Anax imperator",
+  "author": "Guillaume Dera",
+  "licence": "CC0"
+ },
+ {
+  "id": "mosquito-silhouette",
+  "name": "Mosquito (silhouette)",
+  "species": "Anopheles gambiae",
+  "author": "Lubna Maherally",
+  "licence": "CC0"
+ },
+ {
+  "id": "ladybird-silhouette",
+  "name": "Ladybird (silhouette)",
+  "species": "Coccinella",
+  "author": "Amy Beauvois",
+  "licence": "CC0"
+ },
+ {
+  "id": "peppered-moth-silhouette",
+  "name": "Peppered moth (silhouette)",
+  "species": "Biston betularia",
+  "author": "Jamie Whitehouse",
+  "licence": "CC0"
+ },
+ {
+  "id": "sunflower-silhouette",
+  "name": "Sunflower (silhouette)",
+  "species": "Helianthus annuus",
+  "author": "Mason McNair",
+  "licence": "CC0"
+ },
+ {
+  "id": "grass-silhouette",
+  "name": "Grass (silhouette)",
+  "species": "Poa pratensis",
+  "author": "Guillaume Dera",
+  "licence": "CC0"
+ },
+ {
+  "id": "fern-silhouette",
+  "name": "Fern (silhouette)",
+  "species": "Polystichum lonchitis",
+  "author": "Guillaume Dera",
+  "licence": "CC0"
+ },
+ {
+  "id": "moss-silhouette",
+  "name": "Moss (silhouette)",
+  "species": "Andreaeaceae",
+  "author": "Tree of Life App",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "mushroom-silhouette",
+  "name": "Mushroom (silhouette)",
+  "species": "Amanita muscaria",
+  "author": "Mason McNair",
+  "licence": "CC0"
+ },
+ {
+  "id": "amoeba-silhouette",
+  "name": "Amoeba (silhouette)",
+  "species": "Amoeba proteus",
+  "author": "Carlo De Rito",
+  "licence": "CC0"
+ }
+]

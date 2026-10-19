@@ -1,0 +1,68 @@
+{
+ "parts": {
+  "tricuspid": {
+   "name": "tricuspid valve",
+   "at": [
+    260,
+    330
+   ],
+   "kind": "part",
+   "shapes": [
+    12
+   ]
+  },
+  "mitral": {
+   "name": "mitral valve",
+   "at": [
+    650,
+    330
+   ],
+   "kind": "part",
+   "shapes": [
+    15
+   ]
+  },
+  "aortic": {
+   "name": "aortic valve",
+   "at": [
+    420,
+    560
+   ],
+   "kind": "part",
+   "shapes": [],
+   "trace": false
+  },
+  "pulmonary": {
+   "name": "pulmonary valve",
+   "at": [
+    500,
+    830
+   ],
+   "kind": "part",
+   "shapes": [
+    32
+   ]
+  },
+  "coronary": {
+   "name": "coronary artery",
+   "at": [
+    925,
+    500
+   ],
+   "kind": "part",
+   "shapes": [],
+   "trace": false
+  },
+  "fat": {
+   "name": "fat",
+   "at": [
+    300,
+    850
+   ],
+   "kind": "part",
+   "shapes": [
+    34
+   ]
+  }
+ }
+}

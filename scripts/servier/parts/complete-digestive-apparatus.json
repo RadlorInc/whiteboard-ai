@@ -1,0 +1,103 @@
+{
+ "parts": {
+  "mouth": {
+   "name": "mouth",
+   "at": [
+    120,
+    170
+   ],
+   "kind": "part",
+   "shapes": [
+    104
+   ]
+  },
+  "oesophagus": {
+   "name": "oesophagus (food pipe)",
+   "at": [
+    142,
+    350
+   ],
+   "kind": "part",
+   "shapes": [
+    130
+   ]
+  },
+  "liver": {
+   "name": "liver",
+   "at": [
+    80,
+    520
+   ],
+   "kind": "part",
+   "shapes": [
+    316
+   ]
+  },
+  "gall": {
+   "name": "gall bladder",
+   "at": [
+    60,
+    580
+   ],
+   "kind": "part",
+   "shapes": [
+    362
+   ]
+  },
+  "stomach": {
+   "name": "stomach",
+   "at": [
+    205,
+    560
+   ],
+   "kind": "part",
+   "shapes": [
+    580
+   ]
+  },
+  "pancreas": {
+   "name": "pancreas",
+   "at": [
+    120,
+    660
+   ],
+   "kind": "part",
+   "shapes": [
+    675
+   ]
+  },
+  "small": {
+   "name": "small intestine",
+   "at": [
+    150,
+    820
+   ],
+   "kind": "part",
+   "shapes": [
+    580
+   ]
+  },
+  "large": {
+   "name": "large intestine (colon)",
+   "at": [
+    30,
+    780
+   ],
+   "kind": "part",
+   "shapes": [
+    705
+   ]
+  },
+  "rectum": {
+   "name": "rectum",
+   "at": [
+    165,
+    950
+   ],
+   "kind": "part",
+   "shapes": [
+    697
+   ]
+  }
+ }
+}

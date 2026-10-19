@@ -23,6 +23,9 @@ export type GenerationRow = {
   stage: string | null; script: unknown; error_code: string | null; credits_charged: number; narration_chars: number;
   created_at: string; question: string | null;
 };
+export type Subject = 'biology' | 'physics' | 'chemistry';
+// A conversation's subject and its earlier answered questions, oldest first, each with its spoken lines.
+export type Thread = { subject: Subject; turns: { question: string; says: string[] }[] };
 export type CacheState = { style: Style; prompt_sha: string; last_touch_at: string | null; last_real_at: string | null };
 
 export interface GenDb {
@@ -37,4 +40,12 @@ export interface GenDb {
   getOwn(id: string, userId: string): Promise<GenerationRow | null>;
   expireIfStale(id: string): Promise<string>;
   cacheState(): Promise<CacheState[]>;
+  thread(userId: string, conversationId: string): Promise<Thread | null>;
+  attach(generationId: string, conversationId: string, userId: string): Promise<boolean>;
+  // A finished video goes on Explore (founder, 18 Oct 2026); the share refusals pass through.
+  explore(generationId: string, userId: string): Promise<'shown' | 'contact_info' | 'share_limit' | 'not_found'>;
+  // Library drawings the model made (19 Oct 2026): approved ones for find_drawing, candidates kept for /admin.
+  approvedDrawings?(): Promise<ApprovedDrawing[]>;
+  saveDrawings?(generationId: string, subject: Subject | null, items: { name: string; lines: Record<string, string> }[]): Promise<number>;
 }
+export type ApprovedDrawing = { slug: string; name: string; subject: Subject | null; tags: string[]; data: { w: number; h: number; shapes: unknown[] } };

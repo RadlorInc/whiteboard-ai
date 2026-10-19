@@ -5,7 +5,8 @@ import { describe, it, expect } from 'vitest';
 import { APIError, APIConnectionError } from '@anthropic-ai/sdk';
 import { runGeneration, providerCode } from '../../src/lib/generation/run';
 import { handleGenerate } from '../../src/lib/generation/generate';
-import { mockClient, prefix, type ModelClient } from '../../src/lib/generation/model';
+import { mockClient, prefix, promptSha, type ModelClient } from '../../src/lib/generation/model';
+import P from '../../src/lib/generation/prompts.json' with { type: 'json' };
 import MOCK from '../../src/lib/generation/mock-answers.json' with { type: 'json' };
 import { fakeDb, fakeClient, readSse, type Round } from './fakes';
 
@@ -25,13 +26,37 @@ async function run(style: 'whiteboard' | 'paper' | 'matchcut', rounds: Round[] |
 const text = (a: unknown) => JSON.stringify(a);
 const clone = <T>(x: T): T => structuredClone(x);
 
+// Explore (founder, 18 Oct 2026): the server puts a saved video on Explore and says so in 'done'; a failure there
+// never turns a charged video into a failed one.
+describe('explore after a video is saved', () => {
+  it('done carries the outcome', async () => {
+    let calls = 0;
+    const r = await run('whiteboard', [{ text: text(rainbow) }], { explore: async () => { calls++; return 'contact_info'; } });
+    expect(calls).toBe(1);
+    expect(r.events.at(-1)).toMatchObject({ event: 'done', data: { creditsCharged: 4, explore: 'contact_info' } });
+  });
+  it('a failing call is reported as an error, the video is still done', async () => {
+    const r = await run('whiteboard', [{ text: text(rainbow) }], { explore: async () => { throw new Error('db down'); } });
+    expect(r.names.filter(n => n === 'failed')).toEqual([]);
+    expect(r.events.at(-1)).toMatchObject({ event: 'done', data: { explore: 'error' } });
+  });
+  it('a failed video is never put on Explore', async () => {
+    let calls = 0;
+    const r = await run('whiteboard', [{ text: 'not json' }, { text: 'still not json' }], { explore: async () => { calls++; return 'shown'; } });
+    expect(r.names.at(-1)).toBe('failed');
+    expect(calls).toBe(0);
+  });
+});
+
 describe('money paths: exactly one settle or release', () => {
   it('success: one finish with the hand-computed charge, no release', async () => {
     const r = await run('whiteboard', [{ tool: { names: ['sun', 'unicornx'] } }, { text: text(rainbow) }]);
     expect(r.closes).toBe(1); expect(r.log.finish.length).toBe(1);
-    expect(r.events.at(-1)).toEqual({ event: 'done', data: { id: ID, creditsCharged: 4, narrationChars: 515, available: 96 } });
+    expect(r.events.at(-1)).toEqual({ event: 'done', data: { id: ID, creditsCharged: 4, narrationChars: 515, available: 96, explore: null } });
     expect(r.log.finish[0].metrics).toMatchObject({ attempts: 1, repaired: false, misses: ['sun', 'unicornx'], steps_sent: 7 });
     expect(r.log.calls.map(c => c.kind)).toEqual(['round', 'round']);   // one cost row per model call
+    // jsonb loses key order, so the saved script keeps it (a pin must be built after its drawing)
+    expect((r.log.finish[0].script as Any).order).toEqual(Object.keys(rainbow.els));
   });
 
   it('paper success: 2 credits', async () => {
@@ -220,5 +245,69 @@ describe('POST /api/generate refusals reserve nothing', () => {
     const ev = await readSse(await handleGenerate(req(ok), deps(db)));
     expect(ev[0]).toEqual({ event: 'accepted', data: { id: ID, style: 'whiteboard', creditsHeld: 6, capChars: 900 } });
     expect(ev.map(e => e.event).filter(e => e !== 'stage' && e !== 'need')).toEqual(['accepted', 'els', ...rainbow.steps.map(() => 'step'), 'done']);
+  });
+});
+
+// Conversations (founder, 18 Oct 2026): a follow-up is told the subject and the earlier questions and narration.
+describe('POST /api/generate in a conversation', () => {
+  const CONV = '22222222-2222-4222-8222-222222222222';
+  const req = (body: Any) => new Request('http://localhost:3100/api/generate', { method: 'POST',
+    headers: { origin: 'http://localhost:3100', 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  const ask = { question: 'Why is red on the outside?', style: 'whiteboard', client_request_id: crypto.randomUUID(), conversation_id: CONV };
+  it('a bad id is 400 and a conversation that is not yours is 404; nothing reserved', async () => {
+    const { db, log } = fakeDb();
+    const client = fakeClient([{ text: text(rainbow) }]).client, d = { db, client, userId: 'u1', appUrl: 'http://localhost:3100', buildId: 't', waitUntil: () => {} };
+    expect((await handleGenerate(req({ ...ask, conversation_id: 'nope' }), d)).status).toBe(400);
+    expect((await handleGenerate(req(ask), d)).status).toBe(404);
+    expect(log.reserve).toBe(0);
+  });
+  it('the model gets the subject and the earlier turn before the question, and the video is filed', async () => {
+    const { db, log } = fakeDb({ thread: { subject: 'physics', turns: [{ question: 'How does a rainbow form?', says: ['Sunlight enters a drop.', 'It bends and splits.'] }] } });
+    const f = fakeClient([{ tool: { names: ['sun'] } }, { text: text(rainbow) }]);
+    await readSse(await handleGenerate(req(ask), { db, client: f.client, userId: 'u1', appUrl: 'http://localhost:3100', buildId: 't', waitUntil: () => {} }));
+    const first = (f.seen[0] as Any).messages[0].content as { text: string; cache_control?: unknown }[];
+    expect(first[0].text).toContain('Subject: Physics.');
+    // each earlier turn is its own block and the last one is a cache breakpoint (the next call and follow-up reuse it)
+    expect(first[1]).toEqual({ type: 'text', text: '1. Question: How does a rainbow form?\n   You explained: Sunlight enters a drop. It bends and splits.',
+      cache_control: { type: 'ephemeral', ttl: '1h' } });
+    expect(first.at(-1)!.text).toMatch(/^Answer the new question below[^\n]*\nNew question: Why is red on the outside\?$/);
+    expect(first.at(-1)!.cache_control).toBeUndefined();
+    expect(log.attach).toEqual([{ id: expect.any(String), conversationId: CONV }]);
+    expect(log.finish.length).toBe(1);
+  });
+
+  // Subjects (founder, 18 Oct 2026): the chat's subject picks the whiteboard prompt and the drawing library.
+  it('a biology chat: the biology prompt on every call, its prompt_sha reserved and costed, the biology library (GENERATION_MOCK)', async () => {
+    const { db, log } = fakeDb({ thread: { subject: 'biology', turns: [] } });
+    const shas: string[] = [], reserve = db.reserve.bind(db);
+    db.reserve = async a => { shas.push(a.promptSha); return reserve(a); };
+    const inner = mockClient({ cps: 0 }), seen: Any[] = [];
+    const client: ModelClient = { messages: { create: inner.messages.create, stream(body, opts) { seen.push(structuredClone(body)); return inner.messages.stream(body, opts); } } };
+    const ev = await readSse(await handleGenerate(req({ ...ask, question: 'How does blood travel around the body?' }),
+      { db, client, userId: 'u1', appUrl: 'http://localhost:3100', buildId: 't', waitUntil: () => {} }));
+    const bio = P.subjects.biology;
+    expect(shas).toEqual([bio.sha256]);
+    expect(seen.length).toBe(2);                                   // find_drawing round, then the script
+    for (const body of seen) { const { messages, max_tokens, ...rest } = body; expect(rest).toEqual(prefix('whiteboard', 'biology')); }
+    expect(seen[0].system[0].text).toBe(bio.system);
+    expect(bio.system).toContain('heartsection'); expect(bio.system).toContain('Teaching biology');
+    expect(bio.system).not.toMatch(/\bmagnet\b/);                 // physics drawings are not on a biology board
+    expect(log.calls.map(c => c.prompt_sha)).toEqual([bio.sha256, bio.sha256]);
+    const tool = seen[1].messages[2].content[0].content as string;  // the tool_result: the biology catalogue lines
+    expect(tool).toMatch(/^heartsection cx cy size lab=1 — heart cut open/m); expect(tool).toMatch(/^circulation /m);
+    expect(ev.find(e => e.event === 'els')!.data.els.heart).toBe('heartsection 270 300 280');
+    expect(ev.find(e => e.event === 'need' && e.data.cats.includes('biology'))).toBeTruthy();
+    expect(ev.at(-1)!.event).toBe('done');
+  });
+  it("find_drawing only searches the subject's categories; outside a chat the plain prompt and its library", async () => {
+    const good = { q: 'Magnets', els: { m: 'magnet 480 270 300' }, steps: [{ say: 'Step 1: A magnet.', do: ['draw m 600'] }] };
+    const r = await run('whiteboard', [{ tool: { names: ['magnet', 'heartsection'] } }, { text: text(good) }], { subject: 'biology' });
+    const out = (r.seen[1].messages as Any[]).at(-1).content[0].content as string;
+    expect(out).toMatch(/^magnet: not in the library/m); expect(out).toMatch(/^heartsection /m);
+    const plain = await run('whiteboard', [{ tool: { names: ['magnet', 'heartsection'] } }, { text: text(good) }]);
+    const out2 = (plain.seen[1].messages as Any[]).at(-1).content[0].content as string;
+    expect(out2).toMatch(/^magnet /m); expect(out2).toMatch(/^heartsection: not in the library/m);
+    expect((plain.seen[0] as Any).system[0].text).toBe(P.styles.whiteboard.system);
+    expect(plain.log.calls[0].prompt_sha).toBe(promptSha('whiteboard'));
   });
 });

@@ -1,7 +1,9 @@
-# Handoff: Whiteboard AI app
+# Handoff: askRadlor (repo and Vercel project still named whiteboard-ai)
 
 **Current state and open items only. Under 15 KB.** Delete an item when it is done. The spec is
 `../app-plan/PLAN.md` (build order §3); how to run things is in `README.md`.
+
+**Before going live: [LAUNCH.md](LAUNCH.md)** — the checklist of what was left for launch (migration + merge order, keep-warm, Stripe, legal).
 
 ## Production (12 Oct 2026, end of day)
 
@@ -21,55 +23,13 @@
 - CI (`ci.yml`) is green on main. The repo is public while we build; it goes private at launch.
 - Not yet: Stripe keys (checkout answers 503), Vercel Cron for keep-warm (no `vercel.json` crons yet), Turnstile.
 
-## Where things stand (12 Oct 2026, evening)
+## Built and checked (12 Oct; details in git history and PLAN.md)
 
-Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run dev` (port 3100); `GENERATION_MOCK=1 npm run dev` = fake model, no spend.
-
-- **M0 foundation, M1 database, M2 auth/shell, M3 generation server: built.** 11 migrations apply on `supabase db reset`;
-  `supabase test db` 8 files / 1,054 pgTAP tests pass; `npx vitest run` 147 pass (4 skipped = opt-in local-DB files);
-  `WB_LOCAL_DB=1 npx vitest run tests/billing tests/db tests/generation/localdb.test.ts` 23 pass. tsc and eslint clean.
-- **M4 (core):** players reused from `public/player/` in `<iframe sandbox="allow-scripts">` fed by `bridge.js`
-  (postMessage; whiteboard streams step by step; paper/match-cut play the finished script). Player CSP in
-  `next.config.ts`: no network, framed only by our origin. A sandboxed frame has an opaque origin, so the CSP names the
-  app origin (APP_URL) instead of 'self' — with 'self' nothing ran (measured in Chromium and WebKit). Players start
-  blank. Pages: `/ask` (streams + transcript + "already own this" → watch free or make new), `/library`,
-  `/videos/[id]` (replay free, share, unshare, delete). Seen in real Chromium at 1280×800 and 320×568, no sideways scroll.
-  The Claude desktop browser pane does not run scripts in sandboxed iframes: test players in Chrome or Playwright.
-- **M5 (core):** `/buy`, `/buy/success`, `POST /api/billing/checkout` (Checkout; links the Stripe customer; 403 for
-  uninvited), `POST /api/billing/portal`, `POST /api/stripe/webhook` (signature-verified, one DEFINER function per
-  event, DB error → 500 so Stripe retries). `tests/billing/webhook.test.ts` signs events with a local secret: pack
-  granted once even when replayed, forged signature → 400 and no change, wrong amount → needs_review and no credits
-  (watched red with verification removed). No Stripe keys exist: checkout answers 503 payments_not_configured.
-- **M6 (core):** share page `/v/[slug]` (no login, noindex, no owner identity; revoke → 404, driven end to end),
-  `/account` with credits, billing portal, data export (`GET /api/account/export`), delete account.
-- **M7:** one live answer per style through the app (12 Oct): whiteboard vaccine 3 credits $0.160 (cold cache) 26 s;
-  paper seed 4 credits $0.056 13 s; match-cut bicycles 3 credits $0.138 (cold) 45 s. All charged ceil(chars/150).
-
-- **Also built (12 Oct, late):** `/admin` (admins row + authenticator code each sign-in: `/admin/mfa` enrols TOTP;
-  today's spend vs cap, made/failed counts, ledger-drift check, top missing drawings; audited switches for making
-  videos and purchases, credit grants, invite codes), `/api/health` and `/api/health/db` (booleans), legal beta drafts
-  in `src/content/legal.ts` (banner: not yet reviewed by a lawyer), `/pricing`, `/help`, `/contact`
-  (`NEXT_PUBLIC_SUPPORT_EMAIL`), web manifest, 6-digit code email templates + 10-minute codes, local TOTP on.
-- **Committed e2e** (`npx playwright test`, mock model, global setup clears local OTP limits): the core loop (ask →
-  4 credits → library → share → signed-out view → unshare → 404; watched red with unshare made a no-op), signed-out
-  redirects, `/admin` 404 for a normal user, the admin TOTP enrolment + an audited 5-credit grant, no sideways scroll on
-  public pages. 11 pass, 4 skipped by design (one-project tests), twice in a row. Run `npm run test:pgtap` (it resets
-  the DB first: the pgTAP counts assume fresh seed data). `.github/workflows/ci.yml` runs everything once the repo exists.
-
-- **Security review (12 Oct, late)** — probed, not assumed:
-  - Database as anon and as user B (`supabase-js` against the local stack): 40 probes all blocked — reading A's rows,
-    writing the ledger/balances/admins/profile access, admin, Stripe, money and deletion functions, the voice bucket.
-    Positive twins: B reads its own balance, profile and ledger.
-  - API routes: no session → 401, another origin → 403, forged or missing Stripe signature → 400, cron without the
-    secret → 401, health answers booleans only. `e2e/idor.spec.ts`: B gets 404 on A's video page and poll (watched red
-    with the owner filter removed).
-  - **Fixed an XSS:** the player loaders wrote `?cat=` / `?gallery=` into `document.write` unescaped, so a crafted
-    `/player/index.html?cat=…` link ran script on our origin, where the Supabase session cookies are readable
-    (`e2e/player-xss.spec.ts` showed "PWNED:true"). Removed the parameters from the app copies, removed the developer
-    gallery/shot/names files from `public/player`, and added CSP `sandbox allow-scripts` to every player page so even a
-    future injection runs in an opaque origin with no cookies. The prototype keeps the gallery (this machine only).
-  - `server-only` guards on every module holding a server key; npm audit (production deps): 0; headers: nonce CSP,
-    HSTS, X-Frame-Options DENY, nosniff; `next=` accepts only same-site paths.
+- M0–M7 core, `/admin` (TOTP), legal beta drafts, e2e and a probed security review (40 DB probes blocked, IDOR and a
+  player XSS fixed: the player runs in `<iframe sandbox="allow-scripts">`, CSP names APP_URL, not 'self'). The Claude
+  desktop browser pane does not run sandboxed iframes: test players in Chrome or Playwright.
+- Tests: `npm run test:pgtap` (resets the DB first; 1,125 pass), `npx vitest run` (171), `npx playwright test`
+  (mock model; idor needs user A to own a video, so rerun it after a fresh reset).
 
 ## Voice: Pocket TTS in the browser (live since 13 Oct 2026, #5, #7)
 
@@ -131,21 +91,6 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
 - The founder decides the first commit; accounts to create are PLAN.md §2 E1–E18.
 
 
-- The break-check self-test's schema case (a migration break, then `supabase db reset --local` from your tree) has
-  never run: it wipes the local DB. Run `SELFTEST_DB_RESET=1 npm run break:selftest` once when nothing else uses the
-  stack.
-- `.env.local` still uses older names (`NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
-  `NEXT_PUBLIC_SITE_URL`) where §14 says `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `APP_URL`.
-  Nothing reads them yet; rename them (founder, or the first milestone that reads them) to match `.env.example`.
-- gitleaks is not installed, so `scripts/secret-scan.mjs` stands in (Anthropic, Stripe secret/restricted/webhook,
-  Supabase secret, any JWT). It does not know ElevenLabs or Resend key shapes. In CI (M8) run gitleaks too, and turn
-  on GitHub secret scanning and push protection when the private repo exists (E2).
-- `player-src/` still contains the prototype's HTML sinks (`innerHTML`, `document.write` in `lib/*-load.js`). M4's
-  no-HTML-sinks gate must reach zero before anything there is served.
-- Playwright has three projects now; §12.5's full matrix (360×800 and 1440×900 in Chromium and WebKit, plus the
-  320/390/430/768 layout runs) comes with the first real specs (M2, M4).
-- `break-check.sh` clones `node_modules` with `cp -c` (APFS) for e2e copies, because Turbopack rejects a symlinked
-  `node_modules` outside the project. Linux CI (M8) needs another way (`cp --reflink=auto`, or a real install).
 
 ## UI round (live since 15 Oct 2026, #10)
 
@@ -182,4 +127,93 @@ Everything runs locally too (project_id `whiteboard-ai`). Dev server: `npm run d
 - **To fix:** `src/content/legal.ts` still says "Show in Explore" is ticked and can be unticked when asking. With the
   tick gone, Explore is opt-out only from the video page. Change the Privacy/Terms wording (or bring the tick back);
   the attorney review covers it.
+
+## Local demo
+
+- `GENERATION_MOCK=1 npm run dev` (no API spend; credits are the local seed users'). Sign in as `b@example.test`
+  with the code from Mailpit (`127.0.0.1:55324`). Use Chrome.
+- Parked: local branch `paper-stream` (paper plays as it streams; e2e watched red). On the local stack,
+  `admin.spec.ts` fails past 50 users (it reads only the first `listUsers` page), and `tests/db` needs a fresh
+  `supabase db reset`.
+
+## UI redesign + Explore + Collection (18 Oct 2026, PR #19 `ui-redesign`, stacked on #18, not merged)
+
+- **Look (founder):** like Claude, always dark, monochrome + the glowing robot logo (`public/logo.png`, app icons
+  RGBA: an RGB favicon 500s every page). `globals.css` rewritten, no light theme. `Icon.tsx`, no emoji icons.
+- **Frame:** `src/app/(app)/layout.tsx` + `AppFrame.tsx`. Sidebar: New chat, Explore, Collection, Your videos,
+  subject chips, Recents (latest 10, "All chats"). **No chat search in any form** (founder: not a chat app).
+  Profile top right: avatar with a videos-left ring (green / amber / red, full at 25), menu with videos left.
+  Phones: top bar + drawer. Signed out: `PublicHeader` + footer. No `(app)/loading.tsx` (made `notFound()` a 200).
+- **Videos left, not credits** (`lib/videos.ts`: 4 credits a video, an estimate); Your videos show no credits.
+  Pricing/Help/legal copy still says credits. e2e reads balances from `data-credits` / `data-charged`.
+- **Chat:** composer with the subject picker inside; header with Share and Delete chat; Share per answer;
+  jump-to-latest; AI note at the bottom of a new chat.
+- **Player:** every step goes in at once and the Player makes the voice behind it from the current step; a jump
+  draws at once (only step 1 waits for its line), cancels the line in progress (worker `{cancel}`), its line joins
+  when made (~4–7 s). Controls: step segments, play/pause, keys, full screen. Embedded players: no frame, light
+  captions, no 100vh, `place-items: normal`.
+- **Explore** (migration `20261018000200_explore_chats.sql`): one card per chat with a board still (player
+  `poster`), search over questions + narration, subject chips; the server puts each finished video on Explore.
+  `/v/[slug]` plays the chat in order + "More like this". Signed out: only the opened video plays, the rest is
+  blurred behind sign-up (scripts not sent); sign up / log in return there (`next` + `okNext`).
+- **Collection** (migration `20261018000300_saved_items.sql`): bookmark on cards and lessons, `/saved`.
+- **Video page:** before/after links within its chat. Your videos: grid + search. Error/404 screens, skip link,
+  link previews, toasts.
+- **Tests:** pgTAP 56 (22) and 57 (11), security catalogues (00, 20, 60) updated; vitest 178. Locally, 20_writes
+  and 60_deletion fail 3–4 fixture checks because seed users A/B hold dev data (fresh CI is the judge).
+  **e2e only runs in CI**: locally Playwright would reuse the dev server on the live model.
+- **Open:** CI on the last push (60_deletion's FK list was just fixed); `migrate-prod` for both migrations
+  before merge (LAUNCH.md); the founder's look at the whole UI on a phone.
+
+## Subjects: own prompt + library per chat subject (18 Oct 2026, PR #17, on top of #16)
+
+- `build-prompts.mjs` → `prompts.json` `subjects.*` = `{system, sha256, cats}`. The rules and examples are the plain
+  prompt's; the categories are only the subject's (+ `diagrams`), plus a "- Teaching <subject>:" rule.
+  - The plain prompt is unchanged (`332e6d…`) and is used outside a chat.
+  - The subject shas are bound in `prompts.test.ts`.
+- The chat's subject picks the `prompt_sha` (`promptSha(style, subject)`), `prefix(style, subject)` and the
+  `find_drawing` categories.
+- Keep-warm covers 6 prompts (`PROMPTS`). No migration: `prompt_cache_state` is keyed by `prompt_sha`.
+- A subject prompt is ~10k tokens: a cold write ~$0.08 (est.); all three warm ~$0.17/day.
+- Biology library `lib/wb/biology.*` (`WB_EXTRA` in `wb-load.js`; only the biology prompt lists it): 9 labelled,
+  polished drawings (`lab=0` hides words).
+- Proof: biology-chat tests in `run.test.ts` and `localdb.test.ts`.
+- **Next:** physics, then chemistry, the same way.
+
+## 18 Oct 2026 session: chats, realistic biology, follow-up cost (PRs #16 → #17 → #18, stacked, none merged)
+
+- **Merge order is in LAUNCH.md** (migrate-prod for conversations first). Live already: #12–#15 (askRadlor name and
+  logo, /ask cleanup, player pause + click-a-drawing-to-replay, chat-free composer).
+- **#16 Chats:** `conversations` (owner + subject; title = first question). /ask = new chat with a Biology / Physics /
+  Chemistry picker; /c/[id] reopens; list left on laptops, /chats on phones; a new question scrolls into view.
+  A follow-up's model call gets the subject + last 6 answered questions with their narration (no drawings), one text
+  block per turn, the last a 1-hour cache breakpoint (run.ts), so earlier turns are read at the cache price.
+- **#18 Realistic library (Servier Medical Art, CC BY 4.0, credited on /legal/copyright):**
+  - `scripts/servier/`: `pptx2svg.py` turns a kit's native vector slides into SVG (no tracing); `extract.py`,
+    `curate.py` (drops diseases, treatments, copies), `build-sv.py` → 1,428 drawings, one file each in
+    `public/player/lib/sv/<id>.js` (68 MB, loaded only when a lesson uses them: `SV.need` in anatomy.js/bridge.js).
+    The 32 downloaded kits live outside the repo (scratch); re-download from smart.servier.com to rebuild.
+  - Biology/chemistry prompts list them as search-only categories (`servier`, `servier-chem`); `sv id=<name> cx cy h`
+    draws one; checks reject unknown ids.
+  - **Pins:** `heartcut` (the hand-mapped heart) + 69 core drawings (`scripts/servier/core.json`) have named parts
+    (`parts/<id>.json` → `apply-parts.mjs`; review with `grid.mjs`, `preview-parts.mjs`). `pin of=<el> part=<name>`
+    traces the part (inside the drawing, so it beats with it) and writes its name with a haloed leader. `trace:false`
+    marks a label-only part.
+  - **Flows over a drawing** (founder chose B + C of a 4-style demo): an arrow/line over an anatomy drawing gets a
+    white edge and a running shimmer; that step dims the drawing (spotlight); older flows fade. Player-only, so old
+    videos get it too. Prompt: no tags/text over the drawing, one flow per step, pins for parts.
+- **Measured (local, real Opus):** 5 linked heart follow-ups, all correct, $0.53; warm ≈ $0.064 a video, cold +$0.09.
+- **Cost by prompt version:** `npm run cost` (local) or `sql/cost-by-version.sql`.
+- **Sequences 2 and 3** (after the follow-up cache): 8 videos, all correct; a wrong follow-up was corrected. Warm
+  ≈ $0.05 a video; a hand-drawn diagram ~$0.10–0.12. All 13 test videos: $1.07.
+- Fixed from them: c4b3780 (looping `travel`, jsonb element order → `script.order`, search ranking).
+- Later fixes (#18): no dot along step-tag arrows over a realistic drawing; the biology prompt searches 2–3 words
+  before hand-drawing. "Tiny air sacs" now picks the realistic alveoli with 4 pins.
+- **Pricing decided in talk, not built** (founder, 18 Oct): credits stay per spoken length, not per token (tokens
+  rise when the library lacks a drawing — our gap, and the price would be unknown beforehand). Leaning to
+  "1 question = 1 video": Plus "40 videos/month", Pro "Unlimited, fair use 150", 3 bonus videos when the balance hits
+  0, replays and Explore free, show "videos left". Full-use margins with keep-warm: Plus ~70%, Pro at 150 ~57%.
+  Needs the money functions, Stripe prices and /pricing changed: decide before launch.
+- **Next:** UI done (PR #19, above); then the LAUNCH.md list. Physics and Chemistry later (`servier-chem`, no pins).
+- Local: `.env.local`'s Anthropic key was replaced 18 Oct (the one in `prototype/.env` is revoked). A 401 makes the app block generation ~10 min (`ops_state.provider_blocked_until`); delete that row locally.
 

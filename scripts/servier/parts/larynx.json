@@ -1,0 +1,59 @@
+{
+ "parts": {
+  "hyoid": {
+   "name": "hyoid bone",
+   "at": [
+    300,
+    140
+   ],
+   "kind": "part",
+   "shapes": [
+    74
+   ]
+  },
+  "membrane": {
+   "name": "membrane",
+   "at": [
+    150,
+    250
+   ],
+   "kind": "part",
+   "shapes": [
+    118
+   ]
+  },
+  "thyroid": {
+   "name": "thyroid cartilage",
+   "at": [
+    250,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    152
+   ]
+  },
+  "cricoid": {
+   "name": "cricoid cartilage",
+   "at": [
+    300,
+    560
+   ],
+   "kind": "part",
+   "shapes": [
+    49
+   ]
+  },
+  "trachea": {
+   "name": "trachea",
+   "at": [
+    270,
+    800
+   ],
+   "kind": "part",
+   "shapes": [
+    29
+   ]
+  }
+ }
+}

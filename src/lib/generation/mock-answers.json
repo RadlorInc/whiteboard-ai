@@ -495,6 +495,84 @@
      ]
     }
    ]
+  },
+  {
+   "q": "How does blood travel around the body?",
+   "els": {
+    "heart": "heartsection 270 300 280",
+    "circ": "circulation 770 300 300",
+    "back": "path c=#1f4f8f w=6 | M692 423.75 C646.25 423.75 650 283.5 729.5 283.5",
+    "lungs": "path c=#1f4f8f w=6 | M731 318 C680 318 676.25 176.25 692 176.25",
+    "fromL": "path c=#7a1f1f w=6 | M848 176.25 C863.75 176.25 863.75 283.5 810.5 283.5",
+    "toBody": "path c=#7a1f1f w=6 | M809 318 C890 318 893.75 423.75 848 423.75",
+    "t1": "tag 110 40 160 40 s=18 | 1. Two pumps",
+    "t2": "tag 300 40 160 40 s=18 | 2. Back from body",
+    "a12": "arrow 194 40 216 40 c=#8a96a3 w=3",
+    "t3": "tag 490 40 160 40 s=18 | 3. To the lungs",
+    "a23": "arrow 384 40 406 40 c=#8a96a3 w=3",
+    "t4": "tag 680 40 160 40 s=18 | 4. Back to heart",
+    "a34": "arrow 574 40 596 40 c=#8a96a3 w=3",
+    "t5": "tag 870 40 160 40 s=18 | 5. Out to body",
+    "a45": "arrow 764 40 786 40 c=#8a96a3 w=3"
+   },
+   "steps": [
+    {
+     "say": "Step 1: Your heart is two pumps side by side, with four rooms called chambers.",
+     "do": [
+      "draw heart 2600",
+      "fill heart",
+      "draw t1 500",
+      "fill t1",
+      "pop t1",
+      "&loop heart beat"
+     ]
+    },
+    {
+     "say": "Step 2: Blood low on oxygen comes back from the body into the right side.",
+     "do": [
+      "draw circ 2200",
+      "fill circ",
+      "draw a12 400",
+      "draw t2 500",
+      "fill t2",
+      "pop t2",
+      "draw back 900"
+     ]
+    },
+    {
+     "say": "Step 3: The right ventricle pumps it to the lungs, where it picks up oxygen.",
+     "do": [
+      "draw a23 400",
+      "draw t3 500",
+      "fill t3",
+      "pop t3",
+      "draw lungs 900"
+     ]
+    },
+    {
+     "say": "Step 4: Now rich in oxygen, it flows back into the left side of the heart.",
+     "do": [
+      "draw a34 400",
+      "draw t4 500",
+      "fill t4",
+      "pop t4",
+      "draw fromL 900"
+     ]
+    },
+    {
+     "say": "Step 5: The strong left ventricle pumps it through the aorta to the whole body, and round it goes again.",
+     "do": [
+      "draw a45 400",
+      "draw t5 500",
+      "fill t5",
+      "pop t5",
+      "draw toBody 900",
+      "&travel back,lungs,fromL,toBody 6000 loop",
+      "loop circ flow",
+      "wait 3000"
+     ]
+    }
+   ]
   }
  ],
  "paper": [

@@ -1,152 +1,118 @@
 "use client";
-// The /ask composer (PLAN.md §5.6): question box, cost line. The voice is picked on /settings.
+// The question box (PLAN.md §5.6), shaped like Claude's (founder, 18 Oct 2026): the text on top; below it the subject
+// on the left and the send button on the right. The voice is picked on /settings.
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Watch } from "./Watch";
 import { startVoice } from "@/lib/voice";
 import { VoiceProgress } from "./Voice";
+import { Icon } from "./Icon";
+import { SUBJECT_NAME, type Subject } from "./Chats";
 
-const HOLD_CREDITS = 6; // same value as lib/session.ts (server); ponytail: one constants module once M3 adds it
-// Only whiteboard is offered for now (founder, 14 Oct 2026). Paper and match-cut videos already made still play.
-const style = "whiteboard";
-const EXAMPLES = [
-  "How does the heart pump blood?",
-  "What is compound interest?",
-  "How does a rainbow form?",
-  "How does a car engine work?",
-];
+import { HOLD_CREDITS } from "@/lib/videos";
+const EXAMPLES: Record<Subject, string[]> = {
+  biology: ["How does the heart pump blood?", "How do we breathe?", "What does DNA do?"],
+  physics: ["How does a rainbow form?", "Why do things fall?", "How does a car engine work?"],
+  chemistry: ["Why does salt dissolve in water?", "What is an atom made of?", "How does fire burn?"],
+};
 const MAX = 500;
 
-export function AskComposer({ available, firstRun }: { available: number; firstRun: boolean }) {
+// onAsk: the chat takes the question; busy holds the button while its video is made (one video at a time).
+// onSubject: the subject can still change (a new chat); without it the subject is fixed and only shown.
+export function AskComposer({ available, firstRun, onAsk, busy = false, placeholder = "Ask anything…", subject, onSubject }: {
+  available: number; firstRun: boolean; onAsk: (question: string, explore: boolean) => void; busy?: boolean;
+  placeholder?: string; subject: Subject; onSubject?: (s: Subject) => void;
+}) {
   const [question, setQuestion] = useState("");
-  const [note, setNote] = useState<string | null>(null);
-  const [asking, setAsking] = useState<{ question: string; explore: boolean; n: number } | null>(null);
-  const [explore, setExploreTick] = useState(true);   // "Show in Explore", ticked by default (founder, 13 Oct 2026)
-  const router = useRouter();
+  const [explore, setExploreTick] = useState(true);   // every new video goes to Explore (founder, 15 Oct 2026)
   const box = useRef<HTMLTextAreaElement>(null);
-  const loaded = useRef(false);
 
   // The voice model starts loading as soon as a signed-in user reaches /ask (sign-in lands here), while they type.
-  // (VoicePicker starts it too; this keeps it starting even where the picker is hidden.)
   useEffect(() => { startVoice(); }, []);
 
-  // Restore the draft (§5.6). localStorage can be missing (private mode); the page works without it.
+  // No draft is restored: the box starts empty every time (founder, 15 Oct 2026). localStorage can be missing.
   useEffect(() => {
     try {
-      const d = JSON.parse(localStorage.getItem("wb.askDraft") ?? "null");
-      // Storage is only readable after hydration, so restoring the draft has to happen in an effect.
+      localStorage.removeItem("wb.askDraft");
+      // Storage is only readable after hydration, so reading it has to happen in an effect.
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (d?.question) setQuestion(String(d.question).slice(0, MAX));
       if (localStorage.getItem("wb.explore") === "off") setExploreTick(false);
     } catch {}
-    loaded.current = true;
     if (matchMedia("(pointer: fine)").matches) box.current?.focus();
   }, []);
 
-  useEffect(() => {
-    if (!loaded.current) return;
-    const t = setTimeout(() => {
-      try {
-        localStorage.setItem("wb.askDraft", JSON.stringify({ question }));
-        localStorage.setItem("wb.explore", explore ? "on" : "off");
-      } catch {}
-    }, 300);
-    return () => clearTimeout(t);
-  }, [question, explore]);
-
-  // Grow 1–4 rows.
+  // Grow 1–6 rows.
   useEffect(() => {
     const el = box.current;
     if (!el) return;
     el.style.height = "auto";
     const line = parseFloat(getComputedStyle(el).lineHeight) || 24;
-    el.style.height = `${Math.min(el.scrollHeight, line * 4 + 22)}px`;
+    el.style.height = `${Math.min(el.scrollHeight, line * 6)}px`;
   }, [question]);
 
   const enough = available >= HOLD_CREDITS;
   const empty = question.trim().length === 0;
 
   function submit() {
-    if (empty || !enough) return;
-    box.current?.blur();
-    setNote(null);
-    setAsking({ question: question.trim(), explore, n: Date.now() });
-    // Asked, so no longer a draft: leaving mid-video and coming back must not bring the question back.
+    if (empty || !enough || busy) return;
+    if (!matchMedia("(pointer: fine)").matches) box.current?.blur();   // phones: put the keyboard away to watch
+    onAsk(question.trim(), explore);
     setQuestion("");
-    try { localStorage.removeItem("wb.askDraft"); } catch {}
   }
 
-  if (asking) return (
-    <Watch key={asking.n} question={asking.question} style={style} explore={asking.explore}
-      onDone={() => router.refresh()} onExit={() => { setAsking(null); setQuestion(""); }} />
-  );
-
   return (
-    <form
-      className="stack"
-      onSubmit={(e) => {
-        e.preventDefault();
-        submit();
-      }}
-    >
-      <label className="field">
-        <span className="sr-only">Your question</span>
+    <form className="composer-wrap" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+      <div className="composer">
+        <label htmlFor="question" className="sr-only">Your question</label>
         <textarea
+          id="question"
+          autoComplete="off"
           ref={box}
           name="question"
           rows={1}
           maxLength={MAX}
-          enterKeyHint="go"
-          placeholder="Ask anything, e.g. How does the heart pump blood?"
+          enterKeyHint="send"
+          placeholder={placeholder}
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
+            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
               e.preventDefault();
               submit();
             }
           }}
         />
-      </label>
-      {question.length >= 400 && (
-        <div className="muted small" style={{ textAlign: "right", marginTop: 6 }}>{question.length} / {MAX}</div>
-      )}
+        <div className="composer-bar">
+          {onSubject ? (
+            <label className="subject-pick">
+              <span className="sr-only">Subject</span>
+              <select value={subject} onChange={(e) => onSubject(e.target.value as Subject)}>
+                {(Object.keys(SUBJECT_NAME) as Subject[]).map((s) => <option key={s} value={s}>{SUBJECT_NAME[s]}</option>)}
+              </select>
+              <Icon name="chevronDown" size={14} />
+            </label>
+          ) : (
+            <span className="subject-pick locked" title="A chat keeps its subject. Start a new chat for another.">{SUBJECT_NAME[subject]}</span>
+          )}
+          {question.length >= 400 && <span className="count">{question.length} / {MAX}</span>}
+          {enough ? (
+            <button type="submit" className="send" aria-label="Ask" disabled={empty || busy}>
+              {busy ? <span className="spinner sm" aria-hidden="true" /> : <Icon name="arrowUp" size={18} />}
+            </button>
+          ) : (
+            <Link href="/start" className="btn sm send-buy">Get more videos</Link>
+          )}
+        </div>
+      </div>
+      {!enough && <p className="composer-note">You have no videos left. Get more to keep asking.</p>}
       <VoiceProgress />
-
-      {enough ? (
-        <button type="submit" className="btn block" disabled={empty}>
-          Ask
-        </button>
-      ) : (
-        <>
-          <Link href="/start" className="btn block">
-            Buy credits
-          </Link>
-          <p className="small">
-            A video needs up to {HOLD_CREDITS} credits; you have {available}.
-          </p>
-        </>
-      )}
-      {note && (
-        <p role="status" className="muted">
-          {note}
-        </p>
-      )}
-
       {firstRun && (
-        <div className="stack" style={{ paddingTop: 8 }}>
-          <p className="muted small">Try one. One question per video works best.</p>
-          <div className="chips">
-            {EXAMPLES.map((q) => (
-              <button key={q} type="button" className="chip" onClick={() => setQuestion(q)}>
-                {q}
-              </button>
-            ))}
-          </div>
+        <div className="examples" aria-label="Example questions">
+          {EXAMPLES[subject].map((q) => (
+            <button key={q} type="button" className="chip" onClick={() => { setQuestion(q); box.current?.focus(); }}>{q}</button>
+          ))}
         </div>
       )}
-      <p className="muted small">Written by AI. It can be wrong.</p>
+      <p className="composer-note">Written by AI. It can be wrong.</p>
     </form>
   );
 }

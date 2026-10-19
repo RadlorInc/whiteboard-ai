@@ -1,0 +1,92 @@
+{
+ "parts": {
+  "cornea": {
+   "name": "cornea",
+   "at": [
+    62,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    1
+   ]
+  },
+  "iris": {
+   "name": "iris",
+   "at": [
+    168,
+    330
+   ],
+   "kind": "part",
+   "shapes": [
+    3
+   ]
+  },
+  "lens": {
+   "name": "lens",
+   "at": [
+    215,
+    440
+   ],
+   "kind": "part",
+   "shapes": [
+    18
+   ]
+  },
+  "vitreous": {
+   "name": "vitreous humour",
+   "at": [
+    450,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  },
+  "retina": {
+   "name": "retina",
+   "at": [
+    790,
+    250
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  },
+  "choroid": {
+   "name": "choroid",
+   "at": [
+    800,
+    125
+   ],
+   "kind": "part",
+   "shapes": [
+    10
+   ]
+  },
+  "sclera": {
+   "name": "sclera",
+   "at": [
+    930,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    10
+   ]
+  },
+  "nerve": {
+   "name": "optic nerve",
+   "at": [
+    1000,
+    570
+   ],
+   "kind": "part",
+   "shapes": [
+    99
+   ]
+  }
+ }
+}

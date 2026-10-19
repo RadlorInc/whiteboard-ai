@@ -6,7 +6,7 @@
 // 12 Oct 2026). Only two lines differ: `here` is app/player-src (the library's home since D6), and the recipe
 // catalogue is read from recipe-catalogue.md (the "## Recipe catalogue" section of PROCESS.md, copied byte for byte).
 // tests/generation/prompts.test.ts proves each style's sha256 equals the prototype's. Any change here is a
-// deliberate new prompt_sha.
+// deliberate new prompt_sha. The subject prompts (SUBJECTS below, 18 Oct 2026) are new and have no prototype twin.
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -28,15 +28,30 @@ const cats = (loader, v) => JSON.parse(fs.readFileSync(path.join(here, 'lib', lo
 const catalogueOf = (dir, list) => list.map(c => ({ cat: c, lines: fs.readFileSync(path.join(here, 'lib', dir, `${c}.txt`), 'utf8').split('\n')
   .filter(l => l.trim() && !l.startsWith('#')).map(l => { const p = l.split(' | '), sig = p[0], desc = p.at(-1), example = p.slice(1, -1).join(' | ');   // the example may carry "| text"
     return { name: sig.split(/\s+/)[0], sig, example, desc }; }) }));
-const WB_LIB = catalogueOf('wb', cats('wb-load.js', 'WB_CATS'));
-const WB_LIB_INDEX = WB_LIB.map(c => `  ${c.cat}: ${c.lines.map(l => l.name).join(' ')}`).join('\n');
+// WB_CATS = the plain whiteboard prompt's categories; WB_EXTRA = subject-only ones (the player loads both).
+const WB_CATS = cats('wb-load.js', 'WB_CATS');
+// Realistic drawings adapted from Servier Medical Art (18 Oct 2026; scripts/servier): loaded on demand by the player,
+// found only through find_drawing (too many to list in a prompt). One search category per subject.
+const SV = JSON.parse(fs.readFileSync(path.join(genDir, '..', '..', '..', 'scripts', 'servier', 'sv-catalogue.json'), 'utf8'));
+const svCat = (cat, subject) => ({ cat, lines: SV.filter(d => d.subject === subject).map(d => ({ name: d.id, sig: `sv id=${d.id} cx cy height`,
+  example: `sv id=${d.id} 480 270 460`, desc: `${d.name} (realistic; width ${(d.w / 1000).toFixed(2)} x its height): ${d.tags.join(' ')}${d.parts ? `; parts: ${d.parts.join(' ')}` : ''}` })) });
+const SV_CATS = [svCat('servier', 'biology'), svCat('servier-chem', 'chemistry')];
+const isSv = c => c.cat.startsWith('servier');
+const WB_ALL = [...catalogueOf('wb', [...WB_CATS, ...cats('wb-load.js', 'WB_EXTRA')]), ...SV_CATS];
+const WB_LIB = WB_ALL.filter(c => WB_CATS.includes(c.cat));
+const libIndex = lib => lib.map(c => isSv(c)
+  ? `  ${c.cat}: ${c.lines.length} realistic drawings, not listed: find them with find_drawing query words (e.g. "kidney nephron"), then draw with "sv id=<name> cx cy height"`
+  : `  ${c.cat}: ${c.lines.map(l => l.name).join(' ')}`).join('\n');
 const PRIMITIVES = ['circle', 'ellipse', 'rect', 'line', 'arrow', 'path', 'text', 'tag'];
-const TYPES = new Set([...PRIMITIVES, ...RECIPE_NAMES, ...WB_LIB.flatMap(c => c.lines.map(l => l.name))]);
+const typesOf = lib => new Set([...PRIMITIVES, ...RECIPE_NAMES, ...lib.filter(c => !isSv(c)).flatMap(c => c.lines.map(l => l.name)), ...(lib.some(isSv) ? ['sv'] : [])]);
+const TYPES = typesOf(WB_ALL);                                    // what the checks accept: every loaded drawing
 const COMMANDS = new Set(['draw', 'write', 'fill', 'pop', 'fade', 'go', 'cam', 'wait', 'loop', 'travel']);
 const LOOPS = new Set(['beat', 'flow', 'fall', 'rise', 'sway', 'swing']);
 const catalogue = fs.readFileSync(path.join(genDir, 'recipe-catalogue.md'), 'utf8');
 
-const RULES = `You turn a question into a 30-60 second voiced whiteboard lesson, written as ONE JSON object that our
+// lib = the categories this prompt lists; teach = a subject's teaching rules ('' for the plain prompt, which must stay
+// byte-identical to the prototype's).
+const wbRules = (lib, teach = '') => `You turn a question into a 30-60 second voiced whiteboard lesson, written as ONE JSON object that our
 player draws live on a 960x540 board. Reply with the JSON object only: no prose, no code fences.
 
 Shape: {"q": "<the question>", "els": {"<id>": "<element line>", ...}, "steps": [{"say": "<one spoken sentence>", "do": ["<command>", ...]}, ...]}
@@ -58,15 +73,89 @@ Shape: {"q": "<the question>", "els": {"<id>": "<element line>", ...}, "steps": 
   that step), placed in reading order (left to right, then the next row) and never over a drawing. From step 2 on,
   draw an arrow or flow from the previous step's part of the board to this step's, so the eye follows 1 → 2 → 3.
   The worked examples below were made before this rule: follow the rule, not them, on numbering.
-- Only these element types exist: ${[...TYPES].join(', ')}.
+- Only these element types exist: ${[...typesOf(lib)].join(', ')}.${teach}
 
 Recipe catalogue (one line draws a full illustrated object):
 ${catalogue}
 More recipes, by subject (names only). Before you write the script, call find_drawing with the names you want
 (or a query like "blood pressure") to get each one's exact signature and options; use only signatures you fetched.
-${WB_LIB_INDEX}
+${libIndex(lib)}
 Worked examples (hand-made, approved; match their quality):
 ${EXAMPLES.map(a => JSON.stringify(a)).join('\n')}`;
+const RULES = wbRules(WB_LIB);
+
+// ---------- Subjects (founder, 18 Oct 2026): a chat's subject picks its own whiteboard prompt and drawing library ----------
+// Each subject prompt lists only its categories (plus the shared diagrams) and adds how to teach that subject.
+// find_drawing searches the same categories. Each is its own prompt cache entry (its own prompt_sha).
+const SUBJECTS = {
+  biology: { cats: ['anatomy', 'servier', 'biology', 'life', 'cells', 'body', 'health', 'world', 'earth', 'diagrams'], teach: `
+- Teaching biology: name the real structures with their proper names (labelled drawings, lab=1), then show what they
+  do: follow one thing (blood, air, food, a nerve signal, water, sugar) as it travels through them with travel or go.
+  For these topics use the detailed diagrams: heartsection, circulation, breathing, gut, reflexarc, dnaladder,
+  cellcycle, leafsection, plantparts. One big labelled diagram plus the step tags reads better than many small
+  pictures. Keep the facts correct at school level; the body's right side is on the viewer's left.
+- For the heart, prefer heartcut (a realistic drawing) over heartsection. Draw it in step 1 (draw, then fill), then
+  in each step add one pin for each part that step talks about (draw the pin when its part is spoken about), so the
+  names appear one by one as they are explained. Keep heartcut near the middle (x 440-500) so the pins' words fit on
+  both sides; leave the left 200 and right 260 pixels free for them and put nothing else there.
+- For any other organ, cell, tissue, plant, animal, microbe or molecule, first search the realistic library:
+  find_drawing with a short query (e.g. "lungs alveoli", "neuron synapse", "seedling root", "honey bee"); draw a match with "sv id=<name> cx cy height"
+  (draw it, then fill it), one or two per lesson, big. When its search result lists "parts: ...", point at them with
+  pins ("p1": "pin of=<its element id> part=<part>"), drawn one by one in the step that explains each part; centre the
+  drawing and keep the left 200 and right 260 pixels free for the pins' words. Otherwise label it with your own text.
+- Over a realistic drawing (heartcut or sv) put no tags, text or shapes: they hide the picture and cross the pins'
+  lines. Name and explain its parts only with pins (a pin's "| words" can say what the part does, at most 4 words).
+  To show something moving through it (blood, air, food, a signal), use at most one arrow or one travel per step,
+  following the real path inside the drawing, in a colour that differs from the part under it (blue or dark on red);
+  it gets a white edge so it stands out. Put the numbered step tags in one row above or below it, clear of it.
+  Never travel along the arrows between the step tags: a moving dot means something flows there.
+- Whole plants and animals are whiteboard drawings, not realistic ones: use the world recipes first (critter, animal,
+  wild, bird, seacreature, tree, flower, grass, mushroom; critter has life-cycle stages: eggs, caterpillar, chrysalis,
+  larva, pupa, spawn, tadpole) and the biology ones (seedling, plantparts, flowerparts). Use an sv drawing of a whole
+  organism only when no recipe has it.
+- Food chains and webs, life cycles, classification and evolution: draw each organism (height 120-200) in a row, a
+  circle or a tree, each labelled with your own text below it, joined by arrows (in a food chain the arrow points to
+  the eater: the way energy flows). Draw only what the library lacks yourself.
+- Ecology and evolution have their own recipes (life): nitrogencycle, carboncycle, habitat (draw it first as the
+  scene, animals on top), cactus and polar bear for adaptation, fungus for decomposers, finch for Darwin's beaks,
+  pepperedmoth for natural selection, cladogram for an evolution tree, homolog for homologous limbs, fossil; the other kingdoms: protist, fungus,
+  lowerplant (moss, fern), dispersal for seeds. And for the rest of the syllabus: osmosis, diffusion, respiration
+  (aerobic, anaerobic, yeast), fermentation, transpiration, energypyramid, quadrat, geneticengineering, cloning,
+  kingdoms. Everyday things (fruit cut open, seeds, bread, a test tube, a balloon, a factory, a car, smog, a log, the
+  sun, rain) are colour drawings: search "<thing> colour".
+- For one particular animal or plant, take the first that exists (founder, 19 Oct 2026): a whiteboard recipe, then a
+  realistic coloured drawing, then its silhouette (search "<animal> silhouette": one dark cut-out shape), and only
+  then draw it yourself. Silhouettes also suit classification and evolution trees: all alike, a row of them reads
+  cleanly.
+- Before you draw any organ, cell, tissue, plant, animal, microbe or molecule yourself, search for it: call find_drawing with two or
+  three different words for it (e.g. "alveolus", "air sac", "gas exchange"), and use a realistic drawing or a recipe
+  when one fits. Only when none fits, draw it yourself the way a textbook would (the layers below): never a plain
+  circle or box standing in for a body part (an alveolus is a cluster of round sacs on a branching tube; a cell is a
+  soft blob with a nucleus and organelles).` },
+  physics: { cats: ['physics', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
+- Teaching physics: show the cause and the effect, with forces, energy and waves drawn as arrows. Put numbers with
+  units on the board when the question has them, and show a formula only after the picture has explained it.` },
+  chemistry: { cats: ['servier-chem', 'chemistry', 'earth', 'math', 'diagrams'], teach: `
+- Teaching chemistry: show the particles (atoms, molecules, ions) and what changes and what stays the same. Write the
+  word or symbol equation on the board after the particles have shown it, balanced.` },
+};
+// Drawing what the library lacks (founder, 19 Oct 2026): the layers our own recipes use (lib/wb/world.js frogx), and
+// names that let the server keep the drawing for a person to approve (drawings.ts, /admin).
+const DRAW_OWN = `
+- Drawing what the library lacks: when find_drawing has nothing that fits an object, draw it yourself with "path"
+  elements in layers, back to front, the way our library drawings are made:
+  1. the far parts (the far legs, the far wing) in a darker shade of the body colour;
+  2. the main shape: its real outline in curves (C and Q), its real colour (f=) and a dark edge (c=, w=3);
+  3. a shadow on its lower side: the same colour, darker, no edge (c=none);
+  4. a lighter shape for the belly or underside;
+  5. the details that make it recognisable: spots, stripes, veins, joints, toes, petals;
+  6. an eye: a coloured iris, a dark pupil and a small white shine;
+  7. one thin white highlight line along its top edge (c=#ffffff w=3).
+  Name every element of it new_<name>_<part>, where <name> is one lowercase word for the object (new_hedgehog_body,
+  new_hedgehog_eye), and keep its parts together in one place on the board: a person checks it and it becomes a
+  library drawing for later lessons. Draw it in one step: draw its parts, then fill them.`;
+const SUBJECT_RULES = Object.fromEntries(Object.entries(SUBJECTS).map(([s, { cats: cs, teach }]) =>
+  [s, wbRules(cs.map(c => WB_ALL.find(x => x.cat === c)), teach + DRAW_OWN)]));
 
 // ---------- Paper motion (stop-motion / paper): scenes of library drawings on a 960x600 canvas ----------
 const smCtx = { window: {} };
@@ -156,9 +245,16 @@ export function buildPrompts() {
       paper: { system: PAPER_RULES, sha256: sha(PAPER_RULES) },
       matchcut: { system: MC_RULES, sha256: sha(MC_RULES) },
     },
+    // whiteboard prompts per chat subject; cats = the library categories it lists and find_drawing searches
+    subjects: Object.fromEntries(Object.entries(SUBJECT_RULES).map(([s, t]) => [s, { system: t, sha256: sha(t), cats: SUBJECTS[s].cats }])),
+    wbCats: WB_CATS,
+    // the named parts of each anatomy drawing (its catalogue line's "parts: ..."), so the checks can verify pins
+    parts: Object.fromEntries(WB_ALL.flatMap(c => c.lines).filter(l => /parts: /.test(l.desc)).map(l => [l.name, l.desc.split('parts: ')[1].trim().split(/\s+/)])),
+    svIds: SV.map(d => d.id),
+    svParts: Object.fromEntries(SV.filter(d => d.parts).map(d => [d.id, d.parts])),
     types: [...TYPES], commands: [...COMMANDS], loops: [...LOOPS],
     libNames: [...LIB_NAMES], flowItems: [...FLOW_ITEMS], bloodPaths: [...BLOOD_PATHS], textures: [...TEXTURES],
-    wbLib: WB_LIB, paperLib: PAPER_LIB, mcLib: MC_LIB,
+    wbLib: WB_ALL, paperLib: PAPER_LIB, mcLib: MC_LIB,
     examples: { whiteboard: EXAMPLES, paper: SM_EXAMPLES, matchcut: MC_EXAMPLES },
   };
 }
@@ -174,6 +270,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   } else {
     fs.writeFileSync(PROMPTS_FILE, next);
     const p = buildPrompts();
-    for (const [s, v] of Object.entries(p.styles)) console.log(s, v.sha256);
+    for (const [s, v] of [...Object.entries(p.styles), ...Object.entries(p.subjects)]) console.log(s, v.sha256);
   }
 }

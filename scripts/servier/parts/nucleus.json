@@ -1,0 +1,48 @@
+{
+ "parts": {
+  "envelope": {
+   "name": "nuclear envelope",
+   "at": [
+    450,
+    20
+   ],
+   "kind": "part",
+   "shapes": [
+    10
+   ]
+  },
+  "pore": {
+   "name": "nuclear pore",
+   "at": [
+    80,
+    400
+   ],
+   "kind": "part",
+   "shapes": [
+    10
+   ]
+  },
+  "chromatin": {
+   "name": "chromatin (DNA)",
+   "at": [
+    200,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    10
+   ]
+  },
+  "nucleolus": {
+   "name": "nucleolus",
+   "at": [
+    530,
+    560
+   ],
+   "kind": "part",
+   "shapes": [
+    10
+   ]
+  }
+ }
+}

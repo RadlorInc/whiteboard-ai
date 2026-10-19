@@ -3,18 +3,18 @@
 begin;
 set local search_path = public, extensions;
 \ir helpers.psql
-select plan(561);
+select plan(624);
 
 create temp table tbl (t text primary key);
 insert into tbl values ('profiles'),('invites'),('price_catalog'),('credit_balances'),('generations'),
   ('generation_calls'),('generation_internal'),('credit_ledger'),('prompt_cache_state'),('miss_counts'),('purchases'),
   ('subscriptions'),('stripe_events'),('shares'),('video_feedback'),('reports'),('support_messages'),('admins'),
   ('admin_audit'),('account_flags'),('ops_settings'),('ops_alerts'),('ops_state'),('rate_limits'),('client_errors'),
-  ('email_outbox');
+  ('email_outbox'),('conversations'),('library_drawings');
 create temp table who (r text, sub uuid);
 insert into who values ('anon', null), ('authenticated', '00000000-0000-4000-8000-00000000000a'), ('service_role', null);
 
--- 26 tables x 3 roles x INSERT, UPDATE, DELETE, TRUNCATE = 312. The message names the privilege check, so a planted
+-- 28 tables x 3 roles x INSERT, UPDATE, DELETE, TRUNCATE = 336. The message names the privilege check, so a planted
 -- grant that RLS then blocks (a different error with the same SQLSTATE) still fails here.
 select is(pg_temp.q(w.r, w.sub, 'aal1', format(op.sql, t.t, (select attname from pg_attribute
             where attrelid = ('public.' || t.t)::regclass and attnum > 0 and not attisdropped
@@ -33,6 +33,12 @@ create temp table fn (f text primary key, roles text[]);
 insert into fn values
   ('get_shared_video','{anon,authenticated,service_role}'), ('health_ping','{anon,authenticated,service_role}'),
   ('explore_list','{anon,authenticated,service_role}'), ('set_explore','{authenticated}'),
+  ('create_conversation','{authenticated}'), ('attach_to_conversation','{service_role}'),
+  ('explore_feed','{anon,authenticated,service_role}'), ('explore_series','{anon,authenticated,service_role}'),
+  ('explore_related','{anon,authenticated,service_role}'), ('explore_on_finish','{service_role}'),
+  ('save_item','{authenticated}'), ('my_saved','{authenticated}'),
+  ('save_drawing_candidates','{service_role}'), ('approved_drawings','{service_role}'),
+  ('admin_list_drawings','{authenticated}'), ('admin_review_drawing','{authenticated}'),
   ('accept_terms','{authenticated}'), ('redeem_invite','{authenticated}'), ('is_live_user','{authenticated}'),
   ('search_my_videos','{authenticated}'), ('create_share','{authenticated}'), ('revoke_share','{authenticated}'),
   ('submit_feedback','{authenticated}'), ('admin_adjust_credits','{authenticated}'),
@@ -58,7 +64,7 @@ insert into fn values
   ('sweep','{}'), ('daily','{}'), ('check_credit_drift','{}'), ('is_admin','{}'), ('narration_chars','{}'),
   ('_ledger','{}'), ('_expire_bucket','{}'), ('_write_internal','{}'), ('_clips_ok','{}'), ('_fail_locked','{}'),
   ('_stripe_begin','{}'), ('_stripe_outcome','{}'), ('_stripe_args_ok','{}'), ('_has_contact_info','{}'),
-  ('_new_slug','{}'), ('_admin_check','{}'), ('_audit','{}');
+  ('_new_slug','{}'), ('_admin_check','{}'), ('_audit','{}'), ('_explore_items','{}');
 
 create function pg_temp.call_sql(p_f text) returns text language sql as $$
   select format('select public.%I(%s)::text', p_f, coalesce((select string_agg('null::' || format_type(t, null), ', ' order by o)
@@ -69,7 +75,7 @@ select set_eq($$select proname::text from pg_proc where pronamespace = 'public':
                  and prorettype <> 'trigger'::regtype$$, 'select f from fn',
   'the matrix below covers every non-trigger function in public');
 
--- 77 functions x 3 roles = 231: refused where not granted, callable where granted.
+-- 81 functions x 3 roles = 243: refused where not granted, callable where granted.
 select case when w.r = any (fn.roles)
   then unalike(coalesce(pg_temp.q(w.r, w.sub, 'aal1', pg_temp.call_sql(fn.f)), '(null)'),
                'ERROR 42501: permission denied for function%', format('%s CAN call %s', w.r, fn.f))

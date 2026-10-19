@@ -1,0 +1,70 @@
+{
+ "parts": {
+  "cranium": {
+   "name": "cranium",
+   "at": [
+    300,
+    200
+   ],
+   "kind": "part",
+   "shapes": [
+    3
+   ]
+  },
+  "temporal": {
+   "name": "temporal bone",
+   "at": [
+    350,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    3
+   ]
+  },
+  "orbit": {
+   "name": "eye socket",
+   "at": [
+    650,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    3
+   ]
+  },
+  "maxilla": {
+   "name": "maxilla",
+   "at": [
+    650,
+    700
+   ],
+   "kind": "part",
+   "shapes": [
+    3
+   ]
+  },
+  "teeth": {
+   "name": "teeth",
+   "at": [
+    650,
+    800
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "jaw": {
+   "name": "mandible (jaw)",
+   "at": [
+    500,
+    900
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  }
+ }
+}

@@ -1,0 +1,59 @@
+{
+ "parts": {
+  "neuron": {
+   "name": "motor neuron (axon)",
+   "at": [
+    1100,
+    250
+   ],
+   "kind": "part",
+   "shapes": [
+    39
+   ]
+  },
+  "myelin": {
+   "name": "myelin sheath",
+   "at": [
+    1330,
+    100
+   ],
+   "kind": "part",
+   "shapes": [
+    37
+   ]
+  },
+  "endings": {
+   "name": "nerve endings",
+   "at": [
+    450,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    56
+   ]
+  },
+  "fibre": {
+   "name": "muscle fibre",
+   "at": [
+    200,
+    550
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "myofibrils": {
+   "name": "myofibrils",
+   "at": [
+    900,
+    650
+   ],
+   "kind": "part",
+   "shapes": [
+    7
+   ]
+  }
+ }
+}

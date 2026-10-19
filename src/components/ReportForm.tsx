@@ -1,6 +1,6 @@
 "use client";
 import { useActionState } from "react";
-import { reportVideo } from "@/app/v/[slug]/actions";
+import { reportVideo } from "@/app/(app)/v/[slug]/actions";
 
 const REASONS: [string, string][] = [
   ["wrong", "It's wrong"], ["offensive", "Offensive or harmful"], ["personal_info", "Shows someone's personal information"],
@@ -11,8 +11,8 @@ export function ReportForm({ slug }: { slug: string }) {
   const [s, act, pending] = useActionState(reportVideo, undefined);
   if (s?.ok) return <p className="muted small" role="status">Thanks. We&apos;ll look at this video.</p>;
   return (
-    <details>
-      <summary className="small">Report this video</summary>
+    <details className="report">
+      <summary>Report this video</summary>
       <form action={act} className="stack" style={{ marginTop: 8 }}>
         <input type="hidden" name="slug" value={slug} />
         <fieldset className="stack" style={{ gap: 4 }}>

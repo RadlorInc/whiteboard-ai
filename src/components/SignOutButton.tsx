@@ -1,11 +1,13 @@
 "use client";
 import { signOut } from "@/app/actions";
+import { Icon } from "./Icon";
 
 // Sign-out clears the drafts and keeps UI preferences (§5.11).
-export function SignOutButton({ className = "", scope = "local", label = "Sign out" }: {
+export function SignOutButton({ className = "", scope = "local", label = "Sign out", icon = false }: {
   className?: string;
   scope?: "local" | "global";
   label?: string;
+  icon?: boolean;
 }) {
   return (
     <form
@@ -20,7 +22,7 @@ export function SignOutButton({ className = "", scope = "local", label = "Sign o
     >
       <input type="hidden" name="scope" value={scope} />
       <button type="submit" className={className}>
-        {label}
+        {icon && <Icon name="logout" size={18} />} {label}
       </button>
     </form>
   );

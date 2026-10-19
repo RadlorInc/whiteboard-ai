@@ -53,6 +53,28 @@ describe('prompt sha parity', () => {
     expect(all).not.toMatch(/\d{4}-\d{2}-\d{2}T/);
   });
 
+  // Subject prompts (founder, 18 Oct 2026): new prompts, so no prototype twin; these shas bind them the same way.
+  const SUBJECT_EXPECTED = {
+    biology: 'e7cebd9ddd2192f75d3e5524edb4d04035426d58c928edf2446b6166f4ef2164',
+    physics: 'f9f540e03b0817a3d6b7c5960328b52d087eca5cc6db55264b44a1d96c71b3fd',
+    chemistry: '9bb9c68c0395148caba5cebe9c9c3a3fa3b87a2fdb5ad1d12da4d2e4c8ffcef3',
+  } as const;
+  for (const s of ['biology', 'physics', 'chemistry'] as const) it(`${s}: its own prompt, sha bound, only its categories listed`, () => {
+    const t = P.subjects[s].system;
+    expect(sha(t)).toBe(SUBJECT_EXPECTED[s]); expect(P.subjects[s].sha256).toBe(SUBJECT_EXPECTED[s]);
+    const listed = [...t.split('More recipes, by subject')[1].split('Worked examples')[0].matchAll(/^  ([\w-]+): /gm)].map(m => m[1]);
+    expect(listed).toEqual(P.subjects[s].cats);
+    expect(t).toContain(`- Teaching ${s}:`);
+    // the rules and worked examples are the plain prompt's, word for word
+    expect(t.split('Worked examples')[1]).toBe(P.styles.whiteboard.system.split('Worked examples')[1]);
+    expect(t.split('- Only these element types exist')[0]).toBe(P.styles.whiteboard.system.split('- Only these element types exist')[0]);
+  });
+  it('the biology library is only in the biology prompt; the plain prompt is unchanged', () => {
+    expect(P.subjects.biology.system).toMatch(/^  biology: heartsection circulation breathing gut reflexarc dnaladder cellcycle leafsection plantparts$/m);
+    expect(P.styles.whiteboard.system).not.toContain('heartsection');
+    expect(P.subjects.physics.system).not.toContain('heartsection');
+  });
+
   it('the prompt carries the numbered-steps and no-zoom rules', () => {
     expect(P.styles.whiteboard.system).toContain('every step\'s "say" begins "Step 1:", "Step 2:" and so on');
     expect(P.styles.whiteboard.system).toContain('there is no camera or zoom');

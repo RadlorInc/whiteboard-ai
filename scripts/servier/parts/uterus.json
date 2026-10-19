@@ -1,0 +1,70 @@
+{
+ "parts": {
+  "uterus": {
+   "name": "uterus",
+   "at": [
+    500,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    40
+   ]
+  },
+  "lining": {
+   "name": "lining (endometrium)",
+   "at": [
+    620,
+    350
+   ],
+   "kind": "part",
+   "shapes": [
+    39
+   ]
+  },
+  "tube": {
+   "name": "fallopian tube",
+   "at": [
+    250,
+    180
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  },
+  "ovary": {
+   "name": "ovary",
+   "at": [
+    200,
+    330
+   ],
+   "kind": "part",
+   "shapes": [
+    10
+   ]
+  },
+  "cervix": {
+   "name": "cervix",
+   "at": [
+    600,
+    600
+   ],
+   "kind": "part",
+   "shapes": [
+    16
+   ]
+  },
+  "vagina": {
+   "name": "vagina",
+   "at": [
+    640,
+    800
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  }
+ }
+}

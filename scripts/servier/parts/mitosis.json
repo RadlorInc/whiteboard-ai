@@ -1,0 +1,70 @@
+{
+ "parts": {
+  "interphase": {
+   "name": "1. interphase (DNA copies)",
+   "at": [
+    420,
+    40
+   ],
+   "kind": "part",
+   "shapes": [
+    85
+   ]
+  },
+  "prophase": {
+   "name": "2. prophase",
+   "at": [
+    200,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    29
+   ]
+  },
+  "chromosomes": {
+   "name": "chromosomes appear",
+   "at": [
+    700,
+    350
+   ],
+   "kind": "part",
+   "shapes": [
+    106
+   ]
+  },
+  "metaphase": {
+   "name": "3. metaphase (line up)",
+   "at": [
+    700,
+    560
+   ],
+   "kind": "part",
+   "shapes": [
+    154
+   ]
+  },
+  "anaphase": {
+   "name": "4. anaphase (pulled apart)",
+   "at": [
+    420,
+    860
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "daughters": {
+   "name": "5. two new cells",
+   "at": [
+    100,
+    600
+   ],
+   "kind": "part",
+   "shapes": [
+    8
+   ]
+  }
+ }
+}

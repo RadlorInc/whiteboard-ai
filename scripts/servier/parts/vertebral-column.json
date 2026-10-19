@@ -1,0 +1,70 @@
+{
+ "parts": {
+  "cervical": {
+   "name": "cervical (neck)",
+   "at": [
+    150,
+    100
+   ],
+   "kind": "part",
+   "shapes": [
+    152
+   ]
+  },
+  "thoracic": {
+   "name": "thoracic (chest)",
+   "at": [
+    120,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    31
+   ]
+  },
+  "lumbar": {
+   "name": "lumbar (lower back)",
+   "at": [
+    130,
+    650
+   ],
+   "kind": "part",
+   "shapes": [
+    367
+   ]
+  },
+  "discs": {
+   "name": "discs (cushions)",
+   "at": [
+    160,
+    560
+   ],
+   "kind": "part",
+   "shapes": [
+    19
+   ]
+  },
+  "sacrum": {
+   "name": "sacrum",
+   "at": [
+    100,
+    850
+   ],
+   "kind": "part",
+   "shapes": [
+    326
+   ]
+  },
+  "coccyx": {
+   "name": "coccyx (tailbone)",
+   "at": [
+    90,
+    980
+   ],
+   "kind": "part",
+   "shapes": [
+    15
+   ]
+  }
+ }
+}

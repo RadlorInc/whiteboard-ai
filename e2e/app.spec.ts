@@ -19,24 +19,26 @@ test("ask, get charged, find it in the library, share it, unshare it", async ({ 
   // While it is made the board is covered by the progress list; the cover goes once the first step is drawn.
   await expect(page.locator(".making li.now")).toHaveText(/Reading|Choosing|Writing|voice/);
   await expect(page.locator(".making")).toHaveCount(0, { timeout: 60_000 });
-  await expect(page.getByText(/credits? used/)).toBeVisible({ timeout: 90_000 });
-  const used = Number((await page.getByText(/credits? used/).textContent())!.match(/(\d+) credits? used/)![1]);
+  // People see "Done." and videos left; the credits charged stay on the element for this check (18 Oct 2026).
+  await expect(page.locator("[data-charged]")).toBeVisible({ timeout: 90_000 });
+  const used = Number(await page.locator("[data-charged]").getAttribute("data-charged"));
   expect(used).toBe(4);                                  // the mock rainbow: 515 spoken characters -> ceil(515/150) = 4
   await page.goto("/library");
   expect(await credits(page)).toBe(before - 4);
-  await page.getByRole("link", { name: question }).click();
-  // The step controls move the replay: forward one step, then straight to the last one, then back one.
+  await page.getByRole("main").getByRole("link", { name: question }).click();   // the sidebar lists the chat too
+  // The step controls move the replay: forward one step, then straight to the last one (every step is there at once,
+  // 18 Oct 2026), then back one.
   const where = page.locator(".player-controls span");
   await expect(where).toHaveText(/^Step 1 of (\d+)$/, { timeout: 30_000 });
   const steps = Number((await where.textContent())!.match(/of (\d+)/)![1]);
   await page.getByRole("button", { name: "Next step" }).click();
   await expect(where).toHaveText(`Step 2 of ${steps}`);
-  await page.getByRole("slider", { name: "Step" }).fill(String(steps));
+  await page.getByRole("button", { name: new RegExp(`^Go to step ${steps}(:|$)`) }).click();   // a step segment
   await expect(where).toHaveText(`Step ${steps} of ${steps}`);
   await page.getByRole("button", { name: "Previous step" }).click();
   await expect(where).toHaveText(`Step ${steps - 1} of ${steps}`);
   // When it ends, nothing on the board moves on: no running animation, no travelling dot (14 Oct 2026).
-  await page.getByRole("slider", { name: "Step" }).fill(String(steps));
+  await page.getByRole("button", { name: new RegExp(`^Go to step ${steps}(:|$)`) }).click();   // a step segment
   await expect(where).toHaveText("End", { timeout: 60_000 });
   const board = page.frames().find(f => f.url().includes("/player/index.html"))!;
   const moving = () => board.evaluate(() => ({

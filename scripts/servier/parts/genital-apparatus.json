@@ -1,0 +1,68 @@
+{
+ "parts": {
+  "uterus": {
+   "name": "uterus",
+   "at": [
+    290,
+    440
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "ovary": {
+   "name": "ovary",
+   "at": [
+    400,
+    490
+   ],
+   "kind": "part",
+   "shapes": [
+    6
+   ]
+  },
+  "tube": {
+   "name": "fallopian tube",
+   "at": [
+    400,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    8
+   ]
+  },
+  "cervix": {
+   "name": "cervix",
+   "at": [
+    300,
+    620
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "vagina": {
+   "name": "vagina",
+   "at": [
+    310,
+    680
+   ],
+   "kind": "part",
+   "shapes": [],
+   "trace": false
+  },
+  "bladder": {
+   "name": "bladder",
+   "at": [
+    300,
+    520
+   ],
+   "kind": "part",
+   "shapes": [],
+   "trace": false
+  }
+ }
+}

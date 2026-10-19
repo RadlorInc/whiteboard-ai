@@ -1,0 +1,21 @@
+{
+  "source": "Servier Medical Art, SMART-Heart-physiology.pptx, slide 6, left drawing (CC BY 4.0)",
+  "name": "heartcut",
+  "parts": {
+    "svc":       { "name": "superior vena cava", "at": [170, 200], "shapes": [21], "label": ["L", 170], "kind": "low" },
+    "ra":        { "name": "right atrium",       "at": [190, 560], "shapes": [10], "label": ["L", 470], "kind": "low" },
+    "tricuspid": { "name": "tricuspid valve",    "at": [270, 680], "shapes": [26], "label": ["L", 610], "kind": "valve" },
+    "chordae":   { "name": "chordae tendineae",  "at": [330, 760], "shapes": [69], "label": ["L", 720], "kind": "valve" },
+    "rv":        { "name": "right ventricle",    "at": [250, 785], "shapes": [8],  "label": ["L", 830], "kind": "low" },
+    "ivc":       { "name": "inferior vena cava", "at": [180, 950], "shapes": [36], "label": ["L", 960], "kind": "low" },
+    "aorta":     { "name": "aorta",              "at": [420, 120], "shapes": [15], "label": ["R", 100], "kind": "high" },
+    "pa":        { "name": "pulmonary artery",   "at": [500, 250], "shapes": [3],  "label": ["R", 220], "kind": "low" },
+    "pv":        { "name": "pulmonary veins",    "at": [640, 370], "shapes": [6, 14, 37], "label": ["R", 340], "kind": "high" },
+    "la":        { "name": "left atrium",        "at": [520, 450], "shapes": [18], "label": ["R", 440], "kind": "high" },
+    "avalve":    { "name": "aortic valve",       "at": [380, 510], "shapes": [20], "label": ["R", 530], "kind": "valve" },
+    "mitral":    { "name": "mitral valve",       "at": [560, 560], "shapes": [75], "label": ["R", 620], "kind": "valve" },
+    "lv":        { "name": "left ventricle",     "at": [600, 820], "shapes": [11], "label": ["R", 760], "kind": "high" },
+    "papillary": { "name": "papillary muscle",   "at": [450, 830], "shapes": [23], "label": ["R", 860], "kind": "high" },
+    "septum":    { "name": "septum",             "at": [470, 760], "shapes": [],   "label": ["R", 950], "kind": "high" }
+  }
+}

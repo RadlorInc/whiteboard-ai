@@ -1,0 +1,70 @@
+{
+ "parts": {
+  "kidney": {
+   "name": "kidney",
+   "at": [
+    110,
+    150
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "cortex": {
+   "name": "cortex",
+   "at": [
+    480,
+    80
+   ],
+   "kind": "part",
+   "shapes": [
+    69
+   ]
+  },
+  "pelvis": {
+   "name": "renal pelvis",
+   "at": [
+    420,
+    150
+   ],
+   "kind": "part",
+   "shapes": [
+    30
+   ]
+  },
+  "ureter": {
+   "name": "ureter",
+   "at": [
+    232,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    1
+   ]
+  },
+  "bladder": {
+   "name": "bladder",
+   "at": [
+    300,
+    820
+   ],
+   "kind": "part",
+   "shapes": [
+    279
+   ]
+  },
+  "urethra": {
+   "name": "urethra",
+   "at": [
+    300,
+    960
+   ],
+   "kind": "part",
+   "shapes": [
+    292
+   ]
+  }
+ }
+}

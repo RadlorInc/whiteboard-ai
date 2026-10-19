@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import {
   AGE_BLOCK_COOKIE, AGE_GATE_VERSION, AGE_OK_COOKIE, INVITE_COOKIE, SIGNUP_SOURCES, ageCheck, sign, verify,
-  type AgeOk,
+  okNext, signupQuery, type AgeOk,
 } from "@/lib/age";
 import { START_SEEN_COOKIE, getAccount, landing } from "@/lib/session";
 import { blockUnder13, completeSignup, cookieOpts, finishSignIn } from "@/lib/signup";
@@ -56,10 +56,7 @@ export async function redeemInvite(_: FormState, form: FormData): Promise<FormSt
   redirect(await landing(account));
 }
 
-function srcQuery(form: FormData) {
-  const src = String(form.get("src") ?? "");
-  return SIGNUP_SOURCES.includes(src) ? `?src=${src}` : "";
-}
+const srcQuery = (form: FormData) => signupQuery(form.get("src"), form.get("next"));
 
 // ---------- Age ----------
 
@@ -83,6 +80,7 @@ export async function submitAge(_: FormState, form: FormData): Promise<FormState
   const invite = verify<{ code: string }>(jar.get(INVITE_COOKIE)?.value)?.code ?? null;
   const age: AgeOk = {
     month, year, gate_version: AGE_GATE_VERSION, source: SIGNUP_SOURCES.includes(src) ? src : null, invite,
+    next: okNext(form.get("next")),
   };
 
   // Signed in already (Google first, or a code from /signin): finish here.

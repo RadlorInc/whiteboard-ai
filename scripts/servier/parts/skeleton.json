@@ -1,0 +1,125 @@
+{
+ "parts": {
+  "skull": {
+   "name": "skull",
+   "at": [
+    200,
+    80
+   ],
+   "kind": "part",
+   "shapes": [
+    1313
+   ]
+  },
+  "clavicle": {
+   "name": "clavicle",
+   "at": [
+    150,
+    190
+   ],
+   "kind": "part",
+   "shapes": [
+    950
+   ]
+  },
+  "humerus": {
+   "name": "humerus",
+   "at": [
+    90,
+    280
+   ],
+   "kind": "part",
+   "shapes": [
+    957
+   ]
+  },
+  "ribs": {
+   "name": "ribs",
+   "at": [
+    150,
+    260
+   ],
+   "kind": "part",
+   "shapes": [
+    1816
+   ]
+  },
+  "spine": {
+   "name": "spine",
+   "at": [
+    210,
+    350
+   ],
+   "kind": "part",
+   "shapes": [
+    223
+   ]
+  },
+  "pelvis": {
+   "name": "pelvis",
+   "at": [
+    150,
+    420
+   ],
+   "kind": "part",
+   "shapes": [
+    82
+   ]
+  },
+  "forearm": {
+   "name": "radius and ulna",
+   "at": [
+    330,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    635
+   ]
+  },
+  "hand": {
+   "name": "hand bones",
+   "at": [
+    60,
+    520
+   ],
+   "kind": "part",
+   "shapes": [
+    962
+   ]
+  },
+  "femur": {
+   "name": "femur",
+   "at": [
+    170,
+    600
+   ],
+   "kind": "part",
+   "shapes": [
+    40
+   ]
+  },
+  "knee": {
+   "name": "knee",
+   "at": [
+    180,
+    710
+   ],
+   "kind": "part",
+   "shapes": [
+    1744
+   ]
+  },
+  "tibia": {
+   "name": "tibia",
+   "at": [
+    230,
+    820
+   ],
+   "kind": "part",
+   "shapes": [
+    1534
+   ]
+  }
+ }
+}

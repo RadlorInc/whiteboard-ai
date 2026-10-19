@@ -1,0 +1,80 @@
+{
+ "parts": {
+  "sa": {
+   "name": "SA node (pacemaker)",
+   "at": [
+    163,
+    455
+   ],
+   "kind": "part",
+   "shapes": [
+    276
+   ]
+  },
+  "av": {
+   "name": "AV node",
+   "at": [
+    264,
+    550
+   ],
+   "kind": "part",
+   "shapes": [
+    278
+   ]
+  },
+  "his": {
+   "name": "bundle of His",
+   "at": [
+    330,
+    615
+   ],
+   "kind": "part",
+   "shapes": [
+    6
+   ]
+  },
+  "branches": {
+   "name": "bundle branches",
+   "at": [
+    395,
+    690
+   ],
+   "kind": "part",
+   "shapes": [
+    270
+   ]
+  },
+  "purkinje": {
+   "name": "Purkinje fibres",
+   "at": [
+    625,
+    700
+   ],
+   "kind": "part",
+   "shapes": [
+    32
+   ]
+  },
+  "aorta": {
+   "name": "aorta",
+   "at": [
+    380,
+    100
+   ],
+   "kind": "part",
+   "shapes": [],
+   "trace": false
+  },
+  "ra": {
+   "name": "right atrium",
+   "at": [
+    110,
+    560
+   ],
+   "kind": "part",
+   "shapes": [
+    9
+   ]
+  }
+ }
+}
