@@ -88,7 +88,7 @@ const RULES = wbRules(WB_LIB);
 // Each subject prompt lists only its categories (plus the shared diagrams) and adds how to teach that subject.
 // find_drawing searches the same categories. Each is its own prompt cache entry (its own prompt_sha).
 const SUBJECTS = {
-  biology: { cats: ['anatomy', 'servier', 'biology', 'cells', 'body', 'health', 'diagrams'], teach: `
+  biology: { cats: ['anatomy', 'servier', 'biology', 'life', 'cells', 'body', 'health', 'world', 'earth', 'diagrams'], teach: `
 - Teaching biology: name the real structures with their proper names (labelled drawings, lab=1), then show what they
   do: follow one thing (blood, air, food, a nerve signal, water, sugar) as it travels through them with travel or go.
   For these topics use the detailed diagrams: heartsection, circulation, breathing, gut, reflexarc, dnaladder,
@@ -98,8 +98,8 @@ const SUBJECTS = {
   in each step add one pin for each part that step talks about (draw the pin when its part is spoken about), so the
   names appear one by one as they are explained. Keep heartcut near the middle (x 440-500) so the pins' words fit on
   both sides; leave the left 200 and right 260 pixels free for them and put nothing else there.
-- For any other organ, cell, tissue, microbe or molecule, first search the realistic library: find_drawing with a
-  short query (e.g. "lungs alveoli", "neuron synapse", "mitochondria"); draw a match with "sv id=<name> cx cy height"
+- For any other organ, cell, tissue, plant, animal, microbe or molecule, first search the realistic library:
+  find_drawing with a short query (e.g. "lungs alveoli", "neuron synapse", "seedling root", "honey bee"); draw a match with "sv id=<name> cx cy height"
   (draw it, then fill it), one or two per lesson, big. When its search result lists "parts: ...", point at them with
   pins ("p1": "pin of=<its element id> part=<part>"), drawn one by one in the step that explains each part; centre the
   drawing and keep the left 200 and right 260 pixels free for the pins' words. Otherwise label it with your own text.
@@ -109,12 +109,29 @@ const SUBJECTS = {
   following the real path inside the drawing, in a colour that differs from the part under it (blue or dark on red);
   it gets a white edge so it stands out. Put the numbered step tags in one row above or below it, clear of it.
   Never travel along the arrows between the step tags: a moving dot means something flows there.
-- Before you draw any organ, cell, tissue, microbe or molecule yourself, search for it: call find_drawing with two or
+- Whole plants and animals are whiteboard drawings, not realistic ones: use the world recipes first (critter, animal,
+  wild, bird, seacreature, tree, flower, grass, mushroom; critter has life-cycle stages: eggs, caterpillar, chrysalis,
+  larva, pupa, spawn, tadpole) and the biology ones (seedling, plantparts, flowerparts). Use an sv drawing of a whole
+  organism only when no recipe has it.
+- Food chains and webs, life cycles, classification and evolution: draw each organism (height 120-200) in a row, a
+  circle or a tree, each labelled with your own text below it, joined by arrows (in a food chain the arrow points to
+  the eater: the way energy flows). Draw only what the library lacks yourself.
+- Ecology and evolution have their own recipes (life): nitrogencycle, carboncycle, habitat (draw it first as the
+  scene, animals on top), cactus and polar bear for adaptation, fungus for decomposers, finch for Darwin's beaks,
+  pepperedmoth for natural selection, cladogram for an evolution tree, homolog for homologous limbs, fossil; the other kingdoms: protist, fungus,
+  lowerplant (moss, fern), dispersal for seeds. And for the rest of the syllabus: osmosis, diffusion, respiration
+  (aerobic, anaerobic, yeast), fermentation, transpiration, energypyramid, quadrat, geneticengineering, cloning,
+  kingdoms. Everyday things (fruit cut open, seeds, bread, a test tube, a balloon, a factory, a car, smog, a log, the
+  sun, rain) are colour drawings: search "<thing> colour".
+- For one particular animal or plant, take the first that exists (founder, 19 Oct 2026): a whiteboard recipe, then a
+  realistic coloured drawing, then its silhouette (search "<animal> silhouette": one dark cut-out shape), and only
+  then draw it yourself. Silhouettes also suit classification and evolution trees: all alike, a row of them reads
+  cleanly.
+- Before you draw any organ, cell, tissue, plant, animal, microbe or molecule yourself, search for it: call find_drawing with two or
   three different words for it (e.g. "alveolus", "air sac", "gas exchange"), and use a realistic drawing or a recipe
-  when one fits. Only when none fits, draw it yourself the way a textbook would: never a plain circle or box standing
-  in for a body part. Use "path" with curved outlines of its real shape (an alveolus is a cluster of round sacs on a
-  branching tube; a cell is a soft blob with a nucleus and organelles), its real colours (f=), a darker edge (c=) and
-  a lighter highlight shape inside, plus the small inner details that make it recognisable.` },
+  when one fits. Only when none fits, draw it yourself the way a textbook would (the layers below): never a plain
+  circle or box standing in for a body part (an alveolus is a cluster of round sacs on a branching tube; a cell is a
+  soft blob with a nucleus and organelles).` },
   physics: { cats: ['physics', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
 - Teaching physics: show the cause and the effect, with forces, energy and waves drawn as arrows. Put numbers with
   units on the board when the question has them, and show a formula only after the picture has explained it.` },
@@ -122,8 +139,23 @@ const SUBJECTS = {
 - Teaching chemistry: show the particles (atoms, molecules, ions) and what changes and what stays the same. Write the
   word or symbol equation on the board after the particles have shown it, balanced.` },
 };
+// Drawing what the library lacks (founder, 19 Oct 2026): the layers our own recipes use (lib/wb/world.js frogx), and
+// names that let the server keep the drawing for a person to approve (drawings.ts, /admin).
+const DRAW_OWN = `
+- Drawing what the library lacks: when find_drawing has nothing that fits an object, draw it yourself with "path"
+  elements in layers, back to front, the way our library drawings are made:
+  1. the far parts (the far legs, the far wing) in a darker shade of the body colour;
+  2. the main shape: its real outline in curves (C and Q), its real colour (f=) and a dark edge (c=, w=3);
+  3. a shadow on its lower side: the same colour, darker, no edge (c=none);
+  4. a lighter shape for the belly or underside;
+  5. the details that make it recognisable: spots, stripes, veins, joints, toes, petals;
+  6. an eye: a coloured iris, a dark pupil and a small white shine;
+  7. one thin white highlight line along its top edge (c=#ffffff w=3).
+  Name every element of it new_<name>_<part>, where <name> is one lowercase word for the object (new_hedgehog_body,
+  new_hedgehog_eye), and keep its parts together in one place on the board: a person checks it and it becomes a
+  library drawing for later lessons. Draw it in one step: draw its parts, then fill them.`;
 const SUBJECT_RULES = Object.fromEntries(Object.entries(SUBJECTS).map(([s, { cats: cs, teach }]) =>
-  [s, wbRules(cs.map(c => WB_ALL.find(x => x.cat === c)), teach)]));
+  [s, wbRules(cs.map(c => WB_ALL.find(x => x.cat === c)), teach + DRAW_OWN)]));
 
 // ---------- Paper motion (stop-motion / paper): scenes of library drawings on a 960x600 canvas ----------
 const smCtx = { window: {} };

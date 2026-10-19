@@ -2,7 +2,7 @@
 import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/server';
-import type { GenDb, Reserve, CacheState, GenerationRow, Thread } from './db';
+import type { GenDb, Reserve, CacheState, GenerationRow, Thread, ApprovedDrawing } from './db';
 
 let sb: SupabaseClient | null = null;
 const admin = () => (sb ??= createAdminClient());
@@ -79,4 +79,13 @@ export const supabaseDb: GenDb = {
     rpc<boolean>('attach_to_conversation', { p_generation_id: generationId, p_conversation_id: conversationId, p_user_id: userId }),
   explore: (generationId, userId) =>
     rpc<'shown' | 'contact_info' | 'share_limit' | 'not_found'>('explore_on_finish', { p_generation_id: generationId, p_user_id: userId }),
+  async approvedDrawings() {
+    // ponytail: a 5-minute copy per server instance; an approval shows up within that. Bust it on approve if it matters.
+    if (approvedAt > Date.now() - 300_000) return approvedRows;
+    approvedRows = await rpc<ApprovedDrawing[]>('approved_drawings', {}) ?? []; approvedAt = Date.now();
+    return approvedRows;
+  },
+  saveDrawings: (generationId, subject, items) =>
+    rpc<number>('save_drawing_candidates', { p_generation: generationId, p_subject: subject, p_items: items }),
 };
+let approvedRows: ApprovedDrawing[] = [], approvedAt = 0;

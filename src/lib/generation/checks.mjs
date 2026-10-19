@@ -10,12 +10,13 @@ const TEXTURES = new Set(P.textures), PARTS = P.parts ?? {}, SV_IDS = new Set(P.
 export const MC_LIB = P.mcLib, WB_LIB = P.wbLib, PAPER_LIB = P.paperLib, EXAMPLES = P.examples;
 
 // ---------- whiteboard: check(a) = shape + checkEls + every checkStep (prototype `check`, split) ----------
-export function checkEls(els) {
+// extraSv: the approved library drawings' slugs (library_drawings), which a script may also use as sv ids.
+export function checkEls(els, extraSv) {
   const errs = [];
   for (const [id, spec] of Object.entries(els)) {
     const type = String(spec).split('|')[0].trim().split(/\s+/)[0];
     if (!TYPES.has(type)) errs.push(`els.${id}: unknown type "${type}"`);
-    if (type === 'sv' && !SV_IDS.has(/\bid=(\S+)/.exec(spec)?.[1])) errs.push(`els.${id}: sv needs id=<a name find_drawing returned>`);
+    if (type === 'sv' && !(id => SV_IDS.has(id) || extraSv?.has(id))(/\bid=(\S+)/.exec(spec)?.[1])) errs.push(`els.${id}: sv needs id=<a name find_drawing returned>`);
     if (type === 'pin') {               // anatomy pins (18 Oct 2026): "pin of=<earlier drawing id> part=<one of its parts>"
       const of = /\bof=(\S+)/.exec(spec)?.[1], part = /\bpart=(\S+)/.exec(spec)?.[1];
       const ofSpec = of in els ? String(els[of]).trim() : '', ofType = ofSpec.split(/\s+/)[0] || null, before = Object.keys(els).indexOf(of) < Object.keys(els).indexOf(id);
@@ -38,9 +39,9 @@ export function checkStep(s, i, els) {
   }
   return errs;
 }
-export function check(a) {
+export function check(a, extraSv) {
   if (!a || typeof a !== 'object' || !a.els || !Array.isArray(a.steps)) return ['not {q, els, steps}'];
-  return [...checkEls(a.els), ...a.steps.flatMap((s, i) => checkStep(s, i, a.els))];
+  return [...checkEls(a.els, extraSv), ...a.steps.flatMap((s, i) => checkStep(s, i, a.els))];
 }
 
 // ---------- paper: checkPaper(a) = shape + every checkPaperStep ----------
@@ -111,10 +112,13 @@ export function findDrawing(lib, { names = [], query = '' }) {
     out.push(l ? `${l.sig} — ${l.desc}` : `${n}: not in the library` +
     (() => { const near = all.filter(x => x.name.includes(n) || n.includes(x.name)).slice(0, 5).map(x => x.name); return near.length ? ` (close: ${near.join(', ')})` : ''; })()); }
   // Search (18 Oct 2026): words of 3+ letters ("a" matched everything), matched on a shared stem of up to 5 letters
-  // ("alveolus" finds "alveoli"); a drawing with named parts (pins) wins a tie, being the better teaching picture.
+  // ("alveolus" finds "alveoli"); a drawing with named parts (pins) wins a tie, being the better teaching picture, and
+  // one whose name is a query word ranks above stem matches ("transpiration" above "transport").
   const stem = w => w.slice(0, Math.min(5, w.length)), q = words(query).filter(w => w.length >= 3);
   if (q.length) all.map(l => { const ws = words(`${l.name} ${l.desc}`).filter(x => x.length >= 3);
-      return [l, q.filter(w => ws.some(x => x.startsWith(stem(w)) || w.startsWith(stem(x)))).length + (/; parts: /.test(l.desc) ? .5 : 0)]; })
+      const own = words(l.name);                                   // 19 Oct 2026: a word that is the drawing's own name wins
+      return [l, q.filter(w => ws.some(x => x.startsWith(stem(w)) || w.startsWith(stem(x)))).length + (/; parts: /.test(l.desc) ? .5 : 0)
+        + (q.some(w => own.includes(w)) ? 1 : 0)]; })
     .filter(([, s]) => s >= 1).sort((a, b) => b[1] - a[1]).slice(0, 12).forEach(([l]) => out.push(`${l.sig} — ${l.desc}`));
   return out.length ? [...new Set(out)].join('\n') : 'Nothing found. Use a drawing from the index or the primitives.';
 }

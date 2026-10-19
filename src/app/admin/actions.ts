@@ -3,6 +3,8 @@
 // function that checks admins + aal2 itself. A reason is required for each.
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin";
+import { toDrawing } from "@/lib/generation/drawings.mjs";
+import P from "@/lib/generation/prompts.json";
 
 type R = { ok?: string; error?: string };
 const reasonOf = (f: FormData) => String(f.get("reason") ?? "").trim();
@@ -61,4 +63,28 @@ export async function createInvite(_: R, f: FormData): Promise<R> {
   const code = String(f.get("code") ?? "").trim().toUpperCase(), uses = Number(f.get("uses") ?? 1);
   const { error } = await sb.rpc("admin_create_invite", { p_code: code, p_max_uses: uses, p_note: null, p_reason: reasonOf(f), p_request_id: crypto.randomUUID() });
   return error ? { error: error.message.includes("reason") ? "Give a reason (5+ characters)." : error.message } : { ok: `Invite ${code} (${uses} uses) created.` };
+}
+
+// A library drawing the model made (library_drawings): approve it under a slug (its stored lines are normalised here,
+// never taken from the form) or reject it. Audited as review_drawing.
+export async function reviewDrawing(_: R, f: FormData): Promise<R> {
+  const { sb } = await requireAdmin();
+  const id = String(f.get("id") ?? ""), approve = f.get("act") === "approve";
+  const slug = String(f.get("slug") ?? "").trim().toLowerCase();
+  const tags = String(f.get("tags") ?? "").toLowerCase().match(/[a-z]{3,}/g)?.slice(0, 12) ?? [];
+  if (!/^[0-9a-f-]{36}$/.test(id)) return { error: "Bad drawing." };
+  let data = null;
+  if (approve) {
+    if (!/^[a-z0-9-]{1,60}$/.test(slug)) return { error: "Name: lowercase letters, digits and dashes." };
+    if ((P.svIds as string[]).includes(slug)) return { error: `"${slug}" is already a library drawing: pick another name.` };
+    const { data: rows, error } = await sb.rpc("admin_list_drawings", { p_status: "pending", p_limit: 100 });
+    const row = (rows as { id: string; lines: Record<string, string> }[] | null)?.find(r => r.id === id);
+    if (error || !row) return { error: error?.message ?? "That drawing is no longer waiting." };
+    try { data = toDrawing(row.lines); } catch (e) { return { error: `Cannot read this drawing: ${(e as Error).message}` }; }
+  }
+  const { data: ok, error } = await sb.rpc("admin_review_drawing", { p_id: id, p_approve: approve, p_slug: approve ? slug : null,
+    p_tags: tags, p_data: data, p_reason: reasonOf(f), p_request_id: crypto.randomUUID() });
+  revalidatePath("/admin");
+  if (error) return { error: error.message.includes("reason") ? "Give a reason (5+ characters)." : error.message.includes("slug_taken") ? "That name is taken." : error.message };
+  return ok ? { ok: approve ? `Approved: lessons can now use "sv id=${slug}".` : "Rejected." } : { error: "That drawing is no longer waiting." };
 }

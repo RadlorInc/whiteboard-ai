@@ -1,6 +1,7 @@
 "use client";
 import { useActionState } from "react";
-import { adjustCredits, createInvite, handleReport, setSwitch, unpublishShare } from "@/app/admin/actions";
+import { adjustCredits, createInvite, handleReport, reviewDrawing, setSwitch, unpublishShare } from "@/app/admin/actions";
+import { BoardPreview } from "@/components/BoardPreview";
 
 function Result({ s }: { s: { ok?: string; error?: string } }) {
   return s.error ? <p role="alert" className="error">{s.error}</p> : s.ok ? <p role="status">{s.ok}</p> : null;
@@ -71,6 +72,28 @@ export function ReportRow({ r }: { r: { id: string; slug: string; reason: string
         <input name="reason" className="input" placeholder="Reason (5+ characters)" required minLength={5} />
         <button className="btn" name="act" value="remove" disabled={pending}>Take off Explore and resolve</button>
         <button className="btn secondary" name="act" value="keep" disabled={pending}>Keep and resolve</button>
+      </form>
+      <Result s={s} />
+    </li>
+  );
+}
+
+// A drawing the model made for something the library lacked: its preview is exactly what lessons will draw.
+export function DrawingRow({ d, preview, problem }: { d: { id: string; name: string; subject: string | null; created_at: string };
+  preview: unknown; problem: string | null }) {
+  const [s, act, pending] = useActionState(reviewDrawing, {});
+  return (
+    <li className="card stack">
+      <span><strong>{d.name}</strong> · {d.subject ?? "no subject"} · {new Date(d.created_at).toLocaleString()}</span>
+      {problem ? <p className="error">Cannot read it: {problem}</p>
+        : <div style={{ maxWidth: 420 }}><BoardPreview style="whiteboard" script={preview} label={`Drawing: ${d.name}`} /></div>}
+      <form action={act} className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+        <input type="hidden" name="id" value={d.id} />
+        <input name="slug" className="input" defaultValue={d.name} aria-label="Library name" />
+        <input name="tags" className="input" defaultValue={d.name} placeholder="Search words" aria-label="Search words" />
+        <input name="reason" className="input" defaultValue="Library drawing review" required minLength={5} aria-label="Reason" />
+        <button className="btn" name="act" value="approve" disabled={pending || !!problem}>Approve into the library</button>
+        <button className="btn secondary" name="act" value="reject" disabled={pending}>Reject</button>
       </form>
       <Result s={s} />
     </li>

@@ -138,6 +138,10 @@
   }
   const restart = () => seek(0);
 
+  const COLOUR = /^#[0-9a-f]{3,8}$/i;
+  const okDrawing = d => !!d && Number.isFinite(d.w) && d.w > 0 && d.w < 20000 && d.h === 1000 && Array.isArray(d.shapes) && d.shapes.length <= 2000
+    && d.shapes.every(s => Array.isArray(s) && typeof s[0] === 'string' && s[0].length < 20000 && /^[MLCSQTAZ0-9 .-]*$/.test(s[0])
+      && (s[1] === 'none' || COLOUR.test(s[1])) && (s[3] === null || COLOUR.test(s[3])));
   // Realistic drawings ("sv id=...") load on demand before the board is built (SV, lib/wb/anatomy.js).
   const needSv = els => self.SV ? SV.need(Object.values(els || {}).map(v => /^\s*sv\b.*\bid=([a-z0-9-]+)/.exec(String(v))?.[1]).filter(Boolean)) : Promise.resolve();
   async function playScript(script, voice) {
@@ -155,6 +159,11 @@
     const m = ev.data;
     if (m.type === 'hello') { tell({ type: 'ready' }); return; }   // the page may have missed our first 'ready'
     if (m.type === 'played') { const f = playing.get(m.id); playing.delete(m.id); f?.(); return; }
+    // Approved model-made drawings ride with the message (library_drawings; the frame cannot fetch them): checked,
+    // then registered like a realistic drawing, before needSv looks for them (src/lib/generation/drawings.mjs validDrawing).
+    const carried = m.drawings || m.script?.drawings;
+    if (carried && typeof carried === 'object' && self.SV) for (const [id, d] of Object.entries(carried))
+      if (/^[a-z0-9-]{1,60}$/.test(id) && !SV.data[id] && okDrawing(d)) SV.add(id, d);
     if (m.type === 'reset') { gen++; A = null; done = false; PAUSED = false; held = []; hush(); }
     else if (m.type === 'script') playScript(m.script, m.voice);
     else if (m.type === 'wav' && self.VOICE_WAVS && Number.isInteger(m.i) && m.i >= 0 && m.i < self.VOICE_WAVS.length) {

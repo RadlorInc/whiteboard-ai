@@ -44,4 +44,8 @@ export interface GenDb {
   attach(generationId: string, conversationId: string, userId: string): Promise<boolean>;
   // A finished video goes on Explore (founder, 18 Oct 2026); the share refusals pass through.
   explore(generationId: string, userId: string): Promise<'shown' | 'contact_info' | 'share_limit' | 'not_found'>;
+  // Library drawings the model made (19 Oct 2026): approved ones for find_drawing, candidates kept for /admin.
+  approvedDrawings?(): Promise<ApprovedDrawing[]>;
+  saveDrawings?(generationId: string, subject: Subject | null, items: { name: string; lines: Record<string, string> }[]): Promise<number>;
 }
+export type ApprovedDrawing = { slug: string; name: string; subject: Subject | null; tags: string[]; data: { w: number; h: number; shapes: unknown[] } };

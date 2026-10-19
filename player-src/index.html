@@ -178,7 +178,11 @@ async function draw(id, ms = 800) {
   // recipe: saari lines ek-ek karke (lambai ke hisaab se samay), phir uske labels
   // .linked: a pin's outline kept inside the drawing it points at; the pin draws it (el.linked), the drawing does not
   const inks = [...el.querySelectorAll('.ink:not(.linked)'), ...(el.linked || [])], total = inks.reduce((s, e) => s + e.getTotalLength(), 0);
-  for (const e of inks) await drawEl(e, Math.max(50, ms * e.getTotalLength() / total));
+  // A line's share of the drawing's time, never less than 50 ms unless there are many lines: a whole drawing stays near
+  // its budget (founder, 19 Oct 2026: drawn, but a child is not kept waiting; a 124-line Servier drawing took 6 s+).
+  if ((el.matches('.anat-draw') || el.querySelector('.anat-draw')) && ms === 800) ms = 600;           // a realistic drawing: about 1 s of pen in all (each line takes a frame or more)
+  const floor = Math.min(50, ms / Math.max(1, inks.length));
+  for (const e of inks) await drawEl(e, Math.max(floor, ms * e.getTotalLength() / total));
   for (const t of el.querySelectorAll('.lbl')) await write(t, 500);
 }
 async function write(id, ms = 900) {

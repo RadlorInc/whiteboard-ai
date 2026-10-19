@@ -4,6 +4,7 @@
 import { AuthenticationError, PermissionDeniedError, NotFoundError, APIError, APIUserAbortError } from '@anthropic-ai/sdk';
 import { STYLE_CHECK, checkEls, checkStep, checkPaperStep, checkPolicy, checkSafety, findDrawing, guardFindInput, parse, WB_LIB, PAPER_LIB } from './checks.mjs';
 import { createScanner } from './scan.mjs';
+import { candidateGroups, savedCat, SAVED_CAT } from './drawings.mjs';
 import P from './prompts.json' with { type: 'json' };
 import { prefix, cost, promptSha, type ModelClient, type FinalMessage, type Style, type Subject, type Block } from './model';
 import type { GenDb, FailCode, Metrics } from './db';
@@ -19,7 +20,7 @@ const PINNED = (errs: string[], k: number, style: Style) => `Your script failed 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);   // both come from JSON.parse
 const textOf = (m: FinalMessage) => m.content.filter(b => b.type === 'text').map(b => b.text).join('');
 const codePoints = (s: unknown) => (typeof s === 'string' ? [...s].length : 0);
-const catsOf = (lib: Lib, names: string[]) => [...new Set(lib.filter(c => c.lines.some(l => names.includes(l.name))).map(c => c.cat))];
+const catsOf = (lib: Lib, names: string[]) => [...new Set(lib.filter(c => c.cat !== SAVED_CAT && c.lines.some(l => names.includes(l.name))).map(c => c.cat))];
 
 const FOLLOW_UP = 'Answer the new question below with a new lesson. Build on what was already explained; do not repeat it, ' +
   'and refer back to it where it helps.';
@@ -43,6 +44,14 @@ export async function runGeneration(o: {
   // A subject's find_drawing searches only the categories its prompt lists.
   const cats: string[] = o.subject ? P.subjects[o.subject].cats : P.wbCats;
   const misses: string[] = [], lib = (style === 'whiteboard' ? (WB_LIB as Lib).filter(c => cats.includes(c.cat)) : PAPER_LIB) as Lib;
+  // Approved model-made drawings (library_drawings): searchable like the realistic ones; their data rides with the
+  // script (drawings), because the sandboxed player cannot fetch them. A failed read just leaves them out.
+  const approved = style === 'whiteboard' ? await (db.approvedDrawings?.() ?? Promise.resolve([])).catch(() => []) : [];
+  if (approved.length) lib.push(savedCat(approved));
+  const savedSv = new Set(approved.map(r => r.slug)), savedData = new Map(approved.map(r => [r.slug, r.data]));
+  const drawingsFor = (els: Json) => { const out: Json = {};
+    for (const v of Object.values(els)) { const sv = /^\s*sv\b.*\bid=([a-z0-9-]+)/.exec(String(v))?.[1]; if (sv && savedData.has(sv)) out[sv] = savedData.get(sv); }
+    return Object.keys(out).length ? out : undefined; };
   const sha = promptSha(style, o.subject);
   // A conversation's context (subject, earlier questions) goes first in the same user turn; the question stays last.
   // A follow-up's earlier turns end in a cache breakpoint: the next call of this video (after find_drawing) and the
@@ -75,14 +84,14 @@ export async function runGeneration(o: {
         if (Object.keys(sentEls).some(k => !same(els[k], (sentEls as Json)[k]))) { halted = true; return; }
         const add = Object.fromEntries(Object.entries(els).filter(([k]) => !(k in (sentEls as Json))));
         if (Object.keys(add).length) {
-          if (checkEls(add).length || checkSafety({ els: { ...sentEls, ...add }, steps: [] }, style).length) { halted = true; return; }
-          sentEls = { ...sentEls, ...add }; send('els_add', { els: add });
+          if (checkEls(add, savedSv).length || checkSafety({ els: { ...sentEls, ...add }, steps: [] }, style).length) { halted = true; return; }
+          sentEls = { ...sentEls, ...add }; send('els_add', { els: add, drawings: drawingsFor(add) });
         }
         return;
       }
-      if (checkEls(els).length || checkSafety({ els, steps: [] }, style).length) { halted = true; return; }
+      if (checkEls(els, savedSv).length || checkSafety({ els, steps: [] }, style).length) { halted = true; return; }
       sentEls = els; timings.els ??= at();
-      send('els', { els });
+      send('els', { els, drawings: drawingsFor(els) });
       send('need', { cats: catsOf(lib, Object.values(els).map(s => String(s).split('|')[0].trim().split(/\s+/)[0])) });
       return;
     }
@@ -177,7 +186,7 @@ export async function runGeneration(o: {
       let a: Json | null = null, errs: string[];
       try {
         a = parse(textOf(msg)) as Json;
-        errs = [...STYLE_CHECK[style](a), ...checkPolicy(a, style), ...checkSafety(a, style)];
+        errs = [...STYLE_CHECK[style](a, savedSv), ...checkPolicy(a, style), ...checkSafety(a, style)];
         if (pinned > 0) {
           const steps = (a.steps ?? []) as Step[];
           if (!sent.every((s, i) => same(steps[i], s))) errs.push(`steps 1 to ${pinned} changed after they were shown`);
@@ -203,8 +212,9 @@ export async function runGeneration(o: {
     a.q = question;                                       // the model never chooses a share-page title
     if (style === 'whiteboard') {                         // anything the stream did not already show
       const els = a.els as Json;
-      if (!sentEls) send('els', { els });
-      else { const add = Object.fromEntries(Object.entries(els).filter(([k]) => !(k in (sentEls as Json)))); if (Object.keys(add).length) send('els_add', { els: add }); }
+      if (!sentEls) send('els', { els, drawings: drawingsFor(els) });
+      else { const add = Object.fromEntries(Object.entries(els).filter(([k]) => !(k in (sentEls as Json)))); if (Object.keys(add).length) send('els_add', { els: add, drawings: drawingsFor(add) }); }
+      const used = drawingsFor(els); if (used) a.drawings = used;           // replays, shares and posters carry them too
     }
     if (style === 'matchcut') send('script', { script: a });
     else (a.steps as Step[]).forEach((s, i) => { if (i >= sent.length) { sent.push(s); send('step', { i, step: s }); } });
@@ -220,6 +230,9 @@ export async function runGeneration(o: {
       timings.done = at();
       const chars = ((style === 'matchcut' ? a.objects : a.steps) as Step[]).reduce((n, s) => n + codePoints(s.say), 0);
       if (r.outcome === 'settled' || r.outcome === 'already_final') {
+        // Drawings it made for what the library lacked wait on /admin for a person (never fails the video).
+        const groups = style === 'whiteboard' ? candidateGroups(a.els) : [];
+        if (groups.length && db.saveDrawings) await db.saveDrawings(id, o.subject ?? null, groups).catch(() => {});
         // A video that cannot go on Explore (a refusal, or the call failing) still counts as done.
         const explore = o.explore ? await o.explore().catch(() => 'error') : null;
         send('done', { id, creditsCharged: r.credits_charged, narrationChars: chars, available: r.available, explore });
