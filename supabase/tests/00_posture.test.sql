@@ -7,16 +7,16 @@ select plan(15);
 
 -- The tables (§6.9), by hand.
 create temp table want_tables (t text primary key);
-insert into want_tables values ('profiles'),('invites'),('price_catalog'),('credit_balances'),('generations'),
+insert into want_tables values ('profiles'),('saved_items'),('invites'),('price_catalog'),('credit_balances'),('generations'),
   ('generation_calls'),('generation_internal'),('credit_ledger'),('prompt_cache_state'),('miss_counts'),('purchases'),
   ('subscriptions'),('stripe_events'),('shares'),('video_feedback'),('reports'),('support_messages'),('admins'),
   ('admin_audit'),('account_flags'),('ops_settings'),('ops_alerts'),('ops_state'),('rate_limits'),('client_errors'),
-  ('email_outbox'),('conversations');
+  ('email_outbox'),('conversations'),('library_drawings');
 
 select set_eq(
   $$select relname::text from pg_class where relnamespace = 'public'::regnamespace and relkind in ('r','p','v','m','f')$$,
   $$select t from want_tables$$,
-  'public holds exactly the 27 hand-listed tables (no views, no unlisted table)');
+  'public holds exactly the 29 hand-listed tables (no views, no unlisted table)');
 
 select is_empty(
   $$select relname from pg_class where relnamespace = 'public'::regnamespace and relkind in ('r','p') and not relrowsecurity$$,
@@ -28,7 +28,7 @@ insert into want_table_acl select t, 'service_role', 'SELECT' from want_tables;
 insert into want_table_acl values ('profiles','authenticated','SELECT'), ('credit_balances','authenticated','SELECT'),
   ('credit_ledger','authenticated','SELECT'), ('generations','authenticated','SELECT'),
   ('purchases','authenticated','SELECT'), ('subscriptions','authenticated','SELECT'),
-  ('shares','authenticated','SELECT'), ('video_feedback','authenticated','SELECT'),
+  ('shares','authenticated','SELECT'), ('video_feedback','authenticated','SELECT'), ('saved_items','authenticated','SELECT'),
   ('conversations','authenticated','SELECT');
 
 -- The query the posture rests on: every privilege of the three API roles (and PUBLIC) on public relations.
@@ -55,12 +55,17 @@ insert into want_fn values
   -- anon, authenticated, service_role
   ('get_shared_video', '{anon,authenticated,service_role}', true),
   ('explore_list',     '{anon,authenticated,service_role}', true),
+  ('explore_feed',     '{anon,authenticated,service_role}', true), ('explore_series', '{anon,authenticated,service_role}', true),
+  ('explore_related',  '{anon,authenticated,service_role}', true),
   ('health_ping',      '{anon,authenticated,service_role}', false),
   -- authenticated
   ('accept_terms','{authenticated}',true), ('redeem_invite','{authenticated}',true), ('is_live_user','{authenticated}',true),
   ('search_my_videos','{authenticated}',false), ('create_share','{authenticated}',true), ('revoke_share','{authenticated}',true),
   ('submit_feedback','{authenticated}',true), ('set_explore','{authenticated}',true),
   ('create_conversation','{authenticated}',true), ('attach_to_conversation','{service_role}',true),
+  ('explore_on_finish','{service_role}',true), ('save_item','{authenticated}',true), ('my_saved','{authenticated}',true),
+  ('save_drawing_candidates','{service_role}',true), ('approved_drawings','{service_role}',true),
+  ('admin_list_drawings','{authenticated}',true), ('admin_review_drawing','{authenticated}',true),
   ('admin_adjust_credits','{authenticated}',true), ('admin_refund_generation','{authenticated}',true),
   ('admin_set_flags','{authenticated}',true), ('admin_set_settings','{authenticated}',true),
   ('admin_unpublish_share','{authenticated}',true), ('admin_view_generation','{authenticated}',true),
@@ -95,7 +100,7 @@ insert into want_fn values
   ('narration_chars','{}',false), ('generations_guard','{}',false), ('ledger_append_only','{}',false),
   ('_ledger','{}',false), ('_expire_bucket','{}',false), ('_write_internal','{}',false), ('_clips_ok','{}',false),
   ('_fail_locked','{}',false), ('_stripe_begin','{}',false), ('_stripe_outcome','{}',false),
-  ('_stripe_args_ok','{}',false), ('_has_contact_info','{}',false), ('_new_slug','{}',false),
+  ('_stripe_args_ok','{}',false), ('_has_contact_info','{}',false), ('_new_slug','{}',false), ('_explore_items','{}',true),
   ('_admin_check','{}',false), ('_audit','{}',false);
 
 create function pg_temp.fn_acl() returns table(f text, grantee text) language sql as $$
@@ -130,7 +135,8 @@ select set_eq(
     ('subscriptions','subscriptions_own','SELECT','{authenticated}','((user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_live_user() AS is_live_user))',null),
     ('shares','shares_own','SELECT','{authenticated}','((user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_live_user() AS is_live_user))',null),
     ('video_feedback','video_feedback_own','SELECT','{authenticated}','((user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_live_user() AS is_live_user))',null),
-    ('conversations','conversations_own','SELECT','{authenticated}','((user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_live_user() AS is_live_user))',null)$$,
+    ('conversations','conversations_own','SELECT','{authenticated}','((user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_live_user() AS is_live_user))',null),
+    ('saved_items','saved_items_own','SELECT','{authenticated}','((user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_live_user() AS is_live_user))',null)$$,
   'pg_policies equals the hand-written list');
 
 -- Positive controls: the same queries DO find each defect when one is planted (then rolled back).
