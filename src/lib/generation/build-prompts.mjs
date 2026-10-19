@@ -118,7 +118,7 @@ const SUBJECTS = {
   the eater: the way energy flows). Draw only what the library lacks yourself.
 - Ecology and evolution have their own recipes (life): nitrogencycle, carboncycle, habitat (draw it first as the
   scene, animals on top), cactus and polar bear for adaptation, fungus for decomposers, finch for Darwin's beaks,
-  pepperedmoth for natural selection, cladogram for an evolution tree, fossil; the other kingdoms: protist, fungus,
+  pepperedmoth for natural selection, cladogram for an evolution tree, homolog for homologous limbs, fossil; the other kingdoms: protist, fungus,
   lowerplant (moss, fern), dispersal for seeds. And for the rest of the syllabus: osmosis, diffusion, respiration
   (aerobic, anaerobic, yeast), fermentation, transpiration, energypyramid, quadrat, geneticengineering, cloning,
   kingdoms. Everyday things (fruit cut open, seeds, bread, a test tube, a balloon, a factory, a car, smog, a log, the

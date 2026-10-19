@@ -19,3 +19,4 @@ quadrat cx cy size lab=1 | quadrat 480 270 300 | quadrat sampling: a red square 
 geneticengineering cx cy width lab=1 | geneticengineering 480 270 640 | genetic engineering in a row: plasmid in a bacterium, cut open, human gene inserted, bacteria make the protein (e.g. insulin)
 cloning cx cy width lab=1 | cloning 480 270 640 | cloning a sheep (Dolly): body cell nucleus into an egg cell with its nucleus removed, embryo, the clone lamb
 kingdoms cx cy width | kingdoms 480 270 640 | the five kingdoms side by side, each with a small picture: animals, plants, fungi, protists, bacteria
+homolog cx cy width k=human,cat,whale,bat lab=1 | homolog 480 260 600 | homologous limbs (evidence for evolution): the same bones in a human arm, cat leg, whale flipper and bat wing, each bone group one colour; k= picks which limbs and their order

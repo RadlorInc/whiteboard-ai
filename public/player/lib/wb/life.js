@@ -475,6 +475,36 @@
     });
   });
 
+  // homologous limbs: the same bones (one upper bone, two lower bones, wrist bones, finger bones) in a human arm, a cat's
+  // leg, a whale's flipper and a bat's wing; each bone group has one colour in every limb
+  const BONE = { up: '#e05a4a', low: '#f3c33b', wrist: '#5fae3a', finger: '#4f93d6' };
+  const LIMB = {                        // [upper, two lower, finger spread, finger length, outline]: one limb in a 200-tall box
+    human: { up: 70, low: 64, spread: 16, len: 34, fan: .05, skin: 'M-26 -96 Q-30 0 -24 60 Q-34 104 -10 104 L22 104 Q34 100 26 60 Q30 0 26 -96 Z', c: '#f6d2b4' },
+    cat: { up: 60, low: 70, spread: 14, len: 20, fan: 0, skin: 'M-22 -96 Q-26 0 -18 70 Q-30 98 0 100 Q30 98 18 70 Q24 0 22 -96 Z', c: '#f2a65a' },
+    whale: { up: 34, low: 30, spread: 22, len: 80, fan: .1, skin: 'M-30 -96 Q-46 -20 -40 40 Q-30 104 0 108 Q30 104 40 40 Q46 -20 30 -96 Z', c: '#7fa7d6' },
+    bat: { up: 50, low: 60, spread: 20, len: 100, fan: 1, skin: 'M-14 -96 L-10 -6 L-120 70 Q-80 60 -60 100 Q-30 72 0 110 Q30 72 60 100 Q80 60 120 70 L10 -6 L14 -96 Z', c: '#8a7a70' },
+  };
+  const homolog = make(600, (g, o) => {
+    const names = (o.k || 'human,cat,whale,bat').split(',').filter(k => LIMB[k]).slice(0, 4), gap = 600 / names.length;
+    names.forEach((k, i) => {
+      const L = LIMB[k], x0 = -300 + gap * (i + .5), h = mk('g', { transform: `translate(${x0} 0)` }, g);
+      // finger tips first: the bat's wing is skin stretched between them
+      const yw = -96 + L.up + 4 + L.low + 4 + 9, tips = [0, 1, 2, 3, 4].map(f => { const a = (f - 2) / 2, ang = Math.PI / 2 - a * (.18 + L.fan * .95), sp = a * L.spread;
+        const r = L.len * (f === 0 && k === 'human' ? .65 : 1); return [sp * .5, yw, sp * .5 + Math.cos(ang) * r, yw + Math.sin(ang) * r]; });
+      const skin = k === 'bat' ? `M-6 -96 L-8 ${yw} ` + tips.map(t => `L${t[2].toFixed(1)} ${t[3].toFixed(1)}`).join(' ') + ` L8 ${yw} L6 -96 Z` : L.skin;
+      F(h, skin, L.c, { opacity: .35 }); line(h, skin, '#8a8f96', 1.6);
+      let y = -96;
+      P(h, `M-7 ${y} L7 ${y} L5 ${y + L.up} L-5 ${y + L.up} Z`, BONE.up, '#7a2a1a', 1.6); y += L.up + 4;
+      for (const dx of [-6, 6]) P(h, `M${dx - 3} ${y} L${dx + 3} ${y} L${dx + 2} ${y + L.low} L${dx - 2} ${y + L.low} Z`, BONE.low, '#8a6a10', 1.4);
+      y += L.low + 4;
+      for (const dx of [-8, 0, 8]) P(h, E(dx, y + 3, 4), BONE.wrist, '#2f6a1e', 1.2); y += 9;
+      for (const [xa, ya, xb, yb] of tips) { line(h, `M${xa} ${ya} L${xb} ${yb}`, '#1f4f8f', 5); line(h, `M${xa} ${ya} L${xb} ${yb}`, BONE.finger, 3); }
+      if (lab(o)) label(h, 0, 158, k[0].toUpperCase() + k.slice(1), '#333', 18, 'middle');
+    });
+    if (lab(o)) { const keys = [['up', 'upper arm bone'], ['low', 'two forearm bones'], ['wrist', 'wrist bones'], ['finger', 'finger bones']];
+      keys.forEach(([b, t], i) => { P(g, E(-270 + i * 150, 192, 8), BONE[b], '#555', 1.2); label(g, -256 + i * 150, 198, t, '#333', 15, 'start'); }); }
+  });
+
   Object.assign(window.RECIPES, {
     nitrogencycle: nitrogencycle,
     habitat: habitat,
@@ -496,5 +526,6 @@
     geneticengineering: geneticengineering,
     cloning: cloning,
     kingdoms: kingdoms,
+    homolog: homolog,
   });
 })();
