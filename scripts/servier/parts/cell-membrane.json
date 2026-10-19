@@ -1,0 +1,36 @@
+{
+ "parts": {
+  "heads": {
+   "name": "phosphate heads",
+   "at": [
+    400,
+    110
+   ],
+   "kind": "part",
+   "shapes": [
+    204
+   ]
+  },
+  "tails": {
+   "name": "fatty tails (avoid water)",
+   "at": [
+    400,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    410
+   ]
+  },
+  "bilayer": {
+   "name": "two layers",
+   "at": [
+    1500,
+    850
+   ],
+   "kind": "part",
+   "shapes": [],
+   "trace": false
+  }
+ }
+}

@@ -1,0 +1,59 @@
+{
+ "parts": {
+  "outer": {
+   "name": "outer membrane",
+   "at": [
+    900,
+    20
+   ],
+   "kind": "part",
+   "shapes": [
+    19
+   ]
+  },
+  "inner": {
+   "name": "inner membrane (folds)",
+   "at": [
+    1000,
+    350
+   ],
+   "kind": "part",
+   "shapes": [
+    1
+   ]
+  },
+  "cristae": {
+   "name": "cristae",
+   "at": [
+    520,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  },
+  "matrix": {
+   "name": "matrix",
+   "at": [
+    760,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    29
+   ]
+  },
+  "space": {
+   "name": "space between membranes",
+   "at": [
+    300,
+    800
+   ],
+   "kind": "part",
+   "shapes": [
+    1
+   ]
+  }
+ }
+}

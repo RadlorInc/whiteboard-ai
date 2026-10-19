@@ -1,0 +1,2 @@
+heartcut cx cy height | heartcut 470 270 480 | realistic heart cut open from the front (no words on it); draw it, then fill it; point at its parts with pin; parts: svc ra tricuspid chordae rv ivc aorta pa pv la avalve mitral lv papillary septum
+pin of=id part=name | pin of=h part=ra | a labelled pointer to one part of an anatomy drawing listed before it in els: draw it to trace that part in colour and write its name; optional "| other words"

@@ -1,0 +1,59 @@
+{
+ "parts": {
+  "ureter": {
+   "name": "ureter (from kidney)",
+   "at": [
+    120,
+    100
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  },
+  "lining": {
+   "name": "lining (folds)",
+   "at": [
+    300,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    85
+   ]
+  },
+  "opening": {
+   "name": "ureter opening",
+   "at": [
+    190,
+    600
+   ],
+   "kind": "part",
+   "shapes": [
+    15
+   ]
+  },
+  "wall": {
+   "name": "muscle wall",
+   "at": [
+    80,
+    600
+   ],
+   "kind": "part",
+   "shapes": [
+    15
+   ]
+  },
+  "urethra": {
+   "name": "urethra",
+   "at": [
+    300,
+    900
+   ],
+   "kind": "part",
+   "shapes": [
+    134
+   ]
+  }
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "parts": {
+  "teeth": {
+   "name": "teeth",
+   "at": [
+    300,
+    150
+   ],
+   "kind": "part",
+   "shapes": [
+    78
+   ]
+  },
+  "palate": {
+   "name": "hard palate",
+   "at": [
+    300,
+    280
+   ],
+   "kind": "part",
+   "shapes": [],
+   "trace": false
+  },
+  "uvula": {
+   "name": "uvula",
+   "at": [
+    312,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    3
+   ]
+  },
+  "pharynx": {
+   "name": "throat (pharynx)",
+   "at": [
+    230,
+    480
+   ],
+   "kind": "part",
+   "shapes": [
+    55
+   ]
+  },
+  "tongue": {
+   "name": "tongue",
+   "at": [
+    300,
+    720
+   ],
+   "kind": "part",
+   "shapes": [
+    58
+   ]
+  },
+  "lips": {
+   "name": "lips",
+   "at": [
+    300,
+    950
+   ],
+   "kind": "part",
+   "shapes": [
+    503
+   ]
+  }
+ }
+}

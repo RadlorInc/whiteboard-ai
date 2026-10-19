@@ -1,0 +1,80 @@
+{
+ "parts": {
+  "enamel": {
+   "name": "enamel",
+   "at": [
+    300,
+    140
+   ],
+   "kind": "part",
+   "shapes": [
+    425
+   ]
+  },
+  "dentine": {
+   "name": "dentine",
+   "at": [
+    230,
+    260
+   ],
+   "kind": "part",
+   "shapes": [
+    66
+   ]
+  },
+  "pulp": {
+   "name": "pulp (nerves, blood)",
+   "at": [
+    225,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    5
+   ]
+  },
+  "root": {
+   "name": "root",
+   "at": [
+    205,
+    600
+   ],
+   "kind": "part",
+   "shapes": [
+    152
+   ]
+  },
+  "gum": {
+   "name": "gum",
+   "at": [
+    90,
+    240
+   ],
+   "kind": "part",
+   "shapes": [
+    422
+   ]
+  },
+  "bone": {
+   "name": "jaw bone",
+   "at": [
+    60,
+    500
+   ],
+   "kind": "part",
+   "shapes": [],
+   "trace": false
+  },
+  "vessels": {
+   "name": "nerve and blood vessels",
+   "at": [
+    480,
+    880
+   ],
+   "kind": "part",
+   "shapes": [
+    454
+   ]
+  }
+ }
+}

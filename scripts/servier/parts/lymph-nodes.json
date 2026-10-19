@@ -1,0 +1,46 @@
+{
+ "parts": {
+  "node": {
+   "name": "lymph node",
+   "at": [
+    350,
+    400
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "in": {
+   "name": "lymph vessels (in)",
+   "at": [
+    80,
+    800
+   ],
+   "kind": "part",
+   "shapes": []
+  },
+  "out": {
+   "name": "lymph vessel (out)",
+   "at": [
+    230,
+    120
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  },
+  "blood": {
+   "name": "artery and vein",
+   "at": [
+    300,
+    160
+   ],
+   "kind": "part",
+   "shapes": [
+    42
+   ]
+  }
+ }
+}

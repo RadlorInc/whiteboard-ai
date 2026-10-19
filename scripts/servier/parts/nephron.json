@@ -1,0 +1,81 @@
+{
+ "parts": {
+  "glomerulus": {
+   "name": "glomerulus",
+   "at": [
+    140,
+    120
+   ],
+   "kind": "part",
+   "shapes": [
+    36
+   ]
+  },
+  "proximal": {
+   "name": "proximal tubule",
+   "at": [
+    278,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  },
+  "loop": {
+   "name": "loop of Henle",
+   "at": [
+    232,
+    880
+   ],
+   "kind": "part",
+   "shapes": [
+    1
+   ]
+  },
+  "distal": {
+   "name": "distal tubule",
+   "at": [
+    432,
+    260
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  },
+  "duct": {
+   "name": "collecting duct",
+   "at": [
+    342,
+    950
+   ],
+   "kind": "part",
+   "shapes": [
+    1
+   ]
+  },
+  "cortex": {
+   "name": "cortex",
+   "at": [
+    640,
+    120
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  },
+  "medulla": {
+   "name": "medulla",
+   "at": [
+    560,
+    960
+   ],
+   "kind": "part",
+   "shapes": [
+    1
+   ]
+  }
+ }
+}

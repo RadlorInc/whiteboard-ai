@@ -1,0 +1,37 @@
+{
+ "parts": {
+  "helix": {
+   "name": "double helix",
+   "at": [
+    200,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    4
+   ]
+  },
+  "strand": {
+   "name": "two strands",
+   "at": [
+    140,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    106
+   ]
+  },
+  "coil": {
+   "name": "coils up",
+   "at": [
+    300,
+    800
+   ],
+   "kind": "part",
+   "shapes": [
+    219
+   ]
+  }
+ }
+}

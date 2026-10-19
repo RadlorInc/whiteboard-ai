@@ -1,0 +1,70 @@
+{
+ "parts": {
+  "villus": {
+   "name": "villus",
+   "at": [
+    200,
+    300
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  },
+  "micro": {
+   "name": "microvilli",
+   "at": [
+    210,
+    195
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "lining": {
+   "name": "lining cells",
+   "at": [
+    60,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "goblet": {
+   "name": "goblet cell (mucus)",
+   "at": [
+    85,
+    370
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "lacteal": {
+   "name": "lacteal (takes in fat)",
+   "at": [
+    200,
+    550
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  },
+  "capillaries": {
+   "name": "capillaries",
+   "at": [
+    620,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  }
+ }
+}

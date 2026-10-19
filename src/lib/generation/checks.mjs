@@ -6,7 +6,7 @@ import P from './prompts.json' with { type: 'json' };
 
 const TYPES = new Set(P.types), COMMANDS = new Set(P.commands), LOOPS = new Set(P.loops);
 const LIB_NAMES = new Set(P.libNames), FLOW_ITEMS = new Set(P.flowItems), BLOOD_PATHS = new Set(P.bloodPaths);
-const TEXTURES = new Set(P.textures);
+const TEXTURES = new Set(P.textures), PARTS = P.parts ?? {}, SV_IDS = new Set(P.svIds ?? []), SV_PARTS = P.svParts ?? {};
 export const MC_LIB = P.mcLib, WB_LIB = P.wbLib, PAPER_LIB = P.paperLib, EXAMPLES = P.examples;
 
 // ---------- whiteboard: check(a) = shape + checkEls + every checkStep (prototype `check`, split) ----------
@@ -15,6 +15,14 @@ export function checkEls(els) {
   for (const [id, spec] of Object.entries(els)) {
     const type = String(spec).split('|')[0].trim().split(/\s+/)[0];
     if (!TYPES.has(type)) errs.push(`els.${id}: unknown type "${type}"`);
+    if (type === 'sv' && !SV_IDS.has(/\bid=(\S+)/.exec(spec)?.[1])) errs.push(`els.${id}: sv needs id=<a name find_drawing returned>`);
+    if (type === 'pin') {               // anatomy pins (18 Oct 2026): "pin of=<earlier drawing id> part=<one of its parts>"
+      const of = /\bof=(\S+)/.exec(spec)?.[1], part = /\bpart=(\S+)/.exec(spec)?.[1];
+      const ofSpec = of in els ? String(els[of]).trim() : '', ofType = ofSpec.split(/\s+/)[0] || null, before = Object.keys(els).indexOf(of) < Object.keys(els).indexOf(id);
+      const svId = ofType === 'sv' ? /\bid=(\S+)/.exec(ofSpec)?.[1] : null, list = svId ? SV_PARTS[svId] : PARTS[ofType], what = svId ?? ofType;
+      if (!ofType || !list || !before) errs.push(`els.${id}: pin needs of=<an anatomy drawing listed before it>`);
+      else if (!list.includes(part)) errs.push(`els.${id}: ${what} has no part "${part}" (parts: ${list.join(' ')})`);
+    }
   }
   return errs;
 }
@@ -97,12 +105,17 @@ export const FIND_TOOL = {
 };
 const words = t => String(t).toLowerCase().match(/[a-z0-9]+/g) || [];
 export function findDrawing(lib, { names = [], query = '' }) {
-  const all = lib.flatMap(c => c.lines), byName = new Map(all.map(l => [l.name, l])), out = [];
-  for (const n of names) { const l = byName.get(n); out.push(l ? `${l.sig} — ${l.desc}` : `${n}: not in the library` +
+  const all = lib.flatMap(c => c.lines), out = [];
+  for (const n of names) { const ls = all.filter(x => x.name === n), l = ls[0];   // a recipe and a realistic drawing may share a name: give both
+    ls.slice(1).forEach(x => out.push(`${x.sig} — ${x.desc}`));
+    out.push(l ? `${l.sig} — ${l.desc}` : `${n}: not in the library` +
     (() => { const near = all.filter(x => x.name.includes(n) || n.includes(x.name)).slice(0, 5).map(x => x.name); return near.length ? ` (close: ${near.join(', ')})` : ''; })()); }
-  const q = words(query);
-  if (q.length) all.map(l => [l, q.filter(w => words(`${l.name} ${l.desc}`).some(x => x.startsWith(w) || w.startsWith(x))).length])
-    .filter(([, s]) => s > 0).sort((a, b) => b[1] - a[1]).slice(0, 12).forEach(([l]) => out.push(`${l.sig} — ${l.desc}`));
+  // Search (18 Oct 2026): words of 3+ letters ("a" matched everything), matched on a shared stem of up to 5 letters
+  // ("alveolus" finds "alveoli"); a drawing with named parts (pins) wins a tie, being the better teaching picture.
+  const stem = w => w.slice(0, Math.min(5, w.length)), q = words(query).filter(w => w.length >= 3);
+  if (q.length) all.map(l => { const ws = words(`${l.name} ${l.desc}`).filter(x => x.length >= 3);
+      return [l, q.filter(w => ws.some(x => x.startsWith(stem(w)) || w.startsWith(stem(x)))).length + (/; parts: /.test(l.desc) ? .5 : 0)]; })
+    .filter(([, s]) => s >= 1).sort((a, b) => b[1] - a[1]).slice(0, 12).forEach(([l]) => out.push(`${l.sig} — ${l.desc}`));
   return out.length ? [...new Set(out)].join('\n') : 'Nothing found. Use a drawing from the index or the primitives.';
 }
 // §7.6 input guard, before findDrawing runs: ≤40 names of ≤40 characters, query cut to 200.

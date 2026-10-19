@@ -1,0 +1,59 @@
+{
+ "parts": {
+  "myofibril": {
+   "name": "myofibril",
+   "at": [
+    560,
+    750
+   ],
+   "kind": "part",
+   "shapes": [
+    129
+   ]
+  },
+  "sr": {
+   "name": "sarcoplasmic reticulum",
+   "at": [
+    400,
+    500
+   ],
+   "kind": "part",
+   "shapes": [
+    146
+   ]
+  },
+  "ttube": {
+   "name": "T-tubule",
+   "at": [
+    420,
+    400
+   ],
+   "kind": "part",
+   "shapes": [
+    130
+   ]
+  },
+  "mito": {
+   "name": "mitochondrion",
+   "at": [
+    140,
+    640
+   ],
+   "kind": "part",
+   "shapes": [
+    13
+   ]
+  },
+  "membrane": {
+   "name": "cell membrane",
+   "at": [
+    700,
+    650
+   ],
+   "kind": "part",
+   "shapes": [
+    146
+   ]
+  }
+ }
+}

@@ -1,0 +1,59 @@
+{
+ "parts": {
+  "terminal": {
+   "name": "axon terminal",
+   "at": [
+    400,
+    400
+   ],
+   "kind": "part",
+   "shapes": [
+    21
+   ]
+  },
+  "vesicles": {
+   "name": "vesicles",
+   "at": [
+    230,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    21
+   ]
+  },
+  "nt": {
+   "name": "neurotransmitter",
+   "at": [
+    330,
+    860
+   ],
+   "kind": "part",
+   "shapes": [
+    132
+   ]
+  },
+  "gap": {
+   "name": "synaptic gap",
+   "at": [
+    380,
+    800
+   ],
+   "kind": "part",
+   "shapes": [
+    20
+   ]
+  },
+  "next": {
+   "name": "next cell",
+   "at": [
+    300,
+    950
+   ],
+   "kind": "part",
+   "shapes": [
+    2
+   ]
+  }
+ }
+}

@@ -1,0 +1,59 @@
+{
+ "parts": {
+  "shaft": {
+   "name": "hair shaft",
+   "at": [
+    180,
+    50
+   ],
+   "kind": "part",
+   "shapes": [
+    55
+   ]
+  },
+  "sheath": {
+   "name": "root sheath",
+   "at": [
+    70,
+    600
+   ],
+   "kind": "part",
+   "shapes": [
+    29
+   ]
+  },
+  "bulb": {
+   "name": "hair bulb",
+   "at": [
+    180,
+    790
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "papilla": {
+   "name": "papilla (blood supply)",
+   "at": [
+    180,
+    870
+   ],
+   "kind": "part",
+   "shapes": [
+    20
+   ]
+  },
+  "cortex": {
+   "name": "cortex",
+   "at": [
+    180,
+    150
+   ],
+   "kind": "part",
+   "shapes": [
+    40
+   ]
+  }
+ }
+}

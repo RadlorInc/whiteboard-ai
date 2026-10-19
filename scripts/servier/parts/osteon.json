@@ -1,0 +1,48 @@
+{
+ "parts": {
+  "canal": {
+   "name": "central canal",
+   "at": [
+    120,
+    650
+   ],
+   "kind": "part",
+   "shapes": [
+    3
+   ]
+  },
+  "lamellae": {
+   "name": "rings (lamellae)",
+   "at": [
+    200,
+    230
+   ],
+   "kind": "part",
+   "shapes": [
+    7
+   ]
+  },
+  "cells": {
+   "name": "bone cells (osteocytes)",
+   "at": [
+    280,
+    370
+   ],
+   "kind": "part",
+   "shapes": [
+    7
+   ]
+  },
+  "matrix": {
+   "name": "hard matrix",
+   "at": [
+    500,
+    680
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  }
+ }
+}

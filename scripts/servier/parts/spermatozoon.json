@@ -1,0 +1,37 @@
+{
+ "parts": {
+  "head": {
+   "name": "head (DNA)",
+   "at": [
+    1600,
+    50
+   ],
+   "kind": "part",
+   "shapes": [
+    7
+   ]
+  },
+  "midpiece": {
+   "name": "midpiece (energy)",
+   "at": [
+    1350,
+    100
+   ],
+   "kind": "part",
+   "shapes": [
+    11
+   ]
+  },
+  "tail": {
+   "name": "tail (swims)",
+   "at": [
+    800,
+    140
+   ],
+   "kind": "part",
+   "shapes": [
+    10
+   ]
+  }
+ }
+}

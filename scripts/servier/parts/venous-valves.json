@@ -1,0 +1,37 @@
+{
+ "parts": {
+  "valve": {
+   "name": "valve (stops backflow)",
+   "at": [
+    150,
+    470
+   ],
+   "kind": "part",
+   "shapes": [
+    311
+   ]
+  },
+  "wall": {
+   "name": "vein wall",
+   "at": [
+    110,
+    800
+   ],
+   "kind": "part",
+   "shapes": [
+    138
+   ]
+  },
+  "blood": {
+   "name": "blood",
+   "at": [
+    220,
+    800
+   ],
+   "kind": "part",
+   "shapes": [
+    85
+   ]
+  }
+ }
+}

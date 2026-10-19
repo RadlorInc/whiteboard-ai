@@ -48,12 +48,13 @@ const existing = (g: { id: string; status: string }) =>
 // What a follow-up's model call is told before the question: the subject and the conversation so far (questions and
 // their spoken lines; no drawings). It goes in the user turn, so the cached system prompt stays byte-identical.
 const SUBJECT = { biology: 'Biology', physics: 'Physics', chemistry: 'Chemistry' } as const;
-export function threadContext(t: Thread): string {
+// One text block per earlier turn, each byte-identical on every later follow-up, so the conversation so far is a
+// cached prefix (run.ts marks the last block): a follow-up pays full price only for its newest turn (18 Oct 2026).
+export function threadContext(t: Thread): string[] {
   const head = `Subject: ${SUBJECT[t.subject]}.`;
-  if (t.turns.length === 0) return head;
-  const past = t.turns.map((x, i) => `${i + 1}. Question: ${x.question}\n   You explained: ${x.says.join(' ')}`).join('\n');
-  return `${head}\nThis question is a follow-up in a conversation. Earlier questions and the lessons you gave:\n${past}\n` +
-    'Answer the new question below with a new lesson. Build on what was already explained; do not repeat it, and refer back to it where it helps.';
+  if (t.turns.length === 0) return [head];
+  return [`${head}\nThis question is a follow-up in a conversation. Earlier questions and the lessons you gave:`,
+    ...t.turns.map((x, i) => `${i + 1}. Question: ${x.question}\n   You explained: ${x.says.join(' ')}`)];
 }
 
 export type GenerateDeps = {

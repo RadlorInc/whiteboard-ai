@@ -3,7 +3,7 @@
 // follow-up ("what was this part?") gets a new video made with the earlier questions and narration as context.
 // The subject is chosen when the chat starts and stays for all its questions.
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AskComposer } from "./AskComposer";
 import { Player, Watch, type Style } from "./Watch";
@@ -39,6 +39,13 @@ export function Chat({ conversationId, subject: initialSubject, turns, available
   const [live, setLive] = useState<Live[]>([]);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  const lastLive = useRef<HTMLDivElement>(null);
+  // A new question scrolls its video into view (founder, 18 Oct 2026); reduced motion jumps instead of gliding.
+  useEffect(() => {
+    if (!live.length) return;
+    const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+    lastLive.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+  }, [live.length]);
 
   const ask = useCallback(async (question: string, explore: boolean) => {
     setBusy(true); setNote(null);
@@ -76,8 +83,10 @@ export function Chat({ conversationId, subject: initialSubject, turns, available
         </div>
       ) : <p className="muted small">{SUBJECT_NAME[subject]}</p>}
       {past.map(t => <PastTurn key={t.id} t={t} />)}
-      {live.map(l => (
-        <Watch key={l.n} question={l.question} style="whiteboard" explore={l.explore} conversationId={l.conv} onDone={done(l.n)} />
+      {live.map((l, i) => (
+        <div key={l.n} ref={i === live.length - 1 ? lastLive : undefined} style={{ scrollMarginTop: 72 }}>
+          <Watch question={l.question} style="whiteboard" explore={l.explore} conversationId={l.conv} onDone={done(l.n)} />
+        </div>
       ))}
       {note && <p role="alert" className="error">{note}</p>}
       <AskComposer available={available} firstRun={firstRun && empty} onAsk={ask} busy={busy}

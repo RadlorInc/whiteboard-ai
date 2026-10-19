@@ -1,0 +1,35 @@
+{
+ "parts": {
+  "cisternae": {
+   "name": "stacked sacs (cisternae)",
+   "at": [
+    900,
+    450
+   ],
+   "kind": "part",
+   "shapes": []
+  },
+  "vesicle": {
+   "name": "vesicle (carries proteins)",
+   "at": [
+    1050,
+    180
+   ],
+   "kind": "part",
+   "shapes": [
+    17
+   ]
+  },
+  "bud": {
+   "name": "vesicle",
+   "at": [
+    420,
+    50
+   ],
+   "kind": "part",
+   "shapes": [
+    45
+   ]
+  }
+ }
+}

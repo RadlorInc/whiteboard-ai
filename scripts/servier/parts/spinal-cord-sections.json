@@ -1,0 +1,59 @@
+{
+ "parts": {
+  "grey": {
+   "name": "grey matter",
+   "at": [
+    350,
+    600
+   ],
+   "kind": "part",
+   "shapes": [
+    1
+   ]
+  },
+  "white": {
+   "name": "white matter",
+   "at": [
+    150,
+    600
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "canal": {
+   "name": "central canal",
+   "at": [
+    690,
+    580
+   ],
+   "kind": "part",
+   "shapes": [
+    48
+   ]
+  },
+  "dorsal": {
+   "name": "dorsal horn (sensory in)",
+   "at": [
+    330,
+    330
+   ],
+   "kind": "part",
+   "shapes": [
+    1
+   ]
+  },
+  "ventral": {
+   "name": "ventral horn (motor out)",
+   "at": [
+    420,
+    750
+   ],
+   "kind": "part",
+   "shapes": [
+    1
+   ]
+  }
+ }
+}

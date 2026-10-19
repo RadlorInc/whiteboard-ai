@@ -1,0 +1,67 @@
+{
+ "parts": {
+  "pili": {
+   "name": "pili",
+   "at": [
+    300,
+    170
+   ],
+   "kind": "part",
+   "shapes": []
+  },
+  "flagellum": {
+   "name": "flagellum (swims)",
+   "at": [
+    30,
+    620
+   ],
+   "kind": "part",
+   "shapes": [
+    3
+   ]
+  },
+  "wall": {
+   "name": "cell wall",
+   "at": [
+    1180,
+    170
+   ],
+   "kind": "part",
+   "shapes": [],
+   "trace": false
+  },
+  "membrane": {
+   "name": "cell membrane",
+   "at": [
+    1110,
+    270
+   ],
+   "kind": "part",
+   "shapes": [
+    451
+   ]
+  },
+  "dna": {
+   "name": "DNA (no nucleus)",
+   "at": [
+    1180,
+    320
+   ],
+   "kind": "part",
+   "shapes": [
+    460
+   ]
+  },
+  "ribosomes": {
+   "name": "ribosomes",
+   "at": [
+    1250,
+    400
+   ],
+   "kind": "part",
+   "shapes": [
+    460
+   ]
+  }
+ }
+}

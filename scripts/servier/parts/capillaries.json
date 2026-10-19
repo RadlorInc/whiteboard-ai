@@ -1,0 +1,36 @@
+{
+ "parts": {
+  "arteriole": {
+   "name": "arteriole (from the heart)",
+   "at": [
+    80,
+    640
+   ],
+   "kind": "part",
+   "shapes": [],
+   "trace": false
+  },
+  "capillary": {
+   "name": "capillaries",
+   "at": [
+    430,
+    450
+   ],
+   "kind": "part",
+   "shapes": [
+    303
+   ]
+  },
+  "venule": {
+   "name": "venule (back to the heart)",
+   "at": [
+    1100,
+    360
+   ],
+   "kind": "part",
+   "shapes": [
+    302
+   ]
+  }
+ }
+}

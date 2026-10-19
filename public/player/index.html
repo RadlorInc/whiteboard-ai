@@ -19,6 +19,16 @@
   /* Polished drawings (founder, 18 Oct 2026: Biology only for now): no wobble or watercolour, labels in a clean font. */
   .polished [filter] { filter: none; }
   .polished text { font-family: "Helvetica Neue", Arial, sans-serif; font-weight: 600; }
+  /* anatomy drawings and pins: square line ends, so an undrawn line (dash offset = its length) shows no dot */
+  .anat .ink { stroke-linecap: butt; }
+  .shimmer { stroke-dasharray: 3 16; opacity: .85; animation: flowrun .8s linear infinite; }
+  @keyframes flowrun { to { stroke-dashoffset: -38; } }
+  .anat-draw { transition: filter .6s; }
+  #scene.spot .anat-draw { filter: grayscale(.65) opacity(.38); }
+  .flow.old, .flow.old + .shimmer { opacity: .25; transition: opacity .6s; }
+  .flow.old + .shimmer { animation: none; }
+  @media (prefers-reduced-motion: reduce) { .shimmer { animation: none; } }
+  #scene.on-anat .prim, #scene.on-anat .trip { filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1px #fff); }
   .fillable { transition: fill-opacity .7s ease; fill-opacity: 0; }
   .fillable.on { fill-opacity: 1; }
   .pivot { transform-box: fill-box; transform-origin: center; }
@@ -84,7 +94,10 @@ function arrowD([x1, y1, x2, y2]) {
 
 function build(answer) {
   scene.replaceChildren(); els = {};
-  for (const [id, spec] of Object.entries(answer.els)) {
+  // the order the model wrote (answer.order: saved scripts, whose jsonb lost it); older saved videos: pins last
+  const keys = Array.isArray(answer.order) ? [...new Set([...answer.order.filter(k => k in answer.els), ...Object.keys(answer.els)])]
+    : Object.keys(answer.els).sort((a, b) => /^\s*pin\b/.test(answer.els[a]) - /^\s*pin\b/.test(answer.els[b]));
+  for (const [id, spec] of keys.map(k => [k, answer.els[k]])) {
     const { type, n, o, content } = parse(spec);
     const stroke = { stroke: o.c || '#222', 'stroke-width': o.w || 5, class: 'ink pivot', fill: o.f || 'none' };
     if (o.f) stroke.class += ' fillable';
@@ -112,11 +125,14 @@ function build(answer) {
     }
     else throw new Error(`Unknown element type "${type}" in ${id}`);
     e.kind = type; e.off = [0, 0];
+    if (['line', 'arrow', 'path', 'circle', 'ellipse', 'rect'].includes(type)) e.classList.add('prim');
     els[id] = e;
   }
   marker = mk('g', { style: 'opacity:0' }, scene);
   marker.innerHTML = '<g transform="rotate(-35)"><path d="M0 0 L8 -14 L-8 -14Z" fill="#222"/><rect x="-11" y="-110" width="22" height="96" rx="6" fill="#2f7fd6" stroke="#1d1d1f" stroke-width="3"/><rect x="-11" y="-120" width="22" height="22" rx="5" fill="#1d1d1f"/></g>';
   // sab chhupa do
+  // Over a realistic drawing a plain arrow or line gets a white edge, or a red arrow vanishes on a red heart
+  scene.classList.toggle('on-anat', !!scene.querySelector('.anat'));
   scene.querySelectorAll('.ink').forEach(e => { const L = e.getTotalLength(); e.style.strokeDasharray = L; e.style.strokeDashoffset = L; });
   scene.querySelectorAll('text.hand:not(.fillable)').forEach(e => e.style.clipPath = 'inset(0 100% 0 0)');
   setCam(480, 270, 1, 0);
@@ -143,11 +159,28 @@ function drawEl(el, ms) {
   marker.style.opacity = 1;
   return frames(ms, t => { t = ease(t); el.style.strokeDashoffset = len * (1 - t); const p = el.getPointAtLength(len * t); markAt(el, p.x, p.y); });
 }
+// A flow over a realistic drawing (founder, 18 Oct 2026): once drawn, an arrow or line carries a white shimmer that
+// runs along it, so the movement reads; the step's spotlight (bridge.js) dims the drawing behind it.
+// a flow = an arrow, line or path lying over a realistic drawing (not, say, the arrows between the step tags)
+function isFlow(el) {
+  if (!el || !el.classList?.contains('prim') || !['arrow', 'line', 'path'].includes(el.kind)) return false;
+  const a = el.getBoundingClientRect();
+  return [...scene.querySelectorAll('.anat-draw')].some(g => { const b = g.getBoundingClientRect();
+    return Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 0; });
+}
+function flowify(el) {
+  if (!isFlow(el)) return;
+  el.classList.add('flow');
+  const w = parseFloat(el.getAttribute('stroke-width')) || 5;
+  el.shimmer = mk('path', { d: el.getAttribute('d'), fill: 'none', stroke: '#fff', 'stroke-width': Math.max(1.5, w * .45), 'stroke-linecap': 'round', class: 'shimmer', 'pointer-events': 'none' });
+  el.after(el.shimmer);
+}
 async function draw(id, ms = 800) {
   const el = strokeOf(id);
-  if (el.tagName !== 'g') return drawEl(el, ms);
+  if (el.tagName !== 'g') { await drawEl(el, ms); flowify(el); return; }
   // recipe: saari lines ek-ek karke (lambai ke hisaab se samay), phir uske labels
-  const inks = [...el.querySelectorAll('.ink')], total = inks.reduce((s, e) => s + e.getTotalLength(), 0);
+  // .linked: a pin's outline kept inside the drawing it points at; the pin draws it (el.linked), the drawing does not
+  const inks = [...el.querySelectorAll('.ink:not(.linked)'), ...(el.linked || [])], total = inks.reduce((s, e) => s + e.getTotalLength(), 0);
   for (const e of inks) await drawEl(e, Math.max(50, ms * e.getTotalLength() / total));
   for (const t of el.querySelectorAll('.lbl')) await write(t, 500);
 }
@@ -181,6 +214,9 @@ function go(id, ms, pts) {             // tag ko waypoints se le jao (centre coo
 // Ek kan raaste par safar kare: "travel bodyIn,toLungs,fromLungs,toBody 6000 loop"
 // har raaste ka rang le leta hai; paas ke raaste jud jaate hain, door wale par kan chhup kar wahan nikalta hai
 async function travel(ids, ms, repeat, me = runId) {
+  // With a realistic drawing on the board, a dot running only along the arrows between the step tags looked like
+  // blood or urine flowing there (founder, 18 Oct 2026): a travel that touches none of the drawing is skipped.
+  if (scene.classList.contains('on-anat') && !ids.some(id => isFlow(els[id]) || els[id]?.closest?.('.anat'))) return;
   if (FAST) {                     // a one-off trip leaves nothing behind; a looping one starts once the seek is done
     if (repeat) setTimeout(() => me === runId && travel(ids, ms, repeat, me), 50);
     return;
@@ -237,7 +273,8 @@ async function run(cmd) {
   else if (op === 'loop') { loop(els[a[0]], a[1]); p = Promise.resolve(); }
   else if (op === 'travel') p = travel(a[0].split(','), nums[0], a[2] === 'loop');
   else throw new Error(`Unknown command "${op}"`);
-  if (!bg) await p;
+  // a looping travel never ends: waiting for it froze the lesson on that step (18 Oct 2026), so it always runs alongside
+  if (!bg && !(op === 'travel' && a[2] === 'loop')) await p;
 }
 
 function say(text) {

@@ -1,0 +1,48 @@
+{
+ "parts": {
+  "stalk": {
+   "name": "stalk",
+   "at": [
+    460,
+    380
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "anterior": {
+   "name": "anterior lobe",
+   "at": [
+    320,
+    780
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "posterior": {
+   "name": "posterior lobe",
+   "at": [
+    600,
+    780
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  },
+  "brain": {
+   "name": "brain above",
+   "at": [
+    700,
+    150
+   ],
+   "kind": "part",
+   "shapes": [
+    0
+   ]
+  }
+ }
+}

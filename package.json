@@ -14,7 +14,8 @@
     "test:e2e": "playwright test",
     "break": "scripts/break-check.sh",
     "break:selftest": "scripts/break-selftest.sh",
-    "test:pgtap": "supabase db reset && supabase test db"
+    "test:pgtap": "supabase db reset && supabase test db",
+    "cost": "sh scripts/cost.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.133.0",
