@@ -7,9 +7,9 @@ import sys, os, re, json
 out = sys.argv[1]
 here = os.path.dirname(os.path.abspath(__file__)); app = os.path.dirname(os.path.dirname(here))
 dest = os.path.join(app, 'public', 'player', 'lib', 'sv'); os.makedirs(dest, exist_ok=True)
-# The other sources (scripts/bioicons, scripts/phylopic) share the folder and catalogue: keep them.
+# The other sources (scripts/bioicons, scripts/phylopic, scripts/emoji) share the folder and catalogue: keep them.
 catf = os.path.join(here, 'sv-catalogue.json')
-bio = [c for c in json.load(open(catf)) if c['kit'].startswith(('Bioicons', 'PhyloPic'))] if os.path.exists(catf) else []
+bio = [c for c in json.load(open(catf)) if c['kit'].startswith(('Bioicons', 'PhyloPic', 'Fluent'))] if os.path.exists(catf) else []
 keep = {c['id'] + '.js' for c in bio}
 for f in os.listdir(dest):
     if f not in keep: os.remove(os.path.join(dest, f))

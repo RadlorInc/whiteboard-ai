@@ -18,7 +18,16 @@ const CATS = { Plants_Algae: 'plant', Animals: 'animal', Microbiology: 'microbe'
   Genetics: 'genetics cell division' };
 // Lab gear in Microbiology, model-organism lab states in Animals, and anything sick: not school biology.
 const SKIP = /tube|falcon|petri|plate|flask|bottle|pipette|microscope|chamber|raster|scraper|clamp|slide|burner|gel|erlenmeyer|centrifuge|sequencer|eppendorf|dilution|sorbitol|isolation|equipment|cultivation|incubation|hydroponics|titer|plaque|vial|injection|mutant|defective|eyeless|death|infection|gfp|expressing|marked|controlled|mosaic|radar|petri|_wp_|-wp-|sketch|idea|label|cultuure|quipment|^pet$|donating|temperature|pig|dog|beagle|guinea/i;   // pig, dog: house rules (player-src/lib/README.md)
-const KEEP_GENETICS = /^(meiosis|mitosis)$/i, KEEP_CELLS = /plant/i;
+const KEEP_GENETICS = /^(meiosis|mitosis|CRISPR_plasmid|CRISPR_Cas9|Budding_yeast)$/i, KEEP_CELLS = /plant/i;
+// 19 Oct 2026, finishing biology: a few lab and molecular pictures from other categories, picked by name (they pass
+// SKIP: a U-tube is lab gear, but it is the osmosis apparatus).
+const EXTRA = {
+  Chemistry: [/^(u-tube|Beaker_water|particles-smoke)$/i, 'lab osmosis diffusion'],
+  Cell_membrane: [/^(pink_transporter|membrane-2d-yellowblue)$/i, 'membrane transport diffusion osmosis'],
+  Receptors_channels: [/^(channel-membrane-lightorange|channel-lid-membrane|sodium-potassium-pump-membrane-ions)$/i, 'membrane channel transport diffusion active'],
+  Intracellular_components: [/^(mitochondria|simple_mitochondria_rod)$/i, 'cell organelle mitochondria respiration energy'],
+  Nucleic_acids: [/^(atp|plasmid-s|plasmid-s-insert-dna|plasmid-l-insert-dna|restriction_enzyme|CRISPR-CAS9-pink)$/i, 'dna genetic engineering gene'],
+};
 const COLOUR = /[-_ ](green|pink|purple|blue|yellow|orange|red|white|gray|grey|darkgray|cyan|brown|black|lightgray|lightyellow|colour|color|monochrome|v\d|\d)$/i;
 
 // School words the file names lack (a student says "butterfly", not "swallowtail").
@@ -36,12 +45,12 @@ const words = s => s.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' ').
 
 // Pick the icons: <licence>/<category>/<author>/<name>.svg
 const picks = [], seen = new Set();
-for (const lic of Object.keys(LICENCES)) for (const cat of Object.keys(CATS)) {
+for (const lic of Object.keys(LICENCES)) for (const cat of [...Object.keys(CATS), ...Object.keys(EXTRA)]) {
   const cdir = path.join(root, lic, cat); if (!fs.existsSync(cdir)) continue;
   for (const author of fs.readdirSync(cdir).sort()) for (const f of fs.readdirSync(path.join(cdir, author)).sort()) {
     if (!f.endsWith('.svg')) continue;
     const raw = f.slice(0, -4);
-    if (SKIP.test(raw) || (cat === 'Genetics' && !KEEP_GENETICS.test(raw)) || (cat === 'Cell_types' && !KEEP_CELLS.test(raw))) continue;
+    if (EXTRA[cat] ? !EXTRA[cat][0].test(raw) : SKIP.test(raw) || (cat === 'Genetics' && !KEEP_GENETICS.test(raw)) || (cat === 'Cell_types' && !KEEP_CELLS.test(raw))) continue;
     let base = raw; while (COLOUR.test(base)) base = base.replace(COLOUR, '');      // pig-green, pig-pink -> one pig
     const key = `${cat}/${base.toLowerCase().replace(/[^a-z]/g, '')}`; if (seen.has(key)) continue; seen.add(key);
     picks.push({ file: path.join(cdir, author, f), name: words(base), cat, author: words(author), licence: LICENCES[lic] });
@@ -55,7 +64,7 @@ for (const p of picks) {
   const d = await flatten(fs.readFileSync(p.file, 'utf8'));
   if (!d) { skipped++; continue; }
   outline(d);
-  const own = p.name.toLowerCase().match(/[a-z]+/g) || [], tags = [...new Set(`${p.name} ${CATS[p.cat]} ${own.map(w => Object.hasOwn(SYN, w) ? SYN[w] : '').join(' ')}`.toLowerCase().match(/[a-z]{3,}/g))].sort();
+  const own = p.name.toLowerCase().match(/[a-z]+/g) || [], tags = [...new Set(`${p.name} ${CATS[p.cat] ?? EXTRA[p.cat][1]} ${own.map(w => Object.hasOwn(SYN, w) ? SYN[w] : '').join(' ')}`.toLowerCase().match(/[a-z]{3,}/g))].sort();
   items.push({ name: p.name, kit: `Bioicons-${p.cat}`, tags, data: d, author: p.author, licence: p.licence });
 }
 await close();

@@ -119,7 +119,10 @@ const SUBJECTS = {
 - Ecology and evolution have their own recipes (life): nitrogencycle, carboncycle, habitat (draw it first as the
   scene, animals on top), cactus and polar bear for adaptation, fungus for decomposers, finch for Darwin's beaks,
   pepperedmoth for natural selection, cladogram for an evolution tree, fossil; the other kingdoms: protist, fungus,
-  lowerplant (moss, fern), dispersal for seeds.
+  lowerplant (moss, fern), dispersal for seeds. And for the rest of the syllabus: osmosis, diffusion, respiration
+  (aerobic, anaerobic, yeast), fermentation, transpiration, energypyramid, quadrat, geneticengineering, cloning,
+  kingdoms. Everyday things (fruit cut open, seeds, bread, a test tube, a balloon, a factory, a car, smog, a log, the
+  sun, rain) are colour drawings: search "<thing> colour".
 - For one particular animal or plant, take the first that exists (founder, 19 Oct 2026): a whiteboard recipe, then a
   realistic coloured drawing, then its silhouette (search "<animal> silhouette": one dark cut-out shape), and only
   then draw it yourself. Silhouettes also suit classification and evolution trees: all alike, a row of them reads

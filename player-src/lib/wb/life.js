@@ -338,6 +338,143 @@
   };
   const dispersal = make(220, (g, o) => pick(DISPERSE, o.k, 'dandelion', 'seed')(g));
 
+  // ---------- 19 Oct 2026: the rest of school biology (cells, energy, plants, ecology methods, biotechnology) ----------
+  const particles = (g, n, x0, y0, w, h, c, seed = 1) => { let r = seed * 9301 + 49297;
+    const rnd = () => (r = (r * 9301 + 49297) % 233280) / 233280;
+    for (let i = 0; i < n; i++) P(g, E(x0 + rnd() * w, y0 + rnd() * h, 6), c, '#333', 1.4); };
+  // osmosis: a U-tube split by a partly permeable membrane; water moves into the sugar side, whose level rises
+  const osmosis = make(300, (g, o) => {
+    const end = o.k === 'end', up = end ? 30 : 0;
+    P(g, 'M-120 -110 L-120 70 Q-120 120 -70 120 L70 120 Q120 120 120 70 L120 -110 L80 -110 L80 66 Q80 80 66 80 L-66 80 Q-80 80 -80 66 L-80 -110 Z', '#eef6fb', '#5a6a7a', 3);
+    F(g, `M-118 ${-40 + up} L-118 70 Q-118 118 -70 118 L0 118 L0 82 L-66 82 Q-82 82 -82 66 L-82 ${-40 + up} Z`, '#a9d8f2');       // water side
+    F(g, `M118 ${-40 - up} L118 70 Q118 118 70 118 L0 118 L0 82 L66 82 Q82 82 82 66 L82 ${-40 - up} Z`, '#c9e6c0');                  // sugar side
+    line(g, 'M0 80 L0 120', '#c0392b', 5, { 'stroke-dasharray': '6 5' });                                                           // membrane
+    particles(g, end ? 3 : 6, 86, -20, 28, 120, '#3b8fd8', 2); particles(g, 5, 88, 0, 26, 100, '#f3c33b', 3);
+    particles(g, end ? 9 : 6, -114, -20, 28, 120, '#3b8fd8', 4);
+    if (end) { arrow(g, 'M-40 100 L36 100', 36, 100, -40, 100, '#2b6cc4', 3); line(g, 'M90 -76 L114 -76', '#2f7d27', 3); }
+    if (lab(o)) { L(g, -100, -124, 'water', '#2b6cc4', 16); L(g, 100, -124, 'sugar solution', '#2f7d27', 16);
+      L(g, 0, 140, 'partly permeable membrane', '#c0392b', 15); if (end) L(g, 0, 70, 'water moves in', '#2b6cc4', 14); }
+    return 160;
+  });
+  // diffusion: particles spread from where there are many to where there are few
+  const diffusion = make(300, (g, o) => {
+    const end = o.k === 'end';
+    P(g, 'M-140 -80 L140 -80 L140 80 L-140 80 Z', '#fbfbf6', '#5a6a7a', 3);
+    if (end) particles(g, 24, -134, -74, 268, 148, '#e0566a', 5);
+    else { particles(g, 22, -134, -74, 80, 148, '#e0566a', 5); particles(g, 2, 40, -60, 90, 120, '#e0566a', 7);
+      arrow(g, 'M-40 0 L60 0', 60, 0, -40, 0, '#2b6cc4', 4); }
+    if (lab(o)) L(g, 0, 104, end ? 'spread out evenly' : 'high concentration → low concentration', '#444', 15);
+    return 130;
+  });
+  // respiration as a picture equation around a mitochondrion (aerobic), a muscle (anaerobic) or a yeast cell
+  const respiration = make(500, (g, o) => {
+    const k = o.k || 'aerobic', box = (x, y, t, c) => { P(g, `M${x - 66} ${y - 26} L${x + 66} ${y - 26} L${x + 66} ${y + 26} L${x - 66} ${y + 26} Z`, c, '#555', 2.4); L(g, x, y + 6, t, '#222', 16); };
+    const ins = k === 'aerobic' ? ['glucose', 'oxygen'] : ['glucose'], outs = k === 'aerobic' ? ['carbon dioxide', 'water', 'lots of energy']
+      : k === 'yeast' ? ['ethanol', 'carbon dioxide', 'a little energy'] : ['lactic acid', 'a little energy'];
+    ins.forEach((t, i) => box(-190, (i - (ins.length - 1) / 2) * 66, t, i ? '#cfe8fb' : '#fde7b0'));
+    outs.forEach((t, i) => box(190, (i - (outs.length - 1) / 2) * 66, t, /energy/.test(t) ? '#ffe08a' : '#e6e6e6'));
+    arrow(g, 'M-120 0 L-74 0', -74, 0, -120, 0, '#444', 3); arrow(g, 'M74 0 L120 0', 120, 0, 74, 0, '#444', 3);
+    if (k === 'aerobic') { P(g, E(0, 0, 66, 40), '#f4a38a', '#a0412a', 3); line(g, 'M-50 0 q10 -26 20 0 t20 0 t20 0 t20 0 t20 0', '#a0412a', 2.4); }
+    else if (k === 'yeast') { P(g, E(0, 0, 50, 44), '#f6e7b8', '#a08a4a', 3); P(g, E(-10, 4, 16), '#e0c47a', '#8a6a2a', 2); P(g, E(46, -34, 14, 12), '#f6e7b8', '#a08a4a', 2); }
+    else { P(g, smooth([[-60, -10], [-20, -34], [40, -30], [64, 0], [40, 30], [-20, 34]]), '#d9534f', '#7a1f1f', 3); for (const x of [-36, -14, 8, 30]) line(g, `M${x} -26 l0 52`, '#7a1f1f', 1.6); }
+    if (lab(o)) L(g, 0, 120, k === 'aerobic' ? 'in mitochondria, with oxygen' : k === 'yeast' ? 'yeast, no oxygen: fermentation' : 'muscle, no oxygen', '#555', 16);
+  });
+  // fermentation: yeast in sugar water in a flask; the carbon dioxide blows up a balloon
+  const fermentation = make(260, (g, o) => {
+    const big = o.k === 'end';
+    P(g, E(0, big ? -126 : -100, big ? 40 : 18, big ? 46 : 20), '#e04b3a', '#8a1f12', 2.6);                           // balloon
+    P(g, 'M-14 -84 L-14 -40 L-80 80 Q-84 100 -64 100 L64 100 Q84 100 80 80 L14 -40 L14 -84 Z', '#eef6fb', '#5a6a7a', 3);
+    F(g, 'M-50 24 L50 24 L80 80 Q84 98 64 98 L-64 98 Q-84 98 -80 80 Z', '#f6e7b8');
+    line(g, 'M-50 24 L50 24', '#c9a040', 2.4);
+    for (const [x, y] of [[-30, 60], [10, 70], [34, 50], [-6, 40], [20, 84]]) line(g, E(x, y, 4), '#fff', 1.8);
+    for (const [x, y] of [[-40, 80], [0, 56], [40, 76]]) P(g, E(x, y, 6), '#c9a040', '#8a6a2a', 1.2);
+    if (lab(o)) { L(g, 90, 60, 'yeast + sugar water', '#8a6a2a', 15, 'start'); L(g, 60, big ? -126 : -100, 'carbon dioxide fills it', '#8a1f12', 15, 'start'); }
+    return 130;
+  });
+  // transpiration: water from the roots up the xylem, out through the leaves' stomata as vapour
+  const transpiration = make(400, (g, o) => {
+    P(g, 'M-200 110 L200 110 L200 190 L-200 190 Z', '#d9b88c', SOILI, 2.4);
+    P(g, E(150, -150, 26), '#ffd84a', '#e09f00', 2);
+    line(g, 'M0 110 L0 -120', '#2f7d27', 8);
+    for (const [y, s] of [[-40, -1], [-90, 1], [10, 1]]) P(g, `M0 ${y} q${s * 70} -50 ${s * 120} -20 q${-s * 50} 40 ${-s * 120} 20 Z`, GREEN, LEAF, 2.4);
+    line(g, 'M0 110 L-30 160 M0 120 L28 170 M0 130 L-8 180 M-30 160 L-52 176 M28 170 L46 182', '#8a6a3a', 3);
+    for (const [x, y] of [[-40, 170], [40, 176], [-10, 150]]) dot(g, x, y, '#3b8fd8', 8);
+    arrow(g, 'M8 160 L8 -100', 8, -100, 8, 160, '#2b6cc4', 3.4);
+    for (const [x, y] of [[-110, -78], [110, -128], [110, -22]]) line(g, `M${x} ${y} q-6 -14 0 -26 q6 -14 0 -26`, '#7fb7ea', 2.6);
+    if (lab(o)) { L(g, 60, 150, 'roots take in water', '#2b6cc4', 15, 'start'); L(g, 20, 40, 'up the xylem', '#2b6cc4', 15, 'start');
+      L(g, -110, -150, 'water vapour out of stomata', '#4f93d6', 15, 'start'); }
+    return 210;
+  });
+  // energy pyramid: each level keeps about a tenth of the energy of the one below
+  const energypyramid = make(400, (g, o, t) => {
+    const names = list(t, 'Producers, Herbivores, Carnivores, Top carnivores'), n = names.length, C = ['#8cc63f', '#f3c33b', '#f4a531', '#e07a5f', '#c0392b'];
+    names.forEach((nm, i) => { const y1 = 150 - i * (300 / n), y0 = y1 - 300 / n, w1 = 380 * (1 - i / n), w0 = 380 * (1 - (i + 1) / n);
+      P(g, `M${-w1 / 2} ${y1} L${w1 / 2} ${y1} L${w0 / 2} ${y0} L${-w0 / 2} ${y0} Z`, C[i % 5], '#555', 2.4);
+      const txt = lab(o) ? `${nm} (${[100, 10, 1, 0.1, 0.01][i]}%)` : nm, room = (w0 + w1) / 2 - 16;
+      const fit = room / (txt.length * .5), my = (y0 + y1) / 2;
+      if (fit >= 13) label(g, 0, my + 7, txt, '#222', Math.min(18, fit), 'middle');
+      else { line(g, `M${w1 / 4} ${my} L${w1 / 2 + 30} ${my}`, '#8a8f96', 1.4); label(g, w1 / 2 + 36, my + 6, txt, '#222', 16, 'start'); } });   // too narrow: beside it
+  });
+  // quadrat: a square frame laid on grass to count the plants inside
+  const quadrat = make(300, (g, o) => {
+    F(g, 'M-150 -110 L150 -110 L150 110 L-150 110 Z', '#b9d98a');
+    for (let x = -140; x < 150; x += 18) line(g, `M${x} ${100 - (x * 7 % 13)} q-2 -10 -4 -16`, '#6a9a2a', 2);
+    for (const [x, y] of [[-40, -20], [20, 30], [50, -40], [-60, 40], [90, 60], [-110, -70]]) { for (let a = 0; a < 6.28; a += 1.05) P(g, E(x + 7 * Math.cos(a), y + 7 * Math.sin(a), 4), '#fff', '#aaa', 1); P(g, E(x, y, 4), '#f3c33b', '#c9952a', 1); }
+    P(g, 'M-90 -80 L70 -80 L70 80 L-90 80 Z', 'none', '#c0392b', 6);
+    for (const v of [-50, -10, 30]) line(g, `M${v} -80 L${v} 80`, '#c0392b', 1.6);
+    for (const v of [-40, 0, 40]) line(g, `M-90 ${v} L70 ${v}`, '#c0392b', 1.6);
+    if (lab(o)) L(g, 0, 140, 'count the plants inside the square', '#c0392b', 15);
+    return 160;
+  });
+  // genetic engineering: cut a plasmid, add the human gene, put it back in a bacterium, which makes the protein
+  const geneticengineering = make(600, (g, o) => {
+    const plas = (x, y, gap) => { line(g, gap ? `M${x + 30} ${y - 10} A32 32 0 1 0 ${x + 30} ${y + 10}` : E(x, y, 32), '#2b6cc4', 5); };
+    const bact = (x, y) => P(g, `M${x - 60} ${y} Q${x - 60} ${y - 34} ${x - 26} ${y - 34} L${x + 26} ${y - 34} Q${x + 60} ${y - 34} ${x + 60} ${y} Q${x + 60} ${y + 34} ${x + 26} ${y + 34} L${x - 26} ${y + 34} Q${x - 60} ${y + 34} ${x - 60} ${y} Z`, '#cfeef0', '#2f6a7a', 2.6);
+    bact(-240, 0); plas(-240, 0, false);
+    arrow(g, 'M-170 0 L-130 0', -130, 0, -170, 0, '#444', 3);
+    plas(-80, 0, true); line(g, 'M-50 -10 L-40 -24 M-50 10 L-40 24', '#c0392b', 3);                                   // cut by an enzyme
+    line(g, 'M-26 -60 q10 -8 20 0 t20 0 t20 0', '#c0392b', 6); dot(g, 10, -60, '#c0392b', 4);                           // the human gene
+    arrow(g, 'M0 -44 L-40 -6', -40, -6, 0, -44, '#c0392b', 2.6);
+    arrow(g, 'M-20 40 L60 40', 60, 40, -20, 40, '#444', 3);
+    line(g, E(110, 0, 32), '#2b6cc4', 5); line(g, 'M136 -18 A32 32 0 0 1 142 6', '#c0392b', 6);
+    arrow(g, 'M160 0 L190 0', 190, 0, 160, 0, '#444', 3);
+    bact(250, 0); line(g, E(250, 0, 22), '#2b6cc4', 4); line(g, 'M266 -14 A22 22 0 0 1 270 6', '#c0392b', 5);
+    for (const [x, y] of [[300, -50], [318, -30], [290, -64]]) P(g, E(x, y, 7), '#f3c33b', '#c9952a', 1.6);
+    if (lab(o)) { L(g, -240, 66, 'plasmid in a bacterium', '#2f6a7a', 15); L(g, -60, 66, 'cut open', '#c0392b', 15); L(g, 10, -80, 'human gene', '#c0392b', 15);
+      L(g, 110, 66, 'gene inserted', '#2b6cc4', 15); L(g, 250, 66, 'bacteria make the protein', '#2f6a7a', 15); }
+  });
+  // cloning (Dolly): a body cell's nucleus goes into an egg cell with its own nucleus removed; the embryo grows into a lamb
+  const cloning = make(600, (g, o) => {
+    const sheep = (x, y, s, c) => { const k = mk('g', { transform: `translate(${x} ${y}) scale(${s})` }, g);
+      for (const lx of [-24, -10, 12, 26]) line(k, `M${lx} 14 L${lx} 40`, '#4a4a4a', 5);
+      P(k, `M-40 0 Q-44 -26 -16 -28 Q10 -40 30 -24 Q48 -10 40 10 Q30 24 0 22 Q-36 26 -40 0 Z`, c, '#6a6058', 2.4);
+      P(k, E(48, -18, 13, 11), '#4a4a4a', '#2a2a2a', 2); return k; };
+    const cell = (x, y, nuc) => { P(g, E(x, y, 30), '#fbe7d6', '#a0623a', 2.4); if (nuc) P(g, E(x, y, 11), '#a07ac0', '#5a3a7a', 2); };
+    sheep(-250, -60, 1, '#f4efe6'); cell(-250, 40, true); arrow(g, 'M-250 -20 L-250 8', -250, 8, -250, -20, '#444', 2.4);
+    sheep(-100, -60, 1, '#e8e2d6'); cell(-100, 40, false); line(g, 'M-110 30 l20 20 M-90 30 l-20 20', '#c0392b', 3);
+    arrow(g, 'M-220 40 L-132 40', -132, 40, -220, 40, '#5a3a7a', 3);
+    arrow(g, 'M-66 40 L10 40', 10, 40, -66, 40, '#444', 3);
+    for (const [dx, dy] of [[-8, -8], [8, -8], [-8, 8], [8, 8]]) P(g, E(40 + dx, 40 + dy, 10), '#fbe7d6', '#a0623a', 2);
+    arrow(g, 'M70 40 L140 40', 140, 40, 70, 40, '#444', 3);
+    sheep(220, 30, 1.3, '#e8e2d6'); sheep(220, 110, .7, '#f4efe6');
+    if (lab(o)) { L(g, -250, 96, 'body cell', '#a0623a', 15); L(g, -100, 96, 'egg cell, nucleus out', '#a0623a', 15);
+      L(g, 40, 96, 'embryo', '#a0623a', 15); L(g, 220, 150, 'the lamb is a clone', '#444', 15); }
+  });
+  // the five kingdoms, one box each with a small picture
+  const kingdoms = make(640, (g, o) => {
+    const K = [['Animals', '#f4a531'], ['Plants', '#8cc63f'], ['Fungi', '#c98a4a'], ['Protists', '#7fb7ea'], ['Bacteria', '#e07a5f']];
+    K.forEach(([nm, c], i) => {
+      const x = -256 + i * 128;
+      P(g, `M${x - 56} -90 L${x + 56} -90 L${x + 56} 90 L${x - 56} 90 Z`, '#fffdf6', c, 3);
+      label(g, x, -62, nm, '#222', 18, 'middle');
+      if (i === 0) { P(g, E(x, 20, 30, 20), '#c8a2a2', '#6a4a4a', 2); P(g, E(x + 30, 2, 12, 10), '#c8a2a2', '#6a4a4a', 2); line(g, `M${x - 16} 36 l0 22 M${x + 14} 36 l0 22`, '#6a4a4a', 4); }
+      if (i === 1) { line(g, `M${x} 60 L${x} -10`, '#2f7d27', 4); P(g, `M${x} 20 q30 -20 40 0 q-20 14 -40 0 Z`, GREEN, LEAF, 2); P(g, E(x, -20, 14), '#f4a3c0', '#a03a5a', 2); }
+      if (i === 2) shroom(g, x, 60, 1.6, '#c98a4a');
+      if (i === 3) { P(g, smooth([[x - 36, 10], [x - 20, -16], [x + 16, -14], [x + 36, 6], [x + 20, 34], [x - 20, 34]]), '#cfeef0', '#2f6a7a', 2); P(g, E(x, 10, 8), '#9ab0e0', '#3a4a8a', 1.4); }
+      if (i === 4) { P(g, `M${x - 36} 20 Q${x - 36} 0 ${x - 18} 0 L${x + 18} 0 Q${x + 36} 0 ${x + 36} 20 Q${x + 36} 40 ${x + 18} 40 L${x - 18} 40 Q${x - 36} 40 ${x - 36} 20 Z`, '#f6c2b0', '#a0412a', 2); line(g, `M${x + 36} 20 q14 -10 22 6`, '#a0412a', 2); }
+    });
+  });
+
   Object.assign(window.RECIPES, {
     nitrogencycle: nitrogencycle,
     habitat: habitat,
@@ -349,5 +486,15 @@
     protist: protist,
     lowerplant: lowerplant,
     dispersal: dispersal,
+    osmosis: osmosis,
+    diffusion: diffusion,
+    respiration: respiration,
+    fermentation: fermentation,
+    transpiration: transpiration,
+    energypyramid: energypyramid,
+    quadrat: quadrat,
+    geneticengineering: geneticengineering,
+    cloning: cloning,
+    kingdoms: kingdoms,
   });
 })();

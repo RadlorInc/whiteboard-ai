@@ -174,6 +174,54 @@
   "licence": "CC0"
  },
  {
+  "id": "crispr-cas9",
+  "name": "CRISPR Cas9",
+  "author": "Marcel Tisch",
+  "licence": "CC0"
+ },
+ {
+  "id": "crispr-plasmid",
+  "name": "CRISPR plasmid",
+  "author": "Marcel Tisch",
+  "licence": "CC0"
+ },
+ {
+  "id": "budding-yeast",
+  "name": "Budding yeast",
+  "author": "umasstr",
+  "licence": "CC0"
+ },
+ {
+  "id": "u-tube",
+  "name": "u tube",
+  "author": "Open Clipart",
+  "licence": "CC0"
+ },
+ {
+  "id": "beaker-water",
+  "name": "Beaker water",
+  "author": "n Ull",
+  "licence": "CC0"
+ },
+ {
+  "id": "mitochondria-13",
+  "name": "mitochondria",
+  "author": "jaiganesh",
+  "licence": "CC0"
+ },
+ {
+  "id": "atp",
+  "name": "atp",
+  "author": "Simon Dürr",
+  "licence": "CC0"
+ },
+ {
+  "id": "restriction-enzyme",
+  "name": "restriction enzyme",
+  "author": "Simon Dürr",
+  "licence": "CC0"
+ },
+ {
   "id": "ananas",
   "name": "ananas",
   "author": "Servier",
@@ -542,6 +590,30 @@
  {
   "id": "meiosis-2",
   "name": "meiosis",
+  "author": "Servier",
+  "licence": "CC BY 3.0"
+ },
+ {
+  "id": "membrane-2d-yellowblue",
+  "name": "membrane 2d yellowblue",
+  "author": "Servier",
+  "licence": "CC BY 3.0"
+ },
+ {
+  "id": "channel-lid-membrane",
+  "name": "channel lid membrane",
+  "author": "Servier",
+  "licence": "CC BY 3.0"
+ },
+ {
+  "id": "channel-membrane-lightorange",
+  "name": "channel membrane lightorange",
+  "author": "Servier",
+  "licence": "CC BY 3.0"
+ },
+ {
+  "id": "sodium-potassium-pump-membrane-ions",
+  "name": "sodium potassium pump membrane ions",
   "author": "Servier",
   "licence": "CC BY 3.0"
  },
@@ -2385,6 +2457,42 @@
   "id": "structure-of-plant-cell",
   "name": "Structure of Plant Cell",
   "author": "Durvesh Burhade & Niliksha Patel",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "pink-transporter",
+  "name": "pink transporter",
+  "author": "Helicase 11",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "simple-mitochondria-rod",
+  "name": "simple mitochondria rod",
+  "author": "Marnie Maddock",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "crispr-cas9-2",
+  "name": "CRISPR CAS9",
+  "author": "DBCLS",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "plasmid-l-insert-dna",
+  "name": "plasmid l insert dna",
+  "author": "DBCLS",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "plasmid-s-insert-dna",
+  "name": "plasmid s insert dna",
+  "author": "DBCLS",
+  "licence": "CC BY 4.0"
+ },
+ {
+  "id": "plasmid-s",
+  "name": "plasmid s",
+  "author": "DBCLS",
   "licence": "CC BY 4.0"
  }
 ]

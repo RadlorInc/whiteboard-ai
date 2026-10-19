@@ -1,4 +1,4 @@
-// Shared by the library sources (scripts/bioicons, scripts/phylopic): any SVG -> the same on-demand
+// Shared by the library sources (scripts/bioicons, scripts/phylopic, scripts/emoji): any SVG -> the same on-demand
 // drawing files as the Servier library (public/player/lib/sv/<id>.js) and entries in scripts/servier/sv-catalogue.json.
 import fs from 'node:fs';
 import path from 'node:path';
