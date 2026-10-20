@@ -48,7 +48,7 @@ const libIndex = lib => lib.map(c => isSv(c)
 const PRIMITIVES = ['circle', 'ellipse', 'rect', 'line', 'arrow', 'path', 'text', 'tag'];
 const typesOf = lib => new Set([...PRIMITIVES, ...RECIPE_NAMES, ...lib.filter(c => !isSv(c)).flatMap(c => c.lines.map(l => l.name)), ...(lib.some(isSv) ? ['sv'] : [])]);
 const TYPES = typesOf(WB_ALL);                                    // what the checks accept: every loaded drawing
-const COMMANDS = new Set(['draw', 'write', 'fill', 'pop', 'fade', 'go', 'cam', 'wait', 'loop', 'travel']);
+const COMMANDS = new Set(['draw', 'write', 'fill', 'pop', 'fade', 'go', 'cam', 'wait', 'loop', 'travel', 'mark']);
 const LOOPS = new Set(['beat', 'flow', 'fall', 'rise', 'sway', 'swing']);
 const catalogue = fs.readFileSync(path.join(genDir, 'recipe-catalogue.md'), 'utf8');
 
@@ -272,8 +272,19 @@ const REUSE = `
   fixtures, appliances, car parts) and every realistic drawing are searchable from every subject. Many drawings write
   their own part names or captions: when you reuse one for something else, or want your own words, add lab=0 to hide
   them and name the parts yourself (pins on realistic drawings, text with a thin leader line on the others).`;
+// Like a teacher at the board (founder, 20 Oct 2026): the pen moves on the spoken word, and points back at what is
+// already drawn. Subject prompts only: the plain prompt stays the prototype's.
+const TEACHER = `
+- Draw on the word, like a teacher at the board: start a command with @<word> and it runs the moment the voice says
+  that word of this step's "say", e.g. say "Step 2: The nucleus holds the DNA." with do ["@nucleus draw nuc",
+  "@DNA write dnaText"]. The word is written as it is in the say; cues follow the order their words are spoken. Cue the
+  main drawing and naming commands of every step on the word that names the thing; a command with no cue runs as soon
+  as the one before it ends.
+- Point back, like a teacher: mark <id> circle|underline|point circles, underlines or points an arrow at something
+  already on the board, from this step or an earlier one, in red chalk that fades after a moment. Cue it on the word
+  that names it (e.g. "@valve mark v1 circle") when the voice comes back to that part or stresses a term or number.`;
 const SUBJECT_RULES = Object.fromEntries(Object.entries(SUBJECTS).map(([s, { cats: cs, teach }]) =>
-  [s, wbRules(cs.map(c => WB_ALL.find(x => x.cat === c)), teach + REUSE + DRAW_OWN[s])]));
+  [s, wbRules(cs.map(c => WB_ALL.find(x => x.cat === c)), teach + REUSE + TEACHER + DRAW_OWN[s])]));
 
 // ---------- Paper motion (stop-motion / paper): scenes of library drawings on a 960x600 canvas ----------
 const smCtx = { window: {} };

@@ -4,6 +4,7 @@ import { requireAccount } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { Chat, type Turn } from "@/components/Chat";
 import type { Subject } from "@/components/Chats";
+import type { Level } from "@/lib/videos";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -19,12 +20,12 @@ export default async function Conversation({ params }: { params: Promise<{ id: s
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const account = await requireAccount(`/c/${id}`);
   const sb = await createClient();
-  const { data: c } = await sb.from("conversations").select("id, subject").eq("id", id).maybeSingle();   // RLS: own only
+  const { data: c } = await sb.from("conversations").select("id, subject, level").eq("id", id).maybeSingle();   // RLS: own only
   if (!c) notFound();
   const { data: rows } = await sb.from("generations").select("id, question, style, status, script").eq("conversation_id", id)
     .is("content_deleted_at", null).not("question", "is", null).order("created_at", { ascending: true });
   return (
-    <Chat key={id} conversationId={id} subject={c.subject as Subject} turns={(rows ?? []) as Turn[]}
+    <Chat key={id} conversationId={id} subject={c.subject as Subject} level={c.level as Level} turns={(rows ?? []) as Turn[]}
       available={account.available} firstRun={false} />
   );
 }

@@ -63,7 +63,7 @@ export const supabaseDb: GenDb = {
     return (data ?? []) as CacheState[];
   },
   async thread(userId, conversationId) {
-    const { data: c, error } = await admin().from('conversations').select('subject')
+    const { data: c, error } = await admin().from('conversations').select('subject, level')
       .eq('id', conversationId).eq('user_id', userId).maybeSingle();
     if (error) throw new Error(`thread: ${error.message}`);
     if (!c) return null;
@@ -73,7 +73,7 @@ export const supabaseDb: GenDb = {
     if (e2) throw new Error(`thread: ${e2.message}`);
     const turns = (rows ?? []).reverse().map(r => ({ question: r.question as string,
       says: (((r.script as { steps?: { say?: unknown }[] } | null)?.steps) ?? []).map(s => String(s.say ?? '')) }));
-    return { subject: c.subject as Thread['subject'], turns };
+    return { subject: c.subject as Thread['subject'], level: (c.level ?? 'school') as Thread['level'], turns };
   },
   attach: (generationId, conversationId, userId) =>
     rpc<boolean>('attach_to_conversation', { p_generation_id: generationId, p_conversation_id: conversationId, p_user_id: userId }),

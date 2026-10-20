@@ -2,10 +2,11 @@
 // route.ts passes the real database, model, user and after(); tests pass fakes.
 import { runGeneration } from './run';
 import { POLICY_VERSION } from './checks.mjs';
-import { promptSha, STYLES, type ModelClient, type Style } from './model';
-import type { GenDb, ReserveOutcome, Thread } from './db';
 
 export const HOLD_CREDITS = 6;
+import { promptSha, STYLES, type ModelClient, type Style } from './model';
+import type { GenDb, Level, ReserveOutcome, Thread } from './db';
+
 export const HEARTBEAT_MS = 10_000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (s: unknown): s is string => typeof s === 'string' && UUID.test(s);
@@ -51,8 +52,15 @@ const existing = (g: { id: string; status: string }) =>
 const SUBJECT = { biology: 'Biology', physics: 'Physics', chemistry: 'Chemistry', home: 'Home fixes', car: 'Car fixes' } as const;
 // One text block per earlier turn, each byte-identical on every later follow-up, so the conversation so far is a
 // cached prefix (run.ts marks the last block): a follow-up pays full price only for its newest turn (18 Oct 2026).
+// The level (founder, 20 Oct 2026) changes what is taught, never how long: every video keeps the prompt's length rule.
+// Each says what a course at that level teaches about the topic, so the model picks the right idea, not more of them.
+const LEVEL_TEXT: Record<Level, string> = {
+  school: '\nLevel: high school. Teach what a high-school course teaches about this: the picture and the idea, in everyday words, at most one simple formula.',
+  undergrad: '\nLevel: college (an undergraduate major). Teach what an undergraduate course teaches about this: the real model with its proper terms and its key equation, symbols defined on the board. Same length as any lesson: choose that core idea, do not add more.',
+  grad: '\nLevel: graduate school. The asker knows the undergraduate picture: teach what a graduate course teaches about this: the more complete model, or where the simple picture breaks down, with its key result on the board. Same length as any lesson: choose the one idea a graduate course stresses, do not cover more.',
+};
 export function threadContext(t: Thread): string[] {
-  const head = `Subject: ${SUBJECT[t.subject]}.`;
+  const head = `Subject: ${SUBJECT[t.subject]}.${LEVEL_TEXT[t.level ?? 'school']}`;
   if (t.turns.length === 0) return [head];
   return [`${head}\nThis question is a follow-up in a conversation. Earlier questions and the lessons you gave:`,
     ...t.turns.map((x, i) => `${i + 1}. Question: ${x.question}\n   You explained: ${x.says.join(' ')}`)];

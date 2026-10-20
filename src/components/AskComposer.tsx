@@ -8,7 +8,7 @@ import { VoiceProgress } from "./Voice";
 import { Icon } from "./Icon";
 import { SUBJECT_GROUPS, SUBJECT_NAME, type Subject } from "./Chats";
 
-import { HOLD_CREDITS } from "@/lib/videos";
+import { HOLD_CREDITS, LEVELS, LEVEL_NAME, type Level } from "@/lib/videos";
 const EXAMPLES: Record<Subject, string[]> = {
   biology: ["How does the heart pump blood?", "How do we breathe?", "What does DNA do?"],
   physics: ["How does a rainbow form?", "Why do things fall?", "How does a car engine work?"],
@@ -19,10 +19,11 @@ const EXAMPLES: Record<Subject, string[]> = {
 const MAX = 500;
 
 // onAsk: the chat takes the question; busy holds the button while its video is made (one video at a time).
-// onSubject: the subject can still change (a new chat); without it the subject is fixed and only shown.
-export function AskComposer({ available, firstRun, onAsk, busy = false, placeholder = "Ask anything…", subject, onSubject }: {
+// onSubject: the subject can still change (a new chat); without it the subject is fixed and only shown. The level
+// (study subjects only; founder, 20 Oct 2026) works the same way: onLevel while the chat is new.
+export function AskComposer({ available, firstRun, onAsk, busy = false, placeholder = "Ask anything…", subject, onSubject, level = "school", onLevel }: {
   available: number; firstRun: boolean; onAsk: (question: string, explore: boolean) => void; busy?: boolean;
-  placeholder?: string; subject: Subject; onSubject?: (s: Subject) => void;
+  placeholder?: string; subject: Subject; onSubject?: (s: Subject) => void; level?: Level; onLevel?: (l: Level) => void;
 }) {
   const [question, setQuestion] = useState("");
   const [explore, setExploreTick] = useState(true);   // every new video goes to Explore (founder, 15 Oct 2026)
@@ -51,6 +52,7 @@ export function AskComposer({ available, firstRun, onAsk, busy = false, placehol
     el.style.height = `${Math.min(el.scrollHeight, line * 6)}px`;
   }, [question]);
 
+  const study = subject !== "home" && subject !== "car";
   const enough = available >= HOLD_CREDITS;
   const empty = question.trim().length === 0;
 
@@ -97,6 +99,17 @@ export function AskComposer({ available, firstRun, onAsk, busy = false, placehol
           ) : (
             <span className="subject-pick locked" title="A chat keeps its subject. Start a new chat for another.">{SUBJECT_NAME[subject]}</span>
           )}
+          {study && (onLevel ? (
+            <label className="subject-pick" title="What to teach: a high-school, college or grad-school lesson">
+              <span className="sr-only">Level</span>
+              <select value={level} onChange={(e) => onLevel(e.target.value as Level)}>
+                {LEVELS.map((l) => <option key={l} value={l}>{LEVEL_NAME[l]}</option>)}
+              </select>
+              <Icon name="chevronDown" size={14} />
+            </label>
+          ) : (
+            <span className="subject-pick locked" title="A chat keeps its level. Start a new chat for another.">{LEVEL_NAME[level]}</span>
+          ))}
           {question.length >= 400 && <span className="count">{question.length} / {MAX}</span>}
           {enough ? (
             <button type="submit" className="send" aria-label="Ask" disabled={empty || busy}>

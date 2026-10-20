@@ -56,6 +56,27 @@ describe('check.mjs §1–2c: approved answers pass, planted faults go red', () 
   });
 });
 
+describe('word cues and marks (teacher at the board, 20 Oct 2026)', () => {
+  const els = { nuc: 'circle 100 100 40', dna: 'text 200 100 s=20 | DNA' };
+  const step = (say: string, ...cmds: string[]) => checkStep({ say, do: cmds }, 0, els);
+  it('a cue on a word of the say passes, & and punctuation and case allowed, in spoken order', () => {
+    expect(step('Step 1: The nucleus holds the DNA.', '@nucleus draw nuc', '&@dna write dna', '@DNA &fade dna 0.5', 'mark nuc circle', '@DNA mark dna underline')).toEqual([]);
+  });
+  it('a cue that is not in the say, or comes before the cue ahead of it, fails', () => {
+    expect(step('Step 1: The nucleus.', '@cell draw nuc')[0]).toMatch(/not a word of this step's say/);
+    expect(step('Step 1: The nucleus holds the DNA.', '@DNA write dna', '@nucleus draw nuc')[0]).toMatch(/after the cue before it/);
+  });
+  it('mark needs an id on the board and circle, underline or point', () => {
+    expect(step('Step 1: x', 'mark nuc box')[0]).toMatch(/unknown mark/);
+    expect(step('Step 1: x', 'mark ghost point')[0]).toMatch(/missing id/);
+  });
+  it('policy and safety read the command behind the cue', () => {
+    const a = { q: 'q', els, steps: [{ say: 'Step 1: The nucleus.', do: ['@nucleus cam 1 2 3', '@nucleus go nuc 500 99999 0'] }] };
+    expect(checkPolicy(a, 'whiteboard').join()).toMatch(/no cam/);
+    expect(checkSafety(a, 'whiteboard').join()).toMatch(/out of range/);
+  });
+});
+
 describe('the per-step split is the same check', () => {
   it('check(a) = checkEls + every checkStep, also on broken answers', () => {
     const broken = clone(wb[2]); broken.els.x = 'dragon 1 1'; broken.steps[1].do.push('draw nobody'); broken.steps[2] = { say: 1 };

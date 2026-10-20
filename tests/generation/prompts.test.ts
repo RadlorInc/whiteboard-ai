@@ -55,11 +55,11 @@ describe('prompt sha parity', () => {
 
   // Subject prompts (founder, 18 Oct 2026): new prompts, so no prototype twin; these shas bind them the same way.
   const SUBJECT_EXPECTED = {
-    biology: '366bd79b6e62246c9cf01d85f48d20f6cb1f6010906c479acb80aeb684dc5470',
-    physics: '45ee4e57a39c2efde35868414b98b860a0bbc968e99b9933bbe5f542690e610e',
-    chemistry: '48f14e24b64d7099fb629c2be2a8fdd0016246c77e45ea10df17ccfc7f0e3cdc',
-    car: '5138230db477f2745a7ac6e105229b0b2c0b0ff93927706e69d47c9e4f89efe9',
-    home: '15cbdae9a5acb41f9a6090251290de0d871d708411bb29e05c1115e7cd67da7b',
+    biology: 'd97867f9d1a4523675d28f36f712fc5fab942c2d1b388f3c851f4c836f3b1473',
+    physics: '09bc8ffb112ccc5b76818bd2f777b91f03594e7de4dd4a1ff51252535e16951c',
+    chemistry: '921660f1f830ac44fd34c31220676876f9fdb73172eafc9e3f76d223ba0e0082',
+    car: '663fa90033aed54f59cebfbb659227fe5012a3c429f663dd15e3f399ec256bd6',
+    home: '75ab043b2a605ee6fb0bc30a86565fa63dc014694ddd783f59dbbfd9673c6f8f',
   } as const;
   for (const s of ['biology', 'physics', 'chemistry', 'car', 'home'] as const) it(`${s}: its own prompt, sha bound, only its categories listed`, () => {
     const t = P.subjects[s].system;

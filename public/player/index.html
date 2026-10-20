@@ -312,9 +312,38 @@ function loop(el, kind) {
   else throw new Error(`Unknown loop "${kind}"`);
 }
 
+// A teacher's mark (20 Oct 2026): circle, underline or point at something already on the board, in red chalk, on
+// the word that names it (bridge.js cues); it fades after a moment so the board stays clean. A seek skips it.
+async function mark(id, kind = 'circle', ms = 600) {
+  const e = els[id]; if (!e) throw new Error(`No element "${id}"`);
+  if (FAST) return;
+  const b = e.getBBox(), M = scene.getCTM().inverse().multiply(e.getCTM());
+  const pts = [[b.x, b.y], [b.x + b.width, b.y], [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]].map(([x, y]) => new DOMPoint(x, y).matrixTransform(M));
+  const x0 = Math.min(...pts.map(p => p.x)), x1 = Math.max(...pts.map(p => p.x)), y0 = Math.min(...pts.map(p => p.y)), y1 = Math.max(...pts.map(p => p.y));
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  let d;
+  if (kind === 'circle') {             // a hand loop: a little past all the way round, so the ends overlap like chalk
+    const rx = (x1 - x0) / 2 + 16, ry = (y1 - y0) / 2 + 14;
+    d = Array.from({ length: 41 }, (_, i) => { const t = -1.9 + i / 40 * 2.15 * Math.PI, k = 1 + .04 * Math.sin(i / 3);
+      return `${i ? 'L' : 'M'}${(cx + rx * k * Math.cos(t)).toFixed(1)} ${(cy + ry * k * Math.sin(t)).toFixed(1)}`; }).join(' ');
+  } else if (kind === 'underline') d = `M${x0 - 6} ${y1 + 10} Q${cx} ${y1 + 16} ${x1 + 6} ${y1 + 8}`;
+  else if (kind === 'point') {         // an arrow in from the side with more room, its tip just off the thing
+    const s = x0 > 960 - x1 ? -1 : 1, u = cy < 80 ? 1 : -1, tx = s < 0 ? x0 - 8 : x1 + 8, fx = tx + s * 90, fy = cy + u * 55;   // u: from above, or below near the top
+    d = `M${fx} ${fy} Q${tx + s * 30} ${fy} ${tx} ${cy} M${tx + s * 4} ${cy + u * 22} L${tx} ${cy} L${tx + s * 22} ${cy + u * 10}`;
+  } else throw new Error(`Unknown mark "${kind}"`);
+  const m = mk('path', { d, fill: 'none', stroke: '#e53935', 'stroke-width': 5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'pointer-events': 'none' });
+  scene.insertBefore(m, marker);
+  const L = m.getTotalLength(); m.style.strokeDasharray = L; m.style.strokeDashoffset = L;
+  await drawEl(m, ms);
+  wait(1800).then(() => m.isConnected && anim(m, [{ opacity: 1 }, { opacity: 0 }], { duration: 400, easing: 'linear' })).then(() => m.remove());
+}
+
+// A command may start with a cue, "@nucleus draw n1": bridge.js waits for the voice to say that word; here it is dropped.
+const bare = cmd => cmd.trim().replace(/^&\s*/, '').replace(/^@\S+\s+/, '').replace(/^&\s*/, '');   // "&@w x" or "@w &x"
+
 // Ek command: "draw sun 900", "fill a b c", "go p1 2000 360 150 620 150", "&pop x" (& = intezaar mat karo)
 async function run(cmd) {
-  const bg = cmd.startsWith('&'); const [op, ...a] = cmd.replace(/^&/, '').trim().split(/\s+/);
+  const bg = /^(@\S+\s+)?&/.test(cmd.trim()); const [op, ...a] = bare(cmd).split(/\s+/);
   const nums = a.slice(1).map(Number);
   let p;
   if (op === 'draw') p = draw(a[0], nums[0]);
@@ -327,6 +356,7 @@ async function run(cmd) {
   else if (op === 'wait') p = wait(+a[0]);
   else if (op === 'loop') { loop(els[a[0]], a[1]); p = Promise.resolve(); }
   else if (op === 'travel') p = travel(a[0].split(','), nums[0], a[2] === 'loop');
+  else if (op === 'mark') p = mark(a[0], a[1], nums[1]);
   else throw new Error(`Unknown command "${op}"`);
   // a looping travel never ends: waiting for it froze the lesson on that step (18 Oct 2026), so it always runs alongside
   if (!bg && !(op === 'travel' && a[2] === 'loop')) await p;
@@ -336,12 +366,15 @@ function say(text) {
   $('#caption').textContent = text;
   return new Promise(done => {
     const guess = 1200 + text.length * 70, tts = window.speechSynthesis;
-    if (!tts) return wait(guess).then(done);
+    if (!tts) { self.voiceStart?.(text, guess / 1000); return wait(guess).then(done); }
     const u = new SpeechSynthesisUtterance(text), v = tts.getVoices();
     u.voice = v.find(x => /Samantha|Google UK English Female|Veena|Rishi/.test(x.name)) || v.find(x => x.lang.startsWith('en')) || null;
     u.rate = 0.97;
     let fin = false; const end = () => { if (!fin) { fin = true; done(); } };
     u.onend = end; u.onerror = end;
+    // the board's cues (bridge.js) follow the words: when the speaking starts, and each word's place as it is reached
+    u.onstart = () => self.voiceStart?.(text, text.length * .07); u.onboundary = e => self.voiceAt?.(e.charIndex);
+    self.voiceStart?.(text, text.length * .07);     // a voice that never says onstart still moves the cues
     setTimeout(end, guess + 4000);                  // ponytail: Chrome kabhi onend nahi bhejta; ye bas bachaav hai
     tts.speak(u);
   });

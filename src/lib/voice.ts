@@ -135,8 +135,9 @@ if (typeof document !== "undefined") {
   document.addEventListener("keydown", unlockSound, true);
 }
 
-/** Plays one line's WAV; resolves when it ends (true) or cannot play (false). Refused for want of a tap: waits. */
-export function playSound(wav: ArrayBuffer): Promise<boolean> {
+/** Plays one line's WAV; resolves when it ends (true) or cannot play (false). Refused for want of a tap: waits.
+ *  onStart: the sound has really begun (after a "Tap for sound" too), so the board can draw on the spoken words. */
+export function playSound(wav: ArrayBuffer, onStart?: () => void): Promise<boolean> {
   stopSound();
   el ||= new Audio();
   const a = el, url = URL.createObjectURL(new Blob([wav], { type: "audio/wav" }));
@@ -144,12 +145,13 @@ export function playSound(wav: ArrayBuffer): Promise<boolean> {
     const me = {
       finish: (played: boolean) => {
         if (current !== me) return;
-        current = null; a.onended = a.onerror = null; URL.revokeObjectURL(url); setBlocked(false); resolve(played);
+        current = null; a.onended = a.onerror = a.onplaying = null; URL.revokeObjectURL(url); setBlocked(false); resolve(played);
       },
     };
     current = me;
     a.onended = () => me.finish(true);
     a.onerror = () => me.finish(false);
+    a.onplaying = () => { a.onplaying = null; onStart?.(); };    // once: a resume after pause fires it again
     a.src = url;
     a.play().then(() => { unlocked = true; }, (e: DOMException) => {
       if (e?.name === "NotAllowedError") setBlocked(true); else me.finish(false);
