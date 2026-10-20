@@ -27,7 +27,7 @@ describe('keep-warm window: 45 ≤ idle < 58 minutes, and a real ask within 24 h
     expect(shouldPing({ last_touch_at: touch == null ? null : ago(touch), last_real_at: real == null ? null : ago(real) }, NOW)).toBe(want);
   });
 
-  it('pings only the styles in the window, for the deployed prompt sha, and records each ping (check.mjs §2g)', async () => {
+  it('pings only whiteboard prompts in the window, for the deployed prompt sha, and records each ping (check.mjs §2g)', async () => {
     const { db, log } = fakeDb();
     db.cacheState = async () => [
       { style: 'whiteboard', prompt_sha: PROMPT_SHA.whiteboard, last_touch_at: ago(50), last_real_at: ago(50) },
@@ -37,8 +37,9 @@ describe('keep-warm window: 45 ≤ idle < 58 minutes, and a real ask within 24 h
     ];
     const ping = fakeClient([]);
     const out = await keepWarm(db, ping.client, NOW);
-    expect(out.map(o => [o.style, o.subject, o.pinged])).toEqual([['whiteboard', null, true], ['paper', null, false], ['matchcut', null, false],
-      ['whiteboard', 'biology', true], ['whiteboard', 'physics', false], ['whiteboard', 'chemistry', false]]);
+    expect(out.map(o => [o.style, o.subject, o.pinged])).toEqual([['whiteboard', null, true],
+      ['whiteboard', 'biology', true], ['whiteboard', 'physics', false], ['whiteboard', 'chemistry', false],
+      ['whiteboard', 'car', false], ['whiteboard', 'home', false]]);
     expect(ping.seen.length).toBe(2);
     expect(log.calls.map(c => [c.kind, c.style, c.generation_id, c.prompt_sha])).toEqual([['ping', 'whiteboard', null, PROMPT_SHA.whiteboard],
       ['ping', 'whiteboard', null, promptSha('whiteboard', 'biology')]]);

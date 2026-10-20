@@ -1,0 +1,44 @@
+[
+ {
+  "id": "spark-plug",
+  "name": "Spark plug",
+  "source": "https://commons.wikimedia.org/wiki/File:Spark_plug.svg",
+  "author": "algotruneman",
+  "licence": "CC0"
+ },
+ {
+  "id": "steering-wheel",
+  "name": "Steering wheel",
+  "source": "https://commons.wikimedia.org/wiki/File:Steering-wheel.svg",
+  "author": "gnokii",
+  "licence": "CC0"
+ },
+ {
+  "id": "gas-pump-nozzle",
+  "name": "Gas pump nozzle",
+  "source": "https://commons.wikimedia.org/wiki/File:Gasoline_pump_nozzle.svg",
+  "author": "gnokii",
+  "licence": "CC0"
+ },
+ {
+  "id": "power-drill",
+  "name": "Power drill",
+  "source": "https://commons.wikimedia.org/wiki/File:Photorealistic_Drill.svg",
+  "author": "Rents",
+  "licence": "CC0"
+ },
+ {
+  "id": "vacuum-cleaner",
+  "name": "Vacuum cleaner",
+  "source": "https://commons.wikimedia.org/wiki/File:Blue_vacuum_cleaner.svg",
+  "author": "",
+  "licence": "CC0"
+ },
+ {
+  "id": "faucet",
+  "name": "Faucet",
+  "source": "https://commons.wikimedia.org/wiki/File:Robinet_de_profil.svg",
+  "author": "Cdang",
+  "licence": "CC0"
+ }
+]

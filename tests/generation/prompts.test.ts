@@ -58,8 +58,10 @@ describe('prompt sha parity', () => {
     biology: 'd15effe597e4c6c12cf3341780076af64379ad206498a8f1e1798cb83bc5d3f2',
     physics: '0aa6e0cfdc3a3a2960d67aaab63279d4f6228cdb703d9c3131c99f8786c49ab1',
     chemistry: 'cc7eeb6a712c98011d6db37f6b0ec5dbab5b2af79047c3a985895eac0904ff4c',
+    car: '59a1391bd83abd639bbba42101274fb4e40e433e5f6f57fd239dc22e94431192',
+    home: 'ee108ba967651324226f967e936a1bba07bb9f680e600712d7b27d2b98e3b9a0',
   } as const;
-  for (const s of ['biology', 'physics', 'chemistry'] as const) it(`${s}: its own prompt, sha bound, only its categories listed`, () => {
+  for (const s of ['biology', 'physics', 'chemistry', 'car', 'home'] as const) it(`${s}: its own prompt, sha bound, only its categories listed`, () => {
     const t = P.subjects[s].system;
     expect(sha(t)).toBe(SUBJECT_EXPECTED[s]); expect(P.subjects[s].sha256).toBe(SUBJECT_EXPECTED[s]);
     const listed = [...t.split('More recipes, by subject')[1].split('Worked examples')[0].matchAll(/^  ([\w-]+): /gm)].map(m => m[1]);
@@ -82,6 +84,15 @@ describe('prompt sha parity', () => {
     expect(P.subjects.physics.system).toMatch(/^  physuni: doubleslit diffraction /m);
     expect(P.subjects.physics.system).toContain('university physics majors');
     for (const s of [P.styles.whiteboard.system, P.subjects.biology.system, P.subjects.chemistry.system]) expect(s).not.toMatch(/doubleslit|pvcycle/);
+  });
+
+  it('Everyday fixes (20 Oct 2026): the car and home libraries are each only in their own prompt', () => {
+    expect(P.subjects.car.system).toMatch(/^  carfix: car tire lugwrench /m);
+    expect(P.subjects.home.system).toMatch(/^  homefix: tieknot breaker /m);
+    for (const s of [P.styles.whiteboard.system, P.subjects.biology.system, P.subjects.home.system]) expect(s).not.toMatch(/carfix|lugorder|servier-car/);
+    for (const s of [P.styles.whiteboard.system, P.subjects.biology.system, P.subjects.car.system]) expect(s).not.toMatch(/homefix|tieknot|servier-home/);
+    expect(P.subjects.car.system).toContain('never under a car held only by a jack');
+    expect(P.subjects.home.system).toContain('power off at the breaker');
   });
 
   it('the prompt carries the numbered-steps and no-zoom rules', () => {

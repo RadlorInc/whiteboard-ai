@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { requireAdmin } from "@/lib/admin";
 import { createAdminClient } from "@/lib/supabase/server";
-import { CreditsForm, DrawingRow, InviteForm, ReportRow, SwitchForm, UnpublishForm } from "@/components/AdminForms";
+import { CreditsForm, DrawingRow, InviteForm, LimitsForm, ReportRow, SwitchForm, UnpublishForm } from "@/components/AdminForms";
 import { toDrawing } from "@/lib/generation/drawings.mjs";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
@@ -47,6 +47,7 @@ export default async function Admin() {
       <div className="grid">
         <SwitchForm k="generation_enabled" label="Making videos" on={s.generation_enabled} />
         <SwitchForm k="purchases_enabled" label="Purchases" on={s.purchases_enabled} />
+        <LimitsForm values={s} />
       </div>
       <section className="card stack">
         <h2>Open reports ({(reports.data ?? []).length})</h2>

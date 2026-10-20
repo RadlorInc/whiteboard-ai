@@ -179,7 +179,14 @@ describe('check.mjs §2f: the find_drawing tool loop', () => {
 });
 
 describe('streaming: steps reach the client before the model stream ends (GENERATION_MOCK)', () => {
-  for (const style of ['whiteboard', 'paper'] as const) it(style, async () => {
+  for (const style of ['paper', 'matchcut']) it(`${style} is no longer made: 400`, async () => {
+    const res = await handleGenerate(new Request('http://localhost:3100/api/generate', { method: 'POST',
+      headers: { origin: 'http://localhost:3100', 'content-type': 'application/json' },
+      body: JSON.stringify({ question: 'How do plants make food?', style, client_request_id: crypto.randomUUID() }) }),
+      { db: fakeDb().db, client: mockClient(), userId: 'u1', appUrl: 'http://localhost:3100', buildId: 't', waitUntil: () => {} });
+    expect(res.status).toBe(400);
+  });
+  for (const style of ['whiteboard'] as const) it(style, async () => {
     // Wrap the real mock so we know, at each moment, whether the model's text stream has finished.
     const inner = mockClient({ cps: 100_000 }); let ended = false;
     const client: ModelClient = { messages: { create: inner.messages.create, stream(body, opts) {
@@ -189,7 +196,7 @@ describe('streaming: steps reach the client before the model stream ends (GENERA
     const { db, log } = fakeDb();
     const res = await handleGenerate(new Request('http://localhost:3100/api/generate', { method: 'POST',
       headers: { origin: 'http://localhost:3100', 'content-type': 'application/json' },
-      body: JSON.stringify({ question: style === 'paper' ? 'How do plants make food?' : 'How does a rainbow form?', style, client_request_id: crypto.randomUUID() }) }),
+      body: JSON.stringify({ question: 'How does a rainbow form?', style, client_request_id: crypto.randomUUID() }) }),
       { db, client, userId: 'u1', appUrl: 'http://localhost:3100', buildId: 't', waitUntil: () => {} });
     expect(res.headers.get('content-type')).toBe('text/event-stream');
     const reader = res.body!.pipeThrough(new TextDecoderStream()).getReader();
@@ -205,7 +212,7 @@ describe('streaming: steps reach the client before the model stream ends (GENERA
     }
     expect(firstStepWhileStreaming).toBe(true);
     expect(names[0]).toBe('accepted'); expect(names.at(-1)).toBe('done');
-    expect(names.filter(n => n === 'step').length).toBe(style === 'paper' ? paperA.steps.length : rainbow.steps.length);
+    expect(names.filter(n => n === 'step').length).toBe(rainbow.steps.length);
     if (style === 'whiteboard') expect(names.indexOf('els')).toBeLessThan(names.indexOf('step'));
     expect(log.finish.length + log.fail.length).toBe(1);
   });

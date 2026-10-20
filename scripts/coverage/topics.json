@@ -1,5 +1,5 @@
 {
- "_about": "US topic checklist for the drawing library (founder, 19 Oct 2026: US market first, high school to graduate). lvl: HS = NGSS high school, AP = AP course, UG = US college, GR = graduate. key = recipe names or realistic-drawing id words; a topic counts as covered when any key is a recipe in the subject's categories or a word inside a realistic drawing id of that subject. node scripts/coverage/check.mjs writes report.md.",
+ "_about": "US topic checklist for the drawing library (founder, 19 Oct 2026: US market first, high school to graduate). lvl: HS = NGSS high school, AP = AP course, UG = US college, GR = graduate. key = recipe names or realistic-drawing id words; a topic counts as covered when any key is a recipe in the subject's categories or a word inside a realistic drawing id of that subject. node scripts/coverage/check.mjs writes report.md. car and home (20 Oct 2026, Everyday fixes): the most-searched US how-to jobs (Exploding Topics, Semrush, DemandSage lists, Feb-Sep 2026) plus the jobs around them; lvl = Car or Home.",
  "biology": [
   {
    "t": "Animal cell organelles",
@@ -2037,6 +2037,436 @@
    "key": [
     "porphyrin",
     "heme"
+   ]
+  }
+ ],
+ "car": [
+  {
+   "t": "Change a flat tire",
+   "lvl": "Car",
+   "key": [
+    "jack",
+    "lugwrench"
+   ]
+  },
+  {
+   "t": "Spare vs flat tire",
+   "lvl": "Car",
+   "key": [
+    "tire"
+   ]
+  },
+  {
+   "t": "Lug nut star order",
+   "lvl": "Car",
+   "key": [
+    "lugorder"
+   ]
+  },
+  {
+   "t": "Roadside safety (warning triangle)",
+   "lvl": "Car",
+   "key": [
+    "warntriangle"
+   ]
+  },
+  {
+   "t": "Car side view (where the jack goes)",
+   "lvl": "Car",
+   "key": [
+    "car"
+   ]
+  },
+  {
+   "t": "Check the oil (dipstick)",
+   "lvl": "Car",
+   "key": [
+    "dipstick"
+   ]
+  },
+  {
+   "t": "Change the oil (drain plug)",
+   "lvl": "Car",
+   "key": [
+    "oildrain"
+   ]
+  },
+  {
+   "t": "Oil filter",
+   "lvl": "Car",
+   "key": [
+    "oilfilter"
+   ]
+  },
+  {
+   "t": "Add motor oil",
+   "lvl": "Car",
+   "key": [
+    "oilbottle"
+   ]
+  },
+  {
+   "t": "Under the hood",
+   "lvl": "Car",
+   "key": [
+    "enginebay"
+   ]
+  },
+  {
+   "t": "Jump-start a dead battery",
+   "lvl": "Car",
+   "key": [
+    "jumpstart"
+   ]
+  },
+  {
+   "t": "Tire pressure",
+   "lvl": "Car",
+   "key": [
+    "tiregauge"
+   ]
+  },
+  {
+   "t": "Tire tread depth",
+   "lvl": "Car",
+   "key": [
+    "treaddepth"
+   ]
+  },
+  {
+   "t": "Replace wiper blades",
+   "lvl": "Car",
+   "key": [
+    "wiper"
+   ]
+  },
+  {
+   "t": "Dashboard warning lights",
+   "lvl": "Car",
+   "key": [
+    "dashlight"
+   ]
+  },
+  {
+   "t": "Car battery",
+   "lvl": "Car",
+   "key": [
+    "battery"
+   ]
+  },
+  {
+   "t": "Spark plug",
+   "lvl": "Car",
+   "key": [
+    "spark"
+   ]
+  },
+  {
+   "t": "Engine air filter",
+   "lvl": "Car",
+   "key": [
+    "airfilter"
+   ]
+  },
+  {
+   "t": "Headlight bulb",
+   "lvl": "Car",
+   "key": [
+    "headlight"
+   ]
+  },
+  {
+   "t": "Brakes (pads, disc, caliper)",
+   "lvl": "Car",
+   "key": [
+    "brakes"
+   ]
+  },
+  {
+   "t": "Coolant and the radiator",
+   "lvl": "Car",
+   "key": [
+    "radiator"
+   ]
+  },
+  {
+   "t": "How a car engine works (4-stroke)",
+   "lvl": "Car",
+   "key": [
+    "stroke",
+    "piston"
+   ]
+  },
+  {
+   "t": "Fuses",
+   "lvl": "Car",
+   "key": [
+    "fusebox"
+   ]
+  },
+  {
+   "t": "Manual gears and clutch",
+   "lvl": "Car",
+   "key": [
+    "gearstick"
+   ]
+  },
+  {
+   "t": "Fill up at the gas pump",
+   "lvl": "Car",
+   "key": [
+    "nozzle",
+    "pump"
+   ]
+  },
+  {
+   "t": "Charge an electric car",
+   "lvl": "Car",
+   "key": [
+    "evcharge"
+   ]
+  },
+  {
+   "t": "Serpentine belt",
+   "lvl": "Car",
+   "key": [
+    "belt"
+   ]
+  },
+  {
+   "t": "Exhaust and muffler",
+   "lvl": "Car",
+   "key": [
+    "muffler"
+   ]
+  },
+  {
+   "t": "Steering wheel",
+   "lvl": "Car",
+   "key": [
+    "steering"
+   ]
+  },
+  {
+   "t": "Alternator",
+   "lvl": "Car",
+   "key": [
+    "alternator",
+    "belt"
+   ]
+  }
+ ],
+ "home": [
+  {
+   "t": "Tie a tie",
+   "lvl": "Home",
+   "key": [
+    "tieknot"
+   ]
+  },
+  {
+   "t": "Reset a tripped breaker",
+   "lvl": "Home",
+   "key": [
+    "breaker"
+   ]
+  },
+  {
+   "t": "Leak under the sink (P-trap)",
+   "lvl": "Home",
+   "key": [
+    "ptrap"
+   ]
+  },
+  {
+   "t": "Smoke alarm chirping",
+   "lvl": "Home",
+   "key": [
+    "smokealarm"
+   ]
+  },
+  {
+   "t": "Basic hand tools",
+   "lvl": "Home",
+   "key": [
+    "handtool"
+   ]
+  },
+  {
+   "t": "Running toilet (flapper)",
+   "lvl": "Home",
+   "key": [
+    "toilettank"
+   ]
+  },
+  {
+   "t": "Unclog a drain or toilet",
+   "lvl": "Home",
+   "key": [
+    "plunger"
+   ]
+  },
+  {
+   "t": "Outlets and GFCI reset",
+   "lvl": "Home",
+   "key": [
+    "outlet"
+   ]
+  },
+  {
+   "t": "Use a fire extinguisher (PASS)",
+   "lvl": "Home",
+   "key": [
+    "extinguisher"
+   ]
+  },
+  {
+   "t": "Find a stud, hang a picture",
+   "lvl": "Home",
+   "key": [
+    "studfinder"
+   ]
+  },
+  {
+   "t": "Leaky faucet",
+   "lvl": "Home",
+   "key": [
+    "faucet"
+   ]
+  },
+  {
+   "t": "Shut off the water",
+   "lvl": "Home",
+   "key": [
+    "shutoff"
+   ]
+  },
+  {
+   "t": "Light switch",
+   "lvl": "Home",
+   "key": [
+    "lightswitch"
+   ]
+  },
+  {
+   "t": "Change a light bulb",
+   "lvl": "Home",
+   "key": [
+    "bulb"
+   ]
+  },
+  {
+   "t": "Spirit level",
+   "lvl": "Home",
+   "key": [
+    "spiritlevel"
+   ]
+  },
+  {
+   "t": "Tape measure",
+   "lvl": "Home",
+   "key": [
+    "tapemeasure"
+   ]
+  },
+  {
+   "t": "Power drill",
+   "lvl": "Home",
+   "key": [
+    "drill"
+   ]
+  },
+  {
+   "t": "Paint a wall",
+   "lvl": "Home",
+   "key": [
+    "paintroller"
+   ]
+  },
+  {
+   "t": "Ladder safety",
+   "lvl": "Home",
+   "key": [
+    "ladder"
+   ]
+  },
+  {
+   "t": "Thermostat",
+   "lvl": "Home",
+   "key": [
+    "thermostat"
+   ]
+  },
+  {
+   "t": "Furnace air filter",
+   "lvl": "Home",
+   "key": [
+    "furnacefilter"
+   ]
+  },
+  {
+   "t": "Water heater",
+   "lvl": "Home",
+   "key": [
+    "waterheater"
+   ]
+  },
+  {
+   "t": "Lock and key",
+   "lvl": "Home",
+   "key": [
+    "lock",
+    "key"
+   ]
+  },
+  {
+   "t": "Washing machine",
+   "lvl": "Home",
+   "key": [
+    "washer"
+   ]
+  },
+  {
+   "t": "Iron a shirt",
+   "lvl": "Home",
+   "key": [
+    "iron"
+   ]
+  },
+  {
+   "t": "Vacuum and clean",
+   "lvl": "Home",
+   "key": [
+    "vacuum"
+   ]
+  },
+  {
+   "t": "Caulk a tub",
+   "lvl": "Home",
+   "key": [
+    "caulkgun"
+   ]
+  },
+  {
+   "t": "Patch drywall",
+   "lvl": "Home",
+   "key": [
+    "drywall"
+   ]
+  },
+  {
+   "t": "Toolbox",
+   "lvl": "Home",
+   "key": [
+    "toolbox"
+   ]
+  },
+  {
+   "t": "Door hinge",
+   "lvl": "Home",
+   "key": [
+    "hinge",
+    "door"
    ]
   }
  ]

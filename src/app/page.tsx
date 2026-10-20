@@ -50,7 +50,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
         <section className="landing-section">
           <p className="section-label">How it works</p>
           <ol className="steps3">
-            <li className="card"><h3>Type a question</h3><p className="muted small">Biology, physics or chemistry. One question per video works best.</p></li>
+            <li className="card"><h3>Type a question</h3><p className="muted small">Biology, physics, chemistry, or a home or car fix. One question per video works best.</p></li>
             <li className="card"><h3>Watch it drawn</h3><p className="muted small">A whiteboard lesson, voiced, step by step. Ask a follow-up in the same chat.</p></li>
             <li className="card"><h3>Replay any time</h3><p className="muted small">Your videos stay in your library. Watching again is free.</p></li>
           </ol>
