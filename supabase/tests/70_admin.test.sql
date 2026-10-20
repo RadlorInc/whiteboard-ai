@@ -52,12 +52,12 @@ select throws_ok('truncate public.admin_audit', '42501', 'admin_audit is append-
 -- Refund a generation once.
 create temp table g (id uuid);
 insert into g select pg_temp.gid(pg_temp.reserve(pg_temp.ua()));
-select is(pg_temp.finish((select id from g), 451), 'settled:1:209', 'A''s video charged 1 (210 - 1)');
+select is(pg_temp.finish((select id from g), 451), 'settled:1:99', 'A''s video charged 1 (Plus 40 + pack 60 = 100, - 1)');
 select is(pg_temp.as_admin('aal2', format('select public.admin_refund_generation(%L, %L, %L)::text', (select id from g), 'drawing was broken', pg_temp.r('ref1'))),
   '1', 'refund -> 1 video');
 select is((select status from public.generations where id = (select id from g)) || ' ' || pg_temp.bal(pg_temp.ua()) || ' '
   || (select string_agg(kind || '[' || topup_delta || ']', ',') from public.credit_ledger where generation_id = (select id from g) and kind = 'admin_refund'),
-  'refunded 149/61/0 admin_refund[1]', '... refunded, +1 to top-up (never expires)');
+  'refunded 39/61/0 admin_refund[1]', '... refunded, +1 to top-up (never expires)');
 select is((select count(*)::int from public.email_outbox where kind = 'refund_notice' and dedupe_key = (select id from g)::text), 1,
   '... a refund_notice email is queued');
 select is(pg_temp.as_admin('aal2', format('select public.admin_refund_generation(%L, %L, %L)::text', (select id from g), 'drawing was broken', pg_temp.r('ref1'))),

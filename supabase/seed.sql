@@ -1,7 +1,7 @@
 -- Local seed (PLAN.md §6, §8.1): users A and B, an admin, and credits. LOCAL STACK ONLY.
 -- Credits enter exactly as in production: through the stripe_* functions with fake event ids, so the ledger,
 -- purchases and balances agree and credit_drift() is empty.
---   A  a@example.test      18+, invited, Plus (sub 150, expires in 33 days) + a 60-credit pack (top-up 60)
+--   A  a@example.test      18+, invited, Plus (sub 40 videos since 20 Oct 2026, expires in 33 days) + a 60 pack (top-up 60)
 --   B  b@example.test      18+, invited, a 132-credit pack (top-up 132)
 --   admin@example.test     18+, invited, in public.admins, no credits (admin functions also need aal2)
 
