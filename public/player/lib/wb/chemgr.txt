@@ -1,27 +1,27 @@
-pointgroup cx cy size k=h2o|nh3|bf3|ch4 |text | pointgroup 480 270 480 k=h2o | symmetry axes and mirror sheets on H₂O, NH₃, BF₃, CH₄ with point group
-huckel cx cy width k=butadiene|benzene |text | huckel 480 270 520 k=butadiene | Hückel π levels: butadiene with orbital lobes, or benzene with Frost circle
-pes cx cy width k=contour|profile |text | pes 480 270 500 k=contour | A + BC potential surface: contours, valleys, saddle point, reaction path
-marcus cx cy width k=normal|inverted |text | marcus 480 270 500 k=normal | Marcus parabolas: λ, ΔG°, ΔG‡ = (λ + ΔG°)²/4λ, normal or inverted
-dielsalder cx cy width k=mech|orbitals |text | dielsalder 480 270 520 k=mech | Diels–Alder curly arrows to cyclohexene, or HOMO/LUMO lobes in phase
-fmo cx cy width |text | fmo 480 270 500 | frontier orbitals: nucleophile HOMO meets electrophile LUMO, small gap dominates
-aldol cx cy width enone=1 |text | aldol 480 270 520 enone=1 | base-catalysed aldol: enolate, addition, alkoxide, β-hydroxy aldehyde, optional enone
-grignard cx cy width |text | grignard 480 270 520 | Grignard: RMgBr formation, curly-arrow addition to ketone, H₃O⁺ workup to alcohol
-wittig cx cy width |text | wittig 480 270 520 | Wittig: ylide + carbonyl → oxaphosphetane → alkene + Ph₃P=O, curly arrows
-eas cx cy width k=mech|directing |text | eas 480 270 520 k=mech | electrophilic aromatic substitution: arenium resonance mechanism, or o/p vs meta directors table
-retrosynthesis cx cy width |text | retrosynthesis 480 270 520 | retrosynthetic tree: ⇒ disconnections to synthons and Grignard reagents, forward route
-catcycle cx cy width |text | catcycle 480 270 520 | Suzuki Pd cross-coupling cycle: oxidative addition, transmetalation, reductive elimination; arrows move
-complexgeom cx cy width k=all|isomers |text | complexgeom 480 270 500 k=all | coordination geometries, or cis/trans [Pt(NH₃)₂Cl₂] and fac/mer isomers
-bragg cx cy width |text | bragg 480 270 520 | Bragg reflection on lattice planes, 2d sin θ = nλ, indexed XRD pattern
-cosy cx cy width |text | cosy 480 270 480 | 2D COSY map: diagonal and symmetric cross peaks, 1D spectra on both axes
-jcoupling cx cy width n=3 |text | jcoupling 480 270 520 n=3 | NMR splitting trees: doublet of doublets vs n+1 rule, Pascal intensities
-jablonski cx cy width |text | jablonski 480 270 520 | Jablonski diagram: absorption, IC, fluorescence, ISC, phosphorescence; arrows move
-cyclicvolt cx cy width conv=iupac|us |text | cyclicvolt 480 270 500 conv=iupac | reversible cyclic voltammogram: Epa, Epc, ΔEp ≈ 59/n mV, E½, sweep inset
-chromatogram cx cy width col=1 |text | chromatogram 480 270 520 col=1 | chromatogram peaks: t₀, t_R, tangent width, resolution; optional column sketch
-arrhenius cx cy width |text | arrhenius 480 270 500 | Arrhenius plot ln k vs 1/T: slope −Ea/R, intercept ln A
-gibbs cx cy width k=signs|equilibrium |text | gibbs 480 270 520 k=signs | ΔG vs T for four ΔH/ΔS sign cases, or G vs ξ with Q, K
-langmuir cx cy width |text | langmuir 480 270 520 | Langmuir isotherm θ = KP/(1+KP) with low- and high-pressure surface sketches
-polymerization cx cy width k=chain|step |text | polymerization 480 270 520 k=chain | radical chain polymerization steps, or step-growth with Carothers plot
-bandofstability cx cy width |text | bandofstability 480 270 500 | band of stability N vs Z: N = Z line, β⁻, β⁺/EC, α regions
-binaryphase cx cy width k=eutectic|vle |text | binaryphase 480 270 520 k=eutectic | binary phase diagram: simple eutectic, or T–x bubble/dew lens with lever rule
-colligative cx cy width |text | colligative 480 270 520 | P–T diagram solvent vs solution: Δp, ΔTb, ΔTf, osmosis U-tube inset
-raoult cx cy width k=ideal|deviation |text | raoult 480 270 520 k=ideal | Raoult's law vapour pressures vs x_B: ideal lines or positive/negative deviations
+pointgroup cx cy size k=h2o|nh3|bf3|ch4 lab=0 |text | pointgroup 480 270 480 k=h2o | symmetry axes and mirror sheets on H₂O, NH₃, BF₃, CH₄ with point group; lab=0 hides its words
+huckel cx cy width k=butadiene|benzene lab=0 |text | huckel 480 270 520 k=butadiene | Hückel π levels: butadiene with orbital lobes, or benzene with Frost circle; lab=0 hides its words
+pes cx cy width k=contour|profile lab=0 |text | pes 480 270 500 k=contour | A + BC potential surface: contours, valleys, saddle point, reaction path; lab=0 hides its words
+marcus cx cy width k=normal|inverted lab=0 |text | marcus 480 270 500 k=normal | Marcus parabolas: λ, ΔG°, ΔG‡ = (λ + ΔG°)²/4λ, normal or inverted; lab=0 hides its words
+dielsalder cx cy width k=mech|orbitals lab=0 |text | dielsalder 480 270 520 k=mech | Diels–Alder curly arrows to cyclohexene, or HOMO/LUMO lobes in phase; lab=0 hides its words
+fmo cx cy width lab=0 |text | fmo 480 270 500 | frontier orbitals: nucleophile HOMO meets electrophile LUMO, small gap dominates; lab=0 hides its words
+aldol cx cy width enone=1 lab=0 |text | aldol 480 270 520 enone=1 | base-catalysed aldol: enolate, addition, alkoxide, β-hydroxy aldehyde, optional enone; lab=0 hides its words
+grignard cx cy width lab=0 |text | grignard 480 270 520 | Grignard: RMgBr formation, curly-arrow addition to ketone, H₃O⁺ workup to alcohol; lab=0 hides its words
+wittig cx cy width lab=0 |text | wittig 480 270 520 | Wittig: ylide + carbonyl → oxaphosphetane → alkene + Ph₃P=O, curly arrows; lab=0 hides its words
+eas cx cy width k=mech|directing lab=0 |text | eas 480 270 520 k=mech | electrophilic aromatic substitution: arenium resonance mechanism, or o/p vs meta directors table; lab=0 hides its words
+retrosynthesis cx cy width lab=0 |text | retrosynthesis 480 270 520 | retrosynthetic tree: ⇒ disconnections to synthons and Grignard reagents, forward route; lab=0 hides its words
+catcycle cx cy width lab=0 |text | catcycle 480 270 520 | Suzuki Pd cross-coupling cycle: oxidative addition, transmetalation, reductive elimination; arrows move; lab=0 hides its words
+complexgeom cx cy width k=all|isomers lab=0 |text | complexgeom 480 270 500 k=all | coordination geometries, or cis/trans [Pt(NH₃)₂Cl₂] and fac/mer isomers; lab=0 hides its words
+bragg cx cy width lab=0 |text | bragg 480 270 520 | Bragg reflection on lattice planes, 2d sin θ = nλ, indexed XRD pattern; lab=0 hides its words
+cosy cx cy width lab=0 |text | cosy 480 270 480 | 2D COSY map: diagonal and symmetric cross peaks, 1D spectra on both axes; lab=0 hides its words
+jcoupling cx cy width n=3 lab=0 |text | jcoupling 480 270 520 n=3 | NMR splitting trees: doublet of doublets vs n+1 rule, Pascal intensities; lab=0 hides its words
+jablonski cx cy width lab=0 |text | jablonski 480 270 520 | Jablonski diagram: absorption, IC, fluorescence, ISC, phosphorescence; arrows move; lab=0 hides its words
+cyclicvolt cx cy width conv=iupac|us lab=0 |text | cyclicvolt 480 270 500 conv=iupac | reversible cyclic voltammogram: Epa, Epc, ΔEp ≈ 59/n mV, E½, sweep inset; lab=0 hides its words
+chromatogram cx cy width col=1 lab=0 |text | chromatogram 480 270 520 col=1 | chromatogram peaks: t₀, t_R, tangent width, resolution; optional column sketch; lab=0 hides its words
+arrhenius cx cy width lab=0 |text | arrhenius 480 270 500 | Arrhenius plot ln k vs 1/T: slope −Ea/R, intercept ln A; lab=0 hides its words
+gibbs cx cy width k=signs|equilibrium lab=0 |text | gibbs 480 270 520 k=signs | ΔG vs T for four ΔH/ΔS sign cases, or G vs ξ with Q, K; lab=0 hides its words
+langmuir cx cy width lab=0 |text | langmuir 480 270 520 | Langmuir isotherm θ = KP/(1+KP) with low- and high-pressure surface sketches; lab=0 hides its words
+polymerization cx cy width k=chain|step lab=0 |text | polymerization 480 270 520 k=chain | radical chain polymerization steps, or step-growth with Carothers plot; lab=0 hides its words
+bandofstability cx cy width lab=0 |text | bandofstability 480 270 500 | band of stability N vs Z: N = Z line, β⁻, β⁺/EC, α regions; lab=0 hides its words
+binaryphase cx cy width k=eutectic|vle lab=0 |text | binaryphase 480 270 520 k=eutectic | binary phase diagram: simple eutectic, or T–x bubble/dew lens with lever rule; lab=0 hides its words
+colligative cx cy width lab=0 |text | colligative 480 270 520 | P–T diagram solvent vs solution: Δp, ΔTb, ΔTf, osmosis U-tube inset; lab=0 hides its words
+raoult cx cy width k=ideal|deviation lab=0 |text | raoult 480 270 520 k=ideal | Raoult's law vapour pressures vs x_B: ideal lines or positive/negative deviations; lab=0 hides its words

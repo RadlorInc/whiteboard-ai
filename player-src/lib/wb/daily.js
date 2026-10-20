@@ -11,6 +11,7 @@
   const poly = (x, y, r, n, a0 = -90) => 'M' + Array.from({ length: n }, (_, i) => { const a = (a0 + i * 360 / n) * Math.PI / 180; return `${(x + r * Math.cos(a)).toFixed(1)} ${(y + r * Math.sin(a)).toFixed(1)}`; }).join(' L') + ' Z';
   const spin = (el, x, y, secs) => mk('animateTransform', { attributeName: 'transform', type: 'rotate', from: `0 ${x} ${y}`, to: `360 ${x} ${y}`, dur: `${secs}s`, repeatCount: 'indefinite' }, el);
   const pick = (K, k, d, what) => { const f = K[k || d]; if (!f) throw new Error(`Unknown ${what} "${k}" (use ${Object.keys(K).join('|')})`); return f; };
+  const showLab = o => o.lab !== '0' && o.labels !== '0';
   const list = t => (t || '').split(',').map(s => s.trim()).filter(Boolean);
   // a drawing in its own unit box: base = default size; cx cy is its centre
   const make = (base, draw) => ([cx, cy, size = base], o, t, parent) => {
@@ -502,7 +503,7 @@
         const x = -150 + step * (i + .5), y = NOTE_Y[n];
         if (y >= 60) line(g, `M${x - 18} 60 H${x + 18}`, DK, 2); if (y <= -60) line(g, `M${x - 18} -60 H${x + 18}`, DK, 2);
         P(g, E(x, y, 11, 8), '#2f2a28', '#2f2a28', 2); line(g, y > 0 ? `M${x + 10} ${y} V${y - 56}` : `M${x - 10} ${y} V${y + 56}`, '#2f2a28', 3);
-        label(g, x, 102, n.replace('5', ''), TXT.orange, 20, 'middle');
+        if (showLab(o)) label(g, x, 102, n.replace('5', ''), TXT.orange, 20, 'middle');
       });
     }),
     // "palette cx cy width" — artist's palette with paint blobs and a brush

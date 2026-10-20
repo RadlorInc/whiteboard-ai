@@ -1,33 +1,33 @@
-arraybox cx cy width vals=7,2,9 hi=1 |name | arraybox 480 270 480 vals=7,2,9,4,5,1 hi=2 | array cells with values and indices, one cell highlighted
-linkedlist cx cy width vals=3,8,5 |head | linkedlist 480 270 560 vals=3,8,5 | linked list nodes with pointer arrows, head to null; loop flow
-pushstack cx cy height vals=4,7,2 k=push|pop |name | pushstack 480 270 360 vals=4,7,2 k=push | stack of values; last one pushed on or popped off top
-queueline cx cy width vals=5,1,8,3 |name | queueline 480 270 600 vals=5,1,8,3 | queue tube: enqueue at back, dequeue at front; loop flow
+arraybox cx cy width vals=7,2,9 hi=1 lab=0 |name | arraybox 480 270 480 vals=7,2,9,4,5,1 hi=2 | array cells with values and indices, one cell highlighted; lab=0 hides its words
+linkedlist cx cy width vals=3,8,5 lab=0 |head | linkedlist 480 270 560 vals=3,8,5 | linked list nodes with pointer arrows, head to null; loop flow; lab=0 hides its words
+pushstack cx cy height vals=4,7,2 k=push|pop lab=0 |name | pushstack 480 270 360 vals=4,7,2 k=push | stack of values; last one pushed on or popped off top; lab=0 hides its words
+queueline cx cy width vals=5,1,8,3 lab=0 |name | queueline 480 270 600 vals=5,1,8,3 | queue tube: enqueue at back, dequeue at front; loop flow; lab=0 hides its words
 bintree cx cy width vals=8,3,10,_,6 hi=6 |name | bintree 480 270 520 vals=8,3,10,1,6,_,14 | binary tree from level-order values (_ empty), one node highlighted
-bstpath cx cy width vals=8,3,10,1,6 find=6 |name | bstpath 480 270 520 vals=8,3,10,1,6,14,4 find=6 | binary search tree from vals, search path for find lit
+bstpath cx cy width vals=8,3,10,1,6 find=6 lab=0 |name | bstpath 480 270 520 vals=8,3,10,1,6,14,4 find=6 | binary search tree from vals, search path for find lit; lab=0 hides its words
 nodegraph cx cy width nodes=A,B,C edges=A-B:4,B-C:3 path=A,B |name | nodegraph 480 270 560 nodes=A,B,C,D,E edges=A-B:4,A-E:2,B-C:3,C-D:1,E-D:5,B-E:6 path=A,E,D | graph of nodes and weighted edges, a path highlighted
-hashtable cx cy width keys=apple,kiwi buckets=5 |name | hashtable 480 270 600 keys=apple,kiwi,plum,fig,lime buckets=5 | keys hashed into numbered buckets, collisions chained
-sortbars cx cy width vals=5,2,8 hi=0,1 k=compare|swap|sorted |name | sortbars 480 270 560 vals=5,2,8,1,9,3 hi=1,2 k=compare | sorting bars: compared pair, swap arrows, or sorted green
-binarynum cx cy width n=13 bits=8 |name | binarynum 480 270 560 n=13 bits=8 | binary number: place values, bit boxes, sum of the ones
-bitrow cx cy width |text | bitrow 480 270 600 |Hi | each letter as an 8-bit byte with its code
-logicgate cx cy width k=and|or|not|xor|nand a=1 b=0 |name | logicgate 480 270 420 k=and a=1 b=1 | logic gate symbol, input wires with values, computed output lamp
-truthtable cx cy width k=and|or|xor|nand|not |title | truthtable 480 270 320 k=and | truth table of a gate, rows outputting 1 shaded
-cpubus cx cy width |title | cpubus 480 270 640 | CPU, memory cells and input/output joined by address and data buses; loop flow
-fdecycle cx cy size |centre | fdecycle 480 270 420 | fetch, decode, execute circles round a repeating cycle; loop flow
-clientserver cx cy width |request,response | clientserver 480 270 640 |GET /page,200 OK + page | laptop client and server, request and response arrows; loop flow
-dnslookup cx cy width |name,ip | dnslookup 480 270 640 |example.com,93.184.216.34 | DNS lookup: ask name, get IP, connect (numbered steps)
-packetroute cx cy width |message | packetroute 480 270 680 | numbered packets take different router paths between computers; loop flow
-encrypt cx cy width shift=3 |plaintext | encrypt 480 270 640 shift=3 |HELLO | plaintext, key, ciphertext: real shift cipher of the text
-keypair cx cy width |title | keypair 480 270 640 | public key locks the padlock, only private key opens it
-filetree cx cy height |Home,>Docs,>>a.txt | filetree 480 270 360 |Home,>Docs,>>report.txt,>>notes.txt,>Photos,>>sun.png | folders and files tree; > = one level deeper, dot = file
+hashtable cx cy width keys=apple,kiwi buckets=5 lab=0 |name | hashtable 480 270 600 keys=apple,kiwi,plum,fig,lime buckets=5 | keys hashed into numbered buckets, collisions chained; lab=0 hides its words
+sortbars cx cy width vals=5,2,8 hi=0,1 k=compare|swap|sorted lab=0 |name | sortbars 480 270 560 vals=5,2,8,1,9,3 hi=1,2 k=compare | sorting bars: compared pair, swap arrows, or sorted green; lab=0 hides its words
+binarynum cx cy width n=13 bits=8 lab=0 |name | binarynum 480 270 560 n=13 bits=8 | binary number: place values, bit boxes, sum of the ones; lab=0 hides its words
+bitrow cx cy width lab=0 |text | bitrow 480 270 600 |Hi | each letter as an 8-bit byte with its code; lab=0 hides its words
+logicgate cx cy width k=and|or|not|xor|nand a=1 b=0 lab=0 |name | logicgate 480 270 420 k=and a=1 b=1 | logic gate symbol, input wires with values, computed output lamp; lab=0 hides its words
+truthtable cx cy width k=and|or|xor|nand|not lab=0 |title | truthtable 480 270 320 k=and | truth table of a gate, rows outputting 1 shaded; lab=0 hides its words
+cpubus cx cy width lab=0 |title | cpubus 480 270 640 | CPU, memory cells and input/output joined by address and data buses; loop flow; lab=0 hides its words
+fdecycle cx cy size lab=0 |centre | fdecycle 480 270 420 | fetch, decode, execute circles round a repeating cycle; loop flow; lab=0 hides its words
+clientserver cx cy width lab=0 |request,response | clientserver 480 270 640 |GET /page,200 OK + page | laptop client and server, request and response arrows; loop flow; lab=0 hides its words
+dnslookup cx cy width lab=0 |name,ip | dnslookup 480 270 640 |example.com,93.184.216.34 | DNS lookup: ask name, get IP, connect (numbered steps); lab=0 hides its words
+packetroute cx cy width lab=0 |message | packetroute 480 270 680 | numbered packets take different router paths between computers; loop flow; lab=0 hides its words
+encrypt cx cy width shift=3 lab=0 |plaintext | encrypt 480 270 640 shift=3 |HELLO | plaintext, key, ciphertext: real shift cipher of the text; lab=0 hides its words
+keypair cx cy width lab=0 |title | keypair 480 270 640 | public key locks the padlock, only private key opens it; lab=0 hides its words
+filetree cx cy height lab=0 |Home,>Docs,>>a.txt | filetree 480 270 360 |Home,>Docs,>>report.txt,>>notes.txt,>Photos,>>sun.png | folders and files tree; > = one level deeper, dot = file; lab=0 hides its words
 codewin cx cy width hi=2 |line;  line;line | codewin 480 270 520 hi=2 |for i in range(3):;    print(i);print("done") | dark code editor window, numbered lines split by ;, one highlighted
-ctrlflow cx cy height k=if|loop |condition | ctrlflow 480 270 420 k=if |x > 5 ? | flowchart: if with yes/no branches, or a repeat loop; loop flow
-recursion cx cy width depth=4 |fname | recursion 480 270 560 depth=4 |fact | nested function calls down to the base case, result returning
-apicall cx cy width |App,Service,request,response | apicall 480 270 640 |Weather app,Weather service,GET /weather,{ temp: 21 } | two app windows talking through an API, request and response; loop flow
-cloudsync cx cy width |text | cloudsync 480 270 620 | same file synced between phone, cloud and laptop; loop flow
-pixelgrid cx cy width |name | pixelgrid 480 270 660 | pixel smiley image beside its grid of brightness numbers
-compress cx cy width |AAAAABBB | compress 480 270 600 |AAAAABBBCC | run-length compression of the text: long letter row to short code
+ctrlflow cx cy height k=if|loop lab=0 |condition | ctrlflow 480 270 420 k=if |x > 5 ? | flowchart: if with yes/no branches, or a repeat loop; loop flow; lab=0 hides its words
+recursion cx cy width depth=4 lab=0 |fname | recursion 480 270 560 depth=4 |fact | nested function calls down to the base case, result returning; lab=0 hides its words
+apicall cx cy width lab=0 |App,Service,request,response | apicall 480 270 640 |Weather app,Weather service,GET /weather,{ temp: 21 } | two app windows talking through an API, request and response; loop flow; lab=0 hides its words
+cloudsync cx cy width lab=0 |text | cloudsync 480 270 620 | same file synced between phone, cloud and laptop; loop flow; lab=0 hides its words
+pixelgrid cx cy width lab=0 |name | pixelgrid 480 270 660 | pixel smiley image beside its grid of brightness numbers; lab=0 hides its words
+compress cx cy width lab=0 |AAAAABBB | compress 480 270 600 |AAAAABBBCC | run-length compression of the text: long letter row to short code; lab=0 hides its words
 qrcode cx cy size |text | qrcode 480 270 280 | generic square scan code with three corner finder squares
-firewall cx cy width |title | firewall 480 270 640 | brick firewall: safe packet passes to network, bad one blocked; loop flow
-pwmeter cx cy width |password | pwmeter 480 270 520 |sunflower7 | password box with a strength meter worked out from it
-commits cx cy width k=line|branch |msg,msg | commits 480 270 640 k=line |start,add menu,fix typo,new page | version history: commits on a line, HEAD; branch adds a merged branch
-mltrain cx cy width |title | mltrain 480 270 640 | ML training loop: data, model, prediction, error, adjust; loop flow
+firewall cx cy width lab=0 |title | firewall 480 270 640 | brick firewall: safe packet passes to network, bad one blocked; loop flow; lab=0 hides its words
+pwmeter cx cy width lab=0 |password | pwmeter 480 270 520 |sunflower7 | password box with a strength meter worked out from it; lab=0 hides its words
+commits cx cy width k=line|branch lab=0 |msg,msg | commits 480 270 640 k=line |start,add menu,fix typo,new page | version history: commits on a line, HEAD; branch adds a merged branch; lab=0 hides its words
+mltrain cx cy width lab=0 |title | mltrain 480 270 640 | ML training loop: data, model, prediction, error, adjust; loop flow; lab=0 hides its words

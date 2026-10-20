@@ -13,6 +13,7 @@
   const tip = (g, x, y, ax, ay, c, w = 4) => still(g, head(x, y, ax, ay, 8 + w * 1.6), c, w);
   const arrow = (g, x1, y1, x2, y2, c, w = 4, moving = false) => { (moving ? line : still)(g, `M${x1} ${y1} L${x2} ${y2}`, c, w); tip(g, x2, y2, x1, y1, c, w); };
   const lb = (g, x, y, t, c = TXT.blue, s = 22, a = 'middle') => label(g, x, y, t, c, s, a);
+  const showLab = o => o.lab !== '0' && o.labels !== '0';   // lab=0 / labels=0 hide the recipe's own words
   const hatch = (g, x1, x2, y, c = '#777', down = 1) => { let d = ''; for (let x = x1; x <= x2; x += 18) d += `M${x} ${y} l-11 ${13 * down} `; still(g, d, c, 2); };
   const P = (x, y) => `${x.toFixed(1)} ${y.toFixed(1)}`;
   const rad = d => d * Math.PI / 180;
@@ -96,7 +97,7 @@
       const [ex, ey] = closed ? [70, -4] : [48, -62];
       still(g, `M-70 0 L${ex} ${ey}`, '#44484f', 6);
       part(g, C(ex, ey, 8), '#e04b3a', '#7a1f1f', 2.5);
-      lb(g, 0, 70, t || (closed ? 'Closed' : 'Open'), TXT.blue, 22);
+      if (t || showLab(o)) lb(g, 0, 70, t || (closed ? 'Closed' : 'Open'), TXT.blue, 22);
       return g;
     },
 
@@ -149,7 +150,7 @@
         for (const a of [-140, -90, -40]) { const c = Math.cos(rad(a)), s = Math.sin(rad(a)); still(g, `M${P(c * 28, 140 + s * 28)} L${P(c * 40, 140 + s * 40)}`, INK.yellow, 3); } }
       else { still(g, 'M-20 140 L-10 140 M10 140 L20 140', '#333', 3); cellSym(g, 0, 140); }
       line(g, 'M-60 -76 Q0 -104 60 -76', '#2b6cc4', 3); tip(g, 60, -76, 0, -104, '#2b6cc4', 3);
-      lb(g, 0, -108, t || (gen ? 'Turn it' : 'It turns'), TXT.blue, 22);
+      if (t || showLab(o)) lb(g, 0, -108, t || (gen ? 'Turn it' : 'It turns'), TXT.blue, 22);
       return g;
     },
 
@@ -173,13 +174,13 @@
       still(g, 'M-220 60 L220 60', '#555', 3); hatch(g, -205, 215, 62);
       part(g, R(-70, -60, 140, 120), '#e0b47a', '#7a5a2e'); fl(g, R(-12, -60, 24, 120), '#c9965a', { opacity: .7 });
       still(g, 'M-12 -60 L-12 60 M12 -60 L12 60', '#7a5a2e', 2);
-      if (k !== 'gravity') {
-        arrow(g, -215, 0, -80, 0, INK.red, 5); lb(g, -150, -16, 'Push', TXT.red);
-        arrow(g, 215, 40, 80, 40, INK.orange, 5); lb(g, 150, 26, 'Friction', TXT.orange);
+      if (k !== 'gravity') { const sl = showLab(o);
+        arrow(g, -215, 0, -80, 0, INK.red, 5); if (sl) lb(g, -150, -16, 'Push', TXT.red);
+        arrow(g, 215, 40, 80, 40, INK.orange, 5); if (sl) lb(g, 150, 26, 'Friction', TXT.orange);
       }
-      if (k !== 'push') {
-        arrow(g, 0, 62, 0, 160, INK.blue, 5); lb(g, 14, 150, 'Weight', TXT.blue, 22, 'start');
-        arrow(g, 0, -62, 0, -170, INK.green, 5); lb(g, 14, -150, 'Normal', TXT.green, 22, 'start');
+      if (k !== 'push') { const sl = showLab(o);
+        arrow(g, 0, 62, 0, 160, INK.blue, 5); if (sl) lb(g, 14, 150, 'Weight', TXT.blue, 22, 'start');
+        arrow(g, 0, -62, 0, -170, INK.green, 5); if (sl) lb(g, 14, -150, 'Normal', TXT.green, 22, 'start');
       }
       if (t) lb(g, 0, 8, t, '#5a3a1c', 22);
       return g;
@@ -191,14 +192,14 @@
       const u = [Math.cos(a), -Math.sin(a)], n = [-Math.sin(a), -Math.cos(a)], y0 = 100 - 210 * 200 / 380, b = [20 + n[0] * 30, y0 + n[1] * 30];
       part(g, 'M-190 100 L190 100 L190 -100 Z', '#cfe0c3', '#4e6658');
       still(g, `M-130 100 A60 60 0 0 0 ${P(-190 + 60 * Math.cos(a), 100 - 60 * Math.sin(a))}`, '#4e6658', 2.5);
-      lb(g, -108, 92, 'θ', '#4e6658', 24);
+      if (showLab(o)) lb(g, -108, 92, 'θ', '#4e6658', 24);
       const blk = mk('g', { transform: `translate(${P(...b)}) rotate(${-deg})` }, g);
       part(blk, R(-40, -28, 80, 56), '#f4a531', '#8a5a14');
-      arrow(g, b[0], b[1], b[0], b[1] + 125, INK.blue, 4); lb(g, b[0] + 10, b[1] + 118, 'Weight', TXT.blue, 20, 'start');
+      arrow(g, b[0], b[1], b[0], b[1] + 125, INK.blue, 4); if (showLab(o)) lb(g, b[0] + 10, b[1] + 118, 'Weight', TXT.blue, 20, 'start');
       const nx = b[0] + n[0] * 125, ny = b[1] + n[1] * 125;
-      arrow(g, b[0] + n[0] * 30, b[1] + n[1] * 30, nx, ny, INK.green, 4); lb(g, nx - 8, ny - 6, 'Normal', TXT.green, 20, 'end');
+      arrow(g, b[0] + n[0] * 30, b[1] + n[1] * 30, nx, ny, INK.green, 4); if (showLab(o)) lb(g, nx - 8, ny - 6, 'Normal', TXT.green, 20, 'end');
       const fx = b[0] + u[0] * 150, fy = b[1] + u[1] * 150;
-      arrow(g, b[0] + u[0] * 44, b[1] + u[1] * 44, fx, fy, INK.orange, 4); lb(g, fx - 6, fy - 14, 'Friction', TXT.orange, 20, 'end');
+      arrow(g, b[0] + u[0] * 44, b[1] + u[1] * 44, fx, fy, INK.orange, 4); if (showLab(o)) lb(g, fx - 6, fy - 14, 'Friction', TXT.orange, 20, 'end');
       if (t) lb(g, 0, 136, t);
       return g;
     },
@@ -210,7 +211,7 @@
       still(g, 'M0 0 L0 230', '#aab2bc', 2, { 'stroke-dasharray': '6 8' });
       still(g, `M${P(-bx, by)} A230 230 0 0 0 ${P(bx, by)}`, '#aab2bc', 2, { 'stroke-dasharray': '6 8' });
       fl(g, C(-bx, by, 24), '#f4a531', { opacity: .3 });
-      still(g, `M0 50 A50 50 0 0 0 ${P(Math.sin(a) * 50, Math.cos(a) * 50)}`, '#666', 2); lb(g, 8, 80, 'θ', '#555', 20);
+      still(g, `M0 50 A50 50 0 0 0 ${P(Math.sin(a) * 50, Math.cos(a) * 50)}`, '#666', 2); if (showLab(o)) lb(g, 8, 80, 'θ', '#555', 20);
       const arm = mk('g', {}, g); g.swing = arm;                 // loop swing rotates the string + bob about the pivot (0,0)
       still(arm, `M0 0 L${P(bx, by)}`, '#555', 2.5);
       const bob = mk('g', {}, arm); g.anim = bob;
@@ -239,9 +240,9 @@
       still(g, 'M-210 70 L210 70', '#555', 3); hatch(g, -200, 210, 72);
       part(g, 'M-70 6 L-110 70 L-30 70 Z', '#8a929c');
       part(g, R(-195, -6, 390, 12), '#d8a868', '#7a5a2e');
-      part(g, R(-185, -66, 70, 60), '#7fb7ea', '#1f4f8f'); lb(g, -150, -78, 'Load', TXT.blue);
-      arrow(g, 160, -130, 160, -14, INK.red, 5); lb(g, 172, -100, 'Effort', TXT.red, 22, 'start');
-      lb(g, -70, 102, 'Fulcrum', '#555');
+      part(g, R(-185, -66, 70, 60), '#7fb7ea', '#1f4f8f'); if (showLab(o)) lb(g, -150, -78, 'Load', TXT.blue);
+      arrow(g, 160, -130, 160, -14, INK.red, 5); if (showLab(o)) lb(g, 172, -100, 'Effort', TXT.red, 22, 'start');
+      if (showLab(o)) lb(g, -70, 102, 'Fulcrum', '#555');
       if (t) lb(g, 0, -150, t);
       return g;
     },
@@ -254,8 +255,8 @@
       part(g, C(0, 60, 46), '#b9bec4'); still(g, C(0, 60, 37), '#6b7280', 2);
       still(g, 'M0 26 L0 94 M-34 60 L34 60', '#6b7280', 2.5); part(g, C(0, 60, 7), '#33363b');
       line(g, 'M-46 200 L-46 60 A46 46 0 0 1 46 60 L46 196', '#a0743c', 3.5);
-      part(g, R(-86, 200, 80, 70), '#7fb7ea', '#1f4f8f'); lb(g, -46, 243, 'Load', '#ffffff');
-      arrow(g, 46, 200, 46, 262, INK.red, 5); lb(g, 60, 250, 'Pull', TXT.red, 22, 'start');
+      part(g, R(-86, 200, 80, 70), '#7fb7ea', '#1f4f8f'); if (showLab(o)) lb(g, -46, 243, 'Load', '#ffffff');
+      arrow(g, 46, 200, 46, 262, INK.red, 5); if (showLab(o)) lb(g, 60, 250, 'Pull', TXT.red, 22, 'start');
       if (t) lb(g, 0, 300, t);
       return g;
     },
@@ -269,8 +270,8 @@
       part(g, C(0, 0, 30), '#8a929c'); part(g, C(0, 0, 6), '#33363b');
       line(g, 'M-30 150 L-30 0', '#a0743c', 3.5);
       part(g, 'M-62 150 L2 150 L-6 205 L-54 205 Z', '#5d93d6', '#1f4f8f'); still(g, 'M-62 150 Q-30 122 2 150', '#555', 2);
-      arrow(g, 114, -20, 114, 100, INK.red, 5); lb(g, 126, 70, 'Effort', TXT.red, 22, 'start');
-      lb(g, 60, -108, 'Wheel', '#5e3b1c', 22, 'start'); lb(g, -68, 190, 'Load', TXT.blue, 22, 'end');
+      arrow(g, 114, -20, 114, 100, INK.red, 5); if (showLab(o)) lb(g, 126, 70, 'Effort', TXT.red, 22, 'start');
+      if (showLab(o)) { lb(g, 60, -108, 'Wheel', '#5e3b1c', 22, 'start'); lb(g, -68, 190, 'Load', TXT.blue, 22, 'end'); }
       return g;
     },
 
@@ -279,8 +280,8 @@
       const g = G(cx, cy, W / 440, o.rot, p), b = INK.blue;
       if (o.k === 'longitudinal') {
         for (let i = 0; i <= 35; i++) { const x0 = -220 + i * 440 / 35, x = x0 - 10 * Math.sin(2 * Math.PI * x0 / 150); still(g, `M${P(x, -45)} L${P(x, 45)}`, b, 2.6); }
-        lb(g, 0, -62, 'Compression', TXT.blue, 22); lb(g, 75, 78, 'Rarefaction', TXT.sky, 22);
-        line(g, 'M-110 108 L100 108', INK.red, 3); tip(g, 100, 108, 90, 108, INK.red, 3); lb(g, 116, 116, 'travels', TXT.red, 20, 'start');
+        if (showLab(o)) { lb(g, 0, -62, 'Compression', TXT.blue, 22); lb(g, 75, 78, 'Rarefaction', TXT.sky, 22); }
+        line(g, 'M-110 108 L100 108', INK.red, 3); tip(g, 100, 108, 90, 108, INK.red, 3); if (showLab(o)) lb(g, 116, 116, 'travels', TXT.red, 20, 'start');
       } else if (o.k === 'sound') {
         part(g, R(-220, -30, 30, 60), '#555b66'); part(g, 'M-190 -30 L-150 -70 L-150 70 L-190 30 Z', '#8a929c');
         for (let i = 0; i < 5; i++) { const r = 40 + i * 48, c = Math.cos(rad(40)) * r, s = Math.sin(rad(40)) * r;
@@ -291,10 +292,10 @@
         let d = ''; for (let x = -220; x <= 220; x += 4) d += `${d ? 'L' : 'M'}${P(x, -70 * Math.sin(2 * Math.PI * (x + 220) / 200))} `;
         line(g, d, b, 3.5);
         still(g, 'M-170 -118 L30 -118', '#555', 2); tip(g, -170, -118, -160, -118, '#555', 2); tip(g, 30, -118, 20, -118, '#555', 2);
-        lb(g, -70, -128, 'Wavelength', '#555', 20);
-        lb(g, 30, -80, 'Crest', TXT.blue, 20); lb(g, -70, 96, 'Trough', TXT.blue, 20);
+        if (showLab(o)) lb(g, -70, -128, 'Wavelength', '#555', 20);
+        if (showLab(o)) { lb(g, 30, -80, 'Crest', TXT.blue, 20); lb(g, -70, 96, 'Trough', TXT.blue, 20); }
         still(g, 'M130 0 L130 68', INK.red, 2.5); tip(g, 130, 68, 130, 58, INK.red, 2.5); tip(g, 130, 0, 130, 10, INK.red, 2.5);
-        lb(g, 130, 96, 'Amplitude', TXT.red, 20);
+        if (showLab(o)) lb(g, 130, 96, 'Amplitude', TXT.red, 20);
       }
       return g;
     },
@@ -305,10 +306,10 @@
       part(g, 'M0 -120 L-139 120 L139 120 Z', '#cfe9f7', '#4f93d6');
       still(g, 'M-14 -86 L-110 80', '#ffffff', 5, { opacity: .7 });
       line(g, 'M-250 52 L-69 0', '#555', 4); tip(g, -150, 18, -160, 21, '#555', 4);
-      lb(g, -250, 84, 'White light', '#555', 20, 'start');
+      if (showLab(o)) lb(g, -250, 84, 'White light', '#555', 20, 'start');
       fl(g, 'M-69 0 L66 -6 L82 22 Z', '#f6f0d8', { opacity: .9 });
       ['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#3949ab', '#8e24aa'].forEach((c, i) => line(g, `M72 5 L250 ${32 + i * 20}`, c, 4.5));
-      lb(g, 258, 40, 'Red', '#e53935', 20, 'start'); lb(g, 258, 160, 'Violet', '#8e24aa', 20, 'start');
+      if (showLab(o)) { lb(g, 258, 40, 'Red', '#e53935', 20, 'start'); lb(g, 258, 160, 'Violet', '#8e24aa', 20, 'start'); }
       return g;
     },
 
@@ -325,7 +326,7 @@
         tip(g, -120, y, -130, y, ray, 3);
       }
       const fx = cave ? -130 : 130;
-      part(g, C(fx, 0, 5), '#c0392b', '#7a1f1f', 2); lb(g, fx, 30, 'F', TXT.red, 24);
+      part(g, C(fx, 0, 5), '#c0392b', '#7a1f1f', 2); if (showLab(o)) lb(g, fx, 30, 'F', TXT.red, 24);
       if (t) lb(g, 0, 145, t);
       return g;
     },
@@ -334,14 +335,14 @@
     mirror: ([cx, cy, W = 360], o, t, p) => {
       const g = G(cx, cy, W / 360, o.rot, p), ray = '#e0802a';
       part(g, R(-170, 80, 340, 12), '#cfe9f7', '#4f93d6'); hatch(g, -160, 175, 92, '#4f93d6');
-      still(g, 'M0 80 L0 -110', '#9aa0a8', 2, { 'stroke-dasharray': '6 8' }); lb(g, 0, -120, 'Normal', '#777', 20);
+      still(g, 'M0 80 L0 -110', '#9aa0a8', 2, { 'stroke-dasharray': '6 8' }); if (showLab(o)) lb(g, 0, -120, 'Normal', '#777', 20);
       line(g, 'M-150 -90 L0 80 L150 -90', ray, 3.5);
       tip(g, -75, -5, -80, -10.7, ray, 3.5); tip(g, 75, -5, 70, 0.7, ray, 3.5);
       const ai = Math.atan2(-170, -150), ar = Math.atan2(-170, 150), r = 55;
       still(g, `M0 25 A${r} ${r} 0 0 0 ${P(r * Math.cos(ai), 80 + r * Math.sin(ai))}`, '#555', 2);
       still(g, `M${P(r * Math.cos(ar), 80 + r * Math.sin(ar))} A${r} ${r} 0 0 0 0 25`, '#555', 2);
-      lb(g, -16, 14, 'i', '#555', 20); lb(g, 16, 14, 'r', '#555', 20);
-      lb(g, -150, -100, 'Incident ray', TXT.orange, 20, 'start'); lb(g, 150, -100, 'Reflected ray', TXT.orange, 20, 'end');
+      if (showLab(o)) { lb(g, -16, 14, 'i', '#555', 20); lb(g, 16, 14, 'r', '#555', 20); }
+      if (showLab(o)) { lb(g, -150, -100, 'Incident ray', TXT.orange, 20, 'start'); lb(g, 150, -100, 'Reflected ray', TXT.orange, 20, 'end'); }
       return g;
     },
 
@@ -414,12 +415,12 @@
       ['#d6c4a8', '#e6b98a', '#e8907a', `url(#${id})`, '#b9a0e0', '#9bb4d8', '#8fa3b8'].forEach((c, i) => fl(g, R(-300 + i * bw, -25, bw, 50), c));
       still(g, R(-300, -25, 600, 50), DK, 3);
       let d = ''; for (let i = 1; i < 7; i++) d += `M${P(-300 + i * bw, -25)} L${P(-300 + i * bw, 25)} `; still(g, d, DK, 2);
-      names.forEach((s, i) => lb(g, -300 + (i + .5) * bw, 52, s, '#444', 17));
+      if (showLab(o)) names.forEach((s, i) => lb(g, -300 + (i + .5) * bw, 52, s, '#444', 17));
       const f0 = 1 / 110, rr = 12, k = 2 * Math.PI * f0 * 600 / Math.log(rr);
       let w = ''; for (let x = -300; x <= 300; x += 1.5) w += `${w ? 'L' : 'M'}${P(x, -62 - 22 * Math.sin(k * (rr ** ((x + 300) / 600) - 1)))} `;
       line(g, w, INK.blue, 2.5);
       still(g, 'M-290 84 L290 84', '#555', 2); tip(g, -290, 84, -280, 84, '#555', 2); tip(g, 290, 84, 280, 84, '#555', 2);
-      lb(g, -290, 108, 'longer waves', '#555', 18, 'start'); lb(g, 290, 108, 'more energy', '#555', 18, 'end');
+      if (showLab(o)) { lb(g, -290, 108, 'longer waves', '#555', 18, 'start'); lb(g, 290, 108, 'more energy', '#555', 18, 'end'); }
       return g;
     },
 
@@ -434,8 +435,8 @@
       part(g, C(0, -16, 18), '#7fb7ea'); still(g, 'M-8 -24 A10 10 0 0 1 2 -28', '#ffffff', 3);
       still(g, 'M-24 -50 L-24 30', '#ffffff', 5, { opacity: .7 });
       if (o.arrows !== '0') {
-        arrow(g, 110, 70, 110, -90, INK.green, 5); lb(g, 124, -50, 'Thrust', TXT.green, 22, 'start');
-        arrow(g, -100, 100, -100, 190, INK.orange, 5); lb(g, -114, 170, 'Hot gas', TXT.orange, 22, 'end');
+        arrow(g, 110, 70, 110, -90, INK.green, 5); if (showLab(o)) lb(g, 124, -50, 'Thrust', TXT.green, 22, 'start');
+        arrow(g, -100, 100, -100, 190, INK.orange, 5); if (showLab(o)) lb(g, -114, 170, 'Hot gas', TXT.orange, 22, 'end');
       }
       if (t) lb(g, 0, 214, t);
       return g;
@@ -450,7 +451,7 @@
       still(g, C(-130, 0, 85), '#1f4f8f', 3.2); still(g, 'M-190 -30 A70 70 0 0 1 -150 -68', '#ffffff', 6, { opacity: .55 });
       part(g, C(170, 0, 40), '#c9ccd1', '#6b7280'); for (const [x, y, r] of [[158, -12, 9], [182, 14, 7], [176, -20, 5]]) part(g, C(x, y, r), '#9aa0a8', '#6b7280', 1.8);
       arrow(g, -38, 0, 18, 0, INK.red, 5, true); arrow(g, 124, 0, 66, 0, INK.red, 5, true);
-      lb(g, 42, -24, t || 'Gravity', TXT.red, 22);
+      if (t || showLab(o)) lb(g, 42, -24, t || 'Gravity', TXT.red, 22);
       return g;
     },
 
@@ -496,8 +497,8 @@
         const pe = Math.max(0, Math.min(1, o.pe ?? .7)), H = 180;
         part(g, R(-90, 100 - pe * H, 60, pe * H), '#7fb7ea', '#1f4f8f'); part(g, R(10, 100 - (1 - pe) * H, 60, (1 - pe) * H), '#f4a531', '#8a5a14');
         still(g, 'M-120 -110 L-120 100 L110 100', '#333', 3); tip(g, -120, -110, -120, -100, '#333', 3);
-        still(g, 'M-120 -80 L100 -80', '#9aa0a8', 2, { 'stroke-dasharray': '6 8' }); lb(g, 104, -76, 'Total', '#777', 18, 'start');
-        lb(g, -60, 126, 'PE', TXT.blue); lb(g, 40, 126, 'KE', TXT.orange); lb(g, -120, -122, 'Energy', '#555', 20);
+        still(g, 'M-120 -80 L100 -80', '#9aa0a8', 2, { 'stroke-dasharray': '6 8' }); if (showLab(o)) lb(g, 104, -76, 'Total', '#777', 18, 'start');
+        if (showLab(o)) { lb(g, -60, 126, 'PE', TXT.blue); lb(g, 40, 126, 'KE', TXT.orange); lb(g, -120, -122, 'Energy', '#555', 20); }
         return g;
       }
       const tr = [[-210, -110], [-170, 120], [170, 120], [210, -110]];
@@ -508,7 +509,7 @@
       const [x1, y1] = bz(.06), [x2, y2] = bz(.5);
       fl(g, C(x2, y2 - 17, 15), '#e04b3a', { opacity: .3 }); still(g, `M${P(x2 - 46, y2 - 17)} L${P(x2 - 24, y2 - 17)}`, '#e04b3a', 2.5, { opacity: .6 });
       part(g, C(x1 + 15, y1 - 10, 15), '#e04b3a', '#7a1f1f');
-      lb(g, x1 + 36, y1 - 26, 'Most PE', TXT.blue, 22, 'start'); lb(g, x2, y2 + 34, 'Most KE', TXT.orange, 22);
+      if (showLab(o)) { lb(g, x1 + 36, y1 - 26, 'Most PE', TXT.blue, 22, 'start'); lb(g, x2, y2 + 34, 'Most KE', TXT.orange, 22); }
       return g;
     },
 
@@ -518,12 +519,12 @@
       still(g, 'M-230 100 L230 100', '#555', 3); hatch(g, -220, 230, 102);
       line(g, 'M-200 86 Q0 -246 200 86', '#7a8899', 2.5);
       for (const u of [.25, .5, .75]) fl(g, C(q(u, -200, 0, 200), q(u, 86, -246, 86), 11), '#f4a531', { opacity: .35 });
-      still(g, 'M0 -80 L0 98', '#9aa0a8', 2, { 'stroke-dasharray': '6 8' }); lb(g, 10, 20, 'Max height', '#777', 18, 'start');
+      still(g, 'M0 -80 L0 98', '#9aa0a8', 2, { 'stroke-dasharray': '6 8' }); if (showLab(o)) lb(g, 10, 20, 'Max height', '#777', 18, 'start');
       part(g, C(-200, 86, 14), '#f4a531', '#8a5a14');
       const L = Math.hypot(200, 332), ux = 200 / L, uy = -332 / L; arrow(g, -200 + ux * 18, 86 + uy * 18, -200 + ux * 110, 86 + uy * 110, INK.red, 4);
-      lb(g, -200 + ux * 110 - 10, 86 + uy * 110 - 6, 'Velocity', TXT.red, 20, 'end');
+      if (showLab(o)) lb(g, -200 + ux * 110 - 10, 86 + uy * 110 - 6, 'Velocity', TXT.red, 20, 'end');
       still(g, 'M-200 128 L200 128', '#555', 2); tip(g, -200, 128, -190, 128, '#555', 2); tip(g, 200, 128, 190, 128, '#555', 2);
-      lb(g, 0, 154, 'Range', '#555', 20);
+      if (showLab(o)) lb(g, 0, 154, 'Range', '#555', 20);
       return g;
     },
 
@@ -533,9 +534,9 @@
       let gd = 'M-170 60 L-170 6'; for (let x = -170; x < 170; x += 20) gd += ` L${x + 10} -4 L${x + 20} 6`; gd += ' L170 60 Z';
       let bd = 'M-100 -90 L100 -90 L100 0'; for (let x = 100; x > -100; x -= 20) bd += ` L${x - 10} -10 L${x - 20} 0`; bd += ' Z';
       part(g, gd, '#b9a58a', '#5e4a2e'); part(g, bd, '#e0b47a', '#7a5a2e');
-      arrow(g, -250, -46, -108, -46, INK.red, 5); lb(g, -180, -62, 'Push', TXT.red);
-      arrow(g, 250, -30, 108, -30, INK.orange, 5); lb(g, 180, -46, 'Friction', TXT.orange);
-      lb(g, 0, 92, t || 'Rough surfaces grip', '#5e4a2e', 20);
+      arrow(g, -250, -46, -108, -46, INK.red, 5); if (showLab(o)) lb(g, -180, -62, 'Push', TXT.red);
+      arrow(g, 250, -30, 108, -30, INK.orange, 5); if (showLab(o)) lb(g, 180, -46, 'Friction', TXT.orange);
+      if (t || showLab(o)) lb(g, 0, 92, t || 'Rough surfaces grip', '#5e4a2e', 20);
       return g;
     },
 
@@ -549,7 +550,7 @@
       fl(g, water, '#5d93d6', { opacity: .3 });
       still(g, 'M-168 -40 Q-140 -46 -112 -40 T-56 -40 T0 -40 T56 -40 T112 -40 T168 -40', '#2f7fd6', 2.5);
       still(g, 'M-170 -110 L-170 110 L170 110 L170 -110', '#5a6b7a', 3.2);
-      lb(g, -102, -80, 'Wood', '#7a5a2e', 20); lb(g, 20, -82, 'Ball', '#8a5a14', 20); lb(g, 106, 60, 'Stone', '#4a4f57', 20);
+      if (showLab(o)) { lb(g, -102, -80, 'Wood', '#7a5a2e', 20); lb(g, 20, -82, 'Ball', '#8a5a14', 20); lb(g, 106, 60, 'Stone', '#4a4f57', 20); }
       if (t) lb(g, 0, 140, t);
       return g;
     },
@@ -558,9 +559,9 @@
     fission: ([cx, cy, W = 500], o, t, p) => {
       const g = G(cx, cy, W / 500, 0, p), gn = '#8fa3b8';
       part(g, C(-240, 0, 10), gn, '#2f4f7a', 2); arrow(g, -224, 0, -150, 0, '#555', 3, true);
-      cluster(g, -90, 0, 19, 10); lb(g, -90, 76, t || 'Big nucleus', '#555', 20);
+      cluster(g, -90, 0, 19, 10); if (t || showLab(o)) lb(g, -90, 76, t || 'Big nucleus', '#555', 20);
       let s = ''; for (let i = 0; i < 16; i++) { const r = i % 2 ? 14 : 34, a = i * Math.PI / 8; s += `${s ? 'L' : 'M'}${P(30 + r * Math.cos(a), r * Math.sin(a))} `; }
-      part(g, s + 'Z', '#ffd84a', '#d27b0c', 2.5); lb(g, 30, 58, 'Energy', TXT.orange, 20);
+      part(g, s + 'Z', '#ffd84a', '#d27b0c', 2.5); if (showLab(o)) lb(g, 30, 58, 'Energy', TXT.orange, 20);
       arrow(g, 56, -18, 104, -48, '#555', 3, true); arrow(g, 56, 18, 104, 48, '#555', 3, true);
       cluster(g, 140, -78, 9, 10); cluster(g, 140, 78, 9, 10);
       for (const [x, y] of [[236, -26], [250, 8], [232, 40]]) { arrow(g, 66, y / 4, x - 16, y, '#555', 2.5, true); part(g, C(x, y, 10), gn, '#2f4f7a', 2); }

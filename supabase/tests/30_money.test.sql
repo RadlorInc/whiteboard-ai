@@ -4,7 +4,7 @@
 begin;
 set local search_path = public, extensions;
 \ir helpers.psql
-select plan(133);
+select plan(137);
 
 create temp table users (k text primary key, id uuid);
 create temp table gens (k text primary key, id uuid);
@@ -21,6 +21,9 @@ create function pg_temp.admin_settings(p_changes jsonb) returns text language sq
   select pg_temp.as_admin('aal2', format('select public.admin_set_settings(%L::jsonb, %L, gen_random_uuid())::text',
                                          p_changes, 'test settings')) $$;
 
+-- The fair-use slow-down (000100 of 20 Oct) would hit every user here past 10 videos, since now() never moves; it is
+-- off until its own block below.
+update public.ops_settings set slow_1_after = 1000, slow_2_after = 1000 where id;
 select is((select count(*)::int from public.generations where status in ('reserved','running')), 0,
   'precondition: no open generation anywhere');
 select is((select coalesce(sum(cost_usd), 0) from public.generation_calls
@@ -220,14 +223,35 @@ select is(pg_temp.keep('tf10', pg_temp.reserve(pg_temp.u('tenfail'))), 'reserved
 select is(pg_temp.fail(pg_temp.g('tf10'), 'tool_loop'), 'released:30', 'the 10th user-caused failure');
 select is(pg_temp.outcome(pg_temp.reserve(pg_temp.u('tenfail'))), 'rate_limited', '10 uncharged failures today -> rate_limited');
 
-select pg_temp.mk('hour', 0, 40) is not null as fixture \gset
+select pg_temp.mk('day', 0, 50) is not null as fixture \gset
 do $$ declare i int;
 begin
-  for i in 1..20 loop perform pg_temp.finish(pg_temp.gid(pg_temp.reserve(pg_temp.u('hour'))), 150); end loop;
+  for i in 1..30 loop perform pg_temp.finish(pg_temp.gid(pg_temp.reserve(pg_temp.u('day'))), 150); end loop;
 end $$;
-select is(pg_temp.bal(pg_temp.u('hour')), '0/20/0', '20 asks in the hour, 1 credit each');
-select is(pg_temp.reserve(pg_temp.u('hour')), 'rate_limited::20:' || (now() + interval '1 hour'),
-  'the 21st ask in an hour -> rate_limited, retry when the oldest of the 20 is an hour old');
+select is(pg_temp.reserve(pg_temp.u('day')), 'rate_limited::20:' || ((date_trunc('day', now() at time zone 'utc') + interval '1 day') at time zone 'utc'),
+  '30 asks today (user_daily_cap; no hourly cap any more) -> the 31st is rate_limited until the next UTC midnight');
+
+-- Fair use: the slow-down and the month's cap, through admin_set_settings (thresholds made small for the test).
+select is(pg_temp.admin_settings('{"slow_1_after": 2, "slow_1_seconds": 30, "slow_2_after": 3, "slow_2_seconds": 60}'), 'true',
+  'admin sets the slow-down steps');
+select pg_temp.mk('slow', 0, 40) is not null as fixture \gset
+do $$ begin
+  perform pg_temp.finish(pg_temp.gid(pg_temp.reserve(pg_temp.u('slow'))), 150);
+  perform pg_temp.finish(pg_temp.gid(pg_temp.reserve(pg_temp.u('slow'))), 150);
+end $$;
+select is(pg_temp.reserve(pg_temp.u('slow')), 'slow_down::38:' || (now() + interval '30 seconds'),
+  '2 videos today -> slow_down, retry 30 s after the last one ended; nothing reserved');
+select pg_temp.admin_settings('{"slow_1_seconds": 0}') is not null as fixture \gset
+select pg_temp.finish(pg_temp.gid(pg_temp.reserve(pg_temp.u('slow'))), 150) is not null as fixture \gset
+select is(pg_temp.reserve(pg_temp.u('slow')), 'slow_down::37:' || (now() + interval '60 seconds'),
+  '3 videos today -> the second step: 60 s');
+select pg_temp.admin_settings('{"slow_2_seconds": 0, "user_monthly_cap": 4}') is not null as fixture \gset
+select pg_temp.finish(pg_temp.gid(pg_temp.reserve(pg_temp.u('slow'))), 150) is not null as fixture \gset
+select is(pg_temp.reserve(pg_temp.u('slow')), 'rate_limited::36:' || ((date_trunc('month', now() at time zone 'utc') + interval '1 month') at time zone 'utc'),
+  '4 videos this month at a cap of 4 -> rate_limited until the 1st of next month (UTC)');
+select is(pg_temp.admin_settings('{"slow_2_seconds": 61}'), 'ERROR 23514: rejected:ops_settings_slow_2_seconds_check',
+  'a wait over 60 s is refused');
+select pg_temp.admin_settings('{"user_monthly_cap": 50, "slow_1_after": 1000, "slow_2_after": 1000}') is not null as fixture \gset
 
 select pg_temp.mk('decl', 0, 30) is not null as fixture \gset
 do $$ declare c text;

@@ -1,0 +1,9 @@
+tieknot cx cy height k=1|2|3|4 lab=0 | tieknot 480 280 320 k=1 | tying a tie (four-in-hand): 1 wide end crosses over, 2 wraps around, 3 up through the neck loop, 4 down through the knot, done; lab=0 hides the step number
+breaker cx cy height trip=N | breaker 480 270 320 trip=4 | home breaker panel: main switch and ten numbered breakers; trip=N (1-10) shows that one tripped in red
+ptrap cx cy width leak=1 | ptrap 480 260 400 leak=1 | under-sink drain: tailpipe, U-bend holding water, slip nuts, pipe into the wall; leak=1 drips into a bucket
+toilettank cx cy height k=ok|running | toilettank 480 270 340 | toilet tank cut open: fill valve and float, overflow tube, flapper on its chain to the handle; running = flapper not sealing, water leaking past
+studfinder cx cy width scan=1 | studfinder 480 270 240 scan=1 | electronic stud finder: LED row lit green over a stud; scan=1 slides it along the wall (arrow). The wall is wallstuds
+paintroller cx cy width | paintroller 480 270 420 | paint roller loaded with paint, and the tray with paint in its well
+furnacefilter cx cy width k=clean|dirty | furnacefilter 480 270 380 | furnace air filter: pleated card frame with the AIR FLOW arrow; dirty = grey with dust
+caulkgun cx cy width | caulkgun 500 270 440 | caulk gun with its tube, trigger and plunger rod, a bead of caulk along a seam
+drywall cx cy width k=hole|patch | drywall 480 270 400 | a hole in drywall; patch = mesh patch over it, joint compound spread with a putty knife

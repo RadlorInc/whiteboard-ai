@@ -35,6 +35,7 @@ function refused(outcome: ReserveOutcome, r: { generation_id: string | null; ava
     case 'blocked': return json(403, { code: 'blocked' });
     case 'busy': return json(409, { code: 'busy', id: r.generation_id });
     case 'rate_limited': return json(429, { code: 'rate_limited', retry_at: r.retry_at }, { 'Retry-After': retryAfter(r.retry_at) });
+    case 'slow_down': return json(429, { code: 'slow_down', retry_at: r.retry_at }, { 'Retry-After': retryAfter(r.retry_at) });
     case 'at_capacity': return json(503, { code: 'at_capacity' }, { 'Retry-After': '30' });
     case 'paused': return json(503, { code: 'paused' });
     case 'spend_cap': return json(503, { code: 'spend_cap' });
@@ -47,7 +48,7 @@ const existing = (g: { id: string; status: string }) =>
 
 // What a follow-up's model call is told before the question: the subject and the conversation so far (questions and
 // their spoken lines; no drawings). It goes in the user turn, so the cached system prompt stays byte-identical.
-const SUBJECT = { biology: 'Biology', physics: 'Physics', chemistry: 'Chemistry' } as const;
+const SUBJECT = { biology: 'Biology', physics: 'Physics', chemistry: 'Chemistry', home: 'Home fixes', car: 'Car fixes' } as const;
 // One text block per earlier turn, each byte-identical on every later follow-up, so the conversation so far is a
 // cached prefix (run.ts marks the last block): a follow-up pays full price only for its newest turn (18 Oct 2026).
 export function threadContext(t: Thread): string[] {

@@ -16,6 +16,7 @@ const fmt = v => { const r = Math.round(v * 100) / 100; return (Object.is(r, -0)
 const gcd = (a, b) => (b ? gcd(b, a % b) : Math.abs(a));
 const frac = (a, b) => { if (!Number.isInteger(a) || !Number.isInteger(b)) return fmt(a / b); const g = gcd(a, b) || 1; return b / g === 1 ? String(a / g) : `${a / g}/${b / g}`; };
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const showLab = o => o.lab !== '0' && o.labels !== '0';   // lab=0 / labels=0 hide the recipe's own words
 
 // ── geometry → path strings (pol uses maths angles: 0° = right, counter-clockwise, screen y down)
 const pol = (cx, cy, r, a) => [cx + r * Math.cos(a * RAD), cy - r * Math.sin(a * RAD)];
@@ -152,7 +153,7 @@ Object.assign(window.RECIPES, {
       const n = P.length, mx = P.reduce((s, p) => s + p[0], 0) / n, my = P.reduce((s, p) => s + p[1], 0) / n;
       const sxx = P.reduce((s, p) => s + (p[0] - mx) ** 2, 0), m = sxx ? P.reduce((s, p) => s + (p[0] - mx) * (p[1] - my), 0) / sxx : 0, b0 = my - m * mx;
       line(g, `M${f.X(xr[0])} ${f.Y(m * xr[0] + b0)} L${f.X(xr[1])} ${f.Y(m * xr[1] + b0)}`, RED, 3.5, { 'clip-path': f.clip });
-      label(g, f.px + 14, f.py + 6, t || `y ≈ ${fmt(m)}x ${b0 < 0 ? '-' : '+'} ${fmt(Math.abs(b0))}`, RED, 22);
+      if (t || showLab(o)) label(g, f.px + 14, f.py + 6, t || `y ≈ ${fmt(m)}x ${b0 < 0 ? '-' : '+'} ${fmt(Math.abs(b0))}`, RED, 22);
     } else if (t) label(g, f.px + 14, f.py + 6, t, TXT.blue, 22);
     P.forEach(([u, v]) => dot(g, f.X(u), f.Y(v), 7, FILL.blue, INK.blue));
     return g;
@@ -292,7 +293,7 @@ Object.assign(window.RECIPES, {
     const lr = ar + 30 + Math.max(0, 30 - deg) * 2.2, [lx, ly] = pol(cx, cy, lr, rot + deg / 2);
     label(g, lx, ly + 9, t || `${fmt(deg)}°`, TXT.orange, 28, 'middle');
     if (o.name === '1') { const kind = deg < 90 ? 'acute' : deg === 90 ? 'right angle' : deg < 180 ? 'obtuse' : deg === 180 ? 'straight' : 'reflex';
-      label(g, cx, cy + 44, kind, TXT.blue, 24, 'middle'); }
+      if (showLab(o)) label(g, cx, cy + 44, kind, TXT.blue, 24, 'middle'); }
     dot(g, cx, cy, 4.5, K);
     return g;
   },
@@ -389,15 +390,15 @@ Object.assign(window.RECIPES, {
     wash(g, ring(cx, cy, r), '#d6ebfa');
     if (has('sector')) wash(g, `M${cx} ${cy} L${cx + r} ${cy} ${arcD(cx, cy, r, 0, 50).replace(/^M[^A]+/, '')} Z`, FILL.yellow);
     line(g, ring(cx, cy, r), K, 3.4);
-    if (has('diameter')) { line(g, `M${cx - r} ${cy} L${cx + r} ${cy}`, INK.blue, 3.2); label(g, cx - r / 2, cy + 30, m ? `d = ${fmt(2 * v)}${u}` : 'diameter', TXT.blue, 22, 'middle'); }
+    if (has('diameter')) { line(g, `M${cx - r} ${cy} L${cx + r} ${cy}`, INK.blue, 3.2); if (m || showLab(o)) label(g, cx - r / 2, cy + 30, m ? `d = ${fmt(2 * v)}${u}` : 'diameter', TXT.blue, 22, 'middle'); }
     if (has('radius')) { const [ex, ey] = pol(cx, cy, r, 50); line(g, `M${cx} ${cy} L${ex} ${ey}`, RED, 3.2);
-      const [lx, ly] = pol(cx, cy, r * .5, 50); label(g, lx - 12, ly - 6, m ? `r = ${fmt(v)}${u}` : 'radius', RED, 22, 'end'); }
+      const [lx, ly] = pol(cx, cy, r * .5, 50); if (m || showLab(o)) label(g, lx - 12, ly - 6, m ? `r = ${fmt(v)}${u}` : 'radius', RED, 22, 'end'); }
     if (has('chord')) { const p = pol(cx, cy, r, 218), q = pol(cx, cy, r, 322); line(g, `M${p.join(' ')} L${q.join(' ')}`, INK.green, 3.2);
-      label(g, cx, p[1] - 12, 'chord', TXT.green, 22, 'middle'); }
-    if (has('arc')) { line(g, arcD(cx, cy, r, 0, 50), INK.orange, 6); const [lx, ly] = pol(cx, cy, r + 18, 25); label(g, lx, ly + 6, 'arc', TXT.orange, 22); }
-    if (has('sector')) { const [lx, ly] = pol(cx, cy, r * .72, 18); label(g, lx, ly + 6, 'sector', TXT.orange, 20, 'middle'); }
+      if (showLab(o)) label(g, cx, p[1] - 12, 'chord', TXT.green, 22, 'middle'); }
+    if (has('arc')) { line(g, arcD(cx, cy, r, 0, 50), INK.orange, 6); const [lx, ly] = pol(cx, cy, r + 18, 25); if (showLab(o)) label(g, lx, ly + 6, 'arc', TXT.orange, 22); }
+    if (has('sector')) { const [lx, ly] = pol(cx, cy, r * .72, 18); if (showLab(o)) label(g, lx, ly + 6, 'sector', TXT.orange, 20, 'middle'); }
     if (has('circumference')) { line(g, arcD(cx, cy, r + 12, 110, 165), INK.orange, 3); line(g, head(...pol(cx, cy, r + 12, 165), ...pol(cx, cy, r + 12, 160)), INK.orange, 3, { class: 'ink head' });
-      const [lx, ly] = pol(cx, cy, r + 26, 140); label(g, lx, ly, m ? `C = ${fmt(2 * Math.PI * v)}${u}` : 'circumference', TXT.orange, 22, 'end'); }
+      const [lx, ly] = pol(cx, cy, r + 26, 140); if (m || showLab(o)) label(g, lx, ly, m ? `C = ${fmt(2 * Math.PI * v)}${u}` : 'circumference', TXT.orange, 22, 'end'); }
     dot(g, cx, cy, 4.5, K);
     if (t) label(g, cx, cy + r + 40, t, TXT.blue, 24, 'middle');
     return g;
@@ -416,9 +417,9 @@ Object.assign(window.RECIPES, {
       const P = V[0], ia = (n - 2) * 180 / n, dir = T => Math.atan2(-(T[1] - P[1]), T[0] - P[0]) / RAD, s0 = dir(V[1]);
       line(g, arcD(P[0], P[1], 30, s0, s0 + ia), RED, 2.6);
       label(g, ...(([lx, ly]) => [lx, ly + 7])(pol(P[0], P[1], 58, s0 + ia / 2)), `${fmt(ia)}°`, RED, 20, 'middle');
-      label(g, cx, bottom + 64, `angles add to ${fmt((n - 2) * 180)}°`, RED, 22, 'middle');
+      if (showLab(o)) label(g, cx, bottom + 64, `angles add to ${fmt((n - 2) * 180)}°`, RED, 22, 'middle');
     }
-    label(g, cx, bottom + 34, t || POLY[n] || `${n}-gon`, TXT.blue, 26, 'middle');
+    if (t || showLab(o)) label(g, cx, bottom + 34, t || POLY[n] || `${n}-gon`, TXT.blue, 26, 'middle');
     return g;
   },
 
@@ -491,7 +492,7 @@ Object.assign(window.RECIPES, {
       line(g, rectD(ox, oy, W * cell, H * cell), INK.green, 3.6);
       label(g, ox + W * cell / 2, oy - 10, String(W), TXT.green, 24, 'middle');
       label(g, ox - 10, oy + H * cell / 2 + 8, String(H), TXT.green, 24, 'end');
-      label(g, ox + cols * cell / 2, oy + rows * cell + 36, t || `${W} × ${H} = ${W * H} squares`, TXT.green, 26, 'middle');
+      if (t || showLab(o)) label(g, ox + cols * cell / 2, oy + rows * cell + 36, t || `${W} × ${H} = ${W * H} squares`, TXT.green, 26, 'middle');
     }
     return g;
   },
@@ -544,7 +545,7 @@ Object.assign(window.RECIPES, {
     vals.forEach((v, i) => { for (let j = 0; j < v; j++) wash(g, ell(x0 + sp * (i + 1), y0 + H - bar - ry - 2 - j * 2 * ry, rx, ry * .92), PAL[i % 8]); });
     line(g, rectD(x0, y0, W, bar) + ' ' + rectD(x0, y0 + H - bar, W, bar), '#6b4423', 3);
     vals.forEach((v, i) => { if (v) line(g, Array.from({ length: v }, (_, j) => ell(x0 + sp * (i + 1), y0 + H - bar - ry - 2 - j * 2 * ry, rx, ry * .92)).join(' '), PINK[i % 8], 2.2); });
-    names.forEach((s, i) => i < m && label(g, x0 + sp * (i + 1), y0 + H + 30, s, PINK[i % 8], 24, 'middle'));
+    names.forEach((s, i) => i < m && (t || showLab(o)) && label(g, x0 + sp * (i + 1), y0 + H + 30, s, PINK[i % 8], 24, 'middle'));
     if (o.num !== '0') label(g, cx, y0 - 16, vals.join('').replace(/^0+(?=\d)/, ''), TXT.blue, 34, 'middle');
     return g;
   },
@@ -574,7 +575,7 @@ Object.assign(window.RECIPES, {
     const block = (bx, by, cw, ch, fill, ink) => { wash(g, rectD(bx, by, cw * u, ch * u), fill);
       line(g, [...Array.from({ length: cw - 1 }, (_, i) => `M${bx + (i + 1) * u} ${by} L${bx + (i + 1) * u} ${by + ch * u}`), ...Array.from({ length: ch - 1 }, (_, j) => `M${bx} ${by + (j + 1) * u} L${bx + cw * u} ${by + (j + 1) * u}`)].join(' ') || `M${bx} ${by} l0.1 0`, ink, 1.2, { opacity: .7 });
       line(g, rectD(bx, by, cw * u, ch * u), ink, 2.6); };
-    const caption = (gx, gw, v, nm, col) => label(g, gx + gw / 2, base + 34, `${v} ${nm}`, col, 22, 'middle');
+    const caption = (gx, gw, v, nm, col) => label(g, gx + gw / 2, base + 34, showLab(o) ? `${v} ${nm}` : String(v), col, 22, 'middle');
     if (Hn) { const gx = cx; for (let i = 0; i < Hn; i++) block(cx + (i % per) * 10.8 * u, base - 10 * u - Math.floor(i / per) * 10.8 * u, 10, 10, FILL.blue, INK.blue); caption(gx, Hw * u, Hn, Hn === 1 ? 'hundred' : 'hundreds', TXT.blue); cx += (Hw + 3) * u; }
     if (Tn) { const gx = cx; for (let i = 0; i < Tn; i++) block(cx + i * 1.6 * u, base - 10 * u, 1, 10, FILL.green, INK.green); caption(gx, Tw * u, Tn, Tn === 1 ? 'ten' : 'tens', TXT.green); cx += (Tw + 3) * u; }
     if (On) { const gx = cx; for (let i = 0; i < On; i++) block(cx + Math.floor(i / 5) * 1.6 * u, base - (i % 5 + 1) * 1.2 * u + .2 * u, 1, 1, FILL.orange, INK.orange); caption(gx, Ow * u, On, On === 1 ? 'one' : 'ones', TXT.orange); }
@@ -752,12 +753,12 @@ Object.assign(window.RECIPES, {
     wash(g, polyD([[f.X(x1), f.Y(y1)], [f.X(x2), f.Y(y1)], [f.X(x2), f.Y(y2)]]), FILL.yellow, { opacity: .6 });
     line(g, `M${f.X(x1)} ${f.Y(y1)} L${f.X(x2)} ${f.Y(y1)}`, INK.green, 3.4);
     line(g, `M${f.X(x2)} ${f.Y(y1)} L${f.X(x2)} ${f.Y(y2)}`, RED, 3.4);
-    label(g, f.X((x1 + x2) / 2), f.Y(y1) + (rise >= 0 ? 28 : -12), `run = ${fmt(run)}`, TXT.green, 22, 'middle');
-    label(g, f.X(x2) + 12, f.Y((y1 + y2) / 2) + 8 + (Math.abs(f.Y((y1 + y2) / 2) - f.Y(clamp(0, f.yr[0], f.yr[1]))) < 22 ? 26 : 0), `rise = ${fmt(rise)}`, RED, 22, 'start');
+    label(g, f.X((x1 + x2) / 2), f.Y(y1) + (rise >= 0 ? 28 : -12), showLab(o) ? `run = ${fmt(run)}` : fmt(run), TXT.green, 22, 'middle');
+    label(g, f.X(x2) + 12, f.Y((y1 + y2) / 2) + 8 + (Math.abs(f.Y((y1 + y2) / 2) - f.Y(clamp(0, f.yr[0], f.yr[1]))) < 22 ? 26 : 0), showLab(o) ? `rise = ${fmt(rise)}` : fmt(rise), RED, 22, 'start');
     P.forEach(([u, v]) => dot(g, f.X(u), f.Y(v), 7, FILL.blue, INK.blue));
     label(g, f.X(x1) - 10, f.Y(y1) - 12, `(${fmt(x1)}, ${fmt(y1)})`, TXT.blue, 20, 'end');
     label(g, f.X(x2) - 10, f.Y(y2) - 12, `(${fmt(x2)}, ${fmt(y2)})`, TXT.blue, 20, 'end');
-    label(g, f.px + f.pw - 6, m >= 0 ? f.py + f.ph - 44 : f.py + 10, t || `slope = ${fmt(rise)} ÷ ${fmt(run)} = ${frac(Math.round(rise * 1e6), Math.round(run * 1e6))}`, K, 24, 'end');
+    if (t || showLab(o)) label(g, f.px + f.pw - 6, m >= 0 ? f.py + f.ph - 44 : f.py + 10, t || `slope = ${fmt(rise)} ÷ ${fmt(run)} = ${frac(Math.round(rise * 1e6), Math.round(run * 1e6))}`, K, 24, 'end');
     return g;
   },
 
@@ -835,7 +836,7 @@ Object.assign(window.RECIPES, {
       line(g, d, '#8a6414', 2); });
     if (o.simple === '1') { const sv = i => p * (1 + r * i);
       dash(g, [[f.CX(0), f.Y(sv(0)) - ry], [f.CX(n), f.Y(sv(n)) - ry]], INK.blue, 3);
-      label(g, f.px + 16, f.py + (t ? 36 : 6), `- - simple interest: ${cur}${fmt(sv(n))}`, TXT.blue, 20); }
+      if (showLab(o)) label(g, f.px + 16, f.py + (t ? 36 : 6), `- - simple interest: ${cur}${fmt(sv(n))}`, TXT.blue, 20); }
     label(g, f.CX(0), f.Y(vals[0]) - ry - 10, cur + fmt(vals[0]), K, 20, 'middle');
     label(g, f.CX(n) - cw / 2, f.Y(vals[n]) - ry - 10, cur + fmt(vals[n]), RED, 24, 'end');
     if (t) label(g, f.px + 16, f.py + 6, t, TXT.blue, 24);

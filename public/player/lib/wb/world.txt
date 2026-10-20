@@ -8,7 +8,7 @@ flower cx cy height k=daisy|tulip|sunflower | flower 480 260 260 k=sunflower | f
 grass x1 x2 y | grass 200 760 340 | strip of ground with tufts of grass
 mushroom cx cy height | mushroom 480 270 240 | red-capped mushroom with white spots
 pond cx cy width | pond 480 280 380 | oval pond with lily pads, flower and reeds
-foodweb cx cy width k=chain|web | foodweb 480 270 640 k=chain | Grass, Rabbit, Snake, Eagle | food chain or web: labelled boxes from |text, arrows = eaten by
+foodweb cx cy width k=chain|web lab=0 | foodweb 480 270 640 k=chain | Grass, Rabbit, Snake, Eagle | food chain or web: labelled boxes from |text, arrows = eaten by; lab=0 hides its words
 person cx cy height k=standing|walking|waving c=blue skin=1-4 | person 480 270 300 k=waving | friendly simple person, dot eyes, smile, plain clothes; |text = caption
 people cx cy width n=4 | people 480 270 520 n=4 | friendly group of people, mixed skin tones, one waving
 familytree cx cy size | familytree 480 270 380 | Grandma, Grandpa, Mother, Father, Me, Sister | three-generation family tree boxes with person icons; |text names them
@@ -29,12 +29,12 @@ ballot cx cy size | ballot 480 300 300 | VOTE | ballot box with a ticked paper g
 civic cx cy size k=school|hospital|parliament | civic 480 280 340 k=school | civic building: school with clock, hospital with H, domed parliament
 courtroom cx cy size | courtroom 480 280 460 | courtroom: judge at raised bench, scales emblem, two tables
 classroom cx cy size | classroom 480 280 480 | 2 + 2 = 4 | chalkboard showing |text, teacher, pupils at desks
-supplydemand cx cy size | supplydemand 470 270 340 | price-quantity axes, supply and demand lines crossing at equilibrium
+supplydemand cx cy size lab=0 | supplydemand 470 270 340 | price-quantity axes, supply and demand lines crossing at equilibrium; lab=0 hides its words
 stall cx cy size | stall 480 280 340 | market stall: striped awning, crates of fruit
 trade cx cy width | trade 480 270 560 | Goods | two lands exchanging goods: export and import arrows, crate, fruit
 factory cx cy size | factory 480 290 340 | factory with chimneys puffing grey smoke, pollution
 recycle cx cy size | recycle 480 270 260 | three green chasing arrows in a circle: recycling
-timeline x1 x2 y | timeline 100 860 280 | Stone Age, Ancient, Middle Ages, Modern | coloured eras on a timeline arrow; |text = comma-separated era names
+timeline x1 x2 y lab=0 | timeline 100 860 280 | Stone Age, Ancient, Middle Ages, Modern | coloured eras on a timeline arrow; |text = comma-separated era names; lab=0 hides its words
 idea cx cy size | idea 480 270 260 | glowing light bulb with rays: a bright idea
 quiz cx cy size k=tick|cross|question | quiz 480 270 240 k=tick | big tick, cross or question mark in a soft circle
 award cx cy size k=trophy|medal|stars n=4 | award 480 280 280 k=trophy | gold trophy, ribbon medal, or n-of-5 star rating

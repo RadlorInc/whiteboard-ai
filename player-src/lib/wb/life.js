@@ -20,7 +20,7 @@
   const arrow = (g, d, x2, y2, x1, y1, c, w = 3) => { line(g, d, c, w); line(g, head(x2, y2, x1, y1, 11), c, w, { class: 'ink head' }); };
   const pick = (K, k, d, what) => { const f = K[k || d]; if (!f) throw new Error(`Unknown ${what} "${k}" (use ${Object.keys(K).join('|')})`); return f; };
   const list = (t, def) => (t || def).split(',').map(s => s.trim()).filter(Boolean);
-  const lab = o => o.lab !== '0';
+  const lab = o => o.lab !== '0' && o.labels !== '0';
   const L = (g, x, y, t, c = '#444', s = 17, a = 'middle') => label(g, x, y, t, c, s, a);
   // a drawing in its own unit box: base = default size; may return a caption y for |text
   const make = (base, draw) => ([cx, cy, size = base], o, t, parent) => {
@@ -244,7 +244,7 @@
       const tx = x0 + i * gap, along = (i + .5) / n, bx = x0 + W * Math.min(1, along), by = base + (top - base) * Math.min(1, along);
       if (i < n - 1) line(g, `M${bx} ${by} L${tx} ${top}`, C[i % 6], 3.4);
       dot(g, i < n - 1 ? bx : x0 + W, i < n - 1 ? by : top, C[i % 6], 9);
-      label(g, tx, top - 16, nm, C[i % 6], 20, 'middle');
+      if (t || lab(o)) label(g, tx, top - 16, nm, C[i % 6], 20, 'middle');
     });
     if (lab(o)) { label(g, x0 + 10, base + 30, 'common ancestor', '#5a4a3a', 16, 'start'); label(g, x0 + W, base + 30, 'time →', '#5a4a3a', 16, 'end'); }
   });
@@ -368,7 +368,7 @@
   });
   // respiration as a picture equation around a mitochondrion (aerobic), a muscle (anaerobic) or a yeast cell
   const respiration = make(500, (g, o) => {
-    const k = o.k || 'aerobic', box = (x, y, t, c) => { P(g, `M${x - 66} ${y - 26} L${x + 66} ${y - 26} L${x + 66} ${y + 26} L${x - 66} ${y + 26} Z`, c, '#555', 2.4); L(g, x, y + 6, t, '#222', 16); };
+    const k = o.k || 'aerobic', box = (x, y, t, c) => { P(g, `M${x - 66} ${y - 26} L${x + 66} ${y - 26} L${x + 66} ${y + 26} L${x - 66} ${y + 26} Z`, c, '#555', 2.4); if (lab(o)) L(g, x, y + 6, t, '#222', 16); };
     const ins = k === 'aerobic' ? ['glucose', 'oxygen'] : ['glucose'], outs = k === 'aerobic' ? ['carbon dioxide', 'water', 'lots of energy']
       : k === 'yeast' ? ['ethanol', 'carbon dioxide', 'a little energy'] : ['lactic acid', 'a little energy'];
     ins.forEach((t, i) => box(-190, (i - (ins.length - 1) / 2) * 66, t, i ? '#cfe8fb' : '#fde7b0'));
@@ -412,6 +412,7 @@
       P(g, `M${-w1 / 2} ${y1} L${w1 / 2} ${y1} L${w0 / 2} ${y0} L${-w0 / 2} ${y0} Z`, C[i % 5], '#555', 2.4);
       const txt = lab(o) ? `${nm} (${[100, 10, 1, 0.1, 0.01][i]}%)` : nm, room = (w0 + w1) / 2 - 16;
       const fit = room / (txt.length * .5), my = (y0 + y1) / 2;
+      if (!t && !lab(o)) return;
       if (fit >= 13) label(g, 0, my + 7, txt, '#222', Math.min(18, fit), 'middle');
       else { line(g, `M${w1 / 4} ${my} L${w1 / 2 + 30} ${my}`, '#8a8f96', 1.4); label(g, w1 / 2 + 36, my + 6, txt, '#222', 16, 'start'); } });   // too narrow: beside it
   });
@@ -466,7 +467,7 @@
     K.forEach(([nm, c], i) => {
       const x = -256 + i * 128;
       P(g, `M${x - 56} -90 L${x + 56} -90 L${x + 56} 90 L${x - 56} 90 Z`, '#fffdf6', c, 3);
-      label(g, x, -62, nm, '#222', 18, 'middle');
+      if (lab(o)) label(g, x, -62, nm, '#222', 18, 'middle');
       if (i === 0) { P(g, E(x, 20, 30, 20), '#c8a2a2', '#6a4a4a', 2); P(g, E(x + 30, 2, 12, 10), '#c8a2a2', '#6a4a4a', 2); line(g, `M${x - 16} 36 l0 22 M${x + 14} 36 l0 22`, '#6a4a4a', 4); }
       if (i === 1) { line(g, `M${x} 60 L${x} -10`, '#2f7d27', 4); P(g, `M${x} 20 q30 -20 40 0 q-20 14 -40 0 Z`, GREEN, LEAF, 2); P(g, E(x, -20, 14), '#f4a3c0', '#a03a5a', 2); }
       if (i === 2) shroom(g, x, 60, 1.6, '#c98a4a');

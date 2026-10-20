@@ -18,6 +18,7 @@ const fm = (v, d = 2) => { const r = Math.round(v * 10 ** d) / 10 ** d; return (
 const fmt = v => fm(v, 2);
 const gcd = (a, b) => (b ? gcd(b, a % b) : Math.abs(a));
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const showLab = o => o.lab !== '0' && o.labels !== '0';   // lab=0 / labels=0 hide the recipe's own words
 const snap = v => { const r = Math.round(v * 1e6) / 1e6; return Math.abs(r - Math.round(r)) < 1e-6 ? Math.round(r) : r; };
 const SUP = { 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹', '-': '⁻', '+': '⁺', n: 'ⁿ', x: 'ˣ', '.': '·' };
 const SUB = { 0: '₀', 1: '₁', 2: '₂', 3: '₃', 4: '₄', 5: '₅', 6: '₆', 7: '₇', 8: '₈', 9: '₉', '-': '₋', '+': '₊', n: 'ₙ', '.': '.' };
@@ -240,8 +241,8 @@ Object.assign(window.RECIPES, {
     marks.forEach(m => { line(g, `M${X(m)} ${base} L${X(m)} ${Y(m)}`, RED, 3); label(g, X(m), base + 26, fmt(m), RED, 20, 'middle'); });
     if (shade) { const p = Phi((b - mu) / sd) - Phi((a - mu) / sd);
       const what = `${Number.isFinite(a) ? fmt(a) + ' < ' : ''}X${Number.isFinite(b) ? ' < ' + fmt(b) : ''}`;
-      label(g, x + w / 2, y + 30, minus(`P(${what}) = ${p.toFixed(4)} ≈ ${fm(p * 100, 1)}%`), RED, 26, 'middle'); }
-    label(g, x + w / 2, base + 80, t || minus(`mean μ = ${fmt(mu)}, standard deviation σ = ${fmt(sd)}`), TXT.blue, 20, 'middle');
+if (showLab(o)) label(g, x + w / 2, y + 30, minus(`P(${what}) = ${p.toFixed(4)} ≈ ${fm(p * 100, 1)}%`), RED, 26, 'middle'); }
+    if (t || showLab(o)) label(g, x + w / 2, base + 80, t || minus(`mean μ = ${fmt(mu)}, standard deviation σ = ${fmt(sd)}`), TXT.blue, 20, 'middle');
     return g;
   },
 
@@ -263,9 +264,9 @@ Object.assign(window.RECIPES, {
     F.forEach((c, i) => label(g, (X(E[i]) + X(E[i + 1])) / 2, Y(c) - 8, String(c), K, vs, 'middle'));
     const every = Math.max(1, Math.ceil(Math.max(...E.map(e => fmt(e).length)) * 10 / bwPx));
     E.forEach((e, i) => i % every === 0 && label(g, X(e), py + ph + 24, fmt(e), TICK, 17, 'middle'));
-    label(g, px + 8, py - 10, txt(o.yl || 'frequency'), TXT.blue, 20);
+    if (o.yl || showLab(o)) label(g, px + 8, py - 10, txt(o.yl || 'frequency'), TXT.blue, 20);
     if (o.xl) label(g, px + pw / 2, py + ph + 54, txt(o.xl), TXT.blue, 20, 'middle');
-    label(g, px + pw, py - 10, t || `n = ${V.length}, bin width ${fmt(E[1] - E[0])}`, TXT.blue, 20, 'end');
+    if (t || showLab(o)) label(g, px + pw, py - 10, t || `n = ${V.length}, bin width ${fmt(E[1] - E[0])}`, TXT.blue, 20, 'end');
     return g;
   },
 
@@ -287,8 +288,8 @@ Object.assign(window.RECIPES, {
     out.forEach(v => hole(g, X(v), my, 7, RED));
     const five = [['min', lo], ['Q1', Q1], ['median', Q2], ['Q3', Q3], ['max', hi]]; let lvl = 0, prev = -1e9;
     five.forEach(([nm, v]) => { lvl = X(v) - prev < 64 && !lvl ? 1 : 0; prev = X(v); const yy = bt - 12 - lvl * 46;
-      label(g, X(v), yy, fmt(v), nm === 'median' ? RED : K, 20, 'middle'); label(g, X(v), yy - 22, nm, nm === 'median' ? RED : TXT.blue, 17, 'middle'); });
-    label(g, x + w / 2, ly + 66, `n = ${n} · IQR = ${fmt(Q3)} − ${fmt(Q1)} = ${fmt(iqr)}${out.length ? ` · outliers: ${out.map(fmt).join(', ')}` : ''}`, TXT.blue, 20, 'middle');
+      label(g, X(v), yy, fmt(v), nm === 'median' ? RED : K, 20, 'middle'); if (showLab(o)) label(g, X(v), yy - 22, nm, nm === 'median' ? RED : TXT.blue, 17, 'middle'); });
+    if (showLab(o)) label(g, x + w / 2, ly + 66, `n = ${n} · IQR = ${fmt(Q3)} − ${fmt(Q1)} = ${fmt(iqr)}${out.length ? ` · outliers: ${out.map(fmt).join(', ')}` : ''}`, TXT.blue, 20, 'middle');
     if (t) label(g, x + w / 2, bt - 110, t, TXT.blue, 24, 'middle');
     return g;
   },
@@ -308,7 +309,7 @@ Object.assign(window.RECIPES, {
     tk.forEach((v, i) => i % every === 0 && label(g, X(v), y + 28, fmt(v), TICK, 18, 'middle'));
     keys.forEach(k => { for (let j = 0; j < C.get(k); j++) dot(g, X(k), y - 8 - r - j * 2.15 * r, r, FILL.orange, INK.orange); });
     const S = [...V].sort((a, b) => a - b), mean = V.reduce((s, v) => s + v, 0) / V.length, modes = keys.filter(k => C.get(k) === most);
-    label(g, x + w / 2, y + 66, `n = ${V.length} · mean = ${fmt(mean)} · median = ${fmt(median(S))} · mode = ${most > 1 && modes.length <= 3 ? modes.map(fmt).join(', ') : 'none'}`, TXT.blue, 20, 'middle');
+    if (showLab(o)) label(g, x + w / 2, y + 66, `n = ${V.length} · mean = ${fmt(mean)} · median = ${fmt(median(S))} · mode = ${most > 1 && modes.length <= 3 ? modes.map(fmt).join(', ') : 'none'}`, TXT.blue, 20, 'middle');
     if (t) label(g, x + w / 2, y + 98, t, TXT.blue, 22, 'middle');
     return g;
   },
@@ -325,12 +326,12 @@ Object.assign(window.RECIPES, {
     const rows = Array.from({ length: s1 - s0 + 1 }, (_, i) => [s0 + i, U.filter(u => Math.floor(u / 10) === s0 + i).map(u => u % 10)]);
     const lh = clamp(380 / rows.length, 30, 42), fs = clamp(lh * .7, 20, 28), sp = fs * .9, sx = x + 70, lx = x + 100, wide = Math.max(4, ...rows.map(r => r[1].length));
     if (t) label(g, x + 50, y - 34, t, TXT.blue, 24, 'start');
-    label(g, sx, y, 'stem', TXT.blue, 22, 'end'); label(g, lx, y, 'leaf', TXT.blue, 22, 'start');
+    if (showLab(o)) { label(g, sx, y, 'stem', TXT.blue, 22, 'end'); label(g, lx, y, 'leaf', TXT.blue, 22, 'start'); }
     line(g, `M${x} ${y + 12} L${lx + wide * sp + 10} ${y + 12} M${sx + 15} ${y - 22} L${sx + 15} ${y + 18 + rows.length * lh}`, K, 3);
     rows.forEach(([s, L], i) => { const yy = y + 12 + (i + 1) * lh - lh * .28;
       label(g, sx, yy, String(s), K, fs, 'end'); L.forEach((d, j) => label(g, lx + j * sp, yy, String(d), INK.blue, fs, 'start')); });
     const k0 = U[0];
-    label(g, x, y + 46 + rows.length * lh, `key: ${Math.floor(k0 / 10)} | ${k0 % 10} = ${fmt(k0 * lf)}   ·   n = ${V.length}`, TXT.orange, 20, 'start');
+    if (showLab(o)) label(g, x, y + 46 + rows.length * lh, `key: ${Math.floor(k0 / 10)} | ${k0 % 10} = ${fmt(k0 * lf)}   ·   n = ${V.length}`, TXT.orange, 20, 'start');
     return g;
   },
 
@@ -344,7 +345,7 @@ Object.assign(window.RECIPES, {
     } else [E, F] = binsOf(nlist(o.vals || '12,15,18,22,23,25,27,28,31,33,34,36,38,41,45,47,52,55'), o, 'cumfreq');
     const cum = F.reduce((a, v) => [...a, a.at(-1) + v], [0]), N = cum.at(-1);
     if (!N) throw new Error('cumfreq: total frequency is 0');
-    const f = frame(g, x, y, w, h, [E[0], E.at(-1)], [0, niceRange(0, N, 6)[1]], { grid: true, xl: o.xl, yl: o.yl || 'cumulative frequency' });
+    const f = frame(g, x, y, w, h, [E[0], E.at(-1)], [0, niceRange(0, N, 6)[1]], { grid: true, xl: o.xl, yl: o.yl || (showLab(o) ? 'cumulative frequency' : '') });
     const P = E.map((e, i) => [f.X(e), f.Y(cum[i])]); f.scr.push(...P);
     line(g, polyD(P, false), INK.blue, 4);
     P.forEach(([u, v]) => dot(g, u, v, 5.5, '#ffffff', INK.blue));
@@ -352,10 +353,10 @@ Object.assign(window.RECIPES, {
     const marks = [['median', N / 2, RED, 2], ...(o.q === '1' ? [['Q1', N / 4, INK.green, 1], ['Q3', 3 * N / 4, INK.green, 3]] : [])];
     marks.forEach(([nm, q, col, lv]) => { const v = at(q);
       dash(g, [[f.X(E[0]), f.Y(q)], [f.X(v), f.Y(q)], [f.X(v), f.Y(0)]], col, 2.6);
-      label(g, f.X(v) + 6, f.Y(0) - 10 - (lv - 1) * 24, `${nm} ≈ ${fmt(v)}`, col, 20, 'start'); });
+      if (showLab(o)) label(g, f.X(v) + 6, f.Y(0) - 10 - (lv - 1) * 24, `${nm} ≈ ${fmt(v)}`, col, 20, 'start'); });
     const rows = [[t || `n = ${fmt(N)}`, TXT.blue], ...marks.map(([nm, q, col]) => [`${nm} at ${fmt(q)} → ${fmt(at(q))}`, col])];
     if (o.q === '1') rows.push([`IQR ≈ ${fmt(at(3 * N / 4) - at(N / 4))}`, INK.green]);
-    block(g, f, rows, 20);
+    block(g, f, showLab(o) ? rows : [t && [t, TXT.blue]], 20);
     return g;
   },
 
@@ -374,7 +375,7 @@ Object.assign(window.RECIPES, {
     sampleF(v => m * v + b0, f);
     P.forEach(([u, v]) => { dot(g, f.X(u), f.Y(v), 7, FILL.blue, INK.blue); f.scr.push([f.X(u), f.Y(v)]); });
     const a = Math.abs(r), word = a >= .8 ? 'strong' : a >= .5 ? 'moderate' : a >= .3 ? 'weak' : 'no clear';
-    block(g, f, [t && [t, TXT.blue], [minus(`r = ${r.toFixed(3)}`), RED], [`${word} ${a < .3 ? 'correlation' : r > 0 ? 'positive' : 'negative'}`, RED], [`best fit: ${linEq(+m.toFixed(3), +b0.toFixed(3))}`, K]], 22);
+    block(g, f, showLab(o) ? [t && [t, TXT.blue], [minus(`r = ${r.toFixed(3)}`), RED], [`${word} ${a < .3 ? 'correlation' : r > 0 ? 'positive' : 'negative'}`, RED], [`best fit: ${linEq(+m.toFixed(3), +b0.toFixed(3))}`, K]] : [t && [t, TXT.blue]], 22);
     return g;
   },
 
@@ -418,7 +419,7 @@ Object.assign(window.RECIPES, {
     draw(root, 0, x + 14, rootY);
     const ox = x + w - outW + 10;
     leaves.forEach((n, i) => { line(g, `M${colX[D - 1] + blen + 14 + nameW[D - 1]} ${LY(i)} L${ox - 8} ${LY(i)}`, SOFT, 1.4);
-      label(g, ox, LY(i) + 6, outs[i], TXT.blue, ofs, 'start'); });
+      if (showLab(o)) label(g, ox, LY(i) + 6, outs[i], TXT.blue, ofs, 'start'); });
     return g;
   },
 
@@ -439,10 +440,10 @@ Object.assign(window.RECIPES, {
     for (let j = 1; j <= B; j++) label(g, x0 + (j + .5) * c, y0 + c / 2 + fs * .35, String(j), INK.blue, fs, 'middle');
     for (let i = 1; i <= A; i++) { label(g, x0 + c / 2, y0 + (i + .5) * c + fs * .35, String(i), INK.blue, fs, 'middle');
       for (let j = 1; j <= B; j++) label(g, x0 + (j + .5) * c, y0 + (i + .5) * c + fs * .35, String(OP[0](i, j)), hit(OP[0](i, j)) ? RED : K, fs * .9, 'middle'); }
-    label(g, x0 + (B + 1) * c / 2 + c / 2, y0 - 10, 'second die →', TXT.blue, 18, 'middle');
-    label(g, x0 - 10, y0 + c * 1.5, 'first', TXT.blue, 18, 'end'); label(g, x0 - 10, y0 + c * 1.5 + 22, 'die ↓', TXT.blue, 18, 'end');
+    if (showLab(o)) { label(g, x0 + (B + 1) * c / 2 + c / 2, y0 - 10, 'second die →', TXT.blue, 18, 'middle');
+    label(g, x0 - 10, y0 + c * 1.5, 'first', TXT.blue, 18, 'end'); label(g, x0 - 10, y0 + c * 1.5 + 22, 'die ↓', TXT.blue, 18, 'end'); }
     const total = A * B, gg = gcd(n, total) || 1, what = gt ? `> ${set[0]}` : lt ? `< ${set[0]}` : set.length > 1 ? `is ${set.join(' or ')}` : `= ${set[0]}`;
-    label(g, cx, y0 + (A + 1) * c + 38, t || `P(${OP[2]} ${what}) = ${n}/${total}${!n ? ' = 0' : gg > 1 ? ` = ${n / gg}/${total / gg}` : ''}`, RED, 26, 'middle');
+    if (t || showLab(o)) label(g, cx, y0 + (A + 1) * c + 38, t || `P(${OP[2]} ${what}) = ${n}/${total}${!n ? ' = 0' : gg > 1 ? ` = ${n / gg}/${total / gg}` : ''}`, RED, 26, 'middle');
     return g;
   },
 
@@ -464,8 +465,8 @@ Object.assign(window.RECIPES, {
     dot(g, X(z), b1, 7, FILL.red, RED); dot(g, X(z), b2, 7, FILL.red, RED);
     const side = z > zr - 1.6 ? 'end' : 'start', dx = side === 'end' ? -12 : 12;
     label(g, X(z) + dx, b1 - 12, `x = ${fmt(at)}`, RED, 22, side); label(g, X(z) + dx, b2 - 12, minus(`z = ${fmt(z)}`), RED, 22, side);
-    label(g, x + w / 2, b2 + 76, minus(`z = (${fmt(at)} - ${fmt(mu)}) ÷ ${fmt(sd)} = ${fmt(z)}`), K, 26, 'middle');
-    label(g, x + w / 2, b2 + 112, t || `${fm(Phi(z) * 100, 1)}% of values lie below ${fmt(at)}`, TXT.blue, 22, 'middle');
+    if (showLab(o)) label(g, x + w / 2, b2 + 76, minus(`z = (${fmt(at)} - ${fmt(mu)}) ÷ ${fmt(sd)} = ${fmt(z)}`), K, 26, 'middle');
+    if (t || showLab(o)) label(g, x + w / 2, b2 + 112, t || `${fm(Phi(z) * 100, 1)}% of values lie below ${fmt(at)}`, TXT.blue, 22, 'middle');
     return g;
   },
 
@@ -489,9 +490,9 @@ Object.assign(window.RECIPES, {
     dash(g, [[X(lo), y + 26], [X(lo), ly]], INK.sky, 2); dash(g, [[X(hi), y + 26], [X(hi), ly]], INK.sky, 2);
     dot(g, X(mean), y, 7, FILL.red, RED);
     label(g, X(lo), y - 34, fmt(lo), INK.blue, 22, 'middle'); label(g, X(hi), y - 34, fmt(hi), INK.blue, 22, 'middle'); label(g, X(mean), y - 34, fmt(mean), RED, 22, 'middle');
-    if (Number.isFinite(mu)) { line(g, `M${X(mu)} ${y - 60} L${X(mu)} ${ly}`, INK.green, 3); label(g, X(mu), y - 68, `true μ = ${fmt(mu)}`, TXT.green, 20, 'middle'); }
-    label(g, x + w / 2, ly + 76, `${fmt(conf)}% confidence interval: ${fmt(mean)} ± ${fmt(moe)} = (${fmt(lo)}, ${fmt(hi)})`, K, 24, 'middle');
-    if (Number.isFinite(sd) && Number.isFinite(n) && !Number.isFinite(opt(o, 'moe', NaN))) label(g, x + w / 2, ly + 110, `margin = z* × σ ÷ √n = ${fmt(zs)} × ${fmt(sd)} ÷ √${fmt(n)} = ${fmt(moe)}`, TXT.blue, 20, 'middle');
+    if (Number.isFinite(mu)) { line(g, `M${X(mu)} ${y - 60} L${X(mu)} ${ly}`, INK.green, 3); label(g, X(mu), y - 68, showLab(o) ? `true μ = ${fmt(mu)}` : `μ = ${fmt(mu)}`, TXT.green, 20, 'middle'); }
+    if (showLab(o)) label(g, x + w / 2, ly + 76, `${fmt(conf)}% confidence interval: ${fmt(mean)} ± ${fmt(moe)} = (${fmt(lo)}, ${fmt(hi)})`, K, 24, 'middle');
+    if (Number.isFinite(sd) && Number.isFinite(n) && !Number.isFinite(opt(o, 'moe', NaN)) && showLab(o)) label(g, x + w / 2, ly + 110, `margin = z* × σ ÷ √n = ${fmt(zs)} × ${fmt(sd)} ÷ √${fmt(n)} = ${fmt(moe)}`, TXT.blue, 20, 'middle');
     if (t) label(g, x + w / 2, y - 100, t, TXT.blue, 24, 'middle');
     return g;
   },
@@ -516,14 +517,14 @@ Object.assign(window.RECIPES, {
     line(g, `M${Px} ${cy} L${Px} ${Py}`, RED, 6);
     dot(g, Px, Py, 7, FILL.yellow, K);
     const [tx, ty] = pol(cx, cy, r * .2 + 22, deg / 2); label(g, tx, ty + 8, 'θ', TXT.orange, 24, 'middle');
-    if (Math.abs(c) > .15) label(g, (cx + Px) / 2, cy + (s >= 0 ? 28 : -12), 'cos θ', TXT.blue, 20, 'middle');
-    if (Math.abs(s) > .15) label(g, Px + (c >= 0 ? 10 : -10), (cy + Py) / 2 + 7, 'sin θ', RED, 20, c >= 0 ? 'start' : 'end');
+    if (Math.abs(c) > .15 && showLab(o)) label(g, (cx + Px) / 2, cy + (s >= 0 ? 28 : -12), 'cos θ', TXT.blue, 20, 'middle');
+    if (Math.abs(s) > .15 && showLab(o)) label(g, Px + (c >= 0 ? 10 : -10), (cy + Py) / 2 + 7, 'sin θ', RED, 20, c >= 0 ? 'start' : 'end');
     const [lx, ly] = pol(cx, cy, r + 20, deg); label(g, lx, ly + (s >= 0 ? 0 : 16), `(${fmt(c)}, ${fmt(s)})`, K, 20, c > .2 ? 'start' : c < -.2 ? 'end' : 'middle');
     const px = cx + r + 64, show = (e, v) => (e ? (/[√]/.test(e) ? `= ${e} ≈ ${fm(v, 3)}` : `= ${e}`) : `≈ ${fm(v, 3)}`);
     const rows = [[`θ = ${fmt(deg)}°${o.rad === '0' ? '' : ` = ${piLabel(deg * RAD)}`}`, TXT.orange], [`cos θ ${show(cosE, c)}`, TXT.blue], [`sin θ ${show(sinE, s)}`, RED],
       [`tan θ ${tanE === 'undefined' ? 'is undefined' : show(tanE, s / c)}`, K]];
     if (t) rows.unshift([t, TXT.blue]);
-    rows.forEach(([str, col], i) => label(g, px, cy - 60 + i * 40, minus(str), col, 24, 'start'));
+    (showLab(o) ? rows : rows.slice(0, t ? 1 : 0)).forEach(([str, col], i) => label(g, px, cy - 60 + i * 40, minus(str), col, 24, 'start'));
     return g;
   },
 
@@ -546,14 +547,14 @@ Object.assign(window.RECIPES, {
     line(g, `M${C[0] - 18} ${C[1]} L${C[0] - 18} ${C[1] - 18} L${C[0]} ${C[1] - 18}`, K, 2.4);
     line(g, arcD(...P0, 40, 0, d), INK.orange, 3);
     const [ax, ay] = pol(...P0, 62 + Math.max(0, 30 - d), d / 2); label(g, ax, ay + 8, `${fmt(d)}°`, TXT.orange, 20, 'start');
-    label(g, cx, C[1] + 32, `adjacent ${fmt(A)}`, TXT.blue, 22, 'middle');
-    label(g, C[0] + 12, cy + 8, `opposite ${fmt(O)}`, RED, 22, 'start');
+    label(g, cx, C[1] + 32, showLab(o) ? `adjacent ${fmt(A)}` : fmt(A), TXT.blue, 22, 'middle');
+    label(g, C[0] + 12, cy + 8, showLab(o) ? `opposite ${fmt(O)}` : fmt(O), RED, 22, 'start');
     const L = Math.hypot(T[0] - P0[0], T[1] - P0[1]), nx = (T[1] - P0[1]) / L, ny = -(T[0] - P0[0]) / L; // outward normal (up-left)
-    label(g, cx + nx * 20, cy + ny * 20, `hypotenuse ${fmt(H)}`, INK.green, 22, 'end');
+    label(g, cx + nx * 20, cy + ny * 20, showLab(o) ? `hypotenuse ${fmt(H)}` : fmt(H), INK.green, 22, 'end');
     const px = C[0] + 30 + tw(`opposite ${fmt(O)}`, 22), dd = fmt(d);
-    label(g, px, cy - 92, 'SOH  CAH  TOA', TXT.orange, 24);
+    if (showLab(o)) label(g, px, cy - 92, 'SOH  CAH  TOA', TXT.orange, 24);
     [[`sin ${dd}° = O/H = ${fmt(O)}/${fmt(H)} = ${fm(O / H, 3)}`, RED], [`cos ${dd}° = A/H = ${fmt(A)}/${fmt(H)} = ${fm(A / H, 3)}`, TXT.blue], [`tan ${dd}° = O/A = ${fmt(O)}/${fmt(A)} = ${fm(O / A, 3)}`, INK.green]]
-      .forEach(([str, col], i) => label(g, px, cy - 46 + i * 38, str, col, 20));
+      .forEach(([str, col], i) => showLab(o) && label(g, px, cy - 46 + i * 38, str, col, 20));
     if (t) label(g, cx, P0[1] - O * s - 30, t, TXT.blue, 24, 'middle');
     return g;
   },
@@ -568,19 +569,19 @@ Object.assign(window.RECIPES, {
     const yr = o.y ? nlist(o.y) : [Math.min(0, Dd - aa) - .25 * aa, Math.max(0, Dd + aa) + .7 * aa];
     let xstep = P / 4; while ((xr[1] - xr[0]) / xstep > 16) xstep *= 2;
     const f = frame(g, x, y, w, h, xr, yr, { xstep, xfmt: piLabel, xl: 'x', yl: 'y' });
-    if (Dd) { dash(g, [[f.px, f.Y(Dd)], [f.px + f.pw, f.Y(Dd)]], INK.sky, 2.4); label(g, f.px + f.pw - 4, f.Y(Dd) + 24, minus(`midline y = ${fmt(Dd)}`), TXT.sky, 20, 'end'); }
+    if (Dd) { dash(g, [[f.px, f.Y(Dd)], [f.px + f.pw, f.Y(Dd)]], INK.sky, 2.4); label(g, f.px + f.pw - 4, f.Y(Dd) + 24, minus(`${showLab(o) ? 'midline ' : ''}y = ${fmt(Dd)}`), TXT.sky, 20, 'end'); }
     fcurve(g, F, f, RED, 4);
     const ph0 = k === 'sin' ? (A > 0 ? Math.PI / 2 : 1.5 * Math.PI) : (A > 0 ? 0 : Math.PI);
     const peaks = []; for (let i = -40; i < 40; i++) { const v = C + (ph0 + TAU * i) / B; if (v >= xr[0] - 1e-9 && v <= xr[1] + 1e-9) peaks.push(v); }
     if (peaks.length) { const p1 = peaks[0], top = Dd + aa;
       arrow(g, f.X(p1), f.Y(Dd), f.X(p1), f.Y(top) + 2, INK.orange, 3, 11); line(g, head(f.X(p1), f.Y(Dd), f.X(p1), f.Y(top)), INK.orange, 3, { class: 'ink head' });
-      tag(g, f.X(p1) + 10, f.Y((Dd + top) / 2) + 6, `amplitude ${fmt(aa)}`, TXT.orange, 20, 'start');
+      tag(g, f.X(p1) + 10, f.Y((Dd + top) / 2) + 6, showLab(o) ? `amplitude ${fmt(aa)}` : fmt(aa), TXT.orange, 20, 'start');
       if (peaks[1] !== undefined) { const p2 = peaks[1], by = f.Y(top) - 22;
         line(g, `M${f.X(p1)} ${by - 8} L${f.X(p1)} ${by + 8} M${f.X(p2)} ${by - 8} L${f.X(p2)} ${by + 8}`, INK.green, 2.6);
         arrow(g, (f.X(p1) + f.X(p2)) / 2, by, f.X(p2), by, INK.green, 2.6, 10); arrow(g, (f.X(p1) + f.X(p2)) / 2, by, f.X(p1), by, INK.green, 2.6, 10);
-        label(g, (f.X(p1) + f.X(p2)) / 2, by - 10, `period ${piLabel(P)}`, TXT.green, 20, 'middle'); } }
+        label(g, (f.X(p1) + f.X(p2)) / 2, by - 10, showLab(o) ? `period ${piLabel(P)}` : piLabel(P), TXT.green, 20, 'middle'); } }
     const inner = `${B === 1 ? '' : fmt(B)}${C ? `(x ${C > 0 ? '−' : '+'} ${piLabel(Math.abs(C))})` : 'x'}`;
-    label(g, f.px + f.pw - 4, f.py + 6, t || minus(`y = ${aa === 1 ? (A < 0 ? '-' : '') : fmt(A) + ' '}${k}(${inner})${Dd ? (Dd > 0 ? ' + ' : ' - ') + fmt(Math.abs(Dd)) : ''}`), RED, 24, 'end');
+    if (t || showLab(o)) label(g, f.px + f.pw - 4, f.py + 6, t || minus(`y = ${aa === 1 ? (A < 0 ? '-' : '') : fmt(A) + ' '}${k}(${inner})${Dd ? (Dd > 0 ? ' + ' : ' - ') + fmt(Math.abs(Dd)) : ''}`), RED, 24, 'end');
     return g;
   },
 
@@ -593,7 +594,7 @@ Object.assign(window.RECIPES, {
     fcurve(g, v => ya + m * (v - a), f, RED, 3.4);
     dot(g, f.X(a), f.Y(ya), 7, FILL.red, RED);
     label(g, f.X(a) + (m > 0 ? -12 : 12), f.Y(ya) - 14, `(${fmt(a)}, ${fmt(ya)})`, K, 20, m > 0 ? 'end' : 'start');
-    block(g, f, [[t || `f(x) = ${pretty(o.f || 'x^2')}`, INK.blue], [minus(`slope f′(${fmt(a)}) = ${fm(m, 3)}`), RED], [`tangent: ${linEq(m, ya - m * a)}`, RED]]);
+    block(g, f, showLab(o) ? [[t || `f(x) = ${pretty(o.f || 'x^2')}`, INK.blue], [minus(`slope f′(${fmt(a)}) = ${fm(m, 3)}`), RED], [`tangent: ${linEq(m, ya - m * a)}`, RED]] : [t && [t, INK.blue]]);
     return g;
   },
 
@@ -614,7 +615,7 @@ Object.assign(window.RECIPES, {
     sampleF(v => ya + m * (v - a), f);
     dot(g, f.X(a), f.Y(ya), 7, FILL.red, RED);
     rows.push([minus(`h → 0: slope → f′(${fmt(a)}) = ${fm(m, 3)}`), RED]);
-    block(g, f, rows, 20);
+    block(g, f, showLab(o) ? rows : [t && [t, INK.blue]], 20);
     return g;
   },
 
@@ -635,7 +636,7 @@ Object.assign(window.RECIPES, {
     shapes.forEach(S => { for (let j = 0; j <= 4; j++) for (let q = 0; q <= 4; q++) f.scr.push([f.X(S[0][0] + (S[3][0] - S[0][0]) * j / 4), f.Y((S[1][1] + (S[2][1] - S[1][1]) * j / 4) * q / 4)]); });
     fcurve(g, F, f, INK.blue, 4);
     const exact = simpson(F, a, b);
-    block(g, f, [[t || `f(x) = ${pretty(src)}`, INK.blue], [`${kind} sum, n = ${n}: ${fm(sum, 4)}`, TXT.orange], [minus(`exact ∫${sub(fmt(a))}${sup(fmt(b))} f dx = ${fm(exact, 4)}`), RED]], 21);
+    block(g, f, !showLab(o) ? [t && [t, INK.blue]] : [[t || `f(x) = ${pretty(src)}`, INK.blue], [`${kind} sum, n = ${n}: ${fm(sum, 4)}`, TXT.orange], [minus(`exact ∫${sub(fmt(a))}${sup(fmt(b))} f dx = ${fm(exact, 4)}`), RED]], 21);
     return g;
   },
 
@@ -657,7 +658,7 @@ Object.assign(window.RECIPES, {
     if (o.g) { rows.push([`g(x) = ${pretty(o.g)}`, INK.green], [minus(`area = ${lim} |f − g| dx = ${fm(simpson(v => Math.abs(F(v) - G(v)), a, b), 4)}`), RED]); }
     else { rows.push([minus(`${lim} ${pretty(src)} dx = ${fm(simpson(F, a, b), 4)}`), RED]);
       if (us.some(u => F(u) < 0)) rows.push([minus(`total area ${lim} |f| dx = ${fm(simpson(v => Math.abs(F(v)), a, b), 4)}`), TXT.orange]); }
-    block(g, f, rows, 21);
+    block(g, f, showLab(o) ? rows : [t && [t, INK.blue]], 21);
     return g;
   },
 
@@ -679,7 +680,7 @@ Object.assign(window.RECIPES, {
       const P = [...run(-1).reverse(), ...run(1).slice(1)]; f.scr.push(...P.filter((_, k) => k % 6 === 0));
       if (P.length > 1) line(g, polyD(P, false), [RED, INK.blue, INK.green, PURPLE][i % 4], 3.6, { 'clip-path': f.clip });
       dot(g, f.X(u0), f.Y(v0), 6, FILL.red, RED); });
-    block(g, f, [[t || minus(`dy/dx = ${pretty(src)}`), RED]], 24);
+    block(g, f, [(t || showLab(o)) && [t || minus(`dy/dx = ${pretty(src)}`), RED]], 24);
     return g;
   },
 
@@ -695,9 +696,9 @@ Object.assign(window.RECIPES, {
     zs.forEach(([z]) => dash(g, [[f1.X(z), f1.Y(F(z))], [f2.X(z), f2.Y(0)]], INK.sky, 2.2));
     fcurve(g, F, f1, INK.blue, 4); fcurve(g, D, f2, RED, 4);
     zs.forEach(([z, max]) => { dot(g, f1.X(z), f1.Y(F(z)), 6, FILL.blue, INK.blue); dot(g, f2.X(z), f2.Y(0), 6, FILL.red, RED);
-      label(g, f1.X(z), f1.Y(F(z)) + (max ? -14 : 30), `${max ? 'max' : 'min'} x = ${fmt(z)}`, TXT.blue, 18, 'middle'); f1.scr.push([f1.X(z), f1.Y(F(z)) + (max ? -20 : 20)]); });
-    block(g, f1, [[t || `f(x) = ${pretty(src)}`, INK.blue]], 22);
-    block(g, f2, [['f′(x): the slope of f', RED], ['f′ = 0 where f turns', TXT.sky]], 20);
+      if (showLab(o)) label(g, f1.X(z), f1.Y(F(z)) + (max ? -14 : 30), `${max ? 'max' : 'min'} x = ${fmt(z)}`, TXT.blue, 18, 'middle'); f1.scr.push([f1.X(z), f1.Y(F(z)) + (max ? -20 : 20)]); });
+    block(g, f1, [(t || showLab(o)) && [t || `f(x) = ${pretty(src)}`, INK.blue]], 22);
+    if (showLab(o)) block(g, f2, [['f′(x): the slope of f', RED], ['f′ = 0 where f turns', TXT.sky]], 20);
     return g;
   },
 
@@ -724,7 +725,7 @@ Object.assign(window.RECIPES, {
     if (exists) rows.push([minus(`lim x→${fmt(a)} f(x) = ${fm(Lm, 4)}`), RED]);
     else { rows.push([minus(`from the left → ${Number.isFinite(Lm) ? fm(Lm, 4) : '±∞'}`), RED], [minus(`from the right → ${Number.isFinite(Lp) ? fm(Lp, 4) : '±∞'}`), RED], ['so the limit does not exist', RED]); }
     rows.push([minus(`f(${fmt(a)}) ${Number.isFinite(fa) ? '= ' + fm(fa, 4) : 'is undefined'}`), K]);
-    block(g, f, rows, 20);
+    block(g, f, showLab(o) ? rows : [t && [t, INK.blue]], 20);
     return g;
   },
 
@@ -750,7 +751,7 @@ Object.assign(window.RECIPES, {
       const yv = Number.isFinite(p.F(v)) ? p.F(v) : p.F(v + s * 1e-7); if (!Number.isFinite(yv)) return;
       closed ? dot(g, f.X(v), f.Y(yv), 6.5, PINK[i % 8], PINK[i % 8]) : hole(g, f.X(v), f.Y(yv), 6.5, PINK[i % 8]); }));
     const cond = p => minus(Number.isFinite(p.lo) && Number.isFinite(p.hi) ? `${fmt(p.lo)} ${p.lc ? '≤' : '<'} x ${p.hc ? '≤' : '<'} ${fmt(p.hi)}` : Number.isFinite(p.lo) ? `x ${p.lc ? '≥' : '>'} ${fmt(p.lo)}` : Number.isFinite(p.hi) ? `x ${p.hc ? '≤' : '<'} ${fmt(p.hi)}` : 'all x');
-    block(g, f, [[t || 'f(x) =', K], ...P.map((p, i) => [`${pretty(p.src)}   if ${cond(p)}`, PINK[i % 8]])], 20);
+    block(g, f, !showLab(o) ? [t && [t, K]] : [[t || 'f(x) =', K], ...P.map((p, i) => [`${pretty(p.src)}   if ${cond(p)}`, PINK[i % 8]])], 20);
     return g;
   },
 
@@ -776,7 +777,7 @@ Object.assign(window.RECIPES, {
     const cuts = [xr[0], ...VA.filter(r => r > xr[0] && r < xr[1]), xr[1]], e = (xr[1] - xr[0]) * 1e-4;
     cuts.slice(1).forEach((r, i) => fcurve(g, F, f, INK.blue, 4, cuts[i] + (i ? e : 0), r - (i < cuts.length - 2 ? e : 0)));
     HO.forEach(r => { const yh = snap((F(r - 1e-6) + F(r + 1e-6)) / 2); if (Number.isFinite(yh)) hole(g, f.X(r), f.Y(yh), 7, INK.blue); });
-    block(g, f, [[t || `f(x) = (${pstr(N)}) / (${pstr(Dn)})`, INK.blue], VA.length && [minus(`vertical: x = ${VA.map(fmt).join(', ')}`), RED],
+    block(g, f, !showLab(o) ? [t && [t, INK.blue]] : [[t || `f(x) = (${pstr(N)}) / (${pstr(Dn)})`, INK.blue], VA.length && [minus(`vertical: x = ${VA.map(fmt).join(', ')}`), RED],
       HA !== null && [minus(`horizontal: y = ${fmt(HA)}`), TXT.green], SL && [`slant: ${linEq(+SL[0].toFixed(3), +SL[1].toFixed(3))}`, TXT.green],
       HO.length && [minus(`hole at x = ${HO.map(fmt).join(', ')}`), K]], 20);
     return g;
@@ -799,7 +800,7 @@ Object.assign(window.RECIPES, {
         if (pv < 0 && v >= 0) { let lo = pu, hi = u; for (let k = 0; k < 60; k++) { const m = (lo + hi) / 2; if (d(m) < 0) lo = m; else hi = m; } if (!last || hi > last[0]) last = [hi, j]; }
         pu = u; pv = v; } });
     if (last) { const [u, j] = last; dot(g, f.X(u), f.Y(Fs[win](u)), 7, FILL.yellow, K);
-      label(g, f.px + 14, f.py + 12, `${names[win]} passes ${names[j]} at x ≈ ${fmt(u)}`, K, 22); }
+      if (showLab(o)) label(g, f.px + 14, f.py + 12, `${names[win]} passes ${names[j]} at x ≈ ${fmt(u)}`, K, 22); }
     return g;
   },
 
@@ -822,7 +823,7 @@ Object.assign(window.RECIPES, {
     V.forEach((v, i) => { const hy = y - 40 - (i % 2) * 44;
       line(g, `M${X(v)} ${y - 10} L${X(v)} ${hy + 8}`, INK.sky, 1.8); dot(g, X(v), y, 7, FILL.red, RED);
       label(g, X(v), hy, `${names[i] ? names[i] + ' ' : ''}${v.toLocaleString('en-US', { maximumFractionDigits: 4 })}`, RED, 20, 'middle'); });
-    label(g, x + w / 2, y + 160, 'each equal step multiplies by 10', TXT.blue, 20, 'middle');
+    if (showLab(o)) label(g, x + w / 2, y + 160, 'each equal step multiplies by 10', TXT.blue, 20, 'middle');
     return g;
   },
 
@@ -839,7 +840,7 @@ Object.assign(window.RECIPES, {
     T.forEach((v, i) => { const X0 = f.X(i + 1), Y0 = f.Y(v); dot(g, X0, Y0, 6.5, FILL.red, RED); f.scr.push([X0, Y0], [X0, Y0 - 20]);
       label(g, X0, Y0 + (v >= 0 ? -14 : 28), fmt(v), K, vs, 'middle'); });
     const rule = k === 'arith' ? minus(`aₙ = ${fmt(a)} ${dd < 0 ? '-' : '+'} ${fmt(Math.abs(dd))}(n - 1)`) : minus(`aₙ = ${fmt(a)} · ${r < 0 ? `(${fmt(r)})` : fmt(r)}ⁿ⁻¹`);
-    block(g, f, [[t || (k === 'arith' ? 'arithmetic sequence' : 'geometric sequence'), TXT.blue], [rule, RED],
+    block(g, f, !showLab(o) ? [t && [t, TXT.blue]] : [[t || (k === 'arith' ? 'arithmetic sequence' : 'geometric sequence'), TXT.blue], [rule, RED],
       [k === 'arith' ? minus(`common difference d = ${fmt(dd)}`) : minus(`common ratio r = ${fmt(r)}`), TXT.orange], [`S${sub(n)} = ${fmt(S)}`, K]], 21);
     return g;
   },
@@ -861,7 +862,7 @@ Object.assign(window.RECIPES, {
     const expand = pick.map((y0, i) => (y0 === null ? ' + …' : i ? (y0 < 0 ? ` − ${nm(-y0)}` : ` + ${nm(y0)}`) : minus(nm(y0)))).join('');
     label(g, cx, bt + H * .26 + 60, `= ${expand}`, K, 30, 'middle');
     label(g, cx, bt + H * .26 + 112, minus(`= ${nm(snap(total))}`), RED, 40, 'middle');
-    label(g, cx, tp - H * .24 - 48, t || `add ${pretty(src)} for ${v} = ${a} to ${b} (${T.length} terms)`, TXT.blue, 22, 'middle');
+    if (t || showLab(o)) label(g, cx, tp - H * .24 - 48, t || `add ${pretty(src)} for ${v} = ${a} to ${b} (${T.length} terms)`, TXT.blue, 22, 'middle');
     return g;
   },
 
@@ -885,7 +886,7 @@ Object.assign(window.RECIPES, {
       const [X1, Y1] = Pr(a, b, c); dot(g, X1, Y1, 7, PAL[(i + 3) % 8], col);
       label(g, X1 + 12, Y1 - 10, minus(`${names[i] || ''}(${fmt(a)}, ${fmt(b)}, ${fmt(c)})`), col, 22, 'start'); });
     if (o.v === '1') { const [a, b, c] = P[0], L2 = snap(a * a + b * b + c * c), r = Math.sqrt(L2);
-      label(g, cx, Pr(m, 0, 0)[1] + 46, `|O${names[0]}| = √(${fmt(a)}² + ${fmt(b)}² + ${fmt(c)}²) = ${Number.isInteger(r) ? r : `√${fmt(L2)} ≈ ${fmt(r)}`}`.replace(/\(-/g, '(−').replace(/\+ -/g, '+ −'), RED, 22, 'middle'); }
+      if (showLab(o)) label(g, cx, Pr(m, 0, 0)[1] + 46, `|O${names[0]}| = √(${fmt(a)}² + ${fmt(b)}² + ${fmt(c)}²) = ${Number.isInteger(r) ? r : `√${fmt(L2)} ≈ ${fmt(r)}`}`.replace(/\(-/g, '(−').replace(/\+ -/g, '+ −'), RED, 22, 'middle'); }
     return g;
   },
 
@@ -907,7 +908,7 @@ Object.assign(window.RECIPES, {
         label(g, f.X(a) + (a >= 0 ? 10 : -10), f.Y(-b) + (b >= 0 ? 26 : -12), `${names[i]}̄ = ${cs(a, -b)}`, col, 20, a >= 0 ? 'start' : 'end'); }
       rows.push([`|${names[i]}| = ${Number.isInteger(r) ? r : `√${fmt(r2)} ≈ ${fmt(r)}`},  θ = ${minus(fmt(th))}°`, col]);
       f.scr.push(...Array.from({ length: 12 }, (_, k) => [f.X(a * k / 11), f.Y(b * k / 11)]), [f.X(a) + 60, f.Y(b) - 12]); });
-    block(g, f, rows, 20);
+    if (showLab(o)) block(g, f, rows, 20);
     return g;
   },
 
@@ -932,8 +933,8 @@ Object.assign(window.RECIPES, {
     let d = '', pen = false; S.forEach(([th, r]) => { if (!Number.isFinite(r)) { pen = false; return; } const [px, py] = pol(cx, cy, r * s, th / RAD); d += `${pen ? 'L' : 'M'}${px.toFixed(2)} ${py.toFixed(2)} `; pen = true; });
     if (k !== 'spiral') wash(g, d, FILL.orange, { opacity: .35 });
     line(g, d, RED, 4);
-    label(g, cx - R - 50, cy - R + 20, t || C[2], RED, 26, 'end');
-    if (C[3]) label(g, cx - R - 50, cy - R + 56, C[3], TXT.blue, 20, 'end');
+    if (t || showLab(o)) label(g, cx - R - 50, cy - R + 20, t || C[2], RED, 26, 'end');
+    if (C[3] && showLab(o)) label(g, cx - R - 50, cy - R + 56, C[3], TXT.blue, 20, 'end');
     return g;
   },
 
@@ -953,7 +954,7 @@ Object.assign(window.RECIPES, {
     const f = frame(g, x, y, w, h, xr, yr, { grid: true, eq: true, unit: ext * 2 <= 24, xl: 'x', yl: 'y' }), S = ([u, v]) => [f.X(u), f.Y(v)];
     const mark = (u, v, col, nm, dy = -12) => { dot(g, f.X(u), f.Y(v), 6, '#ffffff', col); label(g, f.X(u) + 8, f.Y(v) + dy, minus(`${nm}(${fmt(u)}, ${fmt(v)})`), col, 18); f.scr.push([f.X(u) + 40, f.Y(v) - 10]); };
     if (k === 'hyperbola') { [1, -1].forEach(sg => dash(g, [S([h0 - ext * 2, k0 - sg * b / a * ext * 2]), S([h0 + ext * 2, k0 + sg * b / a * ext * 2])], INK.green, 2.2, { 'clip-path': f.clip })); }
-    if (k === 'parabola') { dash(g, [S([xr[0], k0 - p]), S([xr[1], k0 - p])], INK.green, 2.4); label(g, f.px + f.pw - 4, f.Y(k0 - p) + (p > 0 ? 24 : -10), minus(`directrix y = ${fmt(k0 - p)}`), TXT.green, 18, 'end'); }
+    if (k === 'parabola') { dash(g, [S([xr[0], k0 - p]), S([xr[1], k0 - p])], INK.green, 2.4); label(g, f.px + f.pw - 4, f.Y(k0 - p) + (p > 0 ? 24 : -10), minus(`${showLab(o) ? 'directrix ' : ''}y = ${fmt(k0 - p)}`), TXT.green, 18, 'end'); }
     wash(g, polyD(pts.map(S), k !== 'parabola' && k !== 'hyperbola'), FILL.blue, { opacity: k === 'circle' || k === 'ellipse' ? .45 : 0 });
     line(g, polyD(pts.map(S), k === 'circle' || k === 'ellipse'), RED, 4, { 'clip-path': f.clip });
     if (pts2) line(g, polyD(pts2.map(S), false), RED, 4, { 'clip-path': f.clip });
@@ -969,7 +970,7 @@ Object.assign(window.RECIPES, {
     if (k === 'hyperbola') { const c = Math.hypot(a, b); [1, -1].forEach(sg => { mark(h0 + sg * c, k0, RED, `F${sub(sg > 0 ? 1 : 2)}`, -12); dot(g, f.X(h0 + sg * a), f.Y(k0), 5, K); });
       rows.push([`${sq(h0, 'x')}/${fmt(a * a)} − ${sq(k0, 'y')}/${fmt(b * b)} = 1`, RED], [`asymptotes slope ±${fmt(b / a)}`, TXT.green], [`e = c/a = ${fm(c / a, 3)}`, TXT.blue]); }
     if (t) rows.unshift([t, TXT.blue]);
-    block(g, f, rows, 20);
+    block(g, f, showLab(o) ? rows : rows.slice(0, t ? 1 : 0), 20);
     return g;
   },
 
@@ -1007,7 +1008,7 @@ Object.assign(window.RECIPES, {
     [[P, INK.blue, ''], [Q, RED, '′']].forEach(([A, col, pr]) => { const [gx, gy] = S(cen(A));
       A.forEach((p, i) => { const [px, py] = S(p), dx = px - gx, dy = py - gy, L = Math.hypot(dx, dy) || 1; dot(g, px, py, 4.5, '#ffffff', col);
         label(g, px + dx / L * 16, py + dy / L * 16 + 7, `${names[i] || ''}${pr}${P.length <= 4 ? `(${minus(fmt(p[0]))}, ${minus(fmt(p[1]))})` : ''}`, col, 17, dx / L > .3 ? 'start' : dx / L < -.3 ? 'end' : 'middle'); f.scr.push([px + dx / L * 30, py + dy / L * 16]); }); });
-    block(g, f, [[`${{ translate: 'translation', reflect: `reflection ${extra[1] || ''}`, rotate: 'rotation', dilate: 'dilation (enlargement)' }[k]}`, TXT.blue], [rule, RED]], 20);
+    if (showLab(o)) block(g, f, [[`${{ translate: 'translation', reflect: `reflection ${extra[1] || ''}`, rotate: 'rotation', dilate: 'dilation (enlargement)' }[k]}`, TXT.blue], [rule, RED]], 20);
     return g;
   },
 });

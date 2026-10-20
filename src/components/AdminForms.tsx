@@ -1,6 +1,6 @@
 "use client";
 import { useActionState } from "react";
-import { adjustCredits, createInvite, handleReport, reviewDrawing, setSwitch, unpublishShare } from "@/app/admin/actions";
+import { adjustCredits, createInvite, handleReport, reviewDrawing, setLimits, setSwitch, unpublishShare } from "@/app/admin/actions";
 import { BoardPreview } from "@/components/BoardPreview";
 
 function Result({ s }: { s: { ok?: string; error?: string } }) {
@@ -15,6 +15,27 @@ export function SwitchForm({ k, label, on }: { k: string; label: string; on: boo
       <input type="hidden" name="key" value={k} /><input type="hidden" name="value" value={on ? "off" : "on"} />
       <label>Reason<input name="reason" className="input" required minLength={5} /></label>
       <button className={on ? "btn danger" : "btn"} disabled={pending}>{on ? "Turn off" : "Turn on"}</button>
+      <Result s={s} />
+    </form>
+  );
+}
+
+const LIMIT_LABELS: [string, string, string?][] = [
+  ["daily_spend_cap_usd", "App-wide model spend a day ($)", "0.01"], ["max_open_generations", "Videos made at once, app-wide"],
+  ["user_daily_cap", "Videos a user a day"], ["user_monthly_cap", "Videos a user a month"],
+  ["slow_1_after", "First wait after this many videos today"], ["slow_1_seconds", "First wait (seconds, max 60)"],
+  ["slow_2_after", "Second wait after this many videos today"], ["slow_2_seconds", "Second wait (seconds, max 60)"],
+];
+export function LimitsForm({ values }: { values: Record<string, number | string> }) {
+  const [s, act, pending] = useActionState(setLimits, {});
+  return (
+    <form action={act} className="card stack">
+      <strong>Limits</strong>
+      {LIMIT_LABELS.map(([k, label, step]) => (
+        <label key={k}>{label}<input name={k} type="number" min={0} step={step ?? 1} defaultValue={values[k]} className="input" required /></label>
+      ))}
+      <label>Reason<input name="reason" className="input" required minLength={5} /></label>
+      <button className="btn" disabled={pending}>Save limits</button>
       <Result s={s} />
     </form>
   );

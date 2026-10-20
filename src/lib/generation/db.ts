@@ -3,7 +3,7 @@
 import type { Style } from './model';
 
 export type ReserveOutcome = 'reserved' | 'duplicate' | 'no_account' | 'deleted' | 'age_unconfirmed' | 'terms_required'
-  | 'access_required' | 'paused' | 'blocked' | 'busy' | 'rate_limited' | 'at_capacity' | 'spend_cap' | 'insufficient';
+  | 'access_required' | 'paused' | 'blocked' | 'busy' | 'rate_limited' | 'slow_down' | 'at_capacity' | 'spend_cap' | 'insufficient';
 export type Reserve = { outcome: ReserveOutcome; generation_id: string | null; status: string | null; available: number | null; retry_at: string | null };
 export type FailCode = 'refusal' | 'decline_unsafe' | 'decline_self_harm' | 'decline_abuse_disclosure' | 'decline_personal_medical'
   | 'decline_not_a_question' | 'check_failed' | 'tool_loop' | 'output_budget' | 'provider_error' | 'provider_config'
@@ -23,7 +23,7 @@ export type GenerationRow = {
   stage: string | null; script: unknown; error_code: string | null; credits_charged: number; narration_chars: number;
   created_at: string; question: string | null;
 };
-export type Subject = 'biology' | 'physics' | 'chemistry';
+export type Subject = 'biology' | 'physics' | 'chemistry' | 'home' | 'car';
 // A conversation's subject and its earlier answered questions, oldest first, each with its spoken lines.
 export type Thread = { subject: Subject; turns: { question: string; says: string[] }[] };
 export type CacheState = { style: Style; prompt_sha: string; last_touch_at: string | null; last_real_at: string | null };

@@ -1,8 +1,10 @@
 import Link from "next/link";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type Subject = "biology" | "physics" | "chemistry";
-export const SUBJECT_NAME: Record<Subject, string> = { biology: "Biology", physics: "Physics", chemistry: "Chemistry" };
+export type Subject = "biology" | "physics" | "chemistry" | "home" | "car";
+export const SUBJECT_NAME: Record<Subject, string> = { biology: "Biology", physics: "Physics", chemistry: "Chemistry", home: "Home fixes", car: "Car fixes" };
+// The picker's groups (founder, 20 Oct 2026): school subjects, then Everyday fixes with its own Home and Car libraries.
+export const SUBJECT_GROUPS: [string, Subject[]][] = [["Study", ["biology", "physics", "chemistry"]], ["Everyday fixes", ["home", "car"]]];
 export type ChatRow = { id: string; subject: Subject; title: string };
 
 // The signed-in person's conversations, newest first, each titled by its first question (RLS: only their own).

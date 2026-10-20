@@ -6,7 +6,8 @@ import MOCK_ANSWERS from './mock-answers.json' with { type: 'json' };
 import { FIND_TOOL } from './checks.mjs';
 
 export type Style = 'whiteboard' | 'paper' | 'matchcut';
-export const STYLES: Style[] = ['whiteboard', 'paper', 'matchcut'];
+// Only whiteboard is made now (founder, 19 Oct 2026). Paper and matchcut stay in the type so their old videos still play.
+export const STYLES: Style[] = ['whiteboard'];
 export const MODEL = P.model;
 export const PROMPT_SHA: Record<Style, string> = {
   whiteboard: P.styles.whiteboard.sha256, paper: P.styles.paper.sha256, matchcut: P.styles.matchcut.sha256,
@@ -64,7 +65,7 @@ type MockOpts = { cps?: number; answers?: Record<Style, unknown[]> };
 export function mockClient({ cps = Number(process.env.GENERATION_MOCK_CPS ?? 300), answers = MOCK_ANSWERS as Record<Style, unknown[]> }: MockOpts = {}): ModelClient {
   const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
   const styleOf = (body: Record<string, unknown>): Style =>
-    STYLES.find(s => (body.system as { text: string }[])[0].text === P.styles[s].system) ?? 'whiteboard';   // a subject prompt is whiteboard
+    (Object.keys(P.styles) as Style[]).find(s => (body.system as { text: string }[])[0].text === P.styles[s].system) ?? 'whiteboard';   // a subject prompt is whiteboard
   const reply = (stop: string, content: Block[], chunks: string[] = [], signal?: AbortSignal): ModelStream => ({
     async *[Symbol.asyncIterator]() {
       for (const text of chunks) {

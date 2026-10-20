@@ -214,7 +214,7 @@ describe('library size cap', () => {
   });
   it('US coverage checklist (19 Oct 2026): every topic, school to graduate, has a drawing', async () => {
     const T = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../scripts/coverage/topics.json'), 'utf8'));
-    for (const s of ['biology', 'physics', 'chemistry'] as const) {
+    for (const s of Object.keys(T).filter(k => k !== '_about')) {
       const cats = (P.subjects as Any)[s].cats as string[], lib = (WB_LIB as Any[]).filter(c => cats.includes(c.cat));
       const recipes = new Set(lib.filter(c => !c.cat.startsWith('servier')).flatMap(c => c.lines.map((l: Any) => l.name)));
       const sv = lib.filter(c => c.cat.startsWith('servier')).flatMap(c => c.lines.map((l: Any) => l.name as string));

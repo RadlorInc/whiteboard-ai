@@ -5,8 +5,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 
-export type Subject = "biology" | "physics" | "chemistry";
-const SUBJECTS: Subject[] = ["biology", "physics", "chemistry"];
+export type Subject = "biology" | "physics" | "chemistry" | "home" | "car";
+const SUBJECTS: Subject[] = ["biology", "physics", "chemistry", "home", "car"];
 
 export async function startConversation(subject: Subject): Promise<{ id?: string; error?: string }> {
   if (!SUBJECTS.includes(subject)) return { error: "bad_request" };

@@ -26,7 +26,7 @@
     line(g, `M${x - h * .16} ${by} L${x - 4} ${by - h} H${x + 4} L${x + h * .16} ${by} M${x - h * .11} ${by - h * .3} L${x + h * .07} ${by - h * .62} M${x + h * .11} ${by - h * .3} L${x - h * .07} ${by - h * .62} M${x - h * .2} ${by - h * .82} H${x + h * .2}`, '#4a525c', 2.5); };
   const topCar = (g, x, y, a, col) => { const c = mk('g', { transform: `translate(${x} ${y}) rotate(${a})` }, g);   // car seen from above, nose to +x
     P(c, R(-26, -14, 52, 28, 8), col, DK, 2.5); P(c, R(6, -11, 9, 22, 3), '#bfe3fa', DK, 1.8); P(c, R(-19, -10, 7, 20, 3), '#bfe3fa', DK, 1.8); return c; };
-  const labelsOn = o => o.labels !== '0';
+  const labelsOn = o => o.labels !== '0' && o.lab !== '0';   // lab=0 or labels=0 hides the drawing's own words
 
   Object.assign(window.RECIPES, {
     // "bridge cx cy width k=beam|arch|suspension|cable|truss forces=1" — bridge over water; forces=1 adds push/pull arrows
@@ -34,11 +34,11 @@
       const k = o.k || 'beam', g = G(cx, cy, S / 440, o, parent), fz = o.forces === '1', RED = INK.red, BLU = INK.blue;
       F(g, 'M-220 30 H220 V100 H-220 Z', '#cfe8f8'); line(g, 'M-140 52 q12 -6 24 0 t24 0 M50 70 q12 -6 24 0 t24 0 M-60 88 q12 -6 24 0 t24 0', INK.sky, 2.5);
       P(g, 'M-220 2 H-178 Q-160 40 -150 100 H-220 Z', SOIL, '#7a5a2a'); P(g, 'M220 2 H178 Q160 40 150 100 H220 Z', SOIL, '#7a5a2a');
-      const cmp = (x, y) => label(g, x, y, 'compression', TXT.red, 19, 'middle'), ten = (x, y) => label(g, x, y, 'tension', TXT.blue, 19, 'middle');
+      const cmp = (x, y) => labelsOn(o) && label(g, x, y, 'compression', TXT.red, 19, 'middle'), ten = (x, y) => labelsOn(o) && label(g, x, y, 'tension', TXT.blue, 19, 'middle');
       if (k === 'beam') {
         for (const x of [-70, 50]) P(g, R(x, 6, 20, 94), '#b8c0c8');
         P(g, R(-185, -10, 370, 18, 2), STEEL);
-        if (fz) { for (const x of [-130, 0, 130]) arrow(g, x, -80, x, -16, RED, 4); for (const x of [-60, 60]) arrow(g, x, 132, x, 106, BLU, 4); label(g, 0, -90, 'load', TXT.red, 20, 'middle'); label(g, 0, 128, 'supports push up', TXT.blue, 18, 'middle'); }
+        if (fz) { for (const x of [-130, 0, 130]) arrow(g, x, -80, x, -16, RED, 4); for (const x of [-60, 60]) arrow(g, x, 132, x, 106, BLU, 4); if (labelsOn(o)) { label(g, 0, -90, 'load', TXT.red, 20, 'middle'); label(g, 0, 128, 'supports push up', TXT.blue, 18, 'middle'); } }
       } else if (k === 'arch') {
         P(g, 'M-178 40 Q0 -36 178 40 L150 62 Q0 0 -150 62 Z', '#e3d5b8', '#7a6a4a');
         let d = ''; for (const x of [-140, -110, -80, -50, 50, 80, 110, 140]) { const u = (x + 178) / 356; d += `M${x} ${(40 - 152 * u * (1 - u)).toFixed(1)} V6 `; } line(g, d, '#7a6a4a', 3);
@@ -219,7 +219,7 @@
       P(g, R(-10, -66, 44, 40, 4), '#5a3a2a'); P(g, 'M0 -28 Q-4 -46 8 -58 Q10 -46 16 -42 Q20 -54 26 -60 Q34 -44 24 -28 Z', '#f4a531', '#c0392b', 2);
       line(g, 'M60 -78 L50 -62 H64 L54 -46', INK.orange, 3);
       puff(g, 78, -182, .9, '#e3e7eb');
-      line(g, 'M120 -220 Q180 -230 192 -150', '#7d8893', 3); line(g, head(192, -150, 190, -170), '#7d8893', 3, { class: 'ink head' }); label(g, 166, -232, 'CO₂', '#5a6068', 20, 'middle');
+      line(g, 'M120 -220 Q180 -230 192 -150', '#7d8893', 3); line(g, head(192, -150, 190, -170), '#7d8893', 3, { class: 'ink head' }); if (labelsOn(o)) label(g, 166, -232, 'CO₂', '#5a6068', 20, 'middle');
       tree(g, 196, 0, 1.2);
       line(g, 'M-225 0 H230', '#5a6068', 3);
       return g;
@@ -496,11 +496,11 @@
       F(g, 'M-170 -58 H-130 V60 H30 V-18 H190 V90 H-170 Z', '#f3c33b', { opacity: .75 });
       line(g, 'M-170 -120 V90 H190 V-60 M-130 -120 V60 H30 V-60', DK, 3.5);
       P(g, R(-168, -72, 36, 14, 2), '#9aa3ad'); line(g, 'M-150 -72 V-120', DK, 5); P(g, R(-176, -128, 52, 10, 4), '#5a6068', DK, 2);
-      arrow(g, -150, -190, -150, -136, INK.red, 4); label(g, -150, -198, 'small push', TXT.red, 19, 'middle');
+      arrow(g, -150, -190, -150, -136, INK.red, 4); if (labelsOn(o)) label(g, -150, -198, 'small push', TXT.red, 19, 'middle');
       P(g, R(32, -32, 156, 16, 2), '#9aa3ad'); line(g, 'M110 -32 V-56', DK, 8); P(g, R(40, -68, 140, 12, 3), '#7d8893');
       if (k === 'press') { line(g, 'M30 -60 V-170 M190 -60 V-170', '#5a6068', 6); P(g, R(20, -184, 180, 16, 3), '#5a6068'); P(g, R(70, -168, 80, 100, 3), '#d9a86a', '#7a5a2a'); }
       else window.RECIPES.vehicle([110, -94, 160], { k: 'car', c: 'red' }, '', g);
-      arrow(g, 226, -10, 226, -110, INK.green, 5, 16); label(g, 226, -120, 'big lift', TXT.green, 19, 'middle');
+      arrow(g, 226, -10, 226, -110, INK.green, 5, 16); if (labelsOn(o)) label(g, 226, -120, 'big lift', TXT.green, 19, 'middle');
       return g;
     },
 
@@ -585,7 +585,7 @@
       const g = G(cx, cy, H / 380, o, parent);
       P(g, 'M0 -110 C56 -112 72 -50 62 0 C54 50 64 100 24 136 C-12 166 -60 136 -54 90 C-48 44 -74 2 -64 -50 C-56 -96 -30 -110 0 -110 Z', '#3f7a3a', '#24561c', 3.5);
       for (const [x, y, r] of [[-34, -146, 24], [4, -158, 16], [32, -152, 14], [54, -136, 12], [70, -112, 10]]) P(g, C(x, y, r), '#3f7a3a', '#24561c', 3);
-      label(g, 2, 26, t || 'CO₂', '#ffffff', 46, 'middle');
+      if (t || labelsOn(o)) label(g, 2, 26, t || 'CO₂', '#ffffff', 46, 'middle');
       return g;
     },
 

@@ -1,25 +1,25 @@
 axes x y w h x=-5,5 y=-5,5 grid=1 xl=x yl=y | axes 160 50 640 440 x=-4,6 y=-3,5 grid=1 xl=x yl=y | x/y axes through 0 with numbered ticks, optional grid, axis names
 plot x y w h k=line|parabola|cubic|sine|exp|log a= b= c= x=lo,hi y=lo,hi pts=x,y;x,y c=red |label | plot 160 50 640 440 k=parabola a=1 b=0 c=-4 |y = x² - 4 | exact curve on its own axes: line ax+b, parabola ax²+bx+c, sine a·sin(bx+c), exp a·bˣ+c, log, or points
-scatter x y w h pts=x,y;x,y fit=1 xl= yl= |label | scatter 160 50 640 440 pts=1,2;2,3;3,3;4,5;5,4;6,6;7,7;8,7 fit=1 xl=hours yl=score | scatter plot on axes, optional least-squares best-fit line with equation
+scatter x y w h pts=x,y;x,y fit=1 xl= yl= lab=0 |label | scatter 160 50 640 440 pts=1,2;2,3;3,3;4,5;5,4;6,6;7,7;8,7 fit=1 xl=hours yl=score | scatter plot on axes, optional least-squares best-fit line with equation; lab=0 hides its words
 bars x y w h vals=3,5,2 c=multi hi=2 pre=$ suf=% y=lo,hi yl= |names | bars 140 50 680 440 vals=3,5,2,8 hi=4 |Mon,Tue,Wed,Thu | bar chart, scaled value axis, values on bars, one bar highlighted
 linechart x y w h vals=4,6,5 area=0 pre= suf= |names | linechart 140 50 680 440 vals=4,6,5,9,8,12 |Jan,Feb,Mar,Apr,May,Jun | line graph with dots, shaded area, values written above points
 pie cx cy r vals=3,5,2 |names | pie 480 270 170 vals=3,5,2 |Walk,Bus,Bike | pie chart, slices in proportion, percent inside, names outside
 numberline x y w min=0 max=10 step=1 at=3 hops=4,-2 den=4 pts=7 |caption | numberline 80 330 800 min=0 max=12 at=3 hops=5,4 | number line with ticks, start dot, curved hop arrows labelled +n (den=4 shows fractions)
 fraction cx cy size n=3 d=4 k=pie|bar |note | fraction 480 220 240 n=3 d=4 | circle or bar cut into d equal parts, n shaded, n/d written below
 coordgrid x y w h x=-5,5 y=-5,5 pts=x,y;x,y proj=1 |names | coordgrid 200 40 560 460 pts=2,3;-3,1;-2,-2 proj=1 |A,B,C | square unit grid with axes, labelled points with coordinates, dashed projections
-angle cx cy length deg=50 rot=0 name=1 |label | angle 330 400 360 deg=50 name=1 | angle at vertex cx cy, shaded arc, degrees (square mark at 90°), acute/obtuse name
+angle cx cy length deg=50 rot=0 name=1 lab=0 |label | angle 330 400 360 deg=50 name=1 | angle at vertex cx cy, shaded arc, degrees (square mark at 90°), acute/obtuse name; lab=0 hides its words
 protractor cx cy r deg=60 | protractor 480 440 330 deg=60 | protractor on baseline at cx cy, 0–180 scales, red ray measuring deg
 ruler x y length units=10 u=cm at=7.5 | ruler 110 240 740 units=10 at=7.5 | ruler with unit, half and tenth ticks; at= measures a strip
 triangle cx cy size a=3 b=4 c=5 u=cm hide=c angles=0 |A,B,C | triangle 480 280 400 a=3 b=4 c=5 |A,B,C | triangle built from three sides, side lengths, angles, right-angle mark
-circleparts cx cy r val=5 u=cm show=radius,diameter,chord,circumference,arc,sector | circleparts 480 270 180 val=5 u=cm | circle with named parts; val gives r, d and circumference values
-polygon cx cy r n=6 angles=1 |name | polygon 480 250 170 n=6 angles=1 | regular n-sided polygon, equal-side marks, name, interior angle and angle sum
+circleparts cx cy r val=5 u=cm show=radius,diameter,chord,circumference,arc,sector lab=0 | circleparts 480 270 180 val=5 u=cm | circle with named parts; val gives r, d and circumference values; lab=0 hides its words
+polygon cx cy r n=6 angles=1 lab=0 |name | polygon 480 250 170 n=6 angles=1 | regular n-sided polygon, equal-side marks, name, interior angle and angle sum; lab=0 hides its words
 solid cx cy size k=cube|cuboid|cylinder|cone|sphere|pyramid l= w= h= r= u= |label | solid 480 270 260 k=cuboid l=6 w=3 h=4 u=cm | 3D shape, shaded faces, hidden edges dashed; dimensions written when given
-areagrid x y cell cols=8 rows=5 shade=3,4 |label | areagrid 200 60 50 cols=8 rows=5 shade=3,4 | unit-square grid with a w×h block shaded, sides and area counted
+areagrid x y cell cols=8 rows=5 shade=3,4 lab=0 |label | areagrid 200 60 50 cols=8 rows=5 shade=3,4 | unit-square grid with a w×h block shaded, sides and area counted; lab=0 hides its words
 venn cx cy size sets=2|3 vals=4,2,5 box=0 u=U |names | venn 480 270 420 vals=6,2,4,1,3,2,5 |Maths,Art,Music | 2 or 3 overlapping sets with names and a number in each region
 tally x y height n=13 per=5 sum=1 |name | tally 260 200 80 n=13 sum=1 |Apples | tally marks in bundles of five, row name, total
-abacus cx cy size vals=3,0,5 num=0 |H,T,O | abacus 480 280 420 vals=3,0,5 | abacus, one rod per digit with beads, place names, number above
+abacus cx cy size vals=3,0,5 num=0 lab=0 |H,T,O | abacus 480 280 420 vals=3,0,5 | abacus, one rod per digit with beads, place names, number above; lab=0 hides its words
 counters x y size n=8 a=3 cols=5 frame=1 |label | counters 240 160 64 n=8 a=3 frame=1 |3 + 5 = 8 | round counters in rows, first a red rest yellow, optional ten-frame
-placevalue x y w h n=243 |label | placevalue 100 80 760 380 n=243 | base-ten blocks: hundred flats, ten rods, ones, expanded form
+placevalue x y w h n=243 lab=0 |label | placevalue 100 80 760 380 n=243 | base-ten blocks: hundred flats, ten rods, ones, expanded form; lab=0 hides its words
 eqbalance cx cy size tilt=0|-1|1 |left = right | eqbalance 480 250 560 |2x + 3 = 11 | pan balance holding each side of an equation, level or tipped
 yearline x y w dates=1903,1969 |events | yearline 80 280 800 dates=1903,1969,2012 |first plane,moon landing,rover on Mars | timeline with ticks spaced by real dates, events alternate above/below
 datatable x y w h |head,head;cell,cell | datatable 180 80 600 300 |Fruit,Count;Apples,6;Pears,4;Plums,9 | table grid from rows; first row is the shaded header
@@ -29,7 +29,7 @@ dice cx cy size vals=3,5 sum=1 |label | dice 480 270 150 vals=3,5 sum=1 | dice s
 coinflip cx cy r seq=HTH |label | coinflip 480 260 80 seq=HTH | coins in a row showing H or T
 matrix x y cell name=A |1,2;3,4 | matrix 300 140 70 name=A |1,2,0;3,4,5 | matrix in square brackets, rows split by ";", optional name
 vector x y w h v=3,4;-2,1 comp=1 sum=1 |names | vector 200 40 560 460 v=3,4 | vector arrows from origin on equal-unit grid, dashed components, length
-slope x y w h pts=1,2;4,8 m= b= |label | slope 160 40 640 460 pts=1,2;4,8 | line through two points, run/rise triangle, slope = rise ÷ run
+slope x y w h pts=1,2;4,8 m= b= lab=0 |label | slope 160 40 640 460 pts=1,2;4,8 | line through two points, run/rise triangle, slope = rise ÷ run; lab=0 hides its words
 symmetry cx cy size k=butterfly|house|tree|star|polygon n=5 rot=0 |label | symmetry 480 270 300 k=butterfly | symmetric shape with dashed mirror line(s); polygon shows all n lines
 pythagoras cx cy size a=3 b=4 |label | pythagoras 470 250 400 a=3 b=4 | right triangle with squares on each side, areas, a² + b² = c²
-moneygrow x y w h p=100 r=10 n=10 cur=$ simple=1 |label | moneygrow 120 40 720 460 p=100 r=10 n=10 simple=1 | coin stacks growing by compound interest each year, simple-interest line
+moneygrow x y w h p=100 r=10 n=10 cur=$ simple=1 lab=0 |label | moneygrow 120 40 720 460 p=100 r=10 n=10 simple=1 | coin stacks growing by compound interest each year, simple-interest line; lab=0 hides its words

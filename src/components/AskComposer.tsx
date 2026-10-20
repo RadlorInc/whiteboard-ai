@@ -6,13 +6,15 @@ import { useEffect, useRef, useState } from "react";
 import { startVoice } from "@/lib/voice";
 import { VoiceProgress } from "./Voice";
 import { Icon } from "./Icon";
-import { SUBJECT_NAME, type Subject } from "./Chats";
+import { SUBJECT_GROUPS, SUBJECT_NAME, type Subject } from "./Chats";
 
 import { HOLD_CREDITS } from "@/lib/videos";
 const EXAMPLES: Record<Subject, string[]> = {
   biology: ["How does the heart pump blood?", "How do we breathe?", "What does DNA do?"],
   physics: ["How does a rainbow form?", "Why do things fall?", "How does a car engine work?"],
   chemistry: ["Why does salt dissolve in water?", "What is an atom made of?", "How does fire burn?"],
+  home: ["How do I tie a tie?", "Why did my breaker trip?", "How do I fix a leak under the sink?"],
+  car: ["How do I change a flat tire?", "How do I check my oil?", "How do I change my oil?"],
 };
 const MAX = 500;
 
@@ -86,7 +88,9 @@ export function AskComposer({ available, firstRun, onAsk, busy = false, placehol
             <label className="subject-pick">
               <span className="sr-only">Subject</span>
               <select value={subject} onChange={(e) => onSubject(e.target.value as Subject)}>
-                {(Object.keys(SUBJECT_NAME) as Subject[]).map((s) => <option key={s} value={s}>{SUBJECT_NAME[s]}</option>)}
+                {SUBJECT_GROUPS.map(([group, list]) => (
+                  <optgroup key={group} label={group}>{list.map((s) => <option key={s} value={s}>{SUBJECT_NAME[s]}</option>)}</optgroup>
+                ))}
               </select>
               <Icon name="chevronDown" size={14} />
             </label>

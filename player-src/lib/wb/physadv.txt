@@ -1,19 +1,19 @@
-kepler cx cy width k=ellipse|areas |text | kepler 480 270 460 k=areas | Kepler orbit: Sun at focus, perihelion, aphelion, a, e or equal areas
-rotation cx cy size k=disk|rod |text | rotation 480 270 320 k=disk | rotating disk: ω, α, torque r×F; rods about end or centre
-resonance cx cy width k=resonance|damped |text | resonance 480 270 440 k=resonance | driven resonance curves by damping, or under/critical/over damped decay
-bernoulli cx cy width |text | bernoulli 480 290 480 | Venturi pipe: streamlines, manometer heights, A₁v₁ = A₂v₂, Bernoulli
-standingwave cx cy width k=string|openpipe|closedpipe |text | standingwave 470 270 460 k=string | standing waves n=1–3 on string or pipes, nodes, antinodes, λ
-doppler cx cy width |text | doppler 480 270 480 | Doppler effect: moving source, bunched wavefronts ahead, higher f, lower behind
-efield cx cy size k=point|dipole|parallel|like |text | efield 480 270 320 k=dipole | electric field lines: point charge, dipole, parallel plates, two like charges
-rccircuit cx cy width k=charge|discharge |text | rccircuit 480 270 480 k=charge | RC circuit with switch and V_C graph, time constant τ = RC
-phasor cx cy width k=phasor|rlc |text | phasor 480 270 500 k=phasor | series RLC phasor diagram, phase angle φ, v–i plot, or circuit
-righthand cx cy size k=force|circle |text | righthand 480 270 320 k=force | magnetic force F = qv×B with B into page, or circular path
-qho cx cy width |text | qho 480 280 460 | quantum harmonic oscillator: parabola, levels (n + ½)ħω, wavefunctions n = 0–3
-curvedspace cx cy width |text | curvedspace 480 280 480 | curved spacetime: grid well round a mass, orbiting planet, light ray bending
-standardmodel cx cy width |text | standardmodel 480 290 520 | Standard Model table: quarks, leptons, gauge bosons, Higgs, three generations
-feynman cx cy width k=qed|beta|annihilation |text | feynman 480 270 440 k=beta | Feynman diagram: e⁻e⁻ photon exchange, beta decay via W⁻, e⁺e⁻ → γγ
-transistor cx cy size k=bjt|mosfet |text | transistor 470 270 320 k=bjt | NPN transistor symbol with currents and β, or n-channel MOSFET cross-section
-laser cx cy width |text | laser 480 270 480 | laser: mirrors, gain medium, pump, beam; three-level stimulated emission inset
-halleffect cx cy width |text | halleffect 470 270 460 | Hall effect: slab in B, electrons pushed aside, Hall voltage V_H
-hrdiagram cx cy width |text | hrdiagram 480 270 460 | Hertzsprung–Russell diagram: OBAFGKM, main sequence, giants, supergiants, white dwarfs, Sun
-blackbody cx cy width |text | blackbody 480 280 440 | blackbody curves at 3000, 4000, 5000 K, Wien peak shift, visible band
+kepler cx cy width k=ellipse|areas lab=0 |text | kepler 480 270 460 k=areas | Kepler orbit: Sun at focus, perihelion, aphelion, a, e or equal areas; lab=0 hides its words
+rotation cx cy size k=disk|rod lab=0 |text | rotation 480 270 320 k=disk | rotating disk: ω, α, torque r×F; rods about end or centre; lab=0 hides its words
+resonance cx cy width k=resonance|damped lab=0 |text | resonance 480 270 440 k=resonance | driven resonance curves by damping, or under/critical/over damped decay; lab=0 hides its words
+bernoulli cx cy width lab=0 |text | bernoulli 480 290 480 | Venturi pipe: streamlines, manometer heights, A₁v₁ = A₂v₂, Bernoulli; lab=0 hides its words
+standingwave cx cy width k=string|openpipe|closedpipe lab=0 |text | standingwave 470 270 460 k=string | standing waves n=1–3 on string or pipes, nodes, antinodes, λ; lab=0 hides its words
+doppler cx cy width lab=0 |text | doppler 480 270 480 | Doppler effect: moving source, bunched wavefronts ahead, higher f, lower behind; lab=0 hides its words
+efield cx cy size k=point|dipole|parallel|like lab=0 |text | efield 480 270 320 k=dipole | electric field lines: point charge, dipole, parallel plates, two like charges; lab=0 hides its words
+rccircuit cx cy width k=charge|discharge lab=0 |text | rccircuit 480 270 480 k=charge | RC circuit with switch and V_C graph, time constant τ = RC; lab=0 hides its words
+phasor cx cy width k=phasor|rlc lab=0 |text | phasor 480 270 500 k=phasor | series RLC phasor diagram, phase angle φ, v–i plot, or circuit; lab=0 hides its words
+righthand cx cy size k=force|circle lab=0 |text | righthand 480 270 320 k=force | magnetic force F = qv×B with B into page, or circular path; lab=0 hides its words
+qho cx cy width lab=0 |text | qho 480 280 460 | quantum harmonic oscillator: parabola, levels (n + ½)ħω, wavefunctions n = 0–3; lab=0 hides its words
+curvedspace cx cy width lab=0 |text | curvedspace 480 280 480 | curved spacetime: grid well round a mass, orbiting planet, light ray bending; lab=0 hides its words
+standardmodel cx cy width lab=0 |text | standardmodel 480 290 520 | Standard Model table: quarks, leptons, gauge bosons, Higgs, three generations; lab=0 hides its words
+feynman cx cy width k=qed|beta|annihilation lab=0 |text | feynman 480 270 440 k=beta | Feynman diagram: e⁻e⁻ photon exchange, beta decay via W⁻, e⁺e⁻ → γγ; lab=0 hides its words
+transistor cx cy size k=bjt|mosfet lab=0 |text | transistor 470 270 320 k=bjt | NPN transistor symbol with currents and β, or n-channel MOSFET cross-section; lab=0 hides its words
+laser cx cy width lab=0 |text | laser 480 270 480 | laser: mirrors, gain medium, pump, beam; three-level stimulated emission inset; lab=0 hides its words
+halleffect cx cy width lab=0 |text | halleffect 470 270 460 | Hall effect: slab in B, electrons pushed aside, Hall voltage V_H; lab=0 hides its words
+hrdiagram cx cy width lab=0 |text | hrdiagram 480 270 460 | Hertzsprung–Russell diagram: OBAFGKM, main sequence, giants, supergiants, white dwarfs, Sun; lab=0 hides its words
+blackbody cx cy width lab=0 |text | blackbody 480 280 440 | blackbody curves at 3000, 4000, 5000 K, Wien peak shift, visible band; lab=0 hides its words

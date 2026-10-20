@@ -18,6 +18,20 @@ export async function setSwitch(_: R, f: FormData): Promise<R> {
   return error ? { error: error.message.includes("reason") ? "Give a reason (5+ characters)." : error.message } : { ok: `${key} = ${on}` };
 }
 
+// The number settings: app-wide brakes and the per-user fair-use caps (20 Oct 2026). The database checks each range.
+const LIMITS = ["daily_spend_cap_usd", "max_open_generations", "user_daily_cap", "user_monthly_cap",
+  "slow_1_after", "slow_1_seconds", "slow_2_after", "slow_2_seconds"] as const;
+export async function setLimits(_: R, f: FormData): Promise<R> {
+  const { sb } = await requireAdmin();
+  const changes = Object.fromEntries(LIMITS.map(k => [k, Number(f.get(k))]));
+  if (Object.values(changes).some(v => !Number.isFinite(v) || v < 0)) return { error: "Every limit must be a number, 0 or more." };
+  const { error } = await sb.rpc("admin_set_settings", { p_changes: changes, p_reason: reasonOf(f), p_request_id: crypto.randomUUID() });
+  revalidatePath("/admin");
+  if (!error) return { ok: "Limits saved." };
+  return { error: error.message.includes("reason") ? "Give a reason (5+ characters)."
+    : error.message.includes("check") ? "A value is out of range (waits are 0–60 s; the second step can't come before the first)." : error.message };
+}
+
 export async function adjustCredits(_: R, f: FormData): Promise<R> {
   const { sb } = await requireAdmin();
   const delta = Number(f.get("delta"));

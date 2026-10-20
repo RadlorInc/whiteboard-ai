@@ -296,13 +296,26 @@ export function Watch({ question, style, subject, explore = false, conversationI
     const sendWhole = (script: Script) => { sendScript(post, style, script); };
     setError(null); setOwned(null);
     let res: Response;
-    try {
-      res = await fetch("/api/generate", {
-        method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ question, style, client_request_id: requestId.current, confirm_new: confirmNew, explore,
-          ...(conversationId && { conversation_id: conversationId }) }),
-      });
-    } catch { setError("You're offline. Check your connection and try again."); onDone?.(null); return; }
+    for (;;) {
+      try {
+        res = await fetch("/api/generate", {
+          method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ question, style, client_request_id: requestId.current, confirm_new: confirmNew, explore,
+            ...(conversationId && { conversation_id: conversationId }) }),
+        });
+      } catch { setError("You're offline. Check your connection and try again."); onDone?.(null); return; }
+      if (res.status === 429) {
+        // Fair-use slow-down (≤ 60 s): wait behind the making cover and ask again, never shown as an error.
+        const j = await res.clone().json().catch(() => ({}));
+        if (j.code === "slow_down") {
+          setStage(STAGE.reading);
+          const ms = Math.min(60e3, Math.max(1e3, Date.parse(j.retry_at) - Date.now() || 1e3));
+          await new Promise(r => setTimeout(r, ms));
+          continue;
+        }
+      }
+      break;
+    }
     if (res.status === 409) { const j = await res.json(); if (j.code === "already_owned") { setOwned(j.id); setStage(""); return; } setError(msg(j.code ?? "provider_error")); onDone?.(null); return; }
     if (!res.ok || !res.body) { const j = await res.json().catch(() => ({})); setError(msg(j.code ?? "provider_error")); onDone?.(null); return; }
     post({ type: "reset" });

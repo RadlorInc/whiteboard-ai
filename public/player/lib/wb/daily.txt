@@ -34,7 +34,7 @@ pool cx cy width | pool 480 270 540 | swimming pool from above: lane ropes, lane
 helmet cx cy width | helmet 480 280 320 | green bicycle helmet with vents and chin strap
 podium cx cy width |first, second, third | podium 480 280 460 | Asha, Omar, Lina | winners' podium 1-2-3 with names from text
 instrument cx cy size k=piano|drum|guitar|flute|violin | instrument 480 270 300 k=guitar | musical instrument: piano keys, drum, guitar, flute, violin with bow
-musicstaff cx cy width |notes | musicstaff 480 260 560 | C D E F G | five-line staff, treble clef, notes C–G5 from text, named
+musicstaff cx cy width lab=0 |notes | musicstaff 480 260 560 | C D E F G | five-line staff, treble clef, notes C–G5 from text, named; lab=0 hides its words
 palette cx cy width | palette 480 270 340 | artist's palette with paint blobs and a brush
 clothes cx cy size k=shirt|dress|jacket|shoe|cap | clothes 480 270 240 k=shirt | clothing: shirt, long modest dress, jacket, sneaker, cap
 umbrella cx cy height | umbrella 480 270 300 | open striped umbrella with curved handle

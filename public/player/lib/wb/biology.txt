@@ -1,9 +1,9 @@
-heartsection cx cy size lab=1 | heartsection 480 290 320 | heart cut open: four chambers, valves, vessels, flow arrows; labelled
-circulation cx cy size lab=1 | circulation 480 280 400 | double circulation: heart to lungs and body, red/blue loops; loop flow
-breathing cx cy height lab=1 | breathing 470 290 420 | breathing system: windpipe, bronchi, lungs, ribs, diaphragm, alveoli close-up; labelled
-gut cx cy height lab=1 | gut 480 280 460 | digestive system in body: mouth to rectum, liver, pancreas; labelled
-reflexarc cx cy width lab=1 | reflexarc 480 280 700 | reflex arc: flame, receptor, sensory, relay, motor neuron, muscle; loop flow
-dnaladder cx cy height lab=1 | dnaladder 480 270 420 | DNA unzipped ladder: sugar-phosphate backbones, A-T and G-C base pairs
-cellcycle cx cy width lab=1 | cellcycle 480 270 860 | mitosis in a row: interphase to two daughter cells, numbered, named
-leafsection cx cy width lab=1 | leafsection 480 270 600 | leaf cross-section: cuticle, palisade, spongy, vein, stoma, light and gases
-plantparts cx cy height lab=1 | plantparts 480 280 440 | flowering plant: flower, bud, leaves, stem, roots, root hairs; labelled
+heartsection cx cy size lab=1 | heartsection 480 290 320 | heart cut open: four chambers, valves, vessels, flow arrows; labelled; lab=0 hides its words
+circulation cx cy size lab=1 | circulation 480 280 400 | double circulation: heart to lungs and body, red/blue loops; loop flow; lab=0 hides its words
+breathing cx cy height lab=1 | breathing 470 290 420 | breathing system: windpipe, bronchi, lungs, ribs, diaphragm, alveoli close-up; labelled; lab=0 hides its words
+gut cx cy height lab=1 | gut 480 280 460 | digestive system in body: mouth to rectum, liver, pancreas; labelled; lab=0 hides its words
+reflexarc cx cy width lab=1 | reflexarc 480 280 700 | reflex arc: flame, receptor, sensory, relay, motor neuron, muscle; loop flow; lab=0 hides its words
+dnaladder cx cy height lab=1 | dnaladder 480 270 420 | DNA unzipped ladder: sugar-phosphate backbones, A-T and G-C base pairs; lab=0 hides its words
+cellcycle cx cy width lab=1 | cellcycle 480 270 860 | mitosis in a row: interphase to two daughter cells, numbered, named; lab=0 hides its words
+leafsection cx cy width lab=1 | leafsection 480 270 600 | leaf cross-section: cuticle, palisade, spongy, vein, stoma, light and gases; lab=0 hides its words
+plantparts cx cy height lab=1 | plantparts 480 280 440 | flowering plant: flower, bud, leaves, stem, roots, root hairs; labelled; lab=0 hides its words

@@ -36,6 +36,7 @@
   const pick = (K, k, d, what) => { const f = K[k || d]; if (!f) throw new Error(`Unknown ${what} "${k}" (use ${Object.keys(K).join('|')})`);
     const x = DETAIL[`${what}:${k || d}`], ground = what === 'animal' || what === 'wild animal';
     return x ? g => { if (ground) F(g, E(0, 94, 104, 9), '#000', { opacity: .12 }); const r = f(g); x(g); return r; } : f; };   // a soft shadow on the ground
+  const showLab = o => o.lab !== '0' && o.labels !== '0';
   const list = (t, def) => (t || def).split(',').map(s => s.trim()).filter(Boolean);
   // a drawing in its own unit box: base = default size; flip=1 mirrors (faces left); draw may return a caption y
   const make = (base, draw) => ([cx, cy, size = base], o, t, parent) => {
@@ -933,7 +934,7 @@
     // "foodweb cx cy width k=chain|web | Grass, Rabbit, Snake, Eagle" — labelled nodes, arrows = eaten by
     foodweb: make(400, (g, o, t) => {
       const C = ['#5fae3a', '#f3c33b', '#f4a531', '#e07a5f', '#c0392b', '#7fb7ea'];
-      const node = (x, y, s, i) => { P(g, RR(x - 54, y - 22, 108, 44, 14), C[i % 6], '#3a3430', 2.6); label(g, x, y + 8, s, '#2a2420', 22, 'middle'); };
+      const node = (x, y, s, i) => { P(g, RR(x - 54, y - 22, 108, 44, 14), C[i % 6], '#3a3430', 2.6); if (t || showLab(o)) label(g, x, y + 8, s, '#2a2420', 22, 'middle'); };
       const edge = ([ax, ay], [bx, by]) => { const dx = bx - ax, dy = by - ay, k = Math.min(62 / Math.abs(dx || 1e-9), 30 / Math.abs(dy || 1e-9)); return [ax + dx * k, ay + dy * k]; };
       const arr = (a, b) => arrow(g, ...edge(a, b), ...edge(b, a), INK.green, 2.6);
       if ((o.k || 'chain') === 'chain') {
@@ -1181,14 +1182,14 @@
     }),
 
     // "supplydemand cx cy size" — price/quantity axes, supply and demand lines crossing at equilibrium
-    supplydemand: make(300, g => {
+    supplydemand: make(300, (g, o) => {
       const ink = '#3a3430';
       arrow(g, -130, 110, -130, -130, ink, 3.6); arrow(g, -130, 110, 130, 110, ink, 3.6);
       line(g, 'M-100 84 L80 -96', INK.blue, 5); line(g, 'M-100 -96 L80 84', INK.orange, 5);
       line(g, 'M-130 -6 H-10 V110', '#9aa3b2', 2.4, { 'stroke-dasharray': '7 7' });
       P(g, E(-10, -6, 10), '#e04b3a', '#8a1f1a', 2.4);
-      label(g, 88, -92, 'Supply', TXT.blue, 32); label(g, 88, 98, 'Demand', TXT.orange, 32);
-      label(g, -120, -122, 'Price', '#3a3430', 30); label(g, 130, 148, 'Quantity', '#3a3430', 30, 'end');
+      if (showLab(o)) { label(g, 88, -92, 'Supply', TXT.blue, 32); label(g, 88, 98, 'Demand', TXT.orange, 32); }
+      if (showLab(o)) { label(g, -120, -122, 'Price', '#3a3430', 30); label(g, 130, 148, 'Quantity', '#3a3430', 30, 'end'); }
     }),
 
     // "stall cx cy size" — market stall: striped awning, fruit crates on the counter
@@ -1244,7 +1245,7 @@
       L.forEach((s, i) => P(g, RR(x1 + i * w, y - 9, w, 18), C[i % 6], '#3a3430', 2.4));
       line(g, `M${x2 - 20} ${y} L${x2} ${y}`, '#3a3430', 3); line(g, head(x2 + 4, y, x2 - 20, y, 14), '#3a3430', 3, { class: 'ink head' });
       for (let i = 0; i <= n; i++) { const x = x1 + i * w; line(g, `M${x} ${y - 20} V${y + 20}`, '#3a3430', 3); }
-      L.forEach((s, i) => label(g, x1 + (i + .5) * w, i % 2 ? y + 46 : y - 30, s, TXT.blue, 24, 'middle'));
+      if (t || showLab(o)) L.forEach((s, i) => label(g, x1 + (i + .5) * w, i % 2 ? y + 46 : y - 30, s, TXT.blue, 24, 'middle'));
       return g;
     },
 

@@ -6,7 +6,7 @@
   const part = (g, d, f, ink, w = 3) => { fill(g, d, f); return line(g, d, ink, w); };
   const ell = (x, y, rx, ry = rx) => `M${x - rx} ${y} a${rx} ${ry} 0 1 0 ${2 * rx} 0 a${rx} ${ry} 0 1 0 ${-2 * rx} 0 Z`;
   const sheen = (g, d, w = 6) => line(g, d, '#ffffff', w, { opacity: .55 });
-  const lbl = (o) => o.lbl !== '0';
+  const lbl = (o) => o.lbl !== '0' && o.lab !== '0' && o.labels !== '0';
   const L = (g, x, y, t, c = '#444', s = 20, a = 'middle') => label(g, x, y, t, c, s, a);
   const arrow = (g, x1, y1, x2, y2, c, w = 2.5) => { line(g, `M${x1} ${y1} L${x2} ${y2}`, c, w); line(g, head(x2, y2, x1, y1, 10), c, w, { class: 'ink head' }); };
   const DK = '#5b1a1a';
@@ -500,7 +500,7 @@
       part(g, 'M-12 0 L12 0 L12 20 L-12 20 Z', '#e8858a', '#8a2e3e', 2.4);
       sheen(g, 'M-66 -40 C-60 -56 -50 -60 -42 -54', 4);
       for (const [x, y] of [[-100, -70], [-120, -30], [100, -70], [120, -30], [-96, 30], [96, 30]]) { fill(g, `M${x} ${y - 9} C${x + 6} ${y} ${x + 6} ${y + 6} ${x} ${y + 6} C${x - 6} ${y + 6} ${x - 6} ${y} ${x} ${y - 9} Z`, '#f6c84c'); line(g, `M${x} ${y - 9} C${x + 6} ${y} ${x + 6} ${y + 6} ${x} ${y + 6} C${x - 6} ${y + 6} ${x - 6} ${y} ${x} ${y - 9} Z`, '#c97a10', 1.8); }
-      if (lbl(o)) L(g, 0, 130, t || 'hormones', '#c97a10', 20);
+      if (t || lbl(o)) L(g, 0, 130, t || 'hormones', '#c97a10', 20);
       return g;
     },
 

@@ -8,7 +8,7 @@
   const part = (g, d, f, ink, w = 3) => { fill(g, d, f); return line(g, d, ink, w); };
   const ell = (x, y, rx, ry = rx) => `M${x - rx} ${y} a${rx} ${ry} 0 1 0 ${2 * rx} 0 a${rx} ${ry} 0 1 0 ${-2 * rx} 0 Z`;
   const sheen = (g, d, w = 6) => line(g, d, '#ffffff', w, { opacity: .55 });
-  const lab = o => o.lab !== '0';
+  const lab = o => o.lab !== '0' && o.labels !== '0';
   const L = (g, x, y, t, c = '#444', s = 19, a = 'middle') => label(g, x, y, t, c, s, a);
   const arrow = (g, d, x2, y2, ax, ay, c, w = 2.6, h = 11) => { line(g, d, c, w); line(g, head(x2, y2, ax, ay, h), c, w); };
   // a part's name with a thin leader line from the part (x1 y1) to the words (x2 y2)
@@ -79,7 +79,7 @@
       fill(g, 'M50 -48 L0 -48 L0 48 L50 48 Q56 48 56 42 L56 -42 Q56 -48 50 -48 Z', '#f19a90');
       line(g, 'M-50 -48 L50 -48 Q56 -48 56 -42 L56 42 Q56 48 50 48 L-50 48 Q-56 48 -56 42 L-56 -42 Q-56 -48 -50 -48 Z', '#5b1a1a', 3.4);
       line(g, 'M0 -48 L0 48 M-56 0 L-6 0 M6 0 L56 0', '#5b1a1a', 2.6);
-      for (const [x, y, s] of [[-28, -16, 'RA'], [28, -16, 'LA'], [-28, 32, 'RV'], [28, 32, 'LV']]) L(g, x, y, s, '#ffffff', 18);
+      for (const [x, y, s] of [[-28, -16, 'RA'], [28, -16, 'LA'], [-28, 32, 'RV'], [28, 32, 'LV']]) if (lab(o)) L(g, x, y, s, '#ffffff', 18);
       if (lab(o)) {
         L(g, 0, -205, 'lungs: blood picks up oxygen', '#9a3b46', 18);
         L(g, 0, 220, 'body: oxygen is used', '#8a5a2a', 18);

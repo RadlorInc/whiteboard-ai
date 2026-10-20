@@ -1,28 +1,28 @@
-seriespar cx cy width k=series|parallel |text | seriespar 480 280 440 k=series | series or parallel circuit symbols: cell, lamps, ammeter, voltmeter, current arrows
-symbols cx cy width |text | symbols 480 280 480 | chart of 12 circuit symbols with names: cell to earth
-static cx cy size k=balloon|electroscope |text | static 480 270 300 k=electroscope | static charge: rubbed balloon sticks to wall, or gold-leaf electroscope
-wirefield cx cy size k=wire|solenoid |text | wirefield 480 280 300 k=solenoid | magnetic field round a current-carrying wire, or a solenoid with N and S
-induction cx cy width |text | induction 480 260 440 | magnet pushed into a coil, galvanometer needle moves: induced current
-refraction cx cy size k=slab|bent|tir|fibre |text | refraction 480 270 300 k=slab | light bending: glass slab with i and r, bent pencil, total internal reflection, optical fibre
-raydiagram cx cy width k=convex|concave obj=far|2f|mid|near |text | raydiagram 480 280 480 k=convex obj=far | lens ray diagram: object, F and 2F, two rays, real or virtual image
-curvedmirror cx cy size k=concave|convex |text | curvedmirror 480 270 300 k=concave | concave or convex mirror, parallel rays meet at or spread from F
-eyedefect cx cy width k=normal|myopia|hyper fix=0|1 |text | eyedefect 480 270 440 k=myopia fix=1 | eye focusing light: normal, short or long sight, fixed with a lens
-pinhole cx cy width |text | pinhole 480 280 440 | pinhole camera: candle, rays crossing at the hole, upside-down image
-shadow cx cy width |text | shadow 480 280 440 | light, opaque ball, screen: straight rays make a shadow
-periscope cx cy height |text | periscope 480 280 320 | periscope tube with two 45° mirrors, light path to an eye
-belljar cx cy size air=0|1 |text | belljar 450 260 300 | ringing bell in a bell jar, air pumped out: sound needs a medium
-echo cx cy width |text | echo 480 270 440 | loudspeaker, sound going to a wall and the echo coming back, distance d
-wavecompare cx cy width k=pitch|loud |text | wavecompare 520 270 440 k=pitch | two sound waves compared: low vs high pitch, or soft vs loud
-collision cx cy width k=stick|bounce |text | collision 480 280 440 k=stick | two carts before and after a collision, momentum conserved
-circular cx cy size |text | circular 480 270 300 | ball whirled in a circle: velocity along, force to the centre
-moments cx cy width |text | moments 480 280 440 | beam on a pivot, two weights at distances, clockwise = anticlockwise
-hooke cx cy width |text | hooke 480 290 400 | three springs with 0, 1, 2 weights, ruler: extension x, 2x
-freefall cx cy height k=strobe|forces |text | freefall 480 270 320 k=forces | falling ball: strobe positions each second, or weight vs air resistance to terminal velocity
-pressure cx cy width k=depth|barometer |text | pressure 480 290 400 k=depth | water spurting further from deeper holes, or mercury barometer 76 cm
-bimetal cx cy width k=cold|hot |text | bimetal 480 250 400 k=hot | brass-iron bimetallic strip, straight when cold, bending over a flame
-penetration cx cy width |text | penetration 480 270 460 | alpha, beta, gamma stopped by paper, aluminium, lead
-halflife cx cy width |text | halflife 480 280 420 | radioactive decay curve: N, N/2, N/4, N/8 at each half-life T
-goldfoil cx cy width |text | goldfoil 480 270 440 | Rutherford's gold foil: most alpha go through, a few bounce back
-photoelectric cx cy size |text | photoelectric 480 290 300 | light waves hitting a metal plate, electrons flying out
-plug3 cx cy size k=uk|india |text | plug3 480 250 300 k=uk | three-pin plug wiring: live, neutral, earth wire colours, fuse
-motiongraph cx cy width k=dt|vt |text | motiongraph 480 280 420 k=vt | distance-time or velocity-time graph: rest, steady, speeding up, slowing down
+seriespar cx cy width k=series|parallel lab=0 |text | seriespar 480 280 440 k=series | series or parallel circuit symbols: cell, lamps, ammeter, voltmeter, current arrows; lab=0 hides its words
+symbols cx cy width lab=0 |text | symbols 480 280 480 | chart of 12 circuit symbols with names: cell to earth; lab=0 hides its words
+static cx cy size k=balloon|electroscope lab=0 |text | static 480 270 300 k=electroscope | static charge: rubbed balloon sticks to wall, or gold-leaf electroscope; lab=0 hides its words
+wirefield cx cy size k=wire|solenoid lab=0 |text | wirefield 480 280 300 k=solenoid | magnetic field round a current-carrying wire, or a solenoid with N and S; lab=0 hides its words
+induction cx cy width lab=0 |text | induction 480 260 440 | magnet pushed into a coil, galvanometer needle moves: induced current; lab=0 hides its words
+refraction cx cy size k=slab|bent|tir|fibre lab=0 |text | refraction 480 270 300 k=slab | light bending: glass slab with i and r, bent pencil, total internal reflection, optical fibre; lab=0 hides its words
+raydiagram cx cy width k=convex|concave obj=far|2f|mid|near lab=0 |text | raydiagram 480 280 480 k=convex obj=far | lens ray diagram: object, F and 2F, two rays, real or virtual image; lab=0 hides its words
+curvedmirror cx cy size k=concave|convex lab=0 |text | curvedmirror 480 270 300 k=concave | concave or convex mirror, parallel rays meet at or spread from F; lab=0 hides its words
+eyedefect cx cy width k=normal|myopia|hyper fix=0|1 lab=0 |text | eyedefect 480 270 440 k=myopia fix=1 | eye focusing light: normal, short or long sight, fixed with a lens; lab=0 hides its words
+pinhole cx cy width lab=0 |text | pinhole 480 280 440 | pinhole camera: candle, rays crossing at the hole, upside-down image; lab=0 hides its words
+shadow cx cy width lab=0 |text | shadow 480 280 440 | light, opaque ball, screen: straight rays make a shadow; lab=0 hides its words
+periscope cx cy height lab=0 |text | periscope 480 280 320 | periscope tube with two 45° mirrors, light path to an eye; lab=0 hides its words
+belljar cx cy size air=0|1 lab=0 |text | belljar 450 260 300 | ringing bell in a bell jar, air pumped out: sound needs a medium; lab=0 hides its words
+echo cx cy width lab=0 |text | echo 480 270 440 | loudspeaker, sound going to a wall and the echo coming back, distance d; lab=0 hides its words
+wavecompare cx cy width k=pitch|loud lab=0 |text | wavecompare 520 270 440 k=pitch | two sound waves compared: low vs high pitch, or soft vs loud; lab=0 hides its words
+collision cx cy width k=stick|bounce lab=0 |text | collision 480 280 440 k=stick | two carts before and after a collision, momentum conserved; lab=0 hides its words
+circular cx cy size lab=0 |text | circular 480 270 300 | ball whirled in a circle: velocity along, force to the centre; lab=0 hides its words
+moments cx cy width lab=0 |text | moments 480 280 440 | beam on a pivot, two weights at distances, clockwise = anticlockwise; lab=0 hides its words
+hooke cx cy width lab=0 |text | hooke 480 290 400 | three springs with 0, 1, 2 weights, ruler: extension x, 2x; lab=0 hides its words
+freefall cx cy height k=strobe|forces lab=0 |text | freefall 480 270 320 k=forces | falling ball: strobe positions each second, or weight vs air resistance to terminal velocity; lab=0 hides its words
+pressure cx cy width k=depth|barometer lab=0 |text | pressure 480 290 400 k=depth | water spurting further from deeper holes, or mercury barometer 76 cm; lab=0 hides its words
+bimetal cx cy width k=cold|hot lab=0 |text | bimetal 480 250 400 k=hot | brass-iron bimetallic strip, straight when cold, bending over a flame; lab=0 hides its words
+penetration cx cy width lab=0 |text | penetration 480 270 460 | alpha, beta, gamma stopped by paper, aluminium, lead; lab=0 hides its words
+halflife cx cy width lab=0 |text | halflife 480 280 420 | radioactive decay curve: N, N/2, N/4, N/8 at each half-life T; lab=0 hides its words
+goldfoil cx cy width lab=0 |text | goldfoil 480 270 440 | Rutherford's gold foil: most alpha go through, a few bounce back; lab=0 hides its words
+photoelectric cx cy size lab=0 |text | photoelectric 480 290 300 | light waves hitting a metal plate, electrons flying out; lab=0 hides its words
+plug3 cx cy size k=uk|india lab=0 |text | plug3 480 250 300 k=uk | three-pin plug wiring: live, neutral, earth wire colours, fuse; lab=0 hides its words
+motiongraph cx cy width k=dt|vt lab=0 |text | motiongraph 480 280 420 k=vt | distance-time or velocity-time graph: rest, steady, speeding up, slowing down; lab=0 hides its words

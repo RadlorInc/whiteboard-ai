@@ -1,26 +1,26 @@
-doublependulum cx cy width k=still|chaos |text | doublependulum 480 290 480 k=chaos | double pendulum: θ₁, θ₂, Lagrangian, Euler–Lagrange; chaos adds bob trace
-phasespace cx cy width k=sho|pendulum|damped |text | phasespace 480 280 460 k=pendulum | phase portraits: oscillator ellipses, pendulum separatrix, damped spiral
-normalmodes cx cy width |text | normalmodes 480 280 500 | two masses, three springs: in-phase ω₁ and out-of-phase ω₂ modes
-gyroscope cx cy size |text | gyroscope 480 290 460 | spinning top: spin L, torque r × mg, precession Ω = mgr/Iω
-laminar cx cy width k=laminar|turbulent|boundary |text | laminar 480 280 480 k=laminar | pipe flow profiles: Poiseuille, turbulent, boundary layer on plate; Reynolds number
-fourier cx cy width k=series|transform |text | fourier 480 285 480 k=series | Fourier: square wave from odd harmonics plus spectrum, or Gaussian transform pairs
-multipole cx cy width |text | multipole 480 290 500 | monopole, dipole, quadrupole charges, field lines, 1/r, 1/r², 1/r³ falloff
-waveguide cx cy width |text | waveguide 480 280 500 | rectangular waveguide a×b: TE₁₀ field across a, propagation along z, cutoff
-dipoleradiation cx cy width |text | dipoleradiation 480 280 480 | oscillating dipole: sin²θ doughnut pattern, E, B, S directions, P ∝ ω⁴
-boltzmann cx cy width |text | boltzmann 480 270 480 | Boltzmann populations on energy levels at low and high T, partition function
-quantumstats cx cy width |text | quantumstats 480 280 480 | occupation n(ε): Fermi–Dirac step, Bose–Einstein divergence, Maxwell–Boltzmann
-ising cx cy width |text | ising 480 290 500 | 2D Ising spins below and above Tc, magnetization falling to zero
-bec cx cy width |text | bec 480 280 500 | Bose–Einstein condensation: three-panel velocity spike, ground-state fraction N₀/N vs T
-blochsphere cx cy size |text | blochsphere 480 280 400 | Bloch sphere: |0⟩, |1⟩ poles, state vector at θ, φ, qubit formula
-radialwave cx cy width k=prob|wave |text | radialwave 480 290 480 k=prob | hydrogen 1s, 2s, 2p, 3s radial densities r²R² or R_nl, nodes
-zeeman cx cy width k=normal|stark |text | zeeman 480 280 480 k=normal | Zeeman splitting m_l = −1, 0, +1, three lines; or n=2 Stark
-crosssection cx cy width |text | crosssection 480 280 500 | scattering: beam, impact parameter b, angle θ, detector dΩ, Rutherford formula
-belltest cx cy width |text | belltest 480 280 520 | Bell test: entangled source, polarizers a, b, quantum vs classical correlation, CHSH
-qcircuit cx cy width k=bell|teleport |text | qcircuit 480 270 500 k=bell | quantum circuit: H and CNOT making a Bell state, or teleportation
-detector cx cy size |text | detector 480 280 500 | collider detector layers with photon, electron, hadron, muon, neutrino signatures
-phonons cx cy width |text | phonons 480 290 480 | diatomic chain phonons: acoustic and optical branches, gap, zone edge ±π/a
-bandstructure cx cy width k=nfe|zones |text | bandstructure 480 285 480 k=nfe | nearly-free-electron bands: gaps at ±π/a, extended or reduced zone scheme
-superconductor cx cy width |text | superconductor 480 280 500 | Meissner effect: field through above Tc, expelled below; resistance drops to zero
-hubble cx cy width k=plot|expansion |text | hubble 480 280 480 k=plot | Hubble's law v = H₀d plot, or galaxies on an expanding grid
-gravwave cx cy width |text | gravwave 480 280 500 | gravitational waves: inspiral, chirp, merger, ringdown, + polarization test ring
-bindingenergy cx cy width |text | bindingenergy 480 280 480 | binding energy per nucleon vs A: Fe-56 peak, fusion and fission sides
+doublependulum cx cy width k=still|chaos lab=0 |text | doublependulum 480 290 480 k=chaos | double pendulum: θ₁, θ₂, Lagrangian, Euler–Lagrange; chaos adds bob trace; lab=0 hides its words
+phasespace cx cy width k=sho|pendulum|damped lab=0 |text | phasespace 480 280 460 k=pendulum | phase portraits: oscillator ellipses, pendulum separatrix, damped spiral; lab=0 hides its words
+normalmodes cx cy width lab=0 |text | normalmodes 480 280 500 | two masses, three springs: in-phase ω₁ and out-of-phase ω₂ modes; lab=0 hides its words
+gyroscope cx cy size lab=0 |text | gyroscope 480 290 460 | spinning top: spin L, torque r × mg, precession Ω = mgr/Iω; lab=0 hides its words
+laminar cx cy width k=laminar|turbulent|boundary lab=0 |text | laminar 480 280 480 k=laminar | pipe flow profiles: Poiseuille, turbulent, boundary layer on plate; Reynolds number; lab=0 hides its words
+fourier cx cy width k=series|transform lab=0 |text | fourier 480 285 480 k=series | Fourier: square wave from odd harmonics plus spectrum, or Gaussian transform pairs; lab=0 hides its words
+multipole cx cy width lab=0 |text | multipole 480 290 500 | monopole, dipole, quadrupole charges, field lines, 1/r, 1/r², 1/r³ falloff; lab=0 hides its words
+waveguide cx cy width lab=0 |text | waveguide 480 280 500 | rectangular waveguide a×b: TE₁₀ field across a, propagation along z, cutoff; lab=0 hides its words
+dipoleradiation cx cy width lab=0 |text | dipoleradiation 480 280 480 | oscillating dipole: sin²θ doughnut pattern, E, B, S directions, P ∝ ω⁴; lab=0 hides its words
+boltzmann cx cy width lab=0 |text | boltzmann 480 270 480 | Boltzmann populations on energy levels at low and high T, partition function; lab=0 hides its words
+quantumstats cx cy width lab=0 |text | quantumstats 480 280 480 | occupation n(ε): Fermi–Dirac step, Bose–Einstein divergence, Maxwell–Boltzmann; lab=0 hides its words
+ising cx cy width lab=0 |text | ising 480 290 500 | 2D Ising spins below and above Tc, magnetization falling to zero; lab=0 hides its words
+bec cx cy width lab=0 |text | bec 480 280 500 | Bose–Einstein condensation: three-panel velocity spike, ground-state fraction N₀/N vs T; lab=0 hides its words
+blochsphere cx cy size lab=0 |text | blochsphere 480 280 400 | Bloch sphere: |0⟩, |1⟩ poles, state vector at θ, φ, qubit formula; lab=0 hides its words
+radialwave cx cy width k=prob|wave lab=0 |text | radialwave 480 290 480 k=prob | hydrogen 1s, 2s, 2p, 3s radial densities r²R² or R_nl, nodes; lab=0 hides its words
+zeeman cx cy width k=normal|stark lab=0 |text | zeeman 480 280 480 k=normal | Zeeman splitting m_l = −1, 0, +1, three lines; or n=2 Stark; lab=0 hides its words
+crosssection cx cy width lab=0 |text | crosssection 480 280 500 | scattering: beam, impact parameter b, angle θ, detector dΩ, Rutherford formula; lab=0 hides its words
+belltest cx cy width lab=0 |text | belltest 480 280 520 | Bell test: entangled source, polarizers a, b, quantum vs classical correlation, CHSH; lab=0 hides its words
+qcircuit cx cy width k=bell|teleport lab=0 |text | qcircuit 480 270 500 k=bell | quantum circuit: H and CNOT making a Bell state, or teleportation; lab=0 hides its words
+detector cx cy size lab=0 |text | detector 480 280 500 | collider detector layers with photon, electron, hadron, muon, neutrino signatures; lab=0 hides its words
+phonons cx cy width lab=0 |text | phonons 480 290 480 | diatomic chain phonons: acoustic and optical branches, gap, zone edge ±π/a; lab=0 hides its words
+bandstructure cx cy width k=nfe|zones lab=0 |text | bandstructure 480 285 480 k=nfe | nearly-free-electron bands: gaps at ±π/a, extended or reduced zone scheme; lab=0 hides its words
+superconductor cx cy width lab=0 |text | superconductor 480 280 500 | Meissner effect: field through above Tc, expelled below; resistance drops to zero; lab=0 hides its words
+hubble cx cy width k=plot|expansion lab=0 |text | hubble 480 280 480 k=plot | Hubble's law v = H₀d plot, or galaxies on an expanding grid; lab=0 hides its words
+gravwave cx cy width lab=0 |text | gravwave 480 280 500 | gravitational waves: inspiral, chirp, merger, ringdown, + polarization test ring; lab=0 hides its words
+bindingenergy cx cy width lab=0 |text | bindingenergy 480 280 480 | binding energy per nucleon vs A: Fe-56 peak, fusion and fission sides; lab=0 hides its words
