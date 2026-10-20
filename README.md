@@ -13,7 +13,7 @@ Stripe, Claude Opus 5.5. **The spec is `../app-plan/PLAN.md`**; its build order 
   `npm run lint:secrets` and the pre-commit hook fail on anything that looks like a key.
 - **No live model calls by default.** `GENERATION_MOCK=1` replays hand-made answers; `WB_LIVE=1` with a real key costs
   money and is manual (§12.6).
-- **The prototype (`../prototype`) is frozen.** The drawing library now lives in [`player-src/`](player-src/README.md).
+- **The prototype (`../prototype`) is frozen.** The drawing library lives in `public/player/` (its notes: [`scripts/library/README.md`](scripts/library/README.md)).
 
 ## Run it from a clean clone
 
@@ -65,7 +65,7 @@ the details are in the script's header. For an e2e check, stop your dev server f
 | `src/app/` | Next 16 App Router pages and routes. Read `node_modules/next/dist/docs/` before writing one (AGENTS.md) |
 | `src/product.ts` | `PRODUCT_NAME`, the one place the working name lives (A1) |
 | `supabase/` | `config.toml` (local stack), `migrations/`, `seed.sql`, `tests/` (pgTAP) |
-| `player-src/` | The drawing library and the three players' sources, copied from the prototype (M0). Not served until M4 |
+| `public/player/` | The players and the drawing library (the only copy; edit it here) |
 | `e2e/` | Playwright specs |
 | `scripts/` | `break-check.sh`, `break-verdict.mjs`, `break-reporter.mjs`, `break-selftest.sh`, `secret-scan.mjs` |
 | `.githooks/pre-commit` | Runs the secret scan on what is being committed |

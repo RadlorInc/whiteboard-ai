@@ -93,7 +93,7 @@ describe('check.mjs §2d–2e: library and find_drawing', () => {
     const seen: Record<string, Set<string>> = { wb: new Set<string>(P.types.filter(t => !WB_LIB.some((c: Any) => c.lines.some((l: Any) => l.name === t)))), paper: new Set<string>() };
     // the realistic (servier) categories have one file per drawing instead: checked in 'realistic library' below
     for (const [dir, lib] of [['wb', (WB_LIB as Any[]).filter(c => !c.cat.startsWith('servier'))], ['paper', PAPER_LIB]] as const) for (const { cat, lines } of lib as Any[]) {
-      const src = fs.readFileSync(path.resolve(__dirname, `../../player-src/lib/${dir}/${cat}.js`), 'utf8');
+      const src = fs.readFileSync(path.resolve(__dirname, `../../public/player/lib/${dir}/${cat}.js`), 'utf8');
       for (const l of lines) {
         expect(new RegExp(`^\\s+${l.name}: `, 'm').test(src), `lib/${dir}/${cat}: "${l.name}" not in the code`).toBe(true);
         expect(l.example?.trim().split(/\s+/)[0]).toBe(l.name);

@@ -39,7 +39,7 @@ describe('prompt sha parity', () => {
     expect(JSON.parse(out)).toEqual(EXPECTED);
   });
 
-  it('prompts.json is what build-prompts.mjs makes from player-src now (not stale)', () => {
+  it('prompts.json is what build-prompts.mjs makes from public/player now (not stale)', () => {
     const r = spawnSync(process.execPath, ['src/lib/generation/build-prompts.mjs', '--check'], { cwd: app, encoding: 'utf8' });
     expect(r.stderr).toBe(''); expect(r.status).toBe(0);
   });

@@ -12,8 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Copied from the prototype as-is; M4 rewrites it into the players (player-src/README.md).
-    "player-src/**",
+    // Drawing library (data-like recipe code, kept as drawn); tests/generation checks it instead.
+    "public/player/lib/**",
+    "public/player/styles-lib.js",
     // Third-party voice runtime, copied in by scripts/vendor-tts.mjs (pinned and hash-checked), minified.
     "public/tts/vendor/**",
     // KevinAHM's Pocket TTS worker (Apache-2.0), changed only where it says "Radlor:"; kept close to upstream.

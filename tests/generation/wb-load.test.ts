@@ -40,8 +40,4 @@ describe('wb-load subject files', () => {
     const bio = load('?subject=biology').cats;
     for (const c of [...W.WB_SUBJECT.physics, ...W.WB_SUBJECT.chemistry].filter(c => c !== 'objects' && c !== 'anatomy')) expect(bio).not.toContain(c);   // objects and anatomy (sv): shared by all (20 Oct 2026)
   });
-  it('the dev copy maps subjects the same way', () => {
-    const dev = fs.readFileSync(path.resolve(__dirname, '../../player-src/lib/wb-load.js'), 'utf8');
-    expect(dev.match(/window\.WB_SUBJECT = .*/)![0]).toBe(loader.match(/window\.WB_SUBJECT = .*/)![0]);
-  });
 });

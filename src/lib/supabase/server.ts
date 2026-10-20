@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 
 export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 // §14 names first; the older local names are accepted until .env.local is regenerated.
-export const SUPABASE_PUBLIC_KEY =
+const SUPABASE_PUBLIC_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 if (typeof window !== "undefined") throw new Error("lib/supabase/server imported in the browser");

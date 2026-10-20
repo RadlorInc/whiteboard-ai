@@ -17,7 +17,7 @@ const LICENCES = { 'cc-0': 'CC0', 'cc-by-3.0': 'CC BY 3.0', 'cc-by-4.0': 'CC BY 
 const CATS = { Plants_Algae: 'plant', Animals: 'animal', Microbiology: 'microbe', Viruses: 'virus microbe', Cell_types: 'cell',
   Genetics: 'genetics cell division' };
 // Lab gear in Microbiology, model-organism lab states in Animals, and anything sick: not school biology.
-const SKIP = /tube|falcon|petri|plate|flask|bottle|pipette|microscope|chamber|raster|scraper|clamp|slide|burner|gel|erlenmeyer|centrifuge|sequencer|eppendorf|dilution|sorbitol|isolation|equipment|cultivation|incubation|hydroponics|titer|plaque|vial|injection|mutant|defective|eyeless|death|infection|gfp|expressing|marked|controlled|mosaic|radar|petri|_wp_|-wp-|sketch|idea|label|cultuure|quipment|^pet$|donating|temperature|pig|dog|beagle|guinea/i;   // pig, dog: house rules (player-src/lib/README.md)
+const SKIP = /tube|falcon|petri|plate|flask|bottle|pipette|microscope|chamber|raster|scraper|clamp|slide|burner|gel|erlenmeyer|centrifuge|sequencer|eppendorf|dilution|sorbitol|isolation|equipment|cultivation|incubation|hydroponics|titer|plaque|vial|injection|mutant|defective|eyeless|death|infection|gfp|expressing|marked|controlled|mosaic|radar|petri|_wp_|-wp-|sketch|idea|label|cultuure|quipment|^pet$|donating|temperature|pig|dog|beagle|guinea/i;   // pig, dog: house rules (scripts/library/README.md)
 const KEEP_GENETICS = /^(meiosis|mitosis|CRISPR_plasmid|CRISPR_Cas9|Budding_yeast)$/i, KEEP_CELLS = /plant/i;
 // 19 Oct 2026, finishing biology: a few lab and molecular pictures from other categories, picked by name (they pass
 // SKIP: a U-tube is lab gear, but it is the osmosis apparatus).
