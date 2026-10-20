@@ -370,6 +370,10 @@ export function buildPrompts() {
     parts: Object.fromEntries(WB_ALL.flatMap(c => c.lines).filter(l => /parts: /.test(l.desc)).map(l => [l.name, l.desc.split('parts: ')[1].trim().split(/\s+/)])),
     svIds: SV.map(d => d.id),
     svParts: Object.fromEntries(SV.filter(d => d.parts).map(d => [d.id, d.parts])),
+    // drawings written out in each style's own prompt: find_drawing says "built in", never "not in the library"
+    // (19 Oct 2026 A/B: told sun/title/cloud don't exist, the model drew plain circles instead)
+    builtIn: { whiteboard: [...PRIMITIVES, ...RECIPE_NAMES],
+      paper: 'glow ground zoom disc box shape line flow flash sun cloud rain vapour plant leaf stem soil pores cells sugar land cycle beams heart ring blood'.split(' ') },
     types: [...TYPES], commands: [...COMMANDS], loops: [...LOOPS],
     libNames: [...LIB_NAMES], flowItems: [...FLOW_ITEMS], bloodPaths: [...BLOOD_PATHS], textures: [...TEXTURES],
     wbLib: WB_ALL, paperLib: PAPER_LIB, mcLib: MC_LIB,

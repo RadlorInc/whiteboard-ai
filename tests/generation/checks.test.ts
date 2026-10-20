@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   check, checkEls, checkStep, checkPaper, checkPaperStep, checkMatchcut, expandMatchcut, checkPolicy, checkSafety,
-  findDrawing as findDrawingJs, guardFindInput, EXAMPLES, WB_LIB, PAPER_LIB, MC_LIB, STYLE_CHECK,
+  findDrawing as findDrawingJs, guardFindInput, BUILT_IN, EXAMPLES, WB_LIB, PAPER_LIB, MC_LIB, STYLE_CHECK,
 } from '../../src/lib/generation/checks.mjs';
 import P from '../../src/lib/generation/prompts.json' with { type: 'json' };
 import MOCK from '../../src/lib/generation/mock-answers.json' with { type: 'json' };
@@ -86,11 +86,13 @@ describe('check.mjs §2d–2e: library and find_drawing', () => {
     }
   });
   it('§2e find_drawing: by name, unknown names, by query; no full lines in the cached prompt', () => {
-    const findDrawing = findDrawingJs as (lib: unknown, q: { names: string[]; query: string }) => string;
+    const findDrawing = findDrawingJs as (lib: unknown, q: { names: string[]; query: string }, builtIn?: Set<string>) => string;
     const WB = (WB_LIB as Any[]).filter(c => !c.cat.startsWith('servier'));   // the plain prompt's library
     const l = WB.flatMap(c => c.lines).find(x => x.name === 'magnet');
     expect(findDrawing(WB, { names: ['magnet'], query: '' }).startsWith(l.sig)).toBe(true);
     expect(findDrawing(WB, { names: ['unicornx'], query: '' })).toMatch(/unicornx: not in the library/);
+    for (const n of ['sun', 'tag', 'title', 'cloud']) expect(findDrawing(WB, { names: [n], query: '' }, BUILT_IN.whiteboard)).toMatch(new RegExp(`^${n}: built in`));
+    expect(findDrawing(PAPER_LIB, { names: ['glow'], query: '' }, BUILT_IN.paper)).toMatch(/^glow: built in/);
     expect(findDrawing(WB, { names: [], query: 'blood vessel artery' })).toMatch(/^vessel /m);
     expect(P.styles.whiteboard.system.includes(l.desc)).toBe(false);
   });

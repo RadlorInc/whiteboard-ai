@@ -2,7 +2,7 @@
 // ask() + answer(), plus streaming, per-step emission, the pinned repair, budgets and cost rows.
 // Money rule: every path ends in exactly one db.finish (charge) or db.fail (release) — settle() is the only caller.
 import { AuthenticationError, PermissionDeniedError, NotFoundError, APIError, APIUserAbortError } from '@anthropic-ai/sdk';
-import { STYLE_CHECK, checkEls, checkStep, checkPaperStep, checkPolicy, checkSafety, findDrawing, guardFindInput, parse, WB_LIB, PAPER_LIB } from './checks.mjs';
+import { STYLE_CHECK, checkEls, checkStep, checkPaperStep, checkPolicy, checkSafety, findDrawing, guardFindInput, parse, BUILT_IN, WB_LIB, PAPER_LIB } from './checks.mjs';
 import { createScanner } from './scan.mjs';
 import { candidateGroups, savedCat, SAVED_CAT } from './drawings.mjs';
 import P from './prompts.json' with { type: 'json' };
@@ -150,7 +150,7 @@ export async function runGeneration(o: {
       const names: string[] = [];
       messages.push({ role: 'user', content: uses.map(b => {
         if (b.name !== 'find_drawing') return { type: 'tool_result', tool_use_id: b.id, content: `Unknown tool ${b.name}`, is_error: true };
-        const input = guardFindInput(b.input), r = findDrawing(lib, input);
+        const input = guardFindInput(b.input), r = findDrawing(lib, input, style === 'paper' ? BUILT_IN.paper : BUILT_IN.whiteboard);
         names.push(...(input.names as string[]).filter(n => lib.some(c => c.lines.some(l => l.name === n))));
         misses.push(...r.split('\n').filter(l => /not in the library|^Nothing found/.test(l)).map(l => l.startsWith('Nothing') ? `query: ${input.query}` : l.split(':')[0]));
         return { type: 'tool_result', tool_use_id: b.id, content: r };
