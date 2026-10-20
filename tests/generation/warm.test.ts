@@ -27,6 +27,15 @@ describe('keep-warm window: 45 ≤ idle < 58 minutes, and a real ask within 24 h
     expect(shouldPing({ last_touch_at: touch == null ? null : ago(touch), last_real_at: real == null ? null : ago(real) }, NOW)).toBe(want);
   });
 
+  it('KEEP_WARM_ALWAYS: no real ask needed, and a cold prompt (new sha after a deploy, or a dead cache) is written', () => {
+    const at = (touch: number | null) => ({ last_touch_at: touch == null ? null : ago(touch), last_real_at: null });
+    expect(shouldPing(undefined, NOW, true)).toBe(true);          // a new prompt_sha: no row yet
+    expect(shouldPing(at(null), NOW, true)).toBe(true);
+    expect(shouldPing(at(44), NOW, true)).toBe(false);
+    expect(shouldPing(at(50), NOW, true)).toBe(true);
+    expect(shouldPing(at(90), NOW, true)).toBe(true);             // died: write it again
+  });
+
   it('pings only whiteboard prompts in the window, for the deployed prompt sha, and records each ping (check.mjs §2g)', async () => {
     const { db, log } = fakeDb();
     db.cacheState = async () => [

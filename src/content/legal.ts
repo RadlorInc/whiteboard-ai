@@ -23,7 +23,7 @@ export const LEGAL: Record<string, Doc> = {
     ["Acceptable use", ["Follow the Acceptable use rules. We may decline a question, and may suspend accounts that break them."]],
     ["Sharing and Explore", [
       "If you share a video, anyone with the link can watch it. They do not see who made it. You can stop sharing at any time.",
-      "Explore is a public page where anyone, signed in or not, can watch videos people chose to show there. When you ask a question, \u201cShow in Explore\u201d is ticked unless you untick it, for every account including those of users aged 13\u201317. Explore shows the question and the video, never your name or email. You can remove a video from Explore at any time from its page.",
+      "Explore is a public page where anyone, signed in or not, can watch videos people chose to show there. Every new video goes on Explore when it is finished, for every account including those of users aged 13\u201317. Explore shows the question and the video, never your name or email. You can remove a video from Explore at any time from its page.",
       "Questions with links, email addresses, handles or phone numbers are never shown on Explore. Anyone can report a public video, and we may remove any video from Explore or stop it being shared."]],
     ["Ending your account", ["You can delete your account at any time from Account. We may close accounts that break these terms."]],
     ["Changes", ["We will email you before new terms take effect, and ask you to accept them."]],
@@ -32,7 +32,7 @@ export const LEGAL: Record<string, Doc> = {
   privacy: { title: "Privacy Policy", sections: [
     ["What we collect", [
       "Your email address, your age band (13–17 or 18+; never your birth date), your questions and the videos made from them, your video allowance and payment history (card details stay with Stripe), and basic technical logs.",
-      "Your choices of narration voice and of \u201cShow in Explore\u201d are kept only in your browser.",
+      "Your choice of narration voice is kept only in your browser.",
       "We do not use advertising trackers or sell or share your personal information for advertising."]],
     ["Why", ["To make your videos, run your account and payments, keep the service safe and working, and meet legal duties."]],
     ["Who helps us (service providers)", [
