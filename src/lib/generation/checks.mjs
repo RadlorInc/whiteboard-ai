@@ -7,6 +7,7 @@ import P from './prompts.json' with { type: 'json' };
 const TYPES = new Set(P.types), COMMANDS = new Set(P.commands), LOOPS = new Set(P.loops);
 const LIB_NAMES = new Set(P.libNames), FLOW_ITEMS = new Set(P.flowItems), BLOOD_PATHS = new Set(P.bloodPaths);
 const TEXTURES = new Set(P.textures), PARTS = P.parts ?? {}, SV_IDS = new Set(P.svIds ?? []), SV_PARTS = P.svParts ?? {};
+export const BUILT_IN = { whiteboard: new Set(P.builtIn.whiteboard), paper: new Set(P.builtIn.paper) };
 export const MC_LIB = P.mcLib, WB_LIB = P.wbLib, PAPER_LIB = P.paperLib, EXAMPLES = P.examples;
 
 // ---------- whiteboard: check(a) = shape + checkEls + every checkStep (prototype `check`, split) ----------
@@ -105,11 +106,11 @@ export const FIND_TOOL = {
       query: { type: 'string', description: 'words to search for, may be empty' } } },
 };
 const words = t => String(t).toLowerCase().match(/[a-z0-9]+/g) || [];
-export function findDrawing(lib, { names = [], query = '' }) {
+export function findDrawing(lib, { names = [], query = '' }, builtIn = new Set()) {
   const all = lib.flatMap(c => c.lines), out = [];
   for (const n of names) { const ls = all.filter(x => x.name === n), l = ls[0];   // a recipe and a realistic drawing may share a name: give both
     ls.slice(1).forEach(x => out.push(`${x.sig} — ${x.desc}`));
-    out.push(l ? `${l.sig} — ${l.desc}` : `${n}: not in the library` +
+    out.push(l ? `${l.sig} — ${l.desc}` : builtIn.has(n) ? `${n}: built in — use it exactly as your instructions show it (no lookup needed)` : `${n}: not in the library` +
     (() => { const near = all.filter(x => x.name.includes(n) || n.includes(x.name)).slice(0, 5).map(x => x.name); return near.length ? ` (close: ${near.join(', ')})` : ''; })()); }
   // Search (18 Oct 2026): words of 3+ letters ("a" matched everything), matched on a shared stem of up to 5 letters
   // ("alveolus" finds "alveoli"); a drawing with named parts (pins) wins a tie, being the better teaching picture, and

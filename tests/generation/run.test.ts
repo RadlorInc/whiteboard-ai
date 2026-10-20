@@ -53,7 +53,7 @@ describe('money paths: exactly one settle or release', () => {
     const r = await run('whiteboard', [{ tool: { names: ['sun', 'unicornx'] } }, { text: text(rainbow) }]);
     expect(r.closes).toBe(1); expect(r.log.finish.length).toBe(1);
     expect(r.events.at(-1)).toEqual({ event: 'done', data: { id: ID, creditsCharged: 4, narrationChars: 515, available: 96, explore: null } });
-    expect(r.log.finish[0].metrics).toMatchObject({ attempts: 1, repaired: false, misses: ['sun', 'unicornx'], steps_sent: 7 });
+    expect(r.log.finish[0].metrics).toMatchObject({ attempts: 1, repaired: false, misses: ['unicornx'], steps_sent: 7 });
     expect(r.log.calls.map(c => c.kind)).toEqual(['round', 'round']);   // one cost row per model call
     // jsonb loses key order, so the saved script keeps it (a pin must be built after its drawing)
     expect((r.log.finish[0].script as Any).order).toEqual(Object.keys(rainbow.els));
@@ -160,11 +160,12 @@ describe('provider errors map by SDK class, never by message text', () => {
 });
 
 describe('check.mjs §2f: the find_drawing tool loop', () => {
-  it('the catalogue line goes back as a tool_result; misses are recorded', async () => {
+  it('the catalogue line goes back as a tool_result; misses are recorded, built-ins are not', async () => {
     const good = { q: 'Magnets', els: { m: 'magnet 480 270 300' }, steps: [{ say: 'Step 1: A magnet.', do: ['draw m 600'] }] };
-    const r = await run('whiteboard', [{ tool: { names: ['magnet', 'unicornx'] } }, { text: text(good) }]);
+    const r = await run('whiteboard', [{ tool: { names: ['magnet', 'unicornx', 'sun'] } }, { text: text(good) }]);
     const result = (r.seen[1].messages as Any[]).at(-1).content[0];
     expect(result.type).toBe('tool_result'); expect(result.tool_use_id).toBe('t1'); expect(result.content).toMatch(/^magnet /);
+    expect(result.content).toMatch(/^sun: built in/m);
     expect(r.log.finish[0].metrics.misses).toEqual(['unicornx']);
     expect(r.events.find(e => e.event === 'stage' && e.data.stage === 'drawings')!.data.names).toEqual(['magnet']);
     expect(r.events.find(e => e.event === 'need')!.data.cats).toEqual(['physics']);
