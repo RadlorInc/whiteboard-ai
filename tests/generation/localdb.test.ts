@@ -15,7 +15,8 @@ vi.mock('@/lib/supabase/server', () => ({ createAdminClient: local }));
 vi.mock('server-only', () => ({}));
 
 describe.runIf(on)('local stack money path (WB_LOCAL_DB=1)', () => {
-  it('charges 4 for the rainbow, releases a refusal, and leaves no drift', async () => {
+  // Free tier (20 Oct 2026): A's first videos this month are free (nothing held or charged); past them, 1 from the plan.
+  it('charges the rainbow (free or 1 from the plan), releases a refusal, and leaves no drift', async () => {
     const { supabaseDb: db } = await import('../../src/lib/generation/db-supabase');
     const { runGeneration } = await import('../../src/lib/generation/run');
     const { mockClient, PROMPT_SHA } = await import('../../src/lib/generation/model');
@@ -28,12 +29,14 @@ describe.runIf(on)('local stack money path (WB_LOCAL_DB=1)', () => {
     };
     const ok = await ask('How does a rainbow form?');
     await runGeneration({ id: ok, style: 'whiteboard', question: 'How does a rainbow form?', client: mockClient({ cps: 0 }), db, send: () => {} });
-    expect(await db.getOwn(ok, A)).toMatchObject({ status: 'succeeded', credits_charged: 4, narration_chars: 515 });
+    const paid = (await sb.from('generations').select('paid_with').eq('id', ok).single()).data!.paid_with as string;
+    expect(await db.getOwn(ok, A)).toMatchObject({ status: 'succeeded', credits_charged: paid === 'free' ? 0 : 1, narration_chars: 515 });
     const bad = await ask('q two');
     await runGeneration({ id: bad, style: 'whiteboard', question: 'q two', client: fakeClient([{ stop: 'refusal', text: '' }]).client, db, send: () => {} });
     expect(await db.getOwn(bad, A)).toMatchObject({ status: 'failed', error_code: 'refusal' });
     const ledger = (await sb.from('credit_ledger').select('kind, generation_id').in('generation_id', [ok, bad]).order('id')).data!;
-    expect(ledger.map(l => [l.kind, l.generation_id])).toEqual([['reserve', ok], ['settle', ok], ['reserve', bad], ['release', bad]]);
+    // a failed free video does not use one up, so the refusal is paid the same way as the rainbow
+    expect(ledger.map(l => [l.kind, l.generation_id])).toEqual(paid === 'free' ? [] : [['reserve', ok], ['settle', ok], ['reserve', bad], ['release', bad]]);
     expect((await sb.rpc('credit_drift')).data).toEqual([]);
   });
 
