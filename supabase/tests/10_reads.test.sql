@@ -16,7 +16,7 @@ declare r text;
 begin
   insert into fx values ('a1', pg_temp.gid(pg_temp.reserve(pg_temp.ua())));
   r := pg_temp.finish((select v from fx where k = 'a1'), 450);
-  if r not like 'settled:3:%' then raise exception 'fixture a1: %', r; end if;
+  if r not like 'settled:1:%' then raise exception 'fixture a1: %', r; end if;
   insert into fx values ('a2', pg_temp.gid(pg_temp.reserve(pg_temp.ua())));
   r := pg_temp.fail((select v from fx where k = 'a2'), 'check_failed');
   if r not like 'released:%' then raise exception 'fixture a2: %', r; end if;

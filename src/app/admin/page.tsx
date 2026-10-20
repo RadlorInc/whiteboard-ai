@@ -41,7 +41,7 @@ export default async function Admin() {
         <h2>Today (UTC)</h2>
         <p>Model spend <strong>{usd(spend)}</strong> of the {usd(Number(s.daily_spend_cap_usd))} daily cap.</p>
         <p>Videos: {g.length} asked · {by("succeeded")} made · {by("failed") + by("refunded")} failed (not charged) · {by("running") + by("reserved")} in progress.</p>
-        <p>Credits charged: {credits} (≈ {usd(credits * 9.99 / 150)} at the Plus rate). Accounts: {users.count ?? 0}.</p>
+        <p>Plan videos charged: {credits} (≈ {usd(credits * 9.99 / 40)} at the Plus rate; free and admin videos charge 0). Accounts: {users.count ?? 0}.</p>
         <p>Credit ledger check: {(drift.data ?? []).length === 0 ? "balances match the ledger ✓" : <strong className="error">{(drift.data ?? []).length} accounts drift — investigate</strong>}</p>
       </section>
       <div className="grid">

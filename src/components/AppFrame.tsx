@@ -9,10 +9,8 @@ import { SignOutButton } from "./SignOutButton";
 import { ChatList, SUBJECT_NAME, type ChatRow, type Subject } from "./Chats";
 import { Icon, type IconName } from "./Icon";
 
-import { HOLD_CREDITS, videos, videosLeft } from "@/lib/videos";
+import { canAsk, videos, videosLeft, type Allowance } from "@/lib/videos";
 
-// ponytail: a fixed "full" mark (Plus is ~37 videos, invite credits ~25); use the plan's own size once plans are videos.
-const RING_FULL = 25;
 
 function Brand() {
   return (
@@ -24,8 +22,8 @@ function Brand() {
   );
 }
 
-export function AppFrame({ email, available, chats, children }: {
-  email: string; available: number; chats: ChatRow[]; children: React.ReactNode;
+export function AppFrame({ email, allowance, chats, children }: {
+  email: string; allowance: Allowance; chats: ChatRow[]; children: React.ReactNode;
 }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
@@ -66,10 +64,12 @@ export function AppFrame({ email, available, chats, children }: {
     return () => removeEventListener("keydown", esc);
   }, [open]);
 
-  // The ring round the avatar (founder, 18 Oct 2026): how many videos are left, at a glance. Full at RING_FULL or more;
+  // The ring round the avatar (founder, 18 Oct 2026): how many videos are left, at a glance;
   // green, then amber under half, red under a fifth or at none.
-  const left = videosLeft(available), share = Math.min(left / RING_FULL, 1);
-  const ring = available < HOLD_CREDITS || share < 0.2 ? "red" : share < 0.5 ? "amber" : "green";
+  // Full at the month's free videos or more (free tier, 20 Oct 2026); an admin's is always full.
+  const left = videosLeft(allowance), share = allowance.admin ? 1 : Math.min(left / Math.max(1, allowance.freeMonthly), 1);
+  const ring = !canAsk(allowance) || share < 0.2 ? "red" : share < 0.5 ? "amber" : "green";
+  const leftText = allowance.admin ? "Unlimited (admin)" : `${videos(left)} left`;
   const nav: [string, IconName, string][] = [["/explore", "compass", "Explore"], ["/saved", "bookmark", "Collection"], ["/library", "videos", "Your videos"]];
   const active = path.startsWith("/c/") ? path.slice(3) : undefined;
   const subjects = (Object.keys(SUBJECT_NAME) as Subject[]).filter((s) => chats.some((c) => c.subject === s));
@@ -120,7 +120,7 @@ export function AppFrame({ email, available, chats, children }: {
             <a href="/ask" className="icon-btn topbar-new" aria-label="New chat"><Icon name="newChat" /></a>
           {/* Profile, top right (founder, 18 Oct 2026) */}
           <details className="menu down profile" ref={menu}>
-            <summary aria-label={`Account menu, ${videos(left)} left`} data-credits={available}>
+            <summary aria-label={`Account menu, ${leftText}`} data-credits={allowance.plan}>
               <span className={`vring ${ring}`} aria-hidden="true">
                 <svg viewBox="0 0 40 40" width="40" height="40">
                   <circle cx="20" cy="20" r="18" className="ring-track" />
@@ -131,7 +131,7 @@ export function AppFrame({ email, available, chats, children }: {
             </summary>
             <div className="menu-list">
               <p className="menu-who"><span className="avatar" aria-hidden="true">{email.slice(0, 1).toUpperCase()}</span><span>{email}</span></p>
-              <Link href="/buy" className="menu-videos"><Icon name="videos" size={18} /> {videos(videosLeft(available))} left · Get more</Link>
+              <Link href="/buy" className="menu-videos"><Icon name="videos" size={18} /> {leftText}{allowance.admin ? "" : " · Get more"}</Link>
               <hr />
               <Link href="/settings"><Icon name="settings" size={18} /> Settings</Link>
               <Link href="/account"><Icon name="user" size={18} /> Account</Link>

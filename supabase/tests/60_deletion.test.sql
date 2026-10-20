@@ -20,7 +20,7 @@ begin
   perform pg_temp.svc(format($f$select public.record_model_call(%L, 'whiteboard', 'round', 1::smallint, 'sha', now(), 1, 1, 'end_turn',
             1, 1, 1, 1, 1, null, 0.05, 'req', 'raw model text about insulin')::text$f$, g1));
   r := pg_temp.finish(g1, 450, 'whiteboard', format('{"misses":["insulin_pen"],"error_detail":"x","clips":[{"path":"%s/%s/0.mp3"}]}', d, g1)::jsonb);
-  if r not like 'settled:3:%' then raise exception 'fixture finish: %', r; end if;
+  if r not like 'settled:1:%' then raise exception 'fixture finish: %', r; end if;
   g2 := pg_temp.gid(pg_temp.reserve(d, gen_random_uuid(), 'paper', 'Why do I feel dizzy?'));
   r := pg_temp.fail(g2, 'check_failed', '{"error_detail":"bad step 2","misses":["dizzy_face"]}');
   insert into ids values ('g1', g1), ('g2', g2);
@@ -39,7 +39,7 @@ create temp table before_d as
          (select count(*) from public.generations where user_id = pg_temp.i('d')) gens;
 
 select is(pg_temp.as_user(pg_temp.i('d'), 'select count(*) from public.generations'), '2', 'before: D reads its 2 generations');
-select is(pg_temp.bal(pg_temp.i('d')), '0/57/0', 'before: D has 57 credits (60 - 3)');
+select is(pg_temp.bal(pg_temp.i('d')), '0/59/0', 'before: D has 59 videos (60 - 1)');
 
 -- Deletion.
 select is(pg_temp.svc(format('select public.delete_account_data(%L)', pg_temp.i('d'))), 'deleted', 'delete_account_data -> deleted');
@@ -67,12 +67,12 @@ select is(pg_temp.svc(format($f$select public.stripe_invoice_paid('evt_del_2', '
 select is((select count(*) from public.credit_ledger where user_id = pg_temp.i('d')), (select ledger + 1 from before_d),
   'the ledger is kept: the same rows + 1 forfeit');
 select is((select kind || '(' || sub_delta || ')[' || topup_delta || ']' from public.credit_ledger where user_id = pg_temp.i('d')
-            order by id desc limit 1), 'forfeit(0)[-57]', '... the forfeit takes the 57 left');
+            order by id desc limit 1), 'forfeit(0)[-59]', '... the forfeit takes the 59 left');
 select is(pg_temp.bal(pg_temp.i('d')), '0/0/0', 'balances are zero');
 select is((select string_agg(style || ':' || status || ':' || credits_charged || ':' || narration_chars || ':' || billable_seconds
              || ':' || coalesce(error_code, '-'), ',' order by created_at, style)
              from public.generations where user_id = pg_temp.i('d')),
-  'paper:failed:0:0:0:check_failed,whiteboard:succeeded:3:450:30:-', 'generation metering intact');
+  'paper:failed:0:0:0:check_failed,whiteboard:succeeded:1:450:30:-', 'generation metering intact');
 select is((select count(*)::int from public.generations where user_id = pg_temp.i('d')
              and question is null and script is null and voice_clips is null and content_deleted_at is not null), 2,
   'question, script and voice clips are null on both, content_deleted_at stamped');
@@ -100,7 +100,7 @@ insert into ids values ('e', pg_temp.new_user('del_e'));
 select pg_temp.give(pg_temp.i('e'), 0, 20) is null as f \gset
 select is(pg_temp.outcome(pg_temp.reserve(pg_temp.i('e'))), 'reserved', 'E has a video being made');
 select is(pg_temp.svc(format('select public.delete_account_data(%L)', pg_temp.i('e'))), 'busy', 'deletion while held > 0 -> busy');
-select is(pg_temp.bal(pg_temp.i('e')), '0/14/6', '... nothing changed');
+select is(pg_temp.bal(pg_temp.i('e')), '0/19/1', '... nothing changed');
 select is(pg_temp.svc(format('select public.delete_account_data(%L, true)', pg_temp.i('e'))), 'deleted', 'with force -> deleted');
 select is((select string_agg(kind, ',' order by id) from public.credit_ledger where user_id = pg_temp.i('e')), 'grant_topup,reserve,release,forfeit',
   '... the open video was failed stale and released first, then the 20 forfeited');
@@ -145,7 +145,7 @@ select is((select coalesce(c.raw_text, 'null') || ':' || coalesce(i.error_detail
              || ':' || g.credits_charged
              from public.generations g join public.generation_calls c on c.generation_id = g.id
              join public.generation_internal i on i.generation_id = g.id where g.id = pg_temp.i('va')),
-  'null:null:{}:0:null:2', 'one video: raw_text, error_detail, misses, feedback and question gone; the charge stays');
+  'null:null:{}:0:null:1', 'one video: raw_text, error_detail, misses, feedback and question gone; the charge stays');
 
 -- Foreign keys to profiles(id), by hand (§6.10).
 select set_eq($$select conrelid::regclass::text, confdeltype::text from pg_constraint

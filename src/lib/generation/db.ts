@@ -42,6 +42,8 @@ export interface GenDb {
   expireIfStale(id: string): Promise<string>;
   cacheState(): Promise<CacheState[]>;
   thread(userId: string, conversationId: string): Promise<Thread | null>;
+  /** What paid for a just-reserved video, and the payer's active plan level (null: none), to cap the level taught. */
+  billing?(generationId: string, userId: string): Promise<{ paidWith: 'credit' | 'free' | 'admin'; planLevel: Level | null }>;
   attach(generationId: string, conversationId: string, userId: string): Promise<boolean>;
   // A finished video goes on Explore (founder, 18 Oct 2026); the share refusals pass through.
   explore(generationId: string, userId: string): Promise<'shown' | 'contact_info' | 'share_limit' | 'not_found'>;

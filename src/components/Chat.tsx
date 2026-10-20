@@ -10,7 +10,7 @@ import { Player, Watch, type Style } from "./Watch";
 import { deleteChat, startConversation } from "@/app/(app)/c/actions";
 import { ShareButton } from "./ShareButton";
 import { SUBJECT_NAME, type Subject } from "./Chats";
-import { LEVEL_NAME, type Level } from "@/lib/videos";
+import { LEVEL_NAME, type Allowance, type Level } from "@/lib/videos";
 import { Icon } from "./Icon";
 import { BoardPreview } from "./BoardPreview";
 import { PRODUCT_NAME } from "@/product";
@@ -41,8 +41,8 @@ function PastTurn({ t, subject }: { t: Turn; subject: Subject }) {
   );
 }
 
-export function Chat({ conversationId, subject: initialSubject, level: initialLevel, turns, available, firstRun }: {
-  conversationId: string | null; subject: Subject | null; level?: Level; turns: Turn[]; available: number; firstRun: boolean;
+export function Chat({ conversationId, subject: initialSubject, level: initialLevel, turns, allowance, firstRun }: {
+  conversationId: string | null; subject: Subject | null; level?: Level; turns: Turn[]; allowance: Allowance; firstRun: boolean;
 }) {
   const router = useRouter();
   const [conv, setConv] = useState(conversationId);
@@ -137,7 +137,7 @@ export function Chat({ conversationId, subject: initialSubject, level: initialLe
               <Icon name="chevronDown" size={18} />
             </button>
           )}
-          <AskComposer available={available} firstRun={firstRun && empty} onAsk={ask} busy={busy}
+          <AskComposer allowance={allowance} firstRun={firstRun && empty} onAsk={ask} busy={busy}
             placeholder={empty ? "Ask anything…" : "Ask a follow-up…"} subject={subject}
             onSubject={conv ? undefined : setSubject} level={level} onLevel={conv ? undefined : setLevel} />
         </div>

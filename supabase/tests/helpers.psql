@@ -100,3 +100,7 @@ create function pg_temp.fail(p_id uuid, p_code text, p_metrics jsonb default nul
 -- credit_drift() as service_role: its row count as text ('0' = no drift).
 create function pg_temp.drift() returns text language sql as $$
   select pg_temp.svc('select count(*)::text from public.credit_drift()') $$;
+
+-- Free videos (20261020000400_free_tier.sql) are off in every test, so reserve/finish exercise the plan path
+-- (1 video held, 1 charged); 87_free_tier turns them back on to test the free and admin paths.
+update public.ops_settings set free_videos_monthly = 0 where id;

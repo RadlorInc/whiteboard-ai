@@ -8,7 +8,7 @@ import { VoiceProgress } from "./Voice";
 import { Icon } from "./Icon";
 import { SUBJECT_GROUPS, SUBJECT_NAME, type Subject } from "./Chats";
 
-import { HOLD_CREDITS, LEVELS, LEVEL_NAME, type Level } from "@/lib/videos";
+import { LEVELS, LEVEL_NAME, canAsk, resetDay, taughtLevel, videos, type Allowance, type Level } from "@/lib/videos";
 const EXAMPLES: Record<Subject, string[]> = {
   biology: ["How does the heart pump blood?", "How do we breathe?", "What does DNA do?"],
   physics: ["How does a rainbow form?", "Why do things fall?", "How does a car engine work?"],
@@ -21,8 +21,8 @@ const MAX = 500;
 // onAsk: the chat takes the question; busy holds the button while its video is made (one video at a time).
 // onSubject: the subject can still change (a new chat); without it the subject is fixed and only shown. The level
 // (study subjects only; founder, 20 Oct 2026) works the same way: onLevel while the chat is new.
-export function AskComposer({ available, firstRun, onAsk, busy = false, placeholder = "Ask anything…", subject, onSubject, level = "school", onLevel }: {
-  available: number; firstRun: boolean; onAsk: (question: string, explore: boolean) => void; busy?: boolean;
+export function AskComposer({ allowance: a, firstRun, onAsk, busy = false, placeholder = "Ask anything…", subject, onSubject, level = "school", onLevel }: {
+  allowance: Allowance; firstRun: boolean; onAsk: (question: string, explore: boolean) => void; busy?: boolean;
   placeholder?: string; subject: Subject; onSubject?: (s: Subject) => void; level?: Level; onLevel?: (l: Level) => void;
 }) {
   const [question, setQuestion] = useState("");
@@ -53,7 +53,14 @@ export function AskComposer({ available, firstRun, onAsk, busy = false, placehol
   }, [question]);
 
   const study = subject !== "home" && subject !== "car";
-  const enough = available >= HOLD_CREDITS;
+  const enough = canAsk(a);
+  // What is left this month (founder, 20 Oct 2026: show it): free first, then the plan. Admins see nothing.
+  const left = a.admin ? null
+    : a.freeLeft > 0 ? `${a.freeLeft} of ${a.freeMonthly} free videos left this month${a.plan > 0 ? ` · ${videos(a.plan)} from your plan` : ""}`
+    : a.plan > 0 ? `${videos(a.plan)} left from your plan · free videos come back ${resetDay(a.resetsAt)}` : null;
+  // Free videos used up: a plan pays, and teaches at its level (generate.ts caps it the same way).
+  const taught = taughtLevel(level, a.planLevel);
+  const capped = study && !a.admin && a.freeLeft === 0 && a.plan > 0 && taught !== level;
   const empty = question.trim().length === 0;
 
   function submit() {
@@ -120,7 +127,9 @@ export function AskComposer({ available, firstRun, onAsk, busy = false, placehol
           )}
         </div>
       </div>
-      {!enough && <p className="composer-note">You have no videos left. Get more to keep asking.</p>}
+      {!enough && <p className="composer-note">You&apos;ve used your {a.freeMonthly} free videos this month. They come back on {resetDay(a.resetsAt)}, or <Link href="/buy">get a plan</Link> for more.</p>}
+      {enough && left && <p className="composer-note">{left}</p>}
+      {capped && <p className="composer-note">Your plan teaches at {LEVEL_NAME[taught].toLowerCase()} level, so these videos will be {LEVEL_NAME[taught].toLowerCase()} lessons. <Link href="/buy">Get a {LEVEL_NAME[level].toLowerCase()} plan</Link> for {LEVEL_NAME[level].toLowerCase()} depth.</p>}
       <VoiceProgress />
       {firstRun && (
         <div className="examples" aria-label="Example questions">

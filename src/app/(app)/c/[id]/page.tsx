@@ -26,6 +26,6 @@ export default async function Conversation({ params }: { params: Promise<{ id: s
     .is("content_deleted_at", null).not("question", "is", null).order("created_at", { ascending: true });
   return (
     <Chat key={id} conversationId={id} subject={c.subject as Subject} level={c.level as Level} turns={(rows ?? []) as Turn[]}
-      available={account.available} firstRun={false} />
+      allowance={account.allowance} firstRun={false} />
   );
 }

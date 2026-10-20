@@ -52,16 +52,16 @@ select throws_ok('truncate public.admin_audit', '42501', 'admin_audit is append-
 -- Refund a generation once.
 create temp table g (id uuid);
 insert into g select pg_temp.gid(pg_temp.reserve(pg_temp.ua()));
-select is(pg_temp.finish((select id from g), 451), 'settled:4:206', 'A''s video charged 4 (210 - 4)');
+select is(pg_temp.finish((select id from g), 451), 'settled:1:99', 'A''s video charged 1 (Plus 40 + pack 60 = 100, - 1)');
 select is(pg_temp.as_admin('aal2', format('select public.admin_refund_generation(%L, %L, %L)::text', (select id from g), 'drawing was broken', pg_temp.r('ref1'))),
-  '4', 'refund -> 4 credits');
+  '1', 'refund -> 1 video');
 select is((select status from public.generations where id = (select id from g)) || ' ' || pg_temp.bal(pg_temp.ua()) || ' '
   || (select string_agg(kind || '[' || topup_delta || ']', ',') from public.credit_ledger where generation_id = (select id from g) and kind = 'admin_refund'),
-  'refunded 146/64/0 admin_refund[4]', '... refunded, +4 to top-up (never expires)');
+  'refunded 39/61/0 admin_refund[1]', '... refunded, +1 to top-up (never expires)');
 select is((select count(*)::int from public.email_outbox where kind = 'refund_notice' and dedupe_key = (select id from g)::text), 1,
   '... a refund_notice email is queued');
 select is(pg_temp.as_admin('aal2', format('select public.admin_refund_generation(%L, %L, %L)::text', (select id from g), 'drawing was broken', pg_temp.r('ref1'))),
-  '4', 'the same request id -> the first result');
+  '1', 'the same request id -> the first result');
 select is(pg_temp.as_admin('aal2', format('select public.admin_refund_generation(%L, %L, %L)::text', (select id from g), 'drawing was broken', pg_temp.r('ref2'))),
   'ERROR P0001: already refunded', 'a second refund -> already refunded');
 select is((select count(*)::int from public.credit_ledger where generation_id = (select id from g) and kind = 'admin_refund'), 1,
@@ -99,7 +99,7 @@ select is(pg_temp.as_user(pg_temp.ua(), $$select count(*) from public.admin_look
 
 -- Dispute evidence: no question text; audited.
 select ok(pg_temp.as_admin('aal2', format('select public.admin_dispute_evidence(%L, %L)', pg_temp.ua(), 'dispute du_123'))
-          like '%Terms version: 2026-10-13-beta%in_seed_a_plus%whiteboard  refunded  4 credits%', 'dispute evidence lists terms, purchases and videos');
+          like '%Terms version: 2026-10-13-beta%in_seed_a_plus%whiteboard  refunded  1 credits%', 'dispute evidence lists terms, purchases and videos');
 select is(pg_temp.as_admin('aal2', format('select position(%L in public.admin_dispute_evidence(%L, %L))::text', 'plants', pg_temp.ua(), 'dispute du_123')),
   '0', '... and never the question text');
 

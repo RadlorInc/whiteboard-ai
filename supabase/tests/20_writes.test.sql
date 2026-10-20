@@ -115,7 +115,7 @@ select throws_ok(format($$update public.generations set user_id = %L where user_
 select throws_ok(format($$update public.generations set status = 'succeeded' where user_id = %L and status = 'reserved'$$, pg_temp.ua()),
   '23514', null, 'a reserved row cannot become succeeded without a charge (the CHECK binds)');
 select is(pg_temp.fail((select id from public.generations where user_id = pg_temp.ua() and status = 'reserved'), 'check_failed'),
-  'released:210', 'fixture: A''s open generation is released (150 + 60 back)');
+  'released:100', 'fixture: A''s open generation is released (Plus 40 + pack 60 back)');
 select throws_ok(format($$update public.generations set status = 'running' where user_id = %L and status = 'failed'$$, pg_temp.ua()),
   '42501', 'generations_guard: failed -> running is not allowed', 'a failed row never reopens');
 select is(pg_temp.drift(), '0', 'credit_drift() is empty');

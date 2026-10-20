@@ -13,11 +13,12 @@ export const LEGAL: Record<string, Doc> = {
       "One person per account. Keep your sign-in email safe; you are responsible for what happens in your account."]],
     ["What you get", [
       `${P} turns your question into a short animated, narrated explanation, written by AI. AI can be wrong: check anything important, especially health, legal or money questions. It is not medical, legal or financial advice.`,
-      "Every new question makes a new video and uses credits. Watching a video you already made is free.",
+      "Every new question makes a new video and uses one of your videos for the month. Watching a video you already made is free.",
       "The narration voice is made on your own device. The first time, your browser downloads a voice model (about 166 MB, mostly from Hugging Face) and keeps it; devices that cannot run it use the browser's own voice."]],
-    ["Credits and payments", [
-      "1 credit = 10 seconds of video, rounded up. Starting a video holds up to 6 credits; you are charged only for the length made, and failed or refused videos are free.",
-      "Monthly plans renew automatically until you cancel. Plan credits end 3 days after each billing period. Credits from packs do not expire.",
+    ["Free videos, plans and payments", [
+      "Every account gets 10 free videos each calendar month (UTC). Unused free videos do not carry over. After that, each video uses one video from a paid plan. Failed or refused videos are never counted.",
+      "Plans come in three levels (high school, college, grad school). Videos from a plan are taught at that plan's level, whatever level a chat is set to; free videos can be made at any level.",
+      "Monthly plans renew automatically until you cancel. Plan videos end 3 days after each billing period. Videos bought in packs before packs were withdrawn do not expire.",
       "Payments are handled by Stripe. Prices are in US dollars, plus tax where applicable. See Refunds for when money comes back."]],
     ["Acceptable use", ["Follow the Acceptable use rules. We may decline a question, and may suspend accounts that break them."]],
     ["Sharing and Explore", [
@@ -30,7 +31,7 @@ export const LEGAL: Record<string, Doc> = {
   ] },
   privacy: { title: "Privacy Policy", sections: [
     ["What we collect", [
-      "Your email address, your age band (13–17 or 18+; never your birth date), your questions and the videos made from them, your credit and payment history (card details stay with Stripe), and basic technical logs.",
+      "Your email address, your age band (13–17 or 18+; never your birth date), your questions and the videos made from them, your video allowance and payment history (card details stay with Stripe), and basic technical logs.",
       "Your choices of narration voice and of \u201cShow in Explore\u201d are kept only in your browser.",
       "We do not use advertising trackers or sell or share your personal information for advertising."]],
     ["Why", ["To make your videos, run your account and payments, keep the service safe and working, and meet legal duties."]],
@@ -45,17 +46,17 @@ export const LEGAL: Record<string, Doc> = {
     ["Keeping and deleting", [
       "You can delete any video, download all your data, or delete your account from Account.",
       "When you delete your account we delete your questions, videos and shares. A minimal payment record is kept as tax law requires."]],
-    ["Teens", ["The service is for ages 13 and up. If we learn that a user is under 13, we delete the account and refund unused paid credits."]],
+    ["Teens", ["The service is for ages 13 and up. If we learn that a user is under 13, we delete the account and refund unused paid plan videos."]],
     ["Your rights", ["Depending on where you live (for example California), you can ask to see, correct or delete your data. Use Account or the Contact page."]],
   ] },
   refunds: { title: "Refunds and cancellation", sections: [
-    ["Never charged", ["Failed, refused or timed-out videos use no credits."]],
-    ["A wrong or broken video", ["Report it within 7 days and we give the credits back after a review."]],
-    ["Packs", ["A credit pack you have not used at all can be refunded within 14 days."]],
+    ["Never charged", ["Failed, refused or timed-out videos are never counted."]],
+    ["A wrong or broken video", ["Report a plan video within 7 days and we give it back after a review."]],
+    ["Packs", ["Packs are no longer sold. A pack bought earlier and not used at all can be refunded within 14 days of purchase."]],
     ["Plans", [
-      "Your first plan payment can be refunded within 7 days if you used 10% of its credits or fewer.",
-      "Cancel any time from Account → Manage plan. You keep your plan credits until the end of the period. Otherwise there are no partial refunds, unless the law requires them."]],
-    ["Deleting your account", ["Unused credits are not refunded when you delete your account."]],
+      "Your first plan payment can be refunded within 7 days if you used 10% of its videos or fewer.",
+      "Cancel any time from Account → Manage plan. You keep your plan videos until the end of the period. Otherwise there are no partial refunds, unless the law requires them."]],
+    ["Deleting your account", ["Unused plan videos are not refunded when you delete your account."]],
   ] },
   "acceptable-use": { title: "Acceptable use", sections: [
     ["Don't ask for", [

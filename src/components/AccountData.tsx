@@ -18,7 +18,7 @@ export function DeleteAccount() {
   return (
     <form action={action} className="card stack">
       <h2>Delete account</h2>
-      <p className="muted small">This deletes your videos, questions and share links. Unused credits are not refunded. A record of payments is kept for tax law.</p>
+      <p className="muted small">This deletes your videos, questions and share links. Unused plan videos are not refunded. A record of payments is kept for tax law.</p>
       <label>Type DELETE to confirm<input name="confirm" autoComplete="off" className="input" /></label>
       <button className="btn danger" disabled={pending}>Delete my account</button>
       {state?.error && <p role="alert" className="error">{state.error}</p>}

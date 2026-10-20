@@ -24,9 +24,9 @@ test("the admin enrols an authenticator, then sees today's numbers", async ({ pa
   // An audited credit grant: the balance moves by exactly 5, and an admin_audit row records who and why.
   const B = "00000000-0000-4000-8000-00000000000b";   // user B: app.spec counts A's credits in parallel
   const before = (await admin.from("credit_balances").select("topup").eq("user_id", B).single()).data!.topup;
-  const form = page.locator("form", { hasText: "Give or take credits" });
+  const form = page.locator("form", { hasText: "Give or take videos" });
   await form.getByLabel("Email or user id").fill("b@example.test");
-  await form.getByLabel(/Credits/).fill("5");
+  await form.getByLabel(/Videos/).fill("5");
   await form.getByLabel("Reason").fill("e2e goodwill grant");
   await form.getByRole("button", { name: "Apply" }).click();
   await expect(form.getByText(`top-up balance now ${before + 5}`, { exact: false })).toBeVisible();
