@@ -270,7 +270,7 @@ describe('POST /api/generate in a conversation', () => {
     expect(log.reserve).toBe(0);
   });
   it('the model gets the subject and the earlier turn before the question, and the video is filed', async () => {
-    const { db, log } = fakeDb({ thread: { subject: 'physics', turns: [{ question: 'How does a rainbow form?', says: ['Sunlight enters a drop.', 'It bends and splits.'] }] } });
+    const { db, log } = fakeDb({ thread: { subject: 'physics', level: 'school', turns: [{ question: 'How does a rainbow form?', says: ['Sunlight enters a drop.', 'It bends and splits.'] }] } });
     const f = fakeClient([{ tool: { names: ['sun'] } }, { text: text(rainbow) }]);
     await readSse(await handleGenerate(req(ask), { db, client: f.client, userId: 'u1', appUrl: 'http://localhost:3100', buildId: 't', waitUntil: () => {} }));
     const first = (f.seen[0] as Any).messages[0].content as { text: string; cache_control?: unknown }[];
@@ -284,9 +284,19 @@ describe('POST /api/generate in a conversation', () => {
     expect(log.finish.length).toBe(1);
   });
 
+  // Levels (founder, 20 Oct 2026): the level changes what is taught, never the length, the hold or the limits.
+  it('a grad chat: the level reaches the model; hold, length cap and max_tokens stay the same', async () => {
+    const { db } = fakeDb({ thread: { subject: 'physics', level: 'grad', turns: [] } });
+    const f = fakeClient([{ tool: { names: ['sun'] } }, { text: text(rainbow) }]);
+    const ev = await readSse(await handleGenerate(req(ask), { db, client: f.client, userId: 'u1', appUrl: 'http://localhost:3100', buildId: 't', waitUntil: () => {} }));
+    expect(((f.seen[0] as Any).messages[0].content as { text: string }[])[0].text).toMatch(/^Subject: Physics\.\nLevel: graduate school\..*Same length as any lesson/);
+    expect(ev.find(e => e.event === 'accepted')?.data).toMatchObject({ creditsHeld: 6, capChars: 900 });
+    expect((f.seen.at(-1) as Any).max_tokens).toBe(16_000);
+  });
+
   // Subjects (founder, 18 Oct 2026): the chat's subject picks the whiteboard prompt and the drawing library.
   it('a biology chat: the biology prompt on every call, its prompt_sha reserved and costed, the biology library (GENERATION_MOCK)', async () => {
-    const { db, log } = fakeDb({ thread: { subject: 'biology', turns: [] } });
+    const { db, log } = fakeDb({ thread: { subject: 'biology', level: 'school', turns: [] } });
     const shas: string[] = [], reserve = db.reserve.bind(db);
     db.reserve = async a => { shas.push(a.promptSha); return reserve(a); };
     const inner = mockClient({ cps: 0 }), seen: Any[] = [];

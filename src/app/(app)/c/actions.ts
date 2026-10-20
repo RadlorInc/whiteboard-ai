@@ -4,13 +4,14 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { LEVELS, type Level } from "@/lib/videos";
 
 export type Subject = "biology" | "physics" | "chemistry" | "home" | "car";
 const SUBJECTS: Subject[] = ["biology", "physics", "chemistry", "home", "car"];
 
-export async function startConversation(subject: Subject): Promise<{ id?: string; error?: string }> {
-  if (!SUBJECTS.includes(subject)) return { error: "bad_request" };
-  const { data, error } = await (await createClient()).rpc("create_conversation", { p_subject: subject });
+export async function startConversation(subject: Subject, level: Level = "school"): Promise<{ id?: string; error?: string }> {
+  if (!SUBJECTS.includes(subject) || !LEVELS.includes(level)) return { error: "bad_request" };
+  const { data, error } = await (await createClient()).rpc("create_conversation", { p_subject: subject, p_level: level });
   if (error || typeof data !== "string") return { error: "failed" };
   return { id: data };
 }

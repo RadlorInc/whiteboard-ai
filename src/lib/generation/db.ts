@@ -25,7 +25,8 @@ export type GenerationRow = {
 };
 export type Subject = 'biology' | 'physics' | 'chemistry' | 'home' | 'car';
 // A conversation's subject and its earlier answered questions, oldest first, each with its spoken lines.
-export type Thread = { subject: Subject; turns: { question: string; says: string[] }[] };
+export type Level = 'school' | 'undergrad' | 'grad';
+export type Thread = { subject: Subject; level: Level; turns: { question: string; says: string[] }[] };
 export type CacheState = { style: Style; prompt_sha: string; last_touch_at: string | null; last_real_at: string | null };
 
 export interface GenDb {

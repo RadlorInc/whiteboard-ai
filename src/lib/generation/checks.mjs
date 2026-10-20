@@ -28,12 +28,28 @@ export function checkEls(els, extraSv) {
   }
   return errs;
 }
+// A command may start with a word cue, "@nucleus draw n1" (the player draws it when the voice says that word):
+// bare() drops the & and the cue (either order: the model writes "@word &fade x" too), cueOf() gives the cue's word.
+export const bare = cmd => String(cmd).trim().replace(/^&\s*/, '').replace(/^@\S+\s+/, '').replace(/^&\s*/, '');
+const cueOf = cmd => /^&?\s*@(\S+)/.exec(String(cmd).trim())?.[1];
+const norm = w => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+const MARKS = new Set(['circle', 'underline', 'point']);
 export function checkStep(s, i, els) {
   const errs = [];
   if (typeof s.say !== 'string' || !Array.isArray(s.do)) return [`steps[${i}]: needs say + do`];
+  // cues are found in spoken order, as the player finds them (bridge.js wordAt)
+  const words = [...s.say.matchAll(/\S+/g)].map(m => norm(m[0]));
+  let from = 0;
   for (const cmd of s.do) {
-    const [op, ...arg] = String(cmd).replace(/^&/, '').trim().split(/\s+/);
+    const cue = cueOf(cmd);
+    if (cue !== undefined) {
+      const k = words.indexOf(norm(cue), from);
+      if (k < 0) errs.push(`steps[${i}]: "${cmd}" cues "${cue}", which is not ${words.includes(norm(cue)) ? 'in the say after the cue before it' : 'a word of this step\'s say'}`);
+      else from = k;                 // the same word may cue several commands (draw it, then name it)
+    }
+    const [op, ...arg] = bare(cmd).split(/\s+/);
     if (!COMMANDS.has(op)) { errs.push(`steps[${i}]: unknown command "${op}"`); continue; }
+    if (op === 'mark' && !MARKS.has(arg[1])) errs.push(`steps[${i}]: unknown mark "${arg[1]}" (circle, underline or point)`);
     const ids = op === 'travel' ? arg[0]?.split(',') : op === 'fill' ? arg : ['cam', 'wait'].includes(op) ? [] : [arg[0]];
     for (const id of ids ?? []) if (!(id in els)) errs.push(`steps[${i}]: "${cmd}" uses missing id "${id}"`);
     if (op === 'loop' && !LOOPS.has(arg[1])) errs.push(`steps[${i}]: unknown loop "${arg[1]}"`);
@@ -147,7 +163,7 @@ export function checkPolicy(a, style) {
   if (style === 'whiteboard') items.forEach((s, i) => {
     if (typeof s?.say === 'string' && !s.say.startsWith(`Step ${i + 1}:`)) errs.push(`steps[${i}]: say must begin "Step ${i + 1}:"`);
     for (const cmd of Array.isArray(s?.do) ? s.do : [])
-      if (String(cmd).replace(/^&/, '').trim().split(/\s+/)[0] === 'cam') errs.push(`steps[${i}]: no cam (the whole board is always in view)`);
+      if (bare(cmd).split(/\s+/)[0] === 'cam') errs.push(`steps[${i}]: no cam (the whole board is always in view)`);
   });
   return errs;
 }
@@ -215,7 +231,7 @@ export function checkSafety(a, style) {
     const cmds = Array.isArray(s?.do) ? s.do : [];
     if (cmds.length > 40) errs.push(`steps[${i}]: ${cmds.length} commands, at most 40`);
     cmds.forEach(c => {
-      const [op, ...arg] = String(c).replace(/^&/, '').trim().split(/\s+/);
+      const [op, ...arg] = (style === 'whiteboard' ? bare(c) : String(c).replace(/^&/, '').trim()).split(/\s+/);
       if (style === 'whiteboard') {
         for (const t of arg) if (NUM.test(t) && !(Number.isFinite(+t) && +t >= -200 && +t <= 20000)) errs.push(`steps[${i}]: "${c}" number out of range`);
         if (op === 'go' && arg.length > 2 + 64) errs.push(`steps[${i}]: go has more than 32 points`);

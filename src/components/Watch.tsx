@@ -162,7 +162,7 @@ export function Player({ style, subject, script, onEnded, bind, onStart, cover }
       // The player's lines play on this page (an iPhone refuses sound started in the iframe): see lib/voice.ts.
       if (e.data.type === "play" && e.data.wav instanceof ArrayBuffer) {
         const id = e.data.id;
-        playSound(e.data.wav).then(() => raw({ type: "played", id }));
+        playSound(e.data.wav, () => raw({ type: "started", id })).then(() => raw({ type: "played", id }));
       }
       if (e.data.type === "hush") stopSound();
       if (e.data.type === "pauseSound") pauseSound();

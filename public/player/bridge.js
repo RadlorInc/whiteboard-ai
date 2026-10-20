@@ -4,6 +4,7 @@
 //           · {type:'script', script, voice?} (a finished script: replay, or paper/match-cut after streaming; voice =
 //             how many spoken lines will follow as WAVs from the app's voice) · {type:'wav', i, wav} (line i's WAV, or null when
 //             the voice could not make it: that line gets the browser voice)
+// · {type:'started', id} (the page's sound for play id has begun: word cues time from it)
 // The player answers {type:'need', i} (step i waits for its line) · {type:'posterDone'} · {type:'size', h} (its content height) · {type:'at', i, n, done, paused} as each step starts (and when a
 // click on a drawing jumps to its step), {type:'ended'} when a run finishes and {type:'error', message} if a run throws.
 // Sound: an iPhone refuses audio started in this frame (no tap ever lands here), so the player asks the page to play
@@ -18,14 +19,41 @@
   // or failed), the player's own say() uses the browser's voice.
   let seq = 0;
   const playing = new Map();                                // id -> resolve, until the page says 'played'
+  const starts = new Map();                                 // id -> start the voice clock, when the page says 'started'
   const hush = () => {
-    window.speechSynthesis?.cancel();
-    if (playing.size) { tell({ type: 'hush' }); playing.forEach(f => f()); playing.clear(); }
+    window.speechSynthesis?.cancel(); V.done = true;
+    if (playing.size) { tell({ type: 'hush' }); playing.forEach(f => f()); playing.clear(); starts.clear(); }
   };
+
+  // Word cues (20 Oct 2026): "@nucleus draw n1" draws when the voice says "nucleus", the way a teacher draws on the
+  // word. The voice gives no word times (Pocket TTS makes only a WAV), so a word's time is its place in the line,
+  // weighted for the pauses at punctuation, times the line's length; the browser voice reports each word (voiceAt).
+  // V: the line being spoken. t = seconds into it (held while paused), char = the browser voice's last word.
+  const V = { on: false, done: false, t: 0, last: 0, dur: 0, text: '', char: -1 };
+  self.voiceStart = (text, dur) => Object.assign(V, { on: true, done: false, t: 0, last: performance.now(), dur, text, char: -1 });
+  self.voiceAt = i => { V.char = i; };
+  const wavSecs = w => { try { const v = new DataView(w); return (w.byteLength - 44) / v.getUint32(28, true); } catch { return 0; } };
+  const weight = (text, end) => { let n = 0; for (const ch of text.slice(0, end)) n += /[.!?]/.test(ch) ? 7 : /[,;:]/.test(ch) ? 4 : 1; return n; };
+  const norm = w => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+  // where the cue's word starts in the line, searching on from 'from' (cues follow the spoken order); -1 if absent
+  function wordAt(text, cue, from) {
+    const want = norm(cue);
+    for (const m of text.matchAll(/\S+/g)) if (m.index >= from && norm(m[0]) === want) return m.index;
+    return -1;
+  }
+  const untilWord = (i, my) => new Promise(go => {
+    (function f() {
+      const now = performance.now();
+      if (V.on && !PAUSED) V.t += (now - V.last) / 1000;
+      V.last = now;
+      const reached = V.char >= 0 ? V.char >= i : V.on && V.t >= V.dur * weight(V.text, i) / Math.max(1, weight(V.text));
+      if (my !== gen || V.done || reached) go(); else setTimeout(f, 30);
+    })();
+  });
   const playWav = (wav, text) => new Promise(done => {
     if (text != null) document.getElementById('caption').textContent = text;
     const id = ++seq;
-    playing.set(id, done);
+    playing.set(id, done); starts.set(id, () => self.voiceStart(text ?? '', wavSecs(wav)));
     tell({ type: 'play', id, wav });                        // copied, not transferred: a replay plays it again
   });
 
@@ -80,14 +108,24 @@
           // Spotlight: a step that draws a flow (an arrow, line or travel) over a realistic drawing dims the drawing;
           // flows from earlier steps fade back so only this step's movement stands out.
           // (a flow this step still uses, e.g. "pop leak", stays bright and keeps the spotlight)
-          const ids = s.do.map(c => c.replace(/^&/, '').trim().split(/\s+/)).filter(([op]) => !['wait', 'cam'].includes(op)).flatMap(([, a = '']) => a.split(','));
+          const ids = s.do.map(c => bare(c).split(/\s+/)).filter(([op]) => !['wait', 'cam'].includes(op)).flatMap(([, a = '']) => a.split(','));
           scene.querySelectorAll('.flow').forEach(e => e.classList.toggle('old', !ids.some(id => els[id] === e)));
           scene.classList.toggle('spot', ids.some(id => isFlow(els[id])));
-          const voice = s.wav ? playWav(s.wav, s.say)
+          Object.assign(V, { on: false, done: false, char: -1 });
+          const voice = (s.wav ? playWav(s.wav, s.say)
             : s.wav === undefined && line ? line.then(() => { if (my !== gen) return; where(); return s.wav ? playWav(s.wav, s.say) : say(s.say); })
-            : say(s.say);
+            : say(s.say)).finally(() => { V.done = true; });      // a line over (or failed): any cue still waiting goes
           await Promise.all([voice,
-            (async () => { for (const c of s.do) { if (my !== gen) return; await run(c); } await penUp(); })()]);
+            (async () => {
+              let from = 0;
+              for (const c of s.do) {
+                if (my !== gen) return;
+                const cue = /^&?\s*@(\S+)/.exec(c)?.[1], i = cue ? wordAt(s.say, cue, from) : -1;
+                if (i >= 0) { from = i; await untilWord(i, my); if (my !== gen) return; }
+                await run(c);
+              }
+              await penUp();
+            })()]);
           if (my !== gen) return;
           await wait(250);
         } else if (done) break;
@@ -117,7 +155,7 @@
     window.speechSynthesis?.resume(); tell({ type: 'resumeSound' }); where();
   }
   // A click on a drawing (a box, a label, a shape) plays the video again from the step that first drew it.
-  const stepOf = id => A?.steps.findIndex(s => s.do.some(c => c.replace(/^&/, '').trim().split(/\s+/).slice(1).some(w => w.split(',').includes(id))));
+  const stepOf = id => A?.steps.findIndex(s => s.do.some(c => bare(c).split(/\s+/).slice(1).some(w => w.split(',').includes(id))));
   const idAt = node => { for (; node && node !== scene; node = node.parentNode) for (const id in els) if (els[id] === node) return id; return null; };
   if (style === 'whiteboard') scene.addEventListener('click', e => { const id = idAt(e.target), k = id == null ? -1 : stepOf(id); if (k >= 0) seek(k); });
   if (style === 'whiteboard') scene.addEventListener('pointerover', e => { const id = idAt(e.target); scene.style.cursor = id != null && stepOf(id) >= 0 ? 'pointer' : ''; });
@@ -158,7 +196,8 @@
     if (ev.source !== parent || !ev.data || typeof ev.data !== 'object') return;
     const m = ev.data;
     if (m.type === 'hello') { tell({ type: 'ready' }); return; }   // the page may have missed our first 'ready'
-    if (m.type === 'played') { const f = playing.get(m.id); playing.delete(m.id); f?.(); return; }
+    if (m.type === 'started') { starts.get(m.id)?.(); starts.delete(m.id); return; }
+    if (m.type === 'played') { const f = playing.get(m.id); playing.delete(m.id); starts.delete(m.id); f?.(); return; }
     // Approved model-made drawings ride with the message (library_drawings; the frame cannot fetch them): checked,
     // then registered like a realistic drawing, before needSv looks for them (src/lib/generation/drawings.mjs validDrawing).
     const carried = m.drawings || m.script?.drawings;

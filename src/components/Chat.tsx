@@ -10,6 +10,7 @@ import { Player, Watch, type Style } from "./Watch";
 import { deleteChat, startConversation } from "@/app/(app)/c/actions";
 import { ShareButton } from "./ShareButton";
 import { SUBJECT_NAME, type Subject } from "./Chats";
+import { LEVEL_NAME, type Level } from "@/lib/videos";
 import { Icon } from "./Icon";
 import { BoardPreview } from "./BoardPreview";
 import { PRODUCT_NAME } from "@/product";
@@ -40,12 +41,14 @@ function PastTurn({ t, subject }: { t: Turn; subject: Subject }) {
   );
 }
 
-export function Chat({ conversationId, subject: initialSubject, turns, available, firstRun }: {
-  conversationId: string | null; subject: Subject | null; turns: Turn[]; available: number; firstRun: boolean;
+export function Chat({ conversationId, subject: initialSubject, level: initialLevel, turns, available, firstRun }: {
+  conversationId: string | null; subject: Subject | null; level?: Level; turns: Turn[]; available: number; firstRun: boolean;
 }) {
   const router = useRouter();
   const [conv, setConv] = useState(conversationId);
   const [subject, setSubject] = useState<Subject>(initialSubject ?? "biology");
+  const [pickedLevel, setLevel] = useState<Level>(initialLevel ?? "school");
+  const level: Level = subject === "home" || subject === "car" ? "school" : pickedLevel;   // fixes have one length
   const [live, setLive] = useState<Live[]>([]);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
@@ -63,12 +66,12 @@ export function Chat({ conversationId, subject: initialSubject, turns, available
     setBusy(true); setNote(null);
     let id = conv;
     if (!id) {
-      const r = await startConversation(subject);
+      const r = await startConversation(subject, level);
       if (!r.id) { setBusy(false); setNote("Couldn't start a chat. Try again."); return; }
       id = r.id; setConv(id);
     }
     setLive(l => [...l, { n: Date.now(), question, explore, conv: id }]);
-  }, [conv, subject]);
+  }, [conv, subject, level]);
 
   // A finished (or failed) video frees the composer; the refresh brings the credits and the chat list up to date.
   const done = useCallback((n: number) => (_available: number | null, id?: string) => {
@@ -103,7 +106,7 @@ export function Chat({ conversationId, subject: initialSubject, turns, available
           <header className="chat-head">
             <div className="chat-head-text">
               <h1>{past[0]?.question ?? live[0]?.question}</h1>
-              <span className="chat-subject">{SUBJECT_NAME[subject]}</span>
+              <span className="chat-subject">{SUBJECT_NAME[subject]}{level !== "school" ? ` · ${LEVEL_NAME[level]}` : ""}</span>
             </div>
             {conv && past[0] && (
               <div className="chat-head-actions">
@@ -136,7 +139,7 @@ export function Chat({ conversationId, subject: initialSubject, turns, available
           )}
           <AskComposer available={available} firstRun={firstRun && empty} onAsk={ask} busy={busy}
             placeholder={empty ? "Ask anything…" : "Ask a follow-up…"} subject={subject}
-            onSubject={conv ? undefined : setSubject} />
+            onSubject={conv ? undefined : setSubject} level={level} onLevel={conv ? undefined : setLevel} />
         </div>
       </div>
     </main>
