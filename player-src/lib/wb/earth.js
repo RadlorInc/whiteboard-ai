@@ -26,6 +26,7 @@
   };
   const need = (K, k, what) => { if (!K[k]) throw new Error(`Unknown ${what} "${k}" (use ${Object.keys(K).join('|')})`); return K[k]; };
   const shadeBall = (g, r, name) => { const c = clip(g, O(r), name); fl(c, `M${-2 * r} ${-2 * r} h${4 * r} v${4 * r} h${-4 * r} Z ` + O(r * 1.05, -r * .28, -r * .28), '#0b1a33', { opacity: .2, 'fill-rule': 'evenodd' }); return c; };
+  const showLab = o => o.lab !== '0' && o.labels !== '0';
   const sheen = (g, r) => line(g, `M${-r * .62} ${-r * .38} A${r * .75} ${r * .75} 0 0 1 ${-r * .2} ${-r * .72}`, '#ffffff', r * .07, { opacity: .7 });
 
   // the globe in r=100 units, reused by planet k=earth, tide, seasons, eclipse
@@ -53,7 +54,7 @@
       const g = grp(cx, cy, r / 100, o, parent); globe100(g);
       const W = R => `M0 0 L0 ${-R} A${R} ${R} 0 0 1 ${R} 0 Z`;
       for (const [R, f, ink] of [[100, '#a8754a', '#5e3b1c'], [92, '#e0703a', '#8a3a18'], [55, '#f4a531', '#a8641a'], [30, '#ffe066', '#c98a10']]) { fl(g, W(R), f); line(g, W(R), ink, 2.4); }
-      if (o.labels !== '0') for (const [pr, ly, s] of [[96, -88, 'Crust'], [74, -58, 'Mantle'], [42, -30, 'Outer core'], [12, -4, 'Inner core']]) {
+      if (showLab(o)) for (const [pr, ly, s] of [[96, -88, 'Crust'], [74, -58, 'Mantle'], [42, -30, 'Outer core'], [12, -4, 'Inner core']]) {
         const p = pr * Math.SQRT1_2; line(g, `M${p} ${-p} L118 ${ly - 5}`, '#555', 1.6); label(g, 122, ly, s, '#333', 17);
       }
       return g;
@@ -222,7 +223,7 @@
       line(g, r, '#2f7fd6', 13); line(g, r, '#9fd0f5', 4);
       for (const d of ['M84 54 L156 44', 'M84 54 Q118 64 146 84', 'M84 54 Q102 88 122 116']) { line(g, d, '#2f7fd6', 6); line(g, d, '#9fd0f5', 2); }
       for (const [x, y] of [[-170, 50], [-140, 80], [-60, 60], [-90, 100], [140, -100], [100, -80]]) part(g, puff(14, 12, 6, x, y), '#4f9a36', '#24561c', 2);
-      if (o.labels) { label(g, -110, -12, 'Meander', '#24561c', 20, 'middle'); label(g, 60, 112, 'Delta', '#8a6414', 20, 'end'); }
+      if (o.labels && showLab(o)) { label(g, -110, -12, 'Meander', '#24561c', 20, 'middle'); label(g, 60, 112, 'Delta', '#8a6414', 20, 'end'); }
       return g;
     },
 
@@ -319,8 +320,8 @@
       const m = mk('g', { transform: 'translate(175 0)' }, g);
       fl(m, O(30), '#cfcfc8'); for (const [x, y, r] of [[-9, -8, 7], [10, 6, 5], [-4, 14, 4]]) part(m, O(r, x, y), '#a9a9a0', '#77776e', 1.5); line(m, O(30), '#5f5f58', 2.8);
       straight(g, 135, 0, 34, 0, '#c0392b', 3.2);
-      label(g, 175, 56, 'Moon', '#555', 20, 'middle');
-      label(g, 86, -14, t || 'Pull', TXT.red, 20, 'middle');
+      if (showLab(o)) label(g, 175, 56, 'Moon', '#555', 20, 'middle');
+      if (t || showLab(o)) label(g, 86, -14, t || 'Pull', TXT.red, 20, 'middle');
       return g;
     },
 
@@ -346,7 +347,7 @@
         part(g, 'M-210 30 L210 30', 'none', '#c0392b', 3);
         for (let x = -180; x < 210; x += 50) part(g, `M${x} 30 A12 12 0 0 1 ${x + 24} 30 Z`, '#e04b3a', '#c0392b', 2);
       }
-      if (o.labels !== '0') { label(g, cold ? -200 : 200, cold ? -50 : -50, 'Cold air', TXT.blue, 20, cold ? 'start' : 'end'); label(g, cold ? 200 : -200, -176, 'Warm air', TXT.red, 20, cold ? 'end' : 'start'); }
+      if (showLab(o)) { label(g, cold ? -200 : 200, cold ? -50 : -50, 'Cold air', TXT.blue, 20, cold ? 'start' : 'end'); label(g, cold ? 200 : -200, -176, 'Warm air', TXT.red, 20, cold ? 'end' : 'start'); }
       if (t) label(g, 0, 62, t, '#333', 24, 'middle');
       return g;
     },
@@ -427,7 +428,7 @@
       arrow(g, wavy(30, gy(30) - 6, 70, -70, 4, 6), 70, -70, 64, -58, '#d9483c', 3.2);
       arrow(g, wavy(80, -66, 112, gy(112) - 6, 3, 6), 112, gy(112) - 6, 104, gy(112) - 18, '#d9483c', 3.2);
       arrow(g, wavy(150, gy(150) - 6, 196, -150, 6, 6), 196, -150, 192, -136, '#d9483c', 3.2);
-      if (o.labels) { label(g, -200, -40, 'Greenhouse gases', TXT.blue, 18); label(g, 4, -100, 'Heat trapped', TXT.red, 18, 'middle'); }
+      if (o.labels && showLab(o)) { label(g, -200, -40, 'Greenhouse gases', TXT.blue, 18); label(g, 4, -100, 'Heat trapped', TXT.red, 18, 'middle'); }
       if (t) label(g, 0, 150, t, '#333', 24, 'middle');
       return g;
     },
@@ -445,7 +446,7 @@
       arrow(g, 'M60 -260 L10 -220', 10, -220, 60, -260, '#f4a531', 3);
       line(g, 'M66 -265 L80 -276', '#ffd84a', 2, { opacity: .8 });
       line(g, 'M-110 -330 Q-60 -360 -10 -330 T90 -330', '#7ee08a', 6, { opacity: .8 });
-      if (o.labels !== '0') B.forEach(([a, b, , s]) => label(g, 142, (a + b) / 2 + 7, s, '#2b5a9a', 21));
+      if (showLab(o)) B.forEach(([a, b, , s]) => label(g, 142, (a + b) / 2 + 7, s, '#2b5a9a', 21));
       return g;
     },
 
@@ -460,7 +461,7 @@
       for (const x of [112, 142]) part(g, `M${x} 60 h14 v14 h-14 Z`, '#ffd84a', '#5a4a3a', 1.8);
       part(g, puff(20, 14, 7, 176, -36), '#b9bec4', '#7a808c', 2);
       part(g, puff(60, 30, 9, 0, -112), '#ffffff', '#7a8899', 2.6);
-      label(g, 0, -103, 'CO₂', '#555', 26, 'middle');
+      if (showLab(o)) label(g, 0, -103, 'CO₂', '#555', 26, 'middle');
       const A = (d, x, y, ax, ay, c) => arrow(g, d, x, y, ax, ay, c, 3.4);
       A('M-62 -104 Q-130 -96 -146 -50', -146, -50, -140, -66, '#2c6a22');
       A('M-100 50 Q-70 80 -40 98', -40, 98, -56, 92, '#7a5a34');
@@ -518,7 +519,7 @@
         const lit = i === 0 ? null : i === 4 ? O(r) : i < 4 ? `M0 ${-r} A${r} ${r} 0 0 1 0 ${r} A${rx} ${r} 0 0 ${i === 3 ? 1 : 0} 0 ${-r} Z` : `M0 ${-r} A${r} ${r} 0 0 0 0 ${r} A${rx} ${r} 0 0 ${i === 7 ? 1 : 0} 0 ${-r} Z`;
         if (lit) { fl(m, lit, '#f5ecc8'); line(m, lit, '#c9b878', 1.6); }
         line(m, O(r), '#2a3044', 2.6);
-        if (o.labels !== '0') label(m, 0, 72, N[i], '#444', 19, 'middle');
+        if (showLab(o)) label(m, 0, 72, N[i], '#444', 19, 'middle');
       }
       return g;
     },
@@ -536,7 +537,7 @@
         const p1 = [-uy * R, ux * R]; fl(e, `M${p1[0]} ${p1[1]} A${R} ${R} 0 0 1 ${-p1[0]} ${-p1[1]} Z`, '#0b1a33', { opacity: .45 });
         const ax = Math.sin(23.5 * Math.PI / 180), ay = -Math.cos(23.5 * Math.PI / 180);
         line(e, `M${-ax * 40} ${-ay * 40} L${ax * 40} ${ay * 40}`, '#c0392b', 2.6);
-        if (o.labels !== '0') label(e, x < 0 ? -36 : x > 0 ? 36 : 44, y > 0 ? 30 : y < 0 ? -18 : 52, s, '#444', 22, x < 0 ? 'end' : 'start');
+        if (showLab(o)) label(e, x < 0 ? -36 : x > 0 ? 36 : 44, y > 0 ? 30 : y < 0 ? -18 : 52, s, '#444', 22, x < 0 ? 'end' : 'start');
       }
       return g;
     },
@@ -560,7 +561,7 @@
         fl(g, `M${ex} ${-er} L230 -16 L230 16 L${ex} ${er} Z`, '#2a3044', { opacity: .45 });
         part(g, O(mr, mx), '#b8553a', '#6a2a1a', 2.4);
       }
-      if (o.labels !== '0') for (const [x, s] of [[-180, 'Sun'], [mx, 'Moon'], [ex, 'Earth']]) label(g, x, x === -180 ? 104 : 72, s, '#444', 20, 'middle');
+      if (showLab(o)) for (const [x, s] of [[-180, 'Sun'], [mx, 'Moon'], [ex, 'Earth']]) label(g, x, x === -180 ? 104 : 72, s, '#444', 20, 'middle');
       return g;
     },
 

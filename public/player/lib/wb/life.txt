@@ -1,22 +1,22 @@
 # Whiteboard library — life: ecology, evolution and the other kingdoms (biology subject only). signature | example | what it draws
 nitrogencycle cx cy size lab=1 | nitrogencycle 480 280 440 | nitrogen cycle: air N2, lightning, fixing bacteria in root nodules, nitrates, plants, grazer, decomposers, back to air; lab=0 hides words
 habitat cx cy width k=desert|ocean|grassland|arctic|forest | habitat 480 270 640 k=desert | Desert | habitat scene to draw first, animals and plants on top: desert, ocean, grassland (savanna), arctic, forest; |text = title
-cactus cx cy height lab=1 | cactus 480 270 300 | cactus with spines, thick water-storing stem and flower (desert adaptation); lab=1 names them
+cactus cx cy height lab=1 | cactus 480 270 300 | cactus with spines, thick water-storing stem and flower (desert adaptation); lab=1 names them; lab=0 hides its words
 fungus cx cy size k=mushroom|mould|yeast|bracket | fungus 480 270 260 k=mould | fungi: mushroom with gills and hyphae in the soil, mould on bread, budding yeast cells, bracket fungus on a log (decomposers)
-finch cx cy size k=seed|insect|probe|cactus lab=1 | finch 480 270 240 k=seed | Darwin's finch on a branch with one beak type: seed (crushing), insect (thin), probe (long), cactus; lab=1 says what it eats
+finch cx cy size k=seed|insect|probe|cactus lab=1 | finch 480 270 240 k=seed | Darwin's finch on a branch with one beak type: seed (crushing), insect (thin), probe (long), cactus; lab=1 says what it eats; lab=0 hides its words
 pepperedmoth cx cy size k=light|dark bark=light|dark | pepperedmoth 480 270 240 k=dark bark=light | peppered moth (natural selection): light speckled or dark moth on clean lichen bark or sooty dark bark
-cladogram cx cy width lab=1 | cladogram 480 300 520 | Fish, Amphibians, Reptiles, Birds, Mammals | evolution tree: a stem from a common ancestor, one branch per group in |text order (oldest first)
+cladogram cx cy width lab=1 | cladogram 480 300 520 | Fish, Amphibians, Reptiles, Birds, Mammals | evolution tree: a stem from a common ancestor, one branch per group in |text order (oldest first); lab=0 hides its words
 protist cx cy size k=paramecium|euglena|algae | protist 480 270 260 k=paramecium | single-celled protists: paramecium (cilia, nucleus, vacuoles), euglena (flagellum, eyespot, chloroplasts), algae (Spirogyra filament)
 lowerplant cx cy height k=moss|fern | lowerplant 480 270 260 k=fern | plants without flowers: moss clump with spore capsules, fern frond with spore dots and a fiddlehead
 dispersal cx cy size k=dandelion|burr|sycamore|berry | dispersal 480 270 240 k=dandelion | seed dispersal: dandelion (wind), burr with hooks (animal fur), sycamore wing (spins), berries (eaten by animals)
-osmosis cx cy size k=start|end lab=1 | osmosis 480 270 300 k=end | osmosis in a U-tube: water and sugar solution on either side of a partly permeable membrane; end = water has moved in and the sugar side is higher
-diffusion cx cy size k=start|end lab=1 | diffusion 480 270 300 k=start | diffusion in a box: particles crowded on one side moving to where there are few (start) or spread evenly (end)
-respiration cx cy width k=aerobic|anaerobic|yeast lab=1 | respiration 480 270 520 k=aerobic | respiration as a picture equation: aerobic (glucose + oxygen in a mitochondrion -> carbon dioxide + water + lots of energy), anaerobic in muscle (lactic acid), yeast fermentation (ethanol + carbon dioxide)
-fermentation cx cy size k=start|end lab=1 | fermentation 480 270 260 k=end | yeast and sugar water in a flask; the carbon dioxide inflates a balloon (end = big balloon)
-transpiration cx cy size lab=1 | transpiration 480 270 400 | transpiration: water taken in by the roots, up the xylem in the stem, out of the leaves as vapour
+osmosis cx cy size k=start|end lab=1 | osmosis 480 270 300 k=end | osmosis in a U-tube: water and sugar solution on either side of a partly permeable membrane; end = water has moved in and the sugar side is higher; lab=0 hides its words
+diffusion cx cy size k=start|end lab=1 | diffusion 480 270 300 k=start | diffusion in a box: particles crowded on one side moving to where there are few (start) or spread evenly (end); lab=0 hides its words
+respiration cx cy width k=aerobic|anaerobic|yeast lab=1 | respiration 480 270 520 k=aerobic | respiration as a picture equation: aerobic (glucose + oxygen in a mitochondrion -> carbon dioxide + water + lots of energy), anaerobic in muscle (lactic acid), yeast fermentation (ethanol + carbon dioxide); lab=0 hides its words
+fermentation cx cy size k=start|end lab=1 | fermentation 480 270 260 k=end | yeast and sugar water in a flask; the carbon dioxide inflates a balloon (end = big balloon); lab=0 hides its words
+transpiration cx cy size lab=1 | transpiration 480 270 400 | transpiration: water taken in by the roots, up the xylem in the stem, out of the leaves as vapour; lab=0 hides its words
 energypyramid cx cy size lab=1 | energypyramid 480 270 400 | Producers, Herbivores, Carnivores, Top carnivores | pyramid of energy, one level per |text name (bottom first), each with its share of energy in brackets (100%, 10%, 1%...); lab=0 hides the shares
-quadrat cx cy size lab=1 | quadrat 480 270 300 | quadrat sampling: a red square frame with a grid laid on grass to count the daisies inside
-geneticengineering cx cy width lab=1 | geneticengineering 480 270 640 | genetic engineering in a row: plasmid in a bacterium, cut open, human gene inserted, bacteria make the protein (e.g. insulin)
-cloning cx cy width lab=1 | cloning 480 270 640 | cloning a sheep (Dolly): body cell nucleus into an egg cell with its nucleus removed, embryo, the clone lamb
-kingdoms cx cy width | kingdoms 480 270 640 | the five kingdoms side by side, each with a small picture: animals, plants, fungi, protists, bacteria
-homolog cx cy width k=human,cat,whale,bat lab=1 | homolog 480 260 600 | homologous limbs (evidence for evolution): the same bones in a human arm, cat leg, whale flipper and bat wing, each bone group one colour; k= picks which limbs and their order
+quadrat cx cy size lab=1 | quadrat 480 270 300 | quadrat sampling: a red square frame with a grid laid on grass to count the daisies inside; lab=0 hides its words
+geneticengineering cx cy width lab=1 | geneticengineering 480 270 640 | genetic engineering in a row: plasmid in a bacterium, cut open, human gene inserted, bacteria make the protein (e.g. insulin); lab=0 hides its words
+cloning cx cy width lab=1 | cloning 480 270 640 | cloning a sheep (Dolly): body cell nucleus into an egg cell with its nucleus removed, embryo, the clone lamb; lab=0 hides its words
+kingdoms cx cy width lab=0 | kingdoms 480 270 640 | the five kingdoms side by side, each with a small picture: animals, plants, fungi, protists, bacteria; lab=0 hides its words
+homolog cx cy width k=human,cat,whale,bat lab=1 | homolog 480 260 600 | homologous limbs (evidence for evolution): the same bones in a human arm, cat leg, whale flipper and bat wing, each bone group one colour; k= picks which limbs and their order; lab=0 hides its words

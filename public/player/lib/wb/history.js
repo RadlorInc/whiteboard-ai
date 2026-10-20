@@ -29,6 +29,7 @@
   // curved arrow through control point (qx,qy)
   const carrow = (g, x1, y1, qx, qy, x2, y2, c, w = 3.4, ex = {}) => { line(g, `M${x1} ${y1} Q${qx} ${qy} ${x2} ${y2}`, c, w, ex); line(g, head(x2, y2, qx, qy, 13), c, w, { class: 'ink head' }); };
   const pick = (K, k, d, what) => { const f = K[k || d]; if (!f) throw new Error(`Unknown ${what} "${k}" (use ${Object.keys(K).join('|')})`); return f; };
+  const showLab = o => o.lab !== '0' && o.labels !== '0';
   const list = (t, def) => (t || def).split(',').map(s => s.trim()).filter(Boolean);
   const pt = (r, a) => [r * Math.cos(a * Math.PI / 180), r * Math.sin(a * Math.PI / 180)];
   // a drawing in its own unit box: base = default size; flip=1 mirrors; draw may return a caption y
@@ -292,7 +293,7 @@
       const cr = mk('g', { transform: 'translate(-150 -72)' }, g);
       P(cr, 'M0 -26 L6 -6 L26 0 L6 6 L0 26 L-6 6 L-26 0 L-6 -6 Z', '#fdfdfb', '#5a3a1a', 2); label(cr, 0, -30, 'N', '#5a3a1a', 18, 'middle');
       P(g, E(-132, 30, 6), '#c0392b', '#7a1f1a', 2); P(g, E(128, 0, 6), '#c0392b', '#7a1f1a', 2);
-      label(g, -140, 58, A, '#5a3a1a', 22, 'middle'); label(g, 150, 34, B, '#5a3a1a', 22, 'middle');
+      if (t || showLab(o)) label(g, -140, 58, A, '#5a3a1a', 22, 'middle'); if (t || showLab(o)) label(g, 150, 34, B, '#5a3a1a', 22, 'middle');
     }),
     // "windmill cx cy size" — old tower windmill with four lattice sails
     windmill: make(320, g => {
@@ -439,7 +440,7 @@
       return 128;
     }),
     // "assembly cx cy width" — assembly line: car bodies built step by step on a moving belt, workers
-    assembly: make(440, g => {
+    assembly: make(440, (g, o) => {
       const ink = '#3f4650';
       fig(g, -66, 104, 120, '#2b6cc4', SKIN[2], 1); fig(g, 66, 104, 120, '#5fae3a', SKIN[3], 1);
       P(g, RR(-210, 40, 420, 22, 11), '#5a6068', ink); for (let x = -196; x <= 196; x += 28) P(g, E(x, 51, 7), '#9aa3ad', ink, 1.6);
@@ -450,7 +451,7 @@
       P(g, 'M-40 26 L-40 4 L-20 -12 H20 L36 4 L40 26 Z', '#c9cfd7', ink, 2.4); for (const x of [-26, 28]) P(g, E(x, 30, 10), '#3a3430', '#111', 2);
       P(g, 'M90 26 L90 4 L112 -14 H150 L170 4 L184 8 L184 26 Z', '#e04b3a', '#8a1f1a', 2.6); P(g, 'M118 -8 H146 L158 4 H112 Z', '#bfe3fa', '#8a1f1a', 1.8); for (const x of [108, 166]) P(g, E(x, 30, 10), '#3a3430', '#111', 2);
       arrow(g, -60, -90, 60, -90, TXT.blue, 3.4);
-      label(g, -130, 108, '1', TXT.blue, 26, 'middle'); label(g, 0, 108, '2', TXT.blue, 26, 'middle'); label(g, 137, 108, '3', TXT.blue, 26, 'middle');
+      if (showLab(o)) label(g, -130, 108, '1', TXT.blue, 26, 'middle'); if (showLab(o)) label(g, 0, 108, '2', TXT.blue, 26, 'middle'); if (showLab(o)) label(g, 137, 108, '3', TXT.blue, 26, 'middle');
     }),
     // "march cx cy width | Clean Air, Fair Pay" — peaceful march: faceless crowd holding signs from |text
     march: make(420, (g, o, t) => {
@@ -488,7 +489,7 @@
     // "branches cx cy width | Legislative, Executive, Judicial" — three branches of government with checks and balances
     branches: make(440, (g, o, t) => {
       const N = list(t, 'Legislative, Executive, Judicial'), D = ['makes laws', 'carries out laws', 'judges laws'], C = [['#d6e8fa', '#2b6cc4'], ['#fde3c2', '#c97a10'], ['#dff0c8', '#2c8a2c']];
-      P(g, RR(-90, -140, 180, 44, 10), '#f3e6c4', AGEDK); label(g, 0, -110, 'Constitution', '#5a3a1a', 24, 'middle');
+      P(g, RR(-90, -140, 180, 44, 10), '#f3e6c4', AGEDK); if (showLab(o)) label(g, 0, -110, 'Constitution', '#5a3a1a', 24, 'middle');
       line(g, 'M0 -96 V-70 M-140 -70 H140 M-140 -70 V-50 M0 -70 V-50 M140 -70 V-50', '#3a3430', 2.6);
       [-140, 0, 140].forEach((x, i) => {
         P(g, RR(x - 66, -50, 132, 140, 10), C[i][0], C[i][1]);
@@ -496,11 +497,11 @@
         if (i === 0) { P(g, `M${x - 30} ${y} L${x} ${y - 22} L${x + 30} ${y} Z`, '#fdfdfb', C[i][1], 2); for (const d of [-20, -7, 7, 20]) line(g, `M${x + d} ${y + 2} V${y + 26}`, C[i][1], 3); line(g, `M${x - 32} ${y + 28} H${x + 32}`, C[i][1], 3); }
         if (i === 1) { P(g, RR(x - 26, y - 14, 52, 40, 3), '#fdfdfb', C[i][1], 2); for (const d of [-14, 0, 14]) P(g, RR(x + d - 4, y - 6, 8, 10, 1), '#7fb7ea', C[i][1], 1.2); P(g, RR(x - 5, y + 12, 10, 14, 1), C[i][1], C[i][1], 1.2); }
         if (i === 2) { line(g, `M${x} ${y - 20} V${y + 24} M${x - 14} ${y + 26} H${x + 14} M${x - 28} ${y - 12} H${x + 28}`, C[i][1], 3); for (const s of [-1, 1]) P(g, `M${x + s * 28 - 12} ${y + 6} Q${x + s * 28} ${y + 18} ${x + s * 28 + 12} ${y + 6} Z`, '#f3c33b', C[i][1], 2); line(g, `M${x - 40} ${y + 6} L${x - 28} ${y - 12} L${x - 16} ${y + 6} M${x + 16} ${y + 6} L${x + 28} ${y - 12} L${x + 40} ${y + 6}`, C[i][1], 1.4); }
-        label(g, x, 46, N[i] || '', C[i][1], 22, 'middle'); label(g, x, 72, D[i], '#3a3430', 17, 'middle');
+        if (t || showLab(o)) label(g, x, 46, N[i] || '', C[i][1], 22, 'middle'); if (showLab(o)) label(g, x, 72, D[i], '#3a3430', 17, 'middle');
       });
       carrow(g, -100, 96, -70, 130, -40, 96, '#c0392b', 2.6); carrow(g, 40, 96, 70, 130, 100, 96, '#c0392b', 2.6);
       carrow(g, 120, 100, 0, 170, -120, 100, '#c0392b', 2.6);
-      label(g, 0, 160, 'checks and balances', '#c0392b', 18, 'middle');
+      if (showLab(o)) label(g, 0, 160, 'checks and balances', '#c0392b', 18, 'middle');
     }),
     // "charter cx cy size | Constitution" — founding charter: large parchment, title, columns, signatures, quill
     charter: make(320, (g, o, t) => {
@@ -524,7 +525,7 @@
       R.forEach(([d], i) => F(cl, d, C[i]));
       line(g, land, '#2c6a22', 3);
       line(cl, 'M-80 -50 L20 -20 L200 -40 M20 -20 L50 40 L200 60 M50 40 L-30 50 L-40 140 M-30 50 L-90 40 L-80 -50 L-200 -40', '#7a4a7a', 2.2, { 'stroke-dasharray': '8 6' });
-      R.forEach(([, [x, y]], i) => { if (!N[i]) return; P(g, E(x, y + 14, 5), '#c0392b', '#7a1f1a', 2); label(g, x, y, N[i], '#3a3430', 20, 'middle'); });
+      R.forEach(([, [x, y]], i) => { if (!N[i]) return; P(g, E(x, y + 14, 5), '#c0392b', '#7a1f1a', 2); if (t || showLab(o)) label(g, x, y, N[i], '#3a3430', 20, 'middle'); });
       const cr = mk('g', { transform: 'translate(-170 -96)' }, g);
       P(cr, 'M0 -18 L7 6 L0 0 L-7 6 Z', '#3a3430', '#3a3430', 1.6); label(cr, 0, 26, 'N', '#3a3430', 18, 'middle');
     }),
@@ -538,9 +539,9 @@
       for (const lat of [-60, -30, 30, 60]) { const y = -130 * Math.sin(lat * Math.PI / 180), w = 130 * Math.cos(lat * Math.PI / 180); line(g, `M${(-w).toFixed(1)} ${y.toFixed(1)} Q0 ${(y + 12).toFixed(1)} ${w.toFixed(1)} ${y.toFixed(1)}`, '#2b6cc4', 1.6); }
       for (const lon of [-60, -30, 30, 60]) { const w = 130 * Math.sin(lon * Math.PI / 180); line(g, `M0 -130 Q${(w * 1.33).toFixed(1)} 0 0 130`, '#2b6cc4', 1.6); }
       line(g, 'M-130 0 Q0 12 130 0', '#c0392b', 3.4); line(g, 'M0 -130 V130', '#c97a10', 3.4);
-      label(outer, cx + R + 10, cy + 8, 'Equator 0°', TXT.red, 22, 'start');
-      label(outer, cx, cy - R - 12, 'Prime meridian 0°', TXT.orange, 22, 'middle');
-      for (const lat of [30, 60]) { const y = -R * Math.sin(lat * Math.PI / 180); label(outer, cx + R * Math.cos(lat * Math.PI / 180) + 8, cy + y + 6, `${lat}°N`, TXT.blue, 18, 'start'); label(outer, cx + R * Math.cos(lat * Math.PI / 180) + 8, cy - y + 6, `${lat}°S`, TXT.blue, 18, 'start'); }
+      if (showLab(o)) label(outer, cx + R + 10, cy + 8, 'Equator 0°', TXT.red, 22, 'start');
+      if (showLab(o)) label(outer, cx, cy - R - 12, 'Prime meridian 0°', TXT.orange, 22, 'middle');
+      if (showLab(o)) for (const lat of [30, 60]) { const y = -R * Math.sin(lat * Math.PI / 180); label(outer, cx + R * Math.cos(lat * Math.PI / 180) + 8, cy + y + 6, `${lat}°N`, TXT.blue, 18, 'start'); label(outer, cx + R * Math.cos(lat * Math.PI / 180) + 8, cy - y + 6, `${lat}°S`, TXT.blue, 18, 'start'); }
       return outer;
     },
     // "timezones cx cy width start=6 step=3" — band of time zones, each with a clock; day fades to night
@@ -556,7 +557,7 @@
         if (hr === 12) P(g, E(cx, -50, 10), '#ffd84a', '#d18b00', 2);
         if (hr === 0) P(g, `M${cx + 4} -60 A11 11 0 1 0 ${cx + 4} -40 A8 8 0 1 1 ${cx + 4} -60 Z`, '#fdfdfb', '#c9cfd7', 2);
       }
-      arrow(g, -200, 92, 200, 92, TXT.blue, 3); label(g, 0, 120, `+${st} hours each zone, going east`, TXT.blue, 20, 'middle');
+      arrow(g, -200, 92, 200, 92, TXT.blue, 3); if (showLab(o)) label(g, 0, 120, `+${st} hours each zone, going east`, TXT.blue, 20, 'middle');
     }),
     // "poppyramid cx cy size | 9,8,7,6,5,4,3,2 / 9,8,8,6,5,4,4,3" — population pyramid: male and female bars by age
     poppyramid: make(400, (g, o, t) => {
@@ -570,8 +571,8 @@
       }
       line(g, `M-20 ${base} V${base - n * bh} M20 ${base} V${base - n * bh}`, '#3a3430', 2.4);
       line(g, `M-180 ${base} H180`, '#3a3430', 2.4);
-      label(g, -100, base - n * bh - 14, 'Male', TXT.blue, 24, 'middle'); label(g, 100, base - n * bh - 14, 'Female', TXT.orange, 24, 'middle');
-      label(g, 0, base + 26, '% of people by age', '#3a3430', 18, 'middle');
+      if (showLab(o)) label(g, -100, base - n * bh - 14, 'Male', TXT.blue, 24, 'middle'); if (showLab(o)) label(g, 100, base - n * bh - 14, 'Female', TXT.orange, 24, 'middle');
+      if (showLab(o)) label(g, 0, base + 26, '% of people by age', '#3a3430', 18, 'middle');
     }),
     // "migrate cx cy width" — world map with curved migration arrows between continents
     migrate: make(420, g => {
@@ -606,7 +607,7 @@
       P(g, E(-60, 66, 18, 8), '#7fb7ea', '#2b6cc4', 2); line(g, 'M-60 60 V36', '#6b4424', 3); line(g, 'M-60 36 l-12 6 M-60 36 l12 6 M-60 36 l0 -10', '#3a8a2a', 3);
       const pts = [[190, -60], [100, 36], [0, 10], [-90, 50], [-190, -40]];
       line(g, smooth(pts, false), '#c97a10', 3.4, { 'stroke-dasharray': '10 7' });
-      pts.forEach(([x, y], i) => { P(g, E(x, y, 8), '#c0392b', '#7a1f1a', 2); if (N[i]) label(g, x, y + (i % 2 ? 30 : -16), N[i], '#4a3a24', 18, 'middle'); });
+      pts.forEach(([x, y], i) => { P(g, E(x, y, 8), '#c0392b', '#7a1f1a', 2); if (N[i] && (t || showLab(o))) label(g, x, y + (i % 2 ? 30 : -16), N[i], '#4a3a24', 18, 'middle'); });
       P(g, RR(150, 70, 44, 26, 13), '#e04b3a', '#8a1f1a', 2); line(g, 'M158 74 V92 M172 72 V94 M186 74 V92', '#ffd84a', 1.6);
       P(g, 'M-196 96 Q-200 70 -186 64 L-166 64 Q-152 70 -156 96 Z', '#d9894a', '#6b3a1a', 2); line(g, 'M-184 64 l8 -8 l8 8', '#6b3a1a', 2);
     }),

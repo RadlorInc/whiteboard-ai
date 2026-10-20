@@ -1,32 +1,32 @@
 magnet cx cy length k=bar|horseshoe lines=0 rot=deg | magnet 480 270 300 | bar or horseshoe magnet, red N, blue S, field lines; flow moves them
 cell cx cy length k=part|symbol rot=deg |text | cell 480 270 240 |1.5 V | battery cell with + and −, or its circuit symbol
-switch cx cy length k=open|closed | switch 480 260 260 k=open | knife switch on a base, open or closed
+switch cx cy length k=open|closed lab=0 | switch 480 260 260 k=open | knife switch on a base, open or closed; lab=0 hides its words
 resistor cx cy length k=part|symbol rot=deg | resistor 480 270 300 | resistor with colour bands, or zigzag symbol
 circuit cx cy width k=closed|open |text | circuit 480 280 440 |Current | wire loop: cell, lamp, switch, current arrows; flow moves current
-motor cx cy width k=motor|generator |text | motor 480 260 340 | magnet poles, coil, split ring, brushes, cell or lamp
+motor cx cy width k=motor|generator lab=0 |text | motor 480 260 340 | magnet poles, coil, split ring, brushes, cell or lamp; lab=0 hides its words
 electromagnet cx cy length |text | electromagnet 470 230 400 | iron nail in a copper coil with cell, paper clips stuck
-forcebox cx cy size k=all|push|gravity |text | forcebox 480 290 200 | box on ground with push, friction, weight, normal arrows
-incline cx cy width |text | incline 480 290 400 | ramp with block, weight, normal, friction arrows, angle θ
-pendulum cx topY length |text | pendulum 480 120 260 | pendulum: support, string, bob, swing arc; loop swing swings it
+forcebox cx cy size k=all|push|gravity lab=0 |text | forcebox 480 290 200 | box on ground with push, friction, weight, normal arrows; lab=0 hides its words
+incline cx cy width lab=0 |text | incline 480 290 400 | ramp with block, weight, normal, friction arrows, angle θ; lab=0 hides its words
+pendulum cx topY length lab=0 |text | pendulum 480 120 260 | pendulum: support, string, bob, swing arc; loop swing swings it; lab=0 hides its words
 spring cx topY length |text | spring 480 140 260 |1 kg | coil spring hanging from a bar holding a mass
-lever cx cy width |text | lever 480 300 420 | plank on fulcrum, load and effort arrow, labelled
-pulley cx topY size |text | pulley 480 130 280 | fixed pulley, rope, load, pull arrow; flow moves the rope
-wheelaxle cx cy size | wheelaxle 480 250 280 | wheel and axle lifting a bucket, effort arrow; flow moves rope
-wave cx cy width k=transverse|longitudinal|sound |text | wave 480 290 440 | transverse (crest, trough, wavelength), longitudinal, or sound from speaker
-prism cx cy size | prism 450 280 280 | glass prism splitting white light into a rainbow; flow moves light
-lens cx cy size k=convex|concave |text | lens 480 270 300 | lens with parallel rays meeting at focal point F; flow moves rays
-mirror cx cy width | mirror 480 270 380 | plane mirror, incident and reflected rays, normal, equal angles
+lever cx cy width lab=0 |text | lever 480 300 420 | plank on fulcrum, load and effort arrow, labelled; lab=0 hides its words
+pulley cx topY size lab=0 |text | pulley 480 130 280 | fixed pulley, rope, load, pull arrow; flow moves the rope; lab=0 hides its words
+wheelaxle cx cy size lab=0 | wheelaxle 480 250 280 | wheel and axle lifting a bucket, effort arrow; flow moves rope; lab=0 hides its words
+wave cx cy width k=transverse|longitudinal|sound lab=0 |text | wave 480 290 440 | transverse (crest, trough, wavelength), longitudinal, or sound from speaker; lab=0 hides its words
+prism cx cy size lab=0 | prism 450 280 280 | glass prism splitting white light into a rainbow; flow moves light; lab=0 hides its words
+lens cx cy size k=convex|concave lab=0 |text | lens 480 270 300 | lens with parallel rays meeting at focal point F; flow moves rays; lab=0 hides its words
+mirror cx cy width lab=0 | mirror 480 270 380 | plane mirror, incident and reflected rays, normal, equal angles; lab=0 hides its words
 thermometer cx cy height level=0.6 |text | thermometer 480 270 320 level=0.6 | glass thermometer, red liquid at a level, °C scale
 heat cx cy size k=conduction|convection|radiation |text | heat 480 280 300 k=convection | heat moving: hot rod, water currents, or fire's rays; flow moves
 bohr cx cy size shells=2,8,1 |text | bohr 480 270 320 shells=2,8,1 |Sodium | Bohr atom: nucleus and electron shells; flow spins orbits
-spectrum cx cy width | spectrum 480 270 640 | electromagnetic spectrum bar, radio to gamma, visible rainbow, wave
-rocket cx cy size arrows=0 rot=deg |text | rocket 480 250 260 | rocket with flame, thrust and hot-gas arrows
-gravity cx cy width |text | gravity 480 270 440 | planet and moon pulling each other, gravity arrows
+spectrum cx cy width lab=0 | spectrum 480 270 640 | electromagnetic spectrum bar, radio to gamma, visible rainbow, wave; lab=0 hides its words
+rocket cx cy size arrows=0 rot=deg lab=0 |text | rocket 480 250 260 | rocket with flame, thrust and hot-gas arrows; lab=0 hides its words
+gravity cx cy width lab=0 |text | gravity 480 270 440 | planet and moon pulling each other, gravity arrows; lab=0 hides its words
 gauge cx cy size k=speed|pressure val=0.6 |text | gauge 480 260 240 k=speed val=0.55 | dial gauge with needle: speedometer or pressure gauge
 stopwatch cx cy size sec=20 |text | stopwatch 480 280 240 sec=20 | stopwatch with buttons, ticks and a second hand
-energy cx cy size k=coaster|bars pe=0.7 | energy 480 270 320 | ball on half-pipe (most PE / most KE), or PE-KE bars
-projectile cx cy width | projectile 480 280 460 | thrown ball's curved path, velocity, max height, range
-friction cx cy width |text | friction 480 280 440 | block on rough ground, bumps, push and friction arrows
-density cx cy width |text | density 480 280 360 | water tank: wood floats, ball half under, stone sinks
-fission cx cy width |text | fission 470 270 520 | neutron splits big nucleus into two, neutrons, energy
+energy cx cy size k=coaster|bars pe=0.7 lab=0 | energy 480 270 320 | ball on half-pipe (most PE / most KE), or PE-KE bars; lab=0 hides its words
+projectile cx cy width lab=0 | projectile 480 280 460 | thrown ball's curved path, velocity, max height, range; lab=0 hides its words
+friction cx cy width lab=0 |text | friction 480 280 440 | block on rough ground, bumps, push and friction arrows; lab=0 hides its words
+density cx cy width lab=0 |text | density 480 280 360 | water tank: wood floats, ball half under, stone sinks; lab=0 hides its words
+fission cx cy width lab=0 |text | fission 470 270 520 | neutron splits big nucleus into two, neutrons, energy; lab=0 hides its words
 cradle cx cy width |text | cradle 480 260 400 | Newton's cradle, five steel balls, left one pulled back

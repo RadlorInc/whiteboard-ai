@@ -13,6 +13,7 @@
   const LQ = { blue: '#8cc4ef', green: '#a6d872', red: '#f0806e', orange: '#f6b34e', yellow: '#ffe066', purple: '#b88ade', pink: '#f6a8c8', clear: '#d3eaf8', brown: '#b98a5a', white: '#f4f4f0' };
   const LI = { blue: '#2f6fae', green: '#3f7f25', red: '#a8382a', orange: '#b0701a', yellow: '#a88a10', purple: '#6a3d9a', pink: '#b0507a', clear: '#6f9cc0', brown: '#6e4a28', white: '#8a8a84' };
   const GL = '#eef7fd', GI = '#4a6782';
+  const showLab = o => o.lab !== '0' && o.labels !== '0';   // lab=0 / labels=0 hide the words
   const num = (v, d) => (v === undefined || v === '' || isNaN(+v) ? d : +v);
   // liquid inside a closed body outline, up to line y, with a meniscus from xl to xr
   const liquid = (g, body, y, c, xl, xr) => {
@@ -176,7 +177,7 @@
       } else if (o.k === 'covalent') {
         for (const x of [-42, 42]) { fl(g, C(x, 0, 60), '#dcebf9'); line(g, C(x, 0, 60), '#8aa4bf', 2.2); ball(g, x, 0, 18, EL.H[0], EL.H[1], 'H', '#555'); }
         e(0, -14); e(0, 14);
-        txt(g, 0, 84, 'shared pair', TXT.blue, 20);
+        if (showLab(o)) txt(g, 0, 84, 'shared pair', TXT.blue, 20);
       } else throw new Error(`Unknown bond "${o.k}"`);
       if (t) txt(g, 0, 118, t);
       return g;
@@ -326,10 +327,10 @@
     // "statechange cx cy width" — solid ⇄ liquid ⇄ gas boxes with melting, boiling, condensing, freezing arrows
     statechange: ([cx, cy, W = 560], o, t, parent) => {
       const g = grp(cx, cy, W / 560, 0, parent), R2 = window.RECIPES;
-      [['solid', -200], ['liquid', 0], ['gas', 200]].forEach(([k, x]) => { R2.matterbox([x, 0, 120], { k, c: o.c }, '', g); txt(g, x, -84, k, TXT.blue, 22); });
+      [['solid', -200], ['liquid', 0], ['gas', 200]].forEach(([k, x]) => { R2.matterbox([x, 0, 120], { k, c: o.c }, '', g); if (showLab(o)) txt(g, x, -84, k, TXT.blue, 22); });
       const arc = (x1, x2, y, up, s, c) => {
         const q = up ? y - 46 : y + 46; line(g, `M${x1} ${y} Q${(x1 + x2) / 2} ${q} ${x2} ${y}`, c, 3); line(g, head(x2, y, (x1 + x2) / 2, q), c, 3, { class: 'ink head' });
-        txt(g, (x1 + x2) / 2, up ? y - 44 : y + 44, s, c === INK.red ? TXT.red : TXT.blue, 18);
+        if (showLab(o)) txt(g, (x1 + x2) / 2, up ? y - 44 : y + 44, s, c === INK.red ? TXT.red : TXT.blue, 18);
       };
       arc(-138, -62, -30, true, 'melting', INK.red); arc(62, 138, -30, true, 'boiling', INK.red);
       arc(-62, -138, 30, false, 'freezing', INK.blue); arc(138, 62, 30, false, 'condensing', INK.blue);
@@ -357,7 +358,7 @@
       let d = R(-280, -26, 560, 52, 4); for (let i = 1; i < 15; i++) d += ` M${-280 + i * w} -26 V26`;
       line(g, d, '#3e464f', 2.4);
       COL.forEach((f, i) => txt(g, -280 + (i + .5) * w, 0, String(i), i > 3 && i < 9 ? '#3e464f' : '#ffffff', 20));
-      txt(g, -240, 52, 'acid', TXT.red, 24); txt(g, 0, 52, 'neutral', TXT.green, 24); txt(g, 240, 52, 'alkali', '#6a3a95', 24);
+      if (showLab(o)) { txt(g, -240, 52, 'acid', TXT.red, 24); txt(g, 0, 52, 'neutral', TXT.green, 24); txt(g, 240, 52, 'alkali', '#6a3a95', 24); }
       if (o.at !== undefined) { const x = -280 + (num(o.at, 7) + .5) * w; line(g, `M${x} -34 L${x - 10} -52 L${x + 10} -52 Z`, '#1d2329', 3); }
       if (t) txt(g, 0, -74, t);
       return g;
@@ -370,12 +371,12 @@
         [['red', 1], ['orange', 4], ['green', 7], ['blue', 10], ['purple', 13]].forEach(([c, p], i) => {
           const x = -128 + i * 64; tubeAt(grp(x, -10, .62, 0, g), .5, c); txt(g, x, 70, 'pH ' + p, LI[c], 18);
         });
-        txt(g, -110, 104, 'acid', TXT.red, 22); txt(g, 110, 104, 'alkali', '#6a3a95', 22);
+        if (showLab(o)) { txt(g, -110, 104, 'acid', TXT.red, 22); txt(g, 110, 104, 'alkali', '#6a3a95', 22); }
       } else if (k === 'litmus') {
         [[-80, 'acid', '#7fb7ea', '#e8553f', 'red'], [80, 'alkali', '#f29a8a', '#4f7fd8', 'blue']].forEach(([x, s, top, bot, c]) => {
           const b = grp(x, 20, .6, 0, g); beakerAt(b, .45, 'clear', false);
           part(g, R(x - 10, -80, 20, 82), top, '#55606b', 2.2); part(g, R(x - 10, 2, 20, 70), bot, '#55606b', 2.2);
-          txt(g, x, 104, s, TXT[c], 22);
+          if (showLab(o)) txt(g, x, 104, s, TXT[c], 22);
         });
       } else throw new Error(`Unknown indicator "${k}"`);
       if (t) txt(g, 0, -120, t);
@@ -421,7 +422,7 @@
       part(g, R(x2, -36, w2, 72, 10), '#dff2d2', INK.green);
       line(g, `M${x1 + w1 + 16} 0 H${x2 - 16}`, '#3e464f', 3.5); line(g, head(x2 - 16, 0, x1 + w1, 0, 16), '#3e464f', 3.5, { class: 'ink head' });
       txt(g, x1 + w1 / 2, 0, lhs, TXT.blue, 30); txt(g, x2 + w2 / 2, 0, rhs, TXT.green, 30);
-      txt(g, x1 + w1 / 2, -56, 'reactants', '#55606b', 18); txt(g, x2 + w2 / 2, -56, 'products', '#55606b', 18);
+      if (showLab(o)) { txt(g, x1 + w1 / 2, -56, 'reactants', '#55606b', 18); txt(g, x2 + w2 / 2, -56, 'products', '#55606b', 18); }
       return g;
     },
 
@@ -495,7 +496,7 @@
       line(g, 'M-6 -138 L-3 -150 L3 -142 L6 -152', '#d27b0c', 2);
       line(g, head(-20, -128, -36, -128, 11) + ' ' + head(36, -98, 36, -128, 11), TXT.orange, 3, { class: 'ink head' });
       txt(g, -36, -60, '−', '#1d2329', 30); txt(g, 36, -60, '+', '#1d2329', 30);
-      txt(g, -78, -100, 'zinc', '#55606b', 18); txt(g, 82, -100, 'copper', '#7a3f14', 18);
+      if (showLab(o)) { txt(g, -78, -100, 'zinc', '#55606b', 18); txt(g, 82, -100, 'copper', '#7a3f14', 18); }
       if (t) txt(g, 0, 160, t);
       return g;
     },
@@ -521,9 +522,9 @@
       const at = (sa, k) => P(sa, k).split(' ').map(Number);
       const [ix, iy] = at(240, 72), [ox, oy] = at(70, -72);
       line(g, `M${ix - 50} ${iy} L${ix - 6} ${iy - 4}`, TXT.blue, 2.6); line(g, head(ix - 6, iy - 4, ix - 50, iy, 10), TXT.blue, 2.6, { class: 'ink head' });
-      label(g, ix - 56, iy + 8, 'cold water in', TXT.blue, 24, 'end');
+      if (showLab(o)) label(g, ix - 56, iy + 8, 'cold water in', TXT.blue, 24, 'end');
       line(g, `M${ox} ${oy} L${ox + 4} ${oy - 34}`, TXT.blue, 2.6); line(g, head(ox + 4, oy - 34, ox, oy, 10), TXT.blue, 2.6, { class: 'ink head' });
-      label(g, ox - 8, oy - 20, 'water out', TXT.blue, 24, 'end');
+      if (showLab(o)) label(g, ox - 8, oy - 20, 'water out', TXT.blue, 24, 'end');
       if (t) txt(g, 0, -130, t);
       return g;
     },
@@ -566,9 +567,9 @@
       line(g, 'M-220 -130 V120 H220', '#3e464f', 3); line(g, head(-220, -132, -220, -100) + ' ' + head(222, 120, 190, 120), '#3e464f', 3, { class: 'ink head' });
       line(g, 'M-210 40 H-140 C-80 40 -50 -100 0 -100 C50 -100 80 85 140 85 H210', INK.red, 3.4);
       line(g, 'M-140 40 C-80 40 -50 -24 0 -24 C50 -24 80 85 140 85', INK.green, 3.4);
-      label(g, 18, -108, 'without catalyst', TXT.red, 18); txt(g, 0, 32, 'with catalyst', TXT.green, 17);
+      if (showLab(o)) { label(g, 18, -108, 'without catalyst', TXT.red, 18); txt(g, 0, 32, 'with catalyst', TXT.green, 17);
       txt(g, -176, 22, 'reactants', '#55606b', 16); txt(g, 176, 66, 'products', '#55606b', 16);
-      label(g, -212, -136, 'energy', '#55606b', 16); label(g, 214, 146, 'progress', '#55606b', 16, 'end');
+      label(g, -212, -136, 'energy', '#55606b', 16); label(g, 214, 146, 'progress', '#55606b', 16, 'end'); }
       if (t) txt(g, 0, -150, t);
       return g;
     },

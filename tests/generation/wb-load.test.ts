@@ -33,9 +33,12 @@ describe('wb-load subject files', () => {
       expect(load(`?subject=${s}`).cats).toEqual([...W.WB_CATS, ...W.WB_SUBJECT[s]]);
     });
   }
+  it('every subject loads anatomy.js, which holds the realistic drawings (sv) and pins: without it a chat cannot draw one (20 Oct 2026)', () => {
+    for (const s of Object.keys(P.subjects)) expect(load(`?subject=${s}`).cats, s).toContain('anatomy');
+  });
   it('biology fetches no physics or chemistry files', () => {
     const bio = load('?subject=biology').cats;
-    for (const c of [...W.WB_SUBJECT.physics, ...W.WB_SUBJECT.chemistry]) expect(bio).not.toContain(c);
+    for (const c of [...W.WB_SUBJECT.physics, ...W.WB_SUBJECT.chemistry].filter(c => c !== 'objects' && c !== 'anatomy')) expect(bio).not.toContain(c);   // objects and anatomy (sv): shared by all (20 Oct 2026)
   });
   it('the dev copy maps subjects the same way', () => {
     const dev = fs.readFileSync(path.resolve(__dirname, '../../player-src/lib/wb-load.js'), 'utf8');

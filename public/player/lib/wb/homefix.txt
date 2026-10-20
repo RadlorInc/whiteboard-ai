@@ -1,23 +1,9 @@
-tieknot cx cy height k=1|2|3|4 | tieknot 480 280 320 k=1 | tying a tie (four-in-hand): 1 wide end crosses over, 2 wraps around, 3 up through the neck loop, 4 down through the knot, done
+tieknot cx cy height k=1|2|3|4 lab=0 | tieknot 480 280 320 k=1 | tying a tie (four-in-hand): 1 wide end crosses over, 2 wraps around, 3 up through the neck loop, 4 down through the knot, done; lab=0 hides the step number
 breaker cx cy height trip=N | breaker 480 270 320 trip=4 | home breaker panel: main switch and ten numbered breakers; trip=N (1-10) shows that one tripped in red
 ptrap cx cy width leak=1 | ptrap 480 260 400 leak=1 | under-sink drain: tailpipe, U-bend holding water, slip nuts, pipe into the wall; leak=1 drips into a bucket
-smokealarm cx cy size k=ok|beep | smokealarm 480 270 260 | ceiling smoke alarm; ok has a green light, beep has a red light and chirp waves (low battery)
-handtool cx cy length k=hammer|screwdriver|wrench|pliers rot=deg | handtool 480 270 300 | a hand tool for home fixes: hammer, screwdriver, wrench or pliers
 toilettank cx cy height k=ok|running | toilettank 480 270 340 | toilet tank cut open: fill valve and float, overflow tube, flapper on its chain to the handle; running = flapper not sealing, water leaking past
-plunger cx cy height k=sink|toilet | plunger 480 280 320 | cup plunger sealed over a clogged sink drain or toilet, push-pull arrows
-outlet cx cy height k=standard|gfci | outlet 480 270 280 | US wall outlet: two plug faces (hot, neutral, ground holes), or a GFCI with TEST and RESET buttons
-extinguisher cx cy height k=1|2|3|4 | extinguisher 480 280 340 k=1 | using a fire extinguisher (PASS): 1 pull the pin, 2 aim at the base of the fire, 3 squeeze the handle, 4 sweep side to side
-studfinder cx cy width | studfinder 480 270 440 | finding a stud: the wall's hidden studs (dashed), the stud finder lit over one, a nail into it holding a picture
-shutoff cx cy height k=open|closed | shutoff 480 270 300 | water shutoff valve on the pipe under a sink; closed = handle turned across the pipe, "righty tighty" arrow
-lightswitch cx cy height k=up|down | lightswitch 480 270 260 | wall light switch (toggle) on its plate; up = ON, down = OFF
-spiritlevel cx cy length k=level|tilted | spiritlevel 480 270 440 | spirit level with its bubble vial; level = bubble between the lines, tilted = bubble off to one side
+studfinder cx cy width scan=1 | studfinder 480 270 240 scan=1 | electronic stud finder: LED row lit green over a stud; scan=1 slides it along the wall (arrow). The wall is wallstuds
 paintroller cx cy width | paintroller 480 270 420 | paint roller loaded with paint, and the tray with paint in its well
-ladder cx cy height | ladder 480 280 400 | A-frame step ladder fully open, spreader locked, the red top cap marked "not a step"
-thermostat cx cy size temp=N | thermostat 480 270 260 temp=70 | wall thermostat: display with the set temperature (°F), HEAT mode, up/down buttons
 furnacefilter cx cy width k=clean|dirty | furnacefilter 480 270 380 | furnace air filter: pleated card frame with the AIR FLOW arrow; dirty = grey with dust
-waterheater cx cy height | waterheater 470 290 400 | tank water heater cut open: cold in down the dip tube, hot out the top, burner, T&P relief valve, drain valve
-iron cx cy width | iron 480 270 360 | steam iron: soleplate, water tank, temperature dial, steam puffs
 caulkgun cx cy width | caulkgun 500 270 440 | caulk gun with its tube, trigger and plunger rod, a bead of caulk along a seam
 drywall cx cy width k=hole|patch | drywall 480 270 400 | a hole in drywall; patch = mesh patch over it, joint compound spread with a putty knife
-tapemeasure cx cy width | tapemeasure 500 270 420 | tape measure: case with lock button, yellow tape pulled out with inch marks and the hook
-toolbox cx cy width | toolbox 480 280 400 | red toolbox with its handle, tools sticking out (hammer, screwdriver, wrench)

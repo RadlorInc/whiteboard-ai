@@ -19,6 +19,7 @@ const fmt = v => { const r = Math.round(v * 100) / 100; return (Object.is(r, -0)
 const cents = v => (Math.round(v * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const money = (v, cur = '$', f = fmt) => (v < 0 ? '-' : '') + cur + f(Math.abs(v));
 const curOf = o => txt(o.cur ?? '$');
+const showLab = o => o.lab !== '0' && o.labels !== '0';   // lab=0 / labels=0 hide the recipe's own words
 
 // ── geometry (local drawings use screen angles: 0° = right, clockwise; charts use x y w h boxes)
 const G = (cx, cy, s, o, parent) => mk('g', { transform: `translate(${cx} ${cy}) rotate(${o.rot || 0}) scale(${s})` }, parent);
@@ -108,7 +109,7 @@ Object.assign(window.RECIPES, {
     line(g, polyD(z, false), col, 12);
     const [ax, ay] = z.at(-1), [bx, by] = z.at(-2), a = Math.atan2(ay - by, ax - bx), tip = [ax + 26 * Math.cos(a), ay + 26 * Math.sin(a)];
     P(g, polyD([tip, [ax + 24 * Math.cos(a + 2.2), ay + 24 * Math.sin(a + 2.2)], [ax + 24 * Math.cos(a - 2.2), ay + 24 * Math.sin(a - 2.2)]]), fill, col, 4);
-    label(g, 0, 140, t || (up ? 'market up' : 'market down'), col, 30, 'middle');
+    if (t || showLab(o)) label(g, 0, 140, t || (up ? 'market up' : 'market down'), col, 30, 'middle');
     return g;
   },
 
@@ -126,9 +127,9 @@ Object.assign(window.RECIPES, {
       line(g, `M${bx - 100} 34 Q${bx} -110 ${bx + 100} 34`, '#7a4a1a', 4); };
     basket(-170, n0); basket(170, n1);
     noteAt(g, -170, -150, 120, note); noteAt(g, 170, -150, 120, note);
-    label(g, -170, 150, yrs[0], K, 28, 'middle'); label(g, 170, 150, yrs[1] || '', K, 28, 'middle');
-    arrow(g, -50, -150, 50, -150, RED, 4); label(g, 0, -178, `prices +${fmt(pct)}%`, RED, 22, 'middle');
-    label(g, 0, 190, `same ${note}, ${n0} items → ${n1}`, TXT.blue, 22, 'middle');
+    if (t || showLab(o)) label(g, -170, 150, yrs[0], K, 28, 'middle'); if (t || showLab(o)) label(g, 170, 150, yrs[1] || '', K, 28, 'middle');
+    arrow(g, -50, -150, 50, -150, RED, 4); label(g, 0, -178, showLab(o) ? `prices +${fmt(pct)}%` : `+${fmt(pct)}%`, RED, 22, 'middle');
+    if (showLab(o)) label(g, 0, 190, `same ${note}, ${n0} items → ${n1}`, TXT.blue, 22, 'middle');
     return g;
   },
 
@@ -143,13 +144,13 @@ Object.assign(window.RECIPES, {
     for (let i = 0; i <= n; i++) { d1 += R(X(i) - bw, f.Y(sv(i)), bw, f.base - f.Y(sv(i))) + ' '; d2 += R(X(i), f.Y(cv(i)), bw, f.base - f.Y(cv(i))) + ' '; }
     line(g, d1, INK.blue, 2.4); line(g, d2, INK.orange, 2.4);
     for (let i = 0; i <= n; i += every) label(g, X(i), f.base + 28, String(i), K, 18, 'middle');
-    label(g, f.px + f.pw, f.base + 28, n > 1 ? 'years' : '', TICK, 16, 'end');
+    if (showLab(o)) label(g, f.px + f.pw, f.base + 28, n > 1 ? 'years' : '', TICK, 16, 'end');
     const ty = Math.min(f.Y(sv(n)), f.Y(cv(n))) - 10;
     label(g, X(n) + bw, ty - 22, money(cv(n), cur), TXT.orange, 20, 'end'); label(g, X(n) + bw, ty, money(sv(n), cur), TXT.blue, 20, 'end');
     F(g, R(f.px + 16, f.py + 2, 20, 16), FILL.blue); line(g, R(f.px + 16, f.py + 2, 20, 16), INK.blue, 2);
     F(g, R(f.px + 16, f.py + 30, 20, 16), FILL.orange); line(g, R(f.px + 16, f.py + 30, 20, 16), INK.orange, 2);
-    label(g, f.px + 44, f.py + 17, 'simple', TXT.blue, 20); label(g, f.px + 44, f.py + 45, 'compound', TXT.orange, 20);
-    label(g, f.px + 150, f.py + 17, t || `${cur}${fmt(p)} at ${fmt(r * 100)}% a year`, K, 20);
+    if (showLab(o)) { label(g, f.px + 44, f.py + 17, 'simple', TXT.blue, 20); label(g, f.px + 44, f.py + 45, 'compound', TXT.orange, 20); }
+    if (t || showLab(o)) label(g, f.px + 150, f.py + 17, t || `${cur}${fmt(p)} at ${fmt(r * 100)}% a year`, K, 20);
     return g;
   },
 
@@ -166,8 +167,8 @@ Object.assign(window.RECIPES, {
     bal.forEach((_, i) => i % every === 0 && label(g, X(i), f.base + 28, String(i), K, 18, 'middle'));
     const vs = clamp(slot * .3, 12, 18);
     if (slot > 30) bal.forEach((b, i) => b > 0 && label(g, X(i), f.Y(b) - 8, fmt(b), K, vs, 'middle'));
-    label(g, f.px + f.pw - 4, y + 20, `${money(pay, cur)} a month${r ? `, ${fmt(r * 100)}% a month` : ''}`, GRN, 21, 'end');
-    label(g, f.px + f.pw - 4, y + 46, done ? `paid off: ${bal.length - 1} months, total ${money(paid, cur)}` : 'still owing after 24 months', done ? TXT.blue : RED, 21, 'end');
+    if (showLab(o)) label(g, f.px + f.pw - 4, y + 20, `${money(pay, cur)} a month${r ? `, ${fmt(r * 100)}% a month` : ''}`, GRN, 21, 'end');
+    if (showLab(o)) label(g, f.px + f.pw - 4, y + 46, done ? `paid off: ${bal.length - 1} months, total ${money(paid, cur)}` : 'still owing after 24 months', done ? TXT.blue : RED, 21, 'end');
     if (done) check(g, X(bal.length - 1), f.base - 22, 30, GRN, 5);
     if (t) label(g, f.px + 16, y + 20, t, TXT.blue, 22);
     return g;
@@ -187,7 +188,7 @@ Object.assign(window.RECIPES, {
     cats.forEach(([n, v], i) => { const yy = y0 + i * gap; F(g, R(lx, yy - fs * .7, fs * .9, fs * .9, 3), PAL[i % 8]); line(g, R(lx, yy - fs * .7, fs * .9, fs * .9, 3), PINK[i % 8], 2);
       label(g, lx + fs * 1.3, yy + fs * .1, `${n}  ${money(v, cur)}`, PINK[i % 8], fs); });
     line(g, `M${lx} ${y0 + cats.length * gap - gap * .55} h${fs * 7}`, K, 2);
-    label(g, lx + fs * 1.3, y0 + cats.length * gap + fs * .1, `Total  ${money(sum, cur)}`, K, fs);
+    label(g, lx + fs * 1.3, y0 + cats.length * gap + fs * .1, `${showLab(o) ? 'Total  ' : ''}${money(sum, cur)}`, K, fs);
     return g;
   },
 
@@ -205,9 +206,9 @@ Object.assign(window.RECIPES, {
     const fs = clamp(slot * .16, 14, 22);
     for (let i = 0; i < n; i++) { const net = (ins[i] || 0) - (outs[i] || 0);
       label(g, X(i), f.Y(Math.max(ins[i] || 0, outs[i] || 0)) - 10, (net >= 0 ? '+' : '') + money(net, cur), net >= 0 ? GRN : RED, fs, 'middle');
-      if (names[i]) label(g, X(i), f.base + 28, names[i], K, clamp(slot / (names[i].length * .55), 12, 20), 'middle'); }
-    F(g, R(f.px + 10, y + 6, 20, 16), FILL.green); line(g, R(f.px + 10, y + 6, 20, 16), GRN, 2); label(g, f.px + 38, y + 21, 'income', GRN, 20);
-    F(g, R(f.px + 140, y + 6, 20, 16), FILL.red); line(g, R(f.px + 140, y + 6, 20, 16), RED, 2); label(g, f.px + 168, y + 21, 'expenses', RED, 20);
+      if (names[i] && (t || showLab(o))) label(g, X(i), f.base + 28, names[i], K, clamp(slot / (names[i].length * .55), 12, 20), 'middle'); }
+    F(g, R(f.px + 10, y + 6, 20, 16), FILL.green); line(g, R(f.px + 10, y + 6, 20, 16), GRN, 2); if (showLab(o)) label(g, f.px + 38, y + 21, 'income', GRN, 20);
+    F(g, R(f.px + 140, y + 6, 20, 16), FILL.red); line(g, R(f.px + 140, y + 6, 20, 16), RED, 2); if (showLab(o)) label(g, f.px + 168, y + 21, 'expenses', RED, 20);
     return g;
   },
 
@@ -221,7 +222,7 @@ Object.assign(window.RECIPES, {
     line(g, `M-14 ${Yp(pct)} H14`, RED, 3);
     [0, 25, 50, 75, 100].forEach(p => { line(g, `M24 ${Yp(p)} h14`, DK, 2.4); label(g, 46, Yp(p) + 7, money(goal * p / 100, cur), TICK, 19); });
     P(g, `M-4 ${top - 22} V${top - 76} L40 ${top - 64} L-4 ${top - 52}`, FILL.yellow, '#8a6a00', 2.5);
-    label(g, 46, top - 52, `goal ${money(goal, cur)}`, TXT.green, 22);
+    label(g, 46, top - 52, showLab(o) ? `goal ${money(goal, cur)}` : money(goal, cur), TXT.green, 22);
     arrow(g, -96, Yp(pct), -32, Yp(pct), RED, 3);
     label(g, -104, Yp(pct) - 8, money(goal * pct / 100, cur), RED, 26, 'end'); label(g, -104, Yp(pct) + 20, `${fmt(pct)}%`, RED, 20, 'end');
     if (t) label(g, 0, 232, t, TXT.blue, 26, 'middle');
@@ -234,11 +235,11 @@ Object.assign(window.RECIPES, {
     const bands = t ? words(t) : ['Poor', 'Fair', 'Good', 'Excellent'], cols = [FILL.red, FILL.orange, FILL.yellow, FILL.green], inks = [RED, INK.orange, '#b08a00', GRN];
     bands.forEach((b, i) => { const a0 = 180 + 180 * i / bands.length, a1 = 180 + 180 * (i + 1) / bands.length;
       F(g, sector(0, 0, 120, 180, a0, a1), cols[i % 4]); line(g, sector(0, 0, 120, 180, a0, a1), inks[i % 4], 2.4);
-      const [lx, ly] = pt(0, 0, 205, (a0 + a1) / 2); label(g, lx, ly + 8, b, inks[i % 4], 20, lx > 30 ? 'start' : lx < -30 ? 'end' : 'middle'); });
+      const [lx, ly] = pt(0, 0, 205, (a0 + a1) / 2); if (t || showLab(o)) label(g, lx, ly + 8, b, inks[i % 4], 20, lx > 30 ? 'start' : lx < -30 ? 'end' : 'middle'); });
     const a = 180 + 180 * (sc - lo) / (hi - lo), [nx, ny] = pt(0, 0, 160, a), [bx1, by1] = pt(0, 0, 12, a + 90), [bx2, by2] = pt(0, 0, 12, a - 90);
     P(g, polyD([[nx, ny], [bx1, by1], [bx2, by2]]), DK, DK, 2.5); P(g, E(0, 0, 16), '#c9d1d9', DK, 3);
     label(g, -150, 30, fmt(lo), TICK, 18, 'middle'); label(g, 150, 30, fmt(hi), TICK, 18, 'middle');
-    label(g, 0, 62, fmt(sc), K, 48, 'middle'); label(g, 0, 94, 'credit score', TXT.blue, 22, 'middle');
+    label(g, 0, 62, fmt(sc), K, 48, 'middle'); if (showLab(o)) label(g, 0, 94, 'credit score', TXT.blue, 22, 'middle');
     return g;
   },
 
@@ -246,15 +247,15 @@ Object.assign(window.RECIPES, {
   paytax: ([cx = 480, cy = 270, S = 640], o, t, parent) => {
     const g = G(cx, cy, S / 640, o, parent), pay = opt(o, 'pay', 3000), tx = clamp(opt(o, 'tax', 20), 0, 100), cur = curOf(o);
     const x0 = -280, W = 520, cut = x0 + W * (1 - tx / 100);
-    label(g, x0, -88, t || `paycheck ${money(pay, cur)}`, K, 26);
+    label(g, x0, -88, t || (showLab(o) ? `paycheck ${money(pay, cur)}` : money(pay, cur)), K, 26);
     dash(g, [[cut, -66], [x0 + W, -66], [x0 + W, 66], [cut, 66]], PAPERK, 2);
     P(g, R(x0, -66, cut - x0, 132, 8), '#d8efcc', GRN, 3);
     line(g, `M${x0 + 20} -30 h${(cut - x0) * .45} M${x0 + 20} -6 h${(cut - x0) * .3}`, '#5fae3a', 3);
-    label(g, (x0 + cut) / 2, 44, `take-home ${money(pay * (1 - tx / 100), cur)}`, GRN, clamp((cut - x0) / 9, 14, 26), 'middle');
+    label(g, (x0 + cut) / 2, 44, showLab(o) ? `take-home ${money(pay * (1 - tx / 100), cur)}` : money(pay * (1 - tx / 100), cur), GRN, clamp((cut - x0) / 9, 14, 26), 'middle');
     const sg = mk('g', { transform: `translate(${40} ${36}) rotate(8 ${cut} 0)` }, g);
     if (tx > 0) { P(sg, R(cut, -66, x0 + W - cut, 132, 8), '#f6cdc6', RED, 3);
       label(sg, (cut + x0 + W) / 2, 6, `${fmt(tx)}%`, RED, clamp((x0 + W - cut) / 4, 14, 30), 'middle'); }
-    label(g, (cut + x0 + W) / 2 + 40, 150, `tax ${money(pay * tx / 100, cur)}`, RED, 26, 'middle');
+    label(g, (cut + x0 + W) / 2 + 40, 150, showLab(o) ? `tax ${money(pay * tx / 100, cur)}` : money(pay * tx / 100, cur), RED, 26, 'middle');
     line(g, `M${cut} -80 V80`, RED, 2.4);
     return g;
   },
@@ -265,7 +266,7 @@ Object.assign(window.RECIPES, {
     const H = Math.max(300, 150 + list.length * 34), y0 = -H / 2;
     paper(g, -170, y0, 340, H);
     F(g, R(-170, y0, 340, 54, 6), '#2b6cc4'); line(g, `M-170 ${y0 + 54} H170`, '#1f4f8f', 2);
-    label(g, -150, y0 + 37, 'PAYSLIP', '#ffffff', 28); label(g, 150, y0 + 36, txt(o.month ?? 'this month'), '#ffffff', 18, 'end');
+    label(g, -150, y0 + 37, 'PAYSLIP', '#ffffff', 28); if (o.month !== undefined || showLab(o)) label(g, 150, y0 + 36, txt(o.month ?? 'this month'), '#ffffff', 18, 'end');
     let yy = rows(g, -150, 300, y0 + 92, list, 34, 21, cur);
     line(g, `M-150 ${yy - 18} H150`, K, 2.4);
     const net = list.reduce((s, [, v]) => s + v, 0);
@@ -355,7 +356,7 @@ Object.assign(window.RECIPES, {
     label(g, -105, 20, 'Paid', GRN, 30, 'middle'); label(g, -105, 58, t || '$12.50', K, fit(t || '$12.50', 130, 30), 'middle');
     [22, 38, 54].forEach(r => line(g, arc(-10, -20, r, -45, 45), INK.sky, 4));
     P(g, `M60 -50 L170 -50 L180 150 L50 150 Z`, '#c9d1d9', DK, 3); P(g, R(76, -34, 88, 60, 6), '#e8f6ff', DK, 2.5);
-    label(g, 120, 4, 'tap', TXT.blue, 20, 'middle');
+    if (showLab(o)) label(g, 120, 4, 'tap', TXT.blue, 20, 'middle');
     for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) P(g, R(80 + c * 28, 46 + r * 26, 22, 18, 3), '#ffffff', DK, 1.6);
     return g;
   },
@@ -380,13 +381,13 @@ Object.assign(window.RECIPES, {
     const d = v.map((q, i) => [nm[i] || '', q, i]); if (o.sort !== '0') d.sort((p, q) => q[1] - p[1]);
     const pre = txt(o.pre ?? '$'), suf = txt(o.suf ?? ''), top = y + 46, slot = (h - 50) / d.length, bh = Math.min(slot * .62, 56), fs = clamp(bh * .55, 14, 22);
     const nw = clamp(Math.max(...d.map(q => tw(q[0], fs))) + 50, 90, w * .32), x0 = x + nw, mx = Math.max(...v, 0) || 1, bwMax = w - nw - 110;
-    label(g, x, y + 22, txt(o.yl ?? 'GDP'), TXT.blue, 24);
+    if (o.yl !== undefined || showLab(o)) label(g, x, y + 22, txt(o.yl ?? 'GDP'), TXT.blue, 24);
     line(g, `M${x0} ${top - 6} V${top + slot * d.length}`, K, 3);
     d.forEach(([n, q, i], j) => { const yy = top + slot * j + (slot - bh) / 2, bw = Math.max(2, bwMax * Math.max(0, q) / mx);
       F(g, R(x0, yy, bw, bh, 3), PAL[i % 8]); line(g, R(x0, yy, bw, bh, 3), PINK[i % 8], 2.4);
       label(g, x0 + bw + 8, yy + bh / 2 + fs * .35, pre + fmt(q) + suf, K, fs);
       const fy = yy + bh / 2; line(g, `M${x0 - 34} ${fy + 12} V${fy - 14}`, DK, 2); P(g, R(x0 - 34, fy - 14, 22, 14), PAL[(i + 3) % 8], DK, 1.8);
-      label(g, x0 - 42, fy + fs * .35, n, K, fs, 'end'); });
+      if (t || showLab(o)) label(g, x0 - 42, fy + fs * .35, n, K, fs, 'end'); });
     return g;
   },
 
@@ -394,19 +395,19 @@ Object.assign(window.RECIPES, {
   // "bizcycle x y w h | Boom,Recession,Trough,Recovery" — business cycle wave around a rising trend line
   bizcycle: ([x = 120, y = 50, w = 720, h = 440], o, t, parent) => {
     const g = mk('g', {}, parent), [boom, rec, tro, recov] = (w => w.length >= 4 ? w : ['Boom', 'Recession', 'Trough', 'Recovery'])(words(t));
-    const px = x + 30, py = y + 30, pw = w - 50, ph = h - 70, A = ph * .2;
+    const px = x + 30, py = y + 30, pw = w - 50, ph = h - 70, A = ph * .2, wl = words(t).length >= 4 || showLab(o);
     const X = u => px + 10 + u * (pw - 20), trend = u => py + ph * .72 - u * ph * .32, Y = u => trend(u) - A * Math.sin(3 * Math.PI * u);
     arrow(g, px, py + ph, px + pw, py + ph, K, 3); arrow(g, px, py + ph, px, py - 6, K, 3);
-    label(g, px + pw, py + ph + 28, txt(o.xl ?? 'time'), TICK, 19, 'end'); label(g, px + 10, py + 2, txt(o.yl ?? 'output (GDP)'), TICK, 19);
-    line(g, dashD([[X(0), trend(0)], [X(1), trend(1)]]), TICK, 2.2); label(g, X(1) - 4, trend(1) + 24, 'trend', TICK, 17, 'end');
+    if (o.xl !== undefined || showLab(o)) label(g, px + pw, py + ph + 28, txt(o.xl ?? 'time'), TICK, 19, 'end'); if (o.yl !== undefined || showLab(o)) label(g, px + 10, py + 2, txt(o.yl ?? 'output (GDP)'), TICK, 19);
+    line(g, dashD([[X(0), trend(0)], [X(1), trend(1)]]), TICK, 2.2); if (showLab(o)) label(g, X(1) - 4, trend(1) + 24, 'trend', TICK, 17, 'end');
     const pts = Array.from({ length: 121 }, (_, i) => [X(i / 120), Y(i / 120)]);
     line(g, polyD(pts, false), INK.blue, 4.5);
     const dotAt = (u, c) => { F(g, E(X(u), Y(u), 7), c); line(g, E(X(u), Y(u), 7), DK, 2); };
     dotAt(1 / 6, FILL.green); dotAt(5 / 6, FILL.green); dotAt(1 / 2, FILL.red);
-    label(g, X(1 / 6), Y(1 / 6) - 18, boom, GRN, 24, 'middle'); label(g, X(5 / 6), Y(5 / 6) - 18, boom, GRN, 24, 'middle');
+    if (wl) { label(g, X(1 / 6), Y(1 / 6) - 18, boom, GRN, 24, 'middle'); label(g, X(5 / 6), Y(5 / 6) - 18, boom, GRN, 24, 'middle');
     label(g, X(1 / 2), Y(1 / 2) + 36, tro, RED, 24, 'middle');
     label(g, X(1 / 3), py + ph - 14, rec + ' ↘', TXT.orange, 22, 'middle');   // the curve crosses the trend here: label on the floor
-    label(g, X(2 / 3), py + ph - 14, '↗ ' + recov, TXT.blue, 22, 'middle');
+    label(g, X(2 / 3), py + ph - 14, '↗ ' + recov, TXT.blue, 22, 'middle'); }
     return g;
   },
 
@@ -415,7 +416,7 @@ Object.assign(window.RECIPES, {
     const g = G(cx, cy, S / 400, o, parent), rev = Math.max(0, opt(o, 'rev', 500)), cost = Math.max(0, opt(o, 'cost', 300)), pr = rev - cost, cur = curOf(o);
     const mx = Math.max(rev, cost, Math.abs(pr)) || 1, H = v => 260 * Math.abs(v) / mx, base = 120;
     const col = (x, v, fill, ink, name) => { const hh = Math.max(3, H(v)); P(g, R(x - 60, base - hh, 120, hh, 4), fill, ink, 3);
-      label(g, x, base - hh - 12, money(v, cur), ink, 26, 'middle'); label(g, x, base + 36, name, ink, 24, 'middle'); };
+      label(g, x, base - hh - 12, money(v, cur), ink, 26, 'middle'); if (showLab(o)) label(g, x, base + 36, name, ink, 24, 'middle'); };
     col(-220, rev, FILL.blue, INK.blue, 'revenue'); col(0, cost, FILL.orange, INK.orange, 'cost');
     col(220, pr, pr >= 0 ? FILL.green : FILL.red, pr >= 0 ? GRN : RED, pr >= 0 ? 'profit' : 'loss');
     line(g, `M-300 ${base} H300`, K, 3);
@@ -431,21 +432,21 @@ Object.assign(window.RECIPES, {
     const f = chart(g, x, y, w, h, 0, Math.max(pr * qm, fx + vc * qm), { pre: cur, bottom: 46 }), X = q => f.px + q / qm * f.pw;
     const st = niceStep(qm, Math.max(2, Math.round(f.pw / 90)));
     for (let q = st; q <= qm + 1e-9; q += st) { line(g, `M${X(q)} ${f.base} v6`, K, 2); label(g, X(q), f.base + 26, fmt(q), TICK, 17, 'middle'); }
-    label(g, f.px + f.pw, f.base + 46, txt(o.xl ?? 'units sold'), TICK, 17, 'end');
+    if (o.xl !== undefined || showLab(o)) label(g, f.px + f.pw, f.base + 46, txt(o.xl ?? 'units sold'), TICK, 17, 'end');
     const C = q => fx + vc * q, Rv = q => pr * q;
     if (ok) { F(g, polyD([[X(0), f.Y(C(0))], [X(qb), f.Y(C(qb))], [X(0), f.Y(0)]]), '#f6cdc6', { opacity: .75 });
       F(g, polyD([[X(qb), f.Y(C(qb))], [X(qm), f.Y(Rv(qm))], [X(qm), f.Y(C(qm))]]), '#cfe8c4', { opacity: .8 }); }
-    line(g, dashD([[X(0), f.Y(fx)], [X(qm), f.Y(fx)]]), TICK, 2.2); label(g, X(qm) - 4, f.Y(fx) + 22, 'fixed cost', TICK, 17, 'end');
+    line(g, dashD([[X(0), f.Y(fx)], [X(qm), f.Y(fx)]]), TICK, 2.2); if (showLab(o)) label(g, X(qm) - 4, f.Y(fx) + 22, 'fixed cost', TICK, 17, 'end');
     line(g, `M${X(0)} ${f.Y(C(0))} L${X(qm)} ${f.Y(C(qm))}`, RED, 4); line(g, `M${X(0)} ${f.Y(0)} L${X(qm)} ${f.Y(Rv(qm))}`, GRN, 4);
-    label(g, X(qm) - 6, f.Y(C(qm)) + (Rv(qm) >= C(qm) ? 26 : -12), 'total cost', RED, 20, 'end');
-    label(g, X(qm) - 6, f.Y(Rv(qm)) + (Rv(qm) >= C(qm) ? -12 : 26), 'revenue', GRN, 20, 'end');
+    if (showLab(o)) label(g, X(qm) - 6, f.Y(C(qm)) + (Rv(qm) >= C(qm) ? 26 : -12), 'total cost', RED, 20, 'end');
+    if (showLab(o)) label(g, X(qm) - 6, f.Y(Rv(qm)) + (Rv(qm) >= C(qm) ? -12 : 26), 'revenue', GRN, 20, 'end');
     if (ok) { const bx = X(qb), by = f.Y(Rv(qb));
       line(g, dashD([[bx, by], [bx, f.base]]), K, 2); F(g, E(bx, by, 8), FILL.yellow); line(g, E(bx, by, 8), DK, 2.4);
-      const bt = `break-even: ${fmt(qb)} units, ${money(Rv(qb), cur)}`, left = bx - tw(bt, 20) - 14 > f.px + 10;
+      const bt = showLab(o) ? `break-even: ${fmt(qb)} units, ${money(Rv(qb), cur)}` : `${fmt(qb)}, ${money(Rv(qb), cur)}`, left = bx - tw(bt, 20) - 14 > f.px + 10;
       label(g, left ? bx - 14 : bx + 14, left ? by - 14 : by + 34, bt, K, 20, left ? 'end' : 'start');
       const mid = q => f.Y((C(q) + Rv(q)) / 2) + 7;
-      label(g, X(qb * .3), mid(qb * .3), 'loss', RED, 20, 'middle'); label(g, X(qb + (qm - qb) * .5), mid(qb + (qm - qb) * .5), 'profit', GRN, 22, 'middle');
-    } else label(g, f.px + 20, f.py + 8, 'price ≤ cost per unit: never breaks even', RED, 20);
+      if (showLab(o)) { label(g, X(qb * .3), mid(qb * .3), 'loss', RED, 20, 'middle'); label(g, X(qb + (qm - qb) * .5), mid(qb + (qm - qb) * .5), 'profit', GRN, 22, 'middle'); }
+    } else if (showLab(o)) label(g, f.px + 20, f.py + 8, 'price ≤ cost per unit: never breaks even', RED, 20);
     if (t) label(g, f.px + 16, f.py + 8, t, TXT.blue, 22);
     return g;
   },
@@ -455,14 +456,14 @@ Object.assign(window.RECIPES, {
     const g = mk('g', {}, parent), st = t ? words(t) : ['Idea', 'Launch', 'Growth'];
     const px = x + 30, py = y + 30, pw = w - 60, ph = h - 70, X = u => px + 14 + u * (pw - 50), Y = u => py + ph - 14 - (ph - 40) * (0.04 + 0.96 * (Math.exp(5 * u) - 1) / (Math.exp(5) - 1));
     arrow(g, px, py + ph, px + pw, py + ph, K, 3); arrow(g, px, py + ph, px, py - 6, K, 3);
-    label(g, px + pw, py + ph + 28, txt(o.xl ?? 'time'), TICK, 19, 'end'); label(g, px + 10, py + 2, txt(o.yl ?? 'users'), TICK, 19);
+    if (o.xl !== undefined || showLab(o)) label(g, px + pw, py + ph + 28, txt(o.xl ?? 'time'), TICK, 19, 'end'); if (o.yl !== undefined || showLab(o)) label(g, px + 10, py + 2, txt(o.yl ?? 'users'), TICK, 19);
     const pts = Array.from({ length: 81 }, (_, i) => [X(i / 80), Y(i / 80)]);
     F(g, polyD([[X(0), py + ph], ...pts, [X(1), py + ph]]), '#cfe8c4', { opacity: .6 });
     line(g, polyD(pts, false), GRN, 5);
     line(g, head(X(1) + 8, Y(1) - 12, X(.97), Y(.97), 18), GRN, 5, { class: 'ink head' });
     st.forEach((s, i) => { const u = st.length === 1 ? .9 : .08 + .82 * i / (st.length - 1), [qx, qy] = [X(u), Y(u)];
       F(g, E(qx, qy, 8), FILL.yellow); line(g, E(qx, qy, 8), DK, 2.2);
-      label(g, i === st.length - 1 ? qx - 18 : qx, i === st.length - 1 ? qy + 8 : qy - 20, s, i === st.length - 1 ? GRN : K, 24, i === st.length - 1 ? 'end' : 'middle'); });
+      if (t || showLab(o)) label(g, i === st.length - 1 ? qx - 18 : qx, i === st.length - 1 ? qy + 8 : qy - 20, s, i === st.length - 1 ? GRN : K, 24, i === st.length - 1 ? 'end' : 'middle'); });
     return g;
   },
 
@@ -476,10 +477,10 @@ Object.assign(window.RECIPES, {
     P(tg, R(-80, -70, 110, 80, 4), '#e8b86a', '#7a4a1a', 3); line(tg, 'M-60 -70 V10 M-30 -70 V10 M0 -70 V10', '#9a6a2a', 1.8);
     P(tg, 'M30 -46 H64 L84 -20 V10 H30 Z', FILL.red, '#8e2a1f', 3); P(tg, 'M38 -40 H60 L72 -22 H38 Z', '#e8f6ff', DK, 2);
     for (const wx of [-54, 56]) { P(tg, E(wx, 14, 16), '#3a4450', DK, 3); P(tg, E(wx, 14, 6), '#c9d1d9', DK, 2); }
-    RECIPES.building([xs[2], -10, 170], { k: 'shop' }, '', g);
+    RECIPES.building([xs[2], -10, 170], { k: 'shop', lab: o.lab, labels: o.labels }, '', g);
     RECIPES.person([xs[3], -10, 170], { k: 'waving' }, '', g);
     for (let i = 0; i < 3; i++) arrow(g, xs[i] + 74, -10, xs[i + 1] - 74, -10, INK.blue, 4, 16);
-    nm.slice(0, 4).forEach((n, i) => label(g, xs[i], 112, n, K, fit(n, 190, 26), 'middle'));
+    nm.slice(0, 4).forEach((n, i) => (i < words(t).length || showLab(o)) && label(g, xs[i], 112, n, K, fit(n, 190, 26), 'middle'));
     return g;
   },
 
@@ -491,11 +492,11 @@ Object.assign(window.RECIPES, {
     line(g, dashD([[0, 200], [0, 60]], 14, 12) + dashD([[-12, 20], [-140, -130]], 14, 12) + dashD([[12, 20], [140, -130]], 14, 12), '#ffffff', 3);
     line(g, 'M0 160 V50', '#7a4a1a', 6);
     P(g, 'M-6 70 H-110 L-130 88 L-110 106 H-6 Z', '#f4d9a0', '#7a4a1a', 2.5); P(g, 'M6 74 H110 L130 92 L110 110 H6 Z', '#f4d9a0', '#7a4a1a', 2.5);
-    label(g, -66, 97, a, '#5a3a1a', fit(a, 96, 22), 'middle'); label(g, 66, 101, b, '#5a3a1a', fit(b, 96, 22), 'middle');
+    if (words(t).length >= 2 || showLab(o)) { label(g, -66, 97, a, '#5a3a1a', fit(a, 96, 22), 'middle'); label(g, 66, 101, b, '#5a3a1a', fit(b, 96, 22), 'middle'); }
     P(g, E(-165, -170, 26), FILL.green, GRN, 3); check(g, -165, -170, 28, '#ffffff', 5);
-    label(g, -165, -210, 'chosen', GRN, 22, 'middle');
+    if (showLab(o)) label(g, -165, -210, 'chosen', GRN, 22, 'middle');
     P(g, E(165, -170, 26), '#e3e7eb', '#9aa3ad', 3); line(g, 'M152 -183 L178 -157 M178 -183 L152 -157', '#9aa3ad', 4);
-    label(g, 165, -210, 'opportunity cost', RED, 22, 'middle');
+    if (showLab(o)) label(g, 165, -210, 'opportunity cost', RED, 22, 'middle');
     return g;
   },
 
@@ -508,7 +509,7 @@ Object.assign(window.RECIPES, {
     for (let i = 0; i < n; i++) { const hx = (i - (n - 1) / 2) * gap, top = -20 + ((i * 37) % 3) * 22, sk = SKIN[i % 4], w = Math.min(34, gap * .55);
       P(g, R(hx - w / 2, top + 30, w, 220 - top, 6), PAL[(i + 1) % 8], DK, 2.4);
       P(g, `M${hx - w * .55} ${top + 34} V${top} Q${hx - w * .55} ${top - 22} ${hx - w * .3} ${top - 22} V${top - 6} V${top - 30} Q${hx - w * .1} ${top - 36} ${hx + w * .05} ${top - 28} V${top - 8} V${top - 30} Q${hx + w * .3} ${top - 34} ${hx + w * .4} ${top - 24} V${top} Q${hx + w * .58} ${top - 6} ${hx + w * .62} ${top + 6} L${hx + w * .5} ${top + 34} Z`, sk, '#8a5a3a', 2.2); }
-    label(g, 0, -196, t || `${n} people want it, ${k} to go round`, TXT.blue, 26, 'middle');
+    if (t || showLab(o)) label(g, 0, -196, t || `${n} people want it, ${k} to go round`, TXT.blue, 26, 'middle');
     return g;
   },
 
@@ -551,11 +552,11 @@ Object.assign(window.RECIPES, {
     P(g, R(-300, -120, 600, 50, 25), '#ffffff', DK, 3);
     if (pc > 0) F(g, R(-300, -120, 600 * Math.min(1, pc / 100), 50, 25), FILL.green);
     line(g, R(-300, -120, 600, 50, 25), DK, 3);
-    label(g, -300, -40, `${money(got, cur)} raised`, GRN, 24); label(g, 300, -40, `goal ${money(goal, cur)}`, K, 22, 'end');
+    label(g, -300, -40, showLab(o) ? `${money(got, cur)} raised` : money(got, cur), GRN, 24); label(g, 300, -40, showLab(o) ? `goal ${money(goal, cur)}` : money(goal, cur), K, 22, 'end');
     label(g, -300 + 600 * Math.min(1, pc / 100) - (pc > 15 ? 10 : -10), -86, `${Math.round(pc)}%`, pc > 15 ? '#ffffff' : GRN, 24, pc > 15 ? 'end' : 'start');
     for (let i = 0; i < 6; i++) { const hx = -250 + i * 100; head1(g, hx, 110, 20, SKIN[i % 4], PAL[(i + 2) % 8]);
       coinAt(g, hx + 20, 40 - (i % 2) * 30, 13); line(g, `M${hx + 20} ${24 - (i % 2) * 30} Q${hx + 20} ${-10 - (i % 2) * 20} ${hx + 50} -20`, '#c98a00', 2); }
-    label(g, 0, 200, `${fmt(opt(o, 'backers', 120))} backers`, TXT.blue, 24, 'middle');
+    label(g, 0, 200, showLab(o) ? `${fmt(opt(o, 'backers', 120))} backers` : fmt(opt(o, 'backers', 120)), TXT.blue, 24, 'middle');
     return g;
   },
 
@@ -583,7 +584,7 @@ Object.assign(window.RECIPES, {
     line(g, `M-35 -70 L${-35 + d} ${-70 - d * .6} M-5 -70 L${-5 + d} ${-70 - d * .6} M-20 -70 L${-20 + d} ${-70 - d * .6}`, '#9a6a2a', 2);
     F(g, R(-35, -70, 30, 50), '#f4e3c3'); line(g, R(-35, -70, 30, 50), '#9a6a2a', 2);
     P(g, R(-110, 0, 160, 90, 6), '#ffffff', '#7a4a1a', 2.5);
-    label(g, -30, 54, t || 'Product', K, fit(t || 'Product', 140, 32), 'middle');
+    if (t || showLab(o)) label(g, -30, 54, t || 'Product', K, fit(t || 'Product', 140, 32), 'middle');
     for (const ax of [96, 126]) arrow(g, ax, 60 - (ax - 80) * .6, ax, 20 - (ax - 80) * .6, '#5a3a1a', 3, 9);
     line(g, `M90 ${70 - 16 * .6} H132`, '#5a3a1a', 3);
     return g;

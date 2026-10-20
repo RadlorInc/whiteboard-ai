@@ -1,34 +1,34 @@
 torso cx cy height | torso 480 290 400 | plain body outline (head, shoulders, trunk) to place organs on
-lungs cx cy size lbl=0 | lungs 480 290 300 | two lungs, windpipe, branching bronchi; loop beat breathes
-alveolus cx cy size lbl=0 | alveolus 470 290 280 | air-sac cluster, red/blue capillaries, O₂ in, CO₂ out arrows
-brain cx cy size lbl=0 | brain 480 280 340 | side-view brain, coloured labelled lobes, cerebellum, stem
-neuron cx cy length lbl=0 | neuron 480 270 440 | nerve cell: dendrites, body, myelinated axon, terminals; loop flow
-synapse cx cy size lbl=0 | synapse 470 270 300 | nerve ending releasing messenger dots across gap to receptors
-kidney cx cy size lbl=0 | kidney 450 270 300 | kidney bean, pyramids, artery, vein, ureter
-nephron cx cy size lbl=0 | nephron 470 270 300 | kidney filter unit: filter ball, tubule, loop, duct; loop flow
+lungs cx cy size lbl=0 lab=0 | lungs 480 290 300 | two lungs, windpipe, branching bronchi; loop beat breathes; lab=0 hides its words
+alveolus cx cy size lbl=0 lab=0 | alveolus 470 290 280 | air-sac cluster, red/blue capillaries, O₂ in, CO₂ out arrows; lab=0 hides its words
+brain cx cy size lbl=0 lab=0 | brain 480 280 340 | side-view brain, coloured labelled lobes, cerebellum, stem; lab=0 hides its words
+neuron cx cy length lbl=0 lab=0 | neuron 480 270 440 | nerve cell: dendrites, body, myelinated axon, terminals; loop flow; lab=0 hides its words
+synapse cx cy size lbl=0 lab=0 | synapse 470 270 300 | nerve ending releasing messenger dots across gap to receptors; lab=0 hides its words
+kidney cx cy size lbl=0 lab=0 | kidney 450 270 300 | kidney bean, pyramids, artery, vein, ureter; lab=0 hides its words
+nephron cx cy size lbl=0 lab=0 | nephron 470 270 300 | kidney filter unit: filter ball, tubule, loop, duct; loop flow; lab=0 hides its words
 liver cx cy size | liver 480 270 320 | wedge-shaped liver with green gallbladder
 stomach cx cy size | stomach 480 270 300 | J-shaped stomach, food pipe, inner folds
-intestines cx cy size lbl=0 | intestines 480 270 320 | large intestine framing coiled small intestine
+intestines cx cy size lbl=0 lab=0 | intestines 480 270 320 | large intestine framing coiled small intestine; lab=0 hides its words
 digestive cx cy height | digestive 480 280 460 | body outline with food pipe, stomach, liver, intestines
 pancreas cx cy size | pancreas 480 270 320 | long yellow pancreas with its duct
 skeleton cx cy height | skeleton 480 280 440 | friendly simple full skeleton, front view
 skull cx cy size | skull 480 270 260 | friendly simple front-view skull
-bone cx cy length k=whole|section lbl=0 | bone 480 270 320 k=section | long bone; section shows compact, spongy, marrow
-joint cx cy size lbl=0 | joint 480 270 300 | knee joint: two bones, cartilage caps, fluid capsule
-muscle cx cy size k=flexed|relaxed lbl=0 | muscle 480 300 320 k=flexed | arm with biceps bulging (flexed) or long (relaxed)
-eye cx cy size rays=0 lbl=0 | eye 470 270 320 | eye cross-section: cornea, lens, retina, optic nerve, light rays
-ear cx cy size lbl=0 | ear 500 270 300 | ear: outer ear, canal, eardrum, tiny bones, cochlea, nerve
-nose cx cy size lbl=0 | nose 500 290 320 | side-view head: nasal cavity, smell receptors to brain, scent waves
-tooth cx cy size lbl=0 | tooth 460 280 300 | tooth layers: enamel, dentin, pulp, roots in gum
-skin cx cy size lbl=0 | skin 440 260 320 | skin layers, hair and root, sweat gland, blood vessel
-vessel cx cy length k=artery|vein|capillary lbl=0 | vessel 490 270 320 k=artery | cut-open blood vessel with wall and cells; loop flow
+bone cx cy length k=whole|section lbl=0 lab=0 | bone 480 270 320 k=section | long bone; section shows compact, spongy, marrow; lab=0 hides its words
+joint cx cy size lbl=0 lab=0 | joint 480 270 300 | knee joint: two bones, cartilage caps, fluid capsule; lab=0 hides its words
+muscle cx cy size k=flexed|relaxed lbl=0 lab=0 | muscle 480 300 320 k=flexed | arm with biceps bulging (flexed) or long (relaxed); lab=0 hides its words
+eye cx cy size rays=0 lbl=0 lab=0 | eye 470 270 320 | eye cross-section: cornea, lens, retina, optic nerve, light rays; lab=0 hides its words
+ear cx cy size lbl=0 lab=0 | ear 500 270 300 | ear: outer ear, canal, eardrum, tiny bones, cochlea, nerve; lab=0 hides its words
+nose cx cy size lbl=0 lab=0 | nose 500 290 320 | side-view head: nasal cavity, smell receptors to brain, scent waves; lab=0 hides its words
+tooth cx cy size lbl=0 lab=0 | tooth 460 280 300 | tooth layers: enamel, dentin, pulp, roots in gum; lab=0 hides its words
+skin cx cy size lbl=0 lab=0 | skin 440 260 320 | skin layers, hair and root, sweat gland, blood vessel; lab=0 hides its words
+vessel cx cy length k=artery|vein|capillary lbl=0 lab=0 | vessel 490 270 320 k=artery | cut-open blood vessel with wall and cells; loop flow; lab=0 hides its words
 bloodcell cx cy size k=red|white|platelet | bloodcell 480 270 200 k=white | one blood cell: red disc, white cell, or platelets
-blooddrop cx cy size lbl=0 | blooddrop 420 270 300 | blood drop opened up: plasma, red cells, white cell, platelets
-bloodtube cx cy height lbl=0 | bloodtube 400 270 320 | spun blood tube: plasma 55%, white layer, red cells 45%
-immune cx cy size lbl=0 | immune 470 280 300 | friendly germ caught by Y antibodies, white cell nearby
-gland cx cy size lbl=0 |text | gland 480 260 260 |Hormones | butterfly thyroid on windpipe releasing hormone drops; loop rise
+blooddrop cx cy size lbl=0 lab=0 | blooddrop 420 270 300 | blood drop opened up: plasma, red cells, white cell, platelets; lab=0 hides its words
+bloodtube cx cy height lbl=0 lab=0 | bloodtube 400 270 320 | spun blood tube: plasma 55%, white layer, red cells 45%; lab=0 hides its words
+immune cx cy size lbl=0 lab=0 | immune 470 280 300 | friendly germ caught by Y antibodies, white cell nearby; lab=0 hides its words
+gland cx cy size lbl=0 lab=0 |text | gland 480 260 260 |Hormones | butterfly thyroid on windpipe releasing hormone drops; loop rise; lab=0 hides its words
 ecg x1 y x2 h |text | ecg 220 300 740 90 |Heartbeat | heartbeat trace on grid strip; loop flow = live pulse
-feverthermo cx cy height k=fever|normal lbl=0 | feverthermo 480 260 300 k=fever | body thermometer, red level at 39 °C or 37 °C
+feverthermo cx cy height k=fever|normal lbl=0 lab=0 | feverthermo 480 260 300 k=fever | body thermometer, red level at 39 °C or 37 °C; lab=0 hides its words
 pill cx cy size k=capsule|tablet rot=deg | pill 480 270 220 k=capsule rot=-20 | medicine: two-colour capsule or round scored tablet
 syringe cx cy length rot=deg | syringe 480 270 340 rot=-15 | clear syringe, blue liquid, plunger, short needle
 stethoscope cx cy size | stethoscope 460 270 300 | stethoscope: ear pieces, tubing, chest piece

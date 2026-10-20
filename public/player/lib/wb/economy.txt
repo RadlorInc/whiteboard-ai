@@ -1,30 +1,30 @@
 candles x y w h vals=20,22,21,25 pre=$ |label | candles 120 40 720 460 vals=20,22,21,25,24,28,27,31,29,34 |Share price | stock price candles from closing values, green up red down, % change
-market cx cy size k=up|down |text | market 480 270 300 k=up | zig-zag market arrow over bars, green up or red down
-inflation cx cy width pct=100 money=$20 |then,now | inflation 480 280 640 pct=100 |2000,2025 | same banknote buys a smaller basket of food after price rise
-interest x y w h p=100 r=10 n=5 cur=$ |label | interest 120 40 720 460 p=100 r=10 n=8 | simple vs compound interest bars each year, final values
-loan x y w h amt=1000 pay=250 r=0 cur=$ |label | loan 120 40 720 460 amt=1200 pay=200 r=1 | loan balance bars falling with each repayment, months to pay off, total paid
-budget cx cy r cur=$ |Rent:40,Food:25 | budget 480 270 170 |Rent:900,Food:400,Travel:200,Fun:150,Savings:350 | budget pie of categories with amounts legend and total
-cashflow x y w h in=3000,3200 out=2500,3400 cur=$ |names | cashflow 120 40 720 460 in=3000,3200,3100 out=2500,3400,2800 |Jan,Feb,Mar | income vs expenses bars per period, net saved or short above
-savegoal cx cy height pct=60 goal=1000 cur=$ |label | savegoal 480 270 440 pct=60 goal=1000 |New bike | savings goal thermometer filled to a percent, amounts and goal flag
-creditscore cx cy size score=720 min=300 max=850 |band names | creditscore 480 330 420 score=720 | credit score gauge, poor to excellent colour bands, needle, score
-paytax cx cy width pay=3000 tax=20 cur=$ |label | paytax 480 270 640 pay=3000 tax=20 | tax slice cut from a paycheck, take-home and tax amounts
-payslip cx cy size cur=$ month= |Basic_pay:3000,Tax:-600 | payslip 480 270 440 |Basic pay:3000,Overtime:250,Tax:-650,Pension:-150 | payslip with earnings and deductions rows, net pay computed
+market cx cy size k=up|down lab=0 |text | market 480 270 300 k=up | zig-zag market arrow over bars, green up or red down; lab=0 hides its words
+inflation cx cy width pct=100 money=$20 lab=0 |then,now | inflation 480 280 640 pct=100 |2000,2025 | same banknote buys a smaller basket of food after price rise; lab=0 hides its words
+interest x y w h p=100 r=10 n=5 cur=$ lab=0 |label | interest 120 40 720 460 p=100 r=10 n=8 | simple vs compound interest bars each year, final values; lab=0 hides its words
+loan x y w h amt=1000 pay=250 r=0 cur=$ lab=0 |label | loan 120 40 720 460 amt=1200 pay=200 r=1 | loan balance bars falling with each repayment, months to pay off, total paid; lab=0 hides its words
+budget cx cy r cur=$ lab=0 |Rent:40,Food:25 | budget 480 270 170 |Rent:900,Food:400,Travel:200,Fun:150,Savings:350 | budget pie of categories with amounts legend and total; lab=0 hides its words
+cashflow x y w h in=3000,3200 out=2500,3400 cur=$ lab=0 |names | cashflow 120 40 720 460 in=3000,3200,3100 out=2500,3400,2800 |Jan,Feb,Mar | income vs expenses bars per period, net saved or short above; lab=0 hides its words
+savegoal cx cy height pct=60 goal=1000 cur=$ lab=0 |label | savegoal 480 270 440 pct=60 goal=1000 |New bike | savings goal thermometer filled to a percent, amounts and goal flag; lab=0 hides its words
+creditscore cx cy size score=720 min=300 max=850 lab=0 |band names | creditscore 480 330 420 score=720 | credit score gauge, poor to excellent colour bands, needle, score; lab=0 hides its words
+paytax cx cy width pay=3000 tax=20 cur=$ lab=0 |label | paytax 480 270 640 pay=3000 tax=20 | tax slice cut from a paycheck, take-home and tax amounts; lab=0 hides its words
+payslip cx cy size cur=$ month= lab=0 |Basic_pay:3000,Tax:-600 | payslip 480 270 440 |Basic pay:3000,Overtime:250,Tax:-650,Pension:-150 | payslip with earnings and deductions rows, net pay computed; lab=0 hides its words
 invoice cx cy size tax=10 paid=0|1 to= no= cur=$ |Item:500,Item:120 | invoice 480 270 460 tax=10 |Design:500,Hosting:120,Support:80 | invoice table of items, tax, total due computed, optional PAID stamp
 receipt cx cy height tax=0 cur=$ msg= |Milk:2x1.50,Bread:2.25 | receipt 480 270 460 |Milk:2x1.50,Bread:2.25,Apples:3x0.80,Rice:4.10 | shop till receipt, quantity times price lines, total computed
 vault cx cy size k=closed|open |text | vault 480 270 340 k=closed | round bank vault door with wheel and bolts, or open showing gold bars
 atm cx cy height |screen text | atm 480 270 400 | cash machine: screen, keypad, card slot, banknote coming out
-mobilepay cx cy height |amount | mobilepay 480 270 400 |$12.50 | phone showing paid tick and amount, tapped on a card reader
+mobilepay cx cy height lab=0 |amount | mobilepay 480 270 400 |$12.50 | phone showing paid tick and amount, tapped on a card reader; lab=0 hides its words
 exchange cx cy width rate=0.92 |USD,EUR | exchange 480 270 560 rate=0.92 |USD,EUR | currency exchange: two coins, arrows both ways, both rates written
-gdp x y w h vals=25,18,5 pre=$ suf=T sort=1 yl= |names | gdp 120 40 720 460 vals=25,18,5,4,3 suf=T |Land A,Land B,Land C,Land D,Land E | GDP horizontal bars per country with small flags, largest first
-bizcycle x y w h xl= yl= |Boom,Recession,Trough,Recovery | bizcycle 120 50 720 440 | business cycle wave round a rising trend: boom, recession, trough, recovery
-profit cx cy height rev=500 cost=300 cur=$ |label | profit 480 280 400 rev=500 cost=300 | revenue minus cost blocks equal profit, red loss if negative
-breakeven x y w h fixed=200 vc=5 price=10 cur=$ xl= |label | breakeven 120 40 720 460 fixed=200 vc=5 price=10 | break-even chart: cost and revenue lines cross, loss and profit zones
-hockeystick x y w h xl= yl=users |Idea,Launch,Growth | hockeystick 120 50 720 440 |Idea,Launch,Growth | startup hockey-stick growth curve, flat then steep, stages marked
-supplychain cx cy width |Factory,Truck,Shop,Customer | supplychain 480 270 860 | supply chain: factory, truck, shop, customer joined by arrows
-oppcost cx cy size |ChoiceA,ChoiceB | oppcost 480 270 440 |Bike,Books | opportunity cost fork in road: one choice ticked, the other given up
-scarcity cx cy width n=7 items=2 |text | scarcity 480 270 720 n=7 items=2 | scarcity: many hands reach up for a few apples on a shelf
+gdp x y w h vals=25,18,5 pre=$ suf=T sort=1 yl= lab=0 |names | gdp 120 40 720 460 vals=25,18,5,4,3 suf=T |Land A,Land B,Land C,Land D,Land E | GDP horizontal bars per country with small flags, largest first; lab=0 hides its words
+bizcycle x y w h xl= yl= lab=0 |Boom,Recession,Trough,Recovery | bizcycle 120 50 720 440 | business cycle wave round a rising trend: boom, recession, trough, recovery; lab=0 hides its words
+profit cx cy height rev=500 cost=300 cur=$ lab=0 |label | profit 480 280 400 rev=500 cost=300 | revenue minus cost blocks equal profit, red loss if negative; lab=0 hides its words
+breakeven x y w h fixed=200 vc=5 price=10 cur=$ xl= lab=0 |label | breakeven 120 40 720 460 fixed=200 vc=5 price=10 | break-even chart: cost and revenue lines cross, loss and profit zones; lab=0 hides its words
+hockeystick x y w h xl= yl=users lab=0 |Idea,Launch,Growth | hockeystick 120 50 720 440 |Idea,Launch,Growth | startup hockey-stick growth curve, flat then steep, stages marked; lab=0 hides its words
+supplychain cx cy width lab=0 |Factory,Truck,Shop,Customer | supplychain 480 270 860 | supply chain: factory, truck, shop, customer joined by arrows; lab=0 hides its words
+oppcost cx cy size lab=0 |ChoiceA,ChoiceB | oppcost 480 270 440 |Bike,Books | opportunity cost fork in road: one choice ticked, the other given up; lab=0 hides its words
+scarcity cx cy width n=7 items=2 lab=0 |text | scarcity 480 270 720 n=7 items=2 | scarcity: many hands reach up for a few apples on a shelf; lab=0 hides its words
 insurance cx cy size |text | insurance 480 280 420 |Insured | insurance: umbrella shields a house from the rain
 shares cx cy r vals=50,30,20 |names | shares 480 270 170 vals=50,30,20 |Founder,Investors,Staff | company ownership donut of shares round a building, percents and owners
-crowdfund cx cy width raised=7500 goal=10000 backers=120 cur=$ |label | crowdfund 480 270 680 raised=7500 goal=10000 backers=120 | crowdfunding: backers chip in coins, funding bar to goal with percent
+crowdfund cx cy width raised=7500 goal=10000 backers=120 cur=$ lab=0 |label | crowdfund 480 270 680 raised=7500 goal=10000 backers=120 | crowdfunding: backers chip in coins, funding bar to goal with percent; lab=0 hides its words
 pricetag cx cy size was=50 off=20 cur=$ |text | pricetag 480 270 420 was=50 off=20 | sale price tag: old price struck out, new price computed, discount burst
-productbox cx cy size |label | productbox 480 280 360 |Toy | cardboard product box with taped top, front label, this-way-up arrows
+productbox cx cy size lab=0 |label | productbox 480 280 360 |Toy | cardboard product box with taped top, front label, this-way-up arrows; lab=0 hides its words

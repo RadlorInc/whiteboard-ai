@@ -10,6 +10,8 @@ const RAD = Math.PI / 180;
 
 // ── parsing: "| a,b,c" lists, "| head;a,b" groups, "_" = space
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const showLab = o => o.lab !== '0' && o.labels !== '0';   // lab=0 / labels=0 hide the recipe's own words (built-in placeholders too)
+const say = (o, t) => !!t || showLab(o);                  // caller text always shows; built-in placeholder text only with labels on
 const opt = (o, k, d) => (o[k] === undefined || o[k] === '' || !Number.isFinite(+o[k]) ? d : +o[k]);
 const txt = s => String(s ?? '').replace(/_/g, ' ').trim();
 const items = (s, def) => { const a = String(s ?? '').split(',').map(txt).filter(Boolean); return a.length ? a : def; };
@@ -61,7 +63,7 @@ const tick = (g, x, y, s, col, w = 4) => line(g, `M${x - s * .5} ${y} L${x - s *
 const cross = (g, x, y, s, col, w = 4) => line(g, `M${x - s * .4} ${y - s * .4} L${x + s * .4} ${y + s * .4} M${x + s * .4} ${y - s * .4} L${x - s * .4} ${y + s * .4}`, col, w);
 
 // boxes round an ellipse joined by clockwise arrows (stagecycle, feedbackloop)
-const cycle = (g, cx, cy, rx, ry, L) => {
+const cycle = (g, cx, cy, rx, ry, L, words = true) => {
   const n = L.length, P = 2 * Math.PI * Math.sqrt((rx * rx + ry * ry) / 2);
   const bw = clamp(P / n * .62, 96, 200), bh = clamp(bw * .42, 48, 74), pad = 10;
   const at = a => [cx + rx * Math.cos(a * RAD), cy + ry * Math.sin(a * RAD)], A = i => -90 + 360 * i / n;
@@ -71,7 +73,7 @@ const cycle = (g, cx, cy, rx, ry, L) => {
     for (let k = 0; k <= 80; k++) { const p = at(A(i) + 360 / n * k / 80); if (!inBox(p, C[i]) && !inBox(p, C[j])) pts.push(p); }
     if (pts.length > 2) { line(g, polyD(pts, false), K, 3); tip(g, ...pts.at(-1), ...pts.at(-3), K); }
   });
-  L.forEach((s, i) => { box(g, C[i][0] - bw / 2, C[i][1] - bh / 2, bw, bh, i, 14); fit(g, C[i][0], C[i][1], bw - 16, bh - 8, s, K, 28); });
+  L.forEach((s, i) => { box(g, C[i][0] - bw / 2, C[i][1] - bh / 2, bw, bh, i, 14); if (words) fit(g, C[i][0], C[i][1], bw - 16, bh - 8, s, K, 28); });
   return bw;
 };
 
@@ -88,7 +90,7 @@ Object.assign(window.RECIPES, {
     else if (k === 'io') { const s = h * .32; d = `M${x + s} ${y} L${x + w} ${y} L${x + w - s} ${y + h} L${x} ${y + h} Z`; aw = w - 2 * s - 10; }
     else d = rr(x, y, w, h, 8);
     wash(g, d, S[0]); line(g, d, S[1], 3.2);
-    fit(g, cx, cy, aw, ah, t || S[2], K, 30);
+    if (say(o, t)) fit(g, cx, cy, aw, ah, t || S[2], K, 30);
     return g;
   },
 
@@ -118,7 +120,7 @@ Object.assign(window.RECIPES, {
     const g = mk('g', {}, parent), k = o.k || 'box', L = items(t, steps(o, 'Step')), n = L.length, join = txt(o.join);
     if (k === 'chevron') {
       const gap = 6, cw = (w - gap * (n - 1)) / n, nt = Math.min(h * .35, 40, cw * .2);
-      L.forEach((s, i) => { const bx = x + i * (cw + gap), cy = y + h / 2, last = i === n - 1;
+      L.forEach((s, i) => { const bx = x + i * (cw + gap), cy = y + h / 2, last = i === n - 1; if (!say(o, t)) s = '';
         const d = polyD([[bx, y], [bx + cw - (last ? 0 : nt), y], [bx + cw, cy], [bx + cw - (last ? 0 : nt), y + h], [bx, y + h], ...(i ? [[bx + nt, cy]] : [])].filter((p, j, a) => !last || j !== 2));
         wash(g, d, LIGHT[i % 8]); line(g, d, INKS[i % 8], 2.8);
         const l = bx + (i ? nt * .7 : 8), r = bx + cw - (last ? 8 : nt * .7); fit(g, (l + r) / 2, cy, r - l - 6, h - 16, s, K, 32); });
@@ -127,7 +129,7 @@ Object.assign(window.RECIPES, {
     if (k !== 'box' && k !== 'circle') throw new Error(`processrow: unknown k "${k}"`);
     const gap = Math.max(64, join ? tw(join, 20) + 24 : 0), bw = (w - gap * (n - 1)) / n;
     L.forEach((s, i) => {
-      const bx = x + i * (bw + gap);
+      const bx = x + i * (bw + gap); if (!say(o, t)) s = '';
       if (k === 'box') { box(g, bx, y, bw, h, i); fit(g, bx + bw / 2, y + h / 2, bw - 16, h - 12, s, K, 32); }
       else { const r = Math.min(bw / 2, h * .3), cy = y + r;
         disc(g, bx + bw / 2, cy, r, MID[i % 8], INKS[i % 8]); bold(g, bx + bw / 2, cy + r * .32, String(i + 1), '#fff', r * .9);
@@ -142,7 +144,7 @@ Object.assign(window.RECIPES, {
   stagecycle: ([cx = 480, cy = 270, r = 180], o, t, parent) => {
     const g = mk('g', {}, parent), p = parts(t), L = items(p.at(-1), steps(o, 'Stage')), centre = p.length > 1 ? txt(p[0]) : '';
     if (L.length < 2) throw new Error('stagecycle: needs 2+ stages');
-    cycle(g, cx, cy, r * 1.35, r, L);
+    cycle(g, cx, cy, r * 1.35, r, L, !!p.at(-1).trim() || showLab(o));
     if (centre) fit(g, cx, cy, r * 1.1, r * .8, centre, INKS[0], 32, 'middle', true);
     return g;
   },
@@ -153,12 +155,12 @@ Object.assign(window.RECIPES, {
     if (!bal && k !== 'reinforcing') throw new Error(`feedbackloop: unknown k "${k}"`);
     const L = items(t, bal ? ['Room too hot', 'Fan turns on', 'Room cools'] : ['More practice', 'More skill', 'More fun']);
     if (L.length < 2) throw new Error('feedbackloop: needs 2+ parts');
-    cycle(g, cx, cy, w / 2, w * .3, L);
+    cycle(g, cx, cy, w / 2, w * .3, L, say(o, t));
     const col = bal ? INKS[0] : INKS[2], R = 44, a0 = -60, a1 = 230, P = a => [cx + R * Math.cos(a * RAD), cy - 8 + R * Math.sin(a * RAD)];
     line(g, `M${P(a0).join(' ')} A${R} ${R} 0 1 1 ${P(a1).join(' ')}`, col, 3);
     tip(g, ...P(a1), ...P(a1 - 20), col, 3, 11);
     bold(g, cx, cy + 8, bal ? '−' : '+', col, 48);
-    label(g, cx, cy + 70, bal ? 'balancing' : 'reinforcing', col, 26, 'middle');
+    if (showLab(o)) label(g, cx, cy + 70, bal ? 'balancing' : 'reinforcing', col, 26, 'middle');
     return g;
   },
 
@@ -175,7 +177,7 @@ Object.assign(window.RECIPES, {
         line(g, `M${p.x} ${p.y + bh / 2} V${my} H${c.x} V${c.y - bh / 2}`, GREY, 2.6); });
     }
     pos.forEach((r, li) => r.forEach(({ s, x: nx, y: ny, bw }) => { box(g, nx - bw / 2, ny - bh / 2, bw, bh, li, 10);
-      fit(g, nx, ny, bw - 14, bh - 8, s, K, li ? 24 : 28, 'middle', !li); }));
+      if (say(o, t)) fit(g, nx, ny, bw - 14, bh - 8, s, K, li ? 24 : 28, 'middle', !li); }));
     return g;
   },
 
@@ -193,8 +195,8 @@ Object.assign(window.RECIPES, {
       line(g, `M${s.join(' ')} Q${m.join(' ')} ${e.join(' ')}`, INKS[i % 8], 4);
     });
     wash(g, ring(cx, cy, ew / 2, eh / 2), '#fff0a6'); line(g, ring(cx, cy, ew / 2, eh / 2), INKS[4], 3.4);
-    fit(g, cx, cy, ew - 40, eh - 20, c, K, 32, 'middle', true);
-    N.forEach(([nx, ny], i) => { box(g, nx - bw / 2, ny - bh / 2, bw, bh, i, bh / 2); fit(g, nx, ny, bw - 26, bh - 8, L[i], K, 24); });
+    if (p.length > 1 || showLab(o)) fit(g, cx, cy, ew - 40, eh - 20, c, K, 32, 'middle', true);
+    N.forEach(([nx, ny], i) => { box(g, nx - bw / 2, ny - bh / 2, bw, bh, i, bh / 2); if (say(o, t)) fit(g, nx, ny, bw - 26, bh - 8, L[i], K, 24); });
     return g;
   },
 
@@ -212,10 +214,11 @@ Object.assign(window.RECIPES, {
       const cx = x + j * (cw + gap), c = ci[j];
       wash(g, rr(cx, y, cw, h, 16), PAPER); wash(g, rr(cx, y, cw, 64, 16), LIGHT[c]);
       line(g, rr(cx, y, cw, h, 16), INKS[c], 3); line(g, `M${cx} ${y + 64} H${cx + cw}`, INKS[c], 2.4);
-      fit(g, cx + cw / 2, y + 33, cw - 30, 52, col[0], INKS[c], 32, 'middle', true);
+      const sw = (t && t.includes(';')) || showLab(o);
+      if (sw) fit(g, cx + cw / 2, y + 33, cw - 30, 52, col[0], INKS[c], 32, 'middle', true);
       col.slice(1).forEach((s, i) => { const ry = y + 90 + rowH * (i + .5) - 10;
         if (k === 'proscons') (j ? cross : tick)(g, cx + 30, ry, 24, INKS[c], 3.6); else disc(g, cx + 30, ry, 7, MID[c], INKS[c]);
-        fit(g, cx + 54, ry, cw - 72, rowH - 6, s, K, 30, 'start'); });
+        if (sw) fit(g, cx + 54, ry, cw - 72, rowH - 6, s, K, 30, 'start'); });
     });
     const mx = x + w / 2, my = y + h / 2;
     if (k === 'versus') { disc(g, mx, my, 34, '#fff0a6', INKS[4]); bold(g, mx, my + 9, 'VS', INKS[3], 26); }
@@ -233,7 +236,7 @@ Object.assign(window.RECIPES, {
       const bx = x + (i % cols) * (cw + gap), by = y0 + Math.floor(i / cols) * (ch + gap), [hd, ...rest] = s.split(':'), body = rest.join(':').trim();
       box(g, bx, by, cw, ch, i, 14);
       if (o.num === '1') { disc(g, bx + 24, by + 24, 15, MID[i % 8], INKS[i % 8]); bold(g, bx + 24, by + 31, String(i + 1), '#fff', 20); }
-      if (body) { fit(g, bx + cw / 2, by + ch * .32, cw - (o.num === '1' ? 70 : 24), ch * .36, hd, INKS[i % 8], 28, 'middle', true);
+      if (!say(o, t)) {} else if (body) { fit(g, bx + cw / 2, by + ch * .32, cw - (o.num === '1' ? 70 : 24), ch * .36, hd, INKS[i % 8], 28, 'middle', true);
         fit(g, bx + cw / 2, by + ch * .7, cw - 24, ch * .5, body, K, 26); }
       else fit(g, bx + cw / 2, by + ch / 2, cw - 24, ch - 16, hd, K, 28, 'middle', true);
     });
@@ -248,9 +251,9 @@ Object.assign(window.RECIPES, {
       const top = y + i * (bandH + gap), bot = top + bandH, d = polyD([[cx - hw(top - y), top], [cx + hw(top - y), top], [cx + hw(bot - y), bot], [cx - hw(bot - y), bot]]);
       wash(g, d, MID[i % 8], { opacity: .8 }); line(g, d, INKS[i % 8], 2.8);
       const ty = i ? (top + bot) / 2 : top + bandH * .66, room = 2 * hw(ty - y) * .78;
-      if (room >= 110) fit(g, cx, ty, room, bandH - 10, s, K, 28, 'middle', true);
+      if (room >= 110) { if (say(o, t)) fit(g, cx, ty, room, bandH - 10, s, K, 28, 'middle', true); }
       else { const ex = cx + hw(ty - y) + 8; line(g, `M${ex} ${ty} L${cx + w / 2 + 14} ${ty}`, GREY, 2);
-        bold(g, cx + w / 2 + 22, ty + 8, txt(s), INKS[i % 8], 24, 'start'); }
+        if (say(o, t)) bold(g, cx + w / 2 + 22, ty + 8, txt(s), INKS[i % 8], 24, 'start'); }
     });
     return g;
   },
@@ -262,7 +265,7 @@ Object.assign(window.RECIPES, {
     L.forEach((s, i) => {
       const top = y + i * (bandH + gap), bot = top + bandH, d = polyD([[cx - hw(top - y), top], [cx + hw(top - y), top], [cx + hw(bot - y), bot], [cx - hw(bot - y), bot]]);
       wash(g, d, MID[i % 8], { opacity: .8 }); line(g, d, INKS[i % 8], 2.8);
-      fit(g, cx, (top + bot) / 2, 2 * hw(bot - y) - 24, bandH - 10, s, K, 28, 'middle', true);
+      if (say(o, t)) fit(g, cx, (top + bot) / 2, 2 * hw(bot - y) - 24, bandH - 10, s, K, 28, 'middle', true);
       if (V[i]) bold(g, cx + hw(top - y) + 18, (top + bot) / 2 + 9, txt(V[i]), INKS[i % 8], 26, 'start');
     });
     return g;
@@ -281,7 +284,7 @@ Object.assign(window.RECIPES, {
       wash(g, d, slab ? MID[c] : LIGHT[c], slab ? { opacity: .75 } : {}); line(g, d, INKS[c], 2.8);
       const nx = o.num === '1' ? 56 : 0;
       if (nx) bold(g, x + 28, top + fh / 2 + 10, String(n - i), INKS[c], 28);
-      fit(g, x + nx + (fw - nx) / 2, top + fh / 2, fw - nx - 24, fh - 8, s, K, 28, 'middle', true);
+      if (say(o, t)) fit(g, x + nx + (fw - nx) / 2, top + fh / 2, fw - nx - 24, fh - 8, s, K, 28, 'middle', true);
     });
     return g;
   },
@@ -290,7 +293,7 @@ Object.assign(window.RECIPES, {
   concentric: ([cx = 480, cy = 270, r = 230], o, t, parent) => {
     const g = mk('g', {}, parent), L = items(t, ['Me', 'Family', 'School', 'Town', 'World']), n = L.length, R = i => r * (i + 1) / n;
     for (let i = n - 1; i >= 0; i--) { wash(g, ring(cx, cy, R(i)), LIGHT[i % 8]); line(g, ring(cx, cy, R(i)), INKS[i % 8], 2.8); }
-    L.forEach((s, i) => { const band = r / n;
+    L.forEach((s, i) => { const band = r / n; if (!say(o, t)) return;
       if (!i) fit(g, cx, cy, R(0) * 1.6, R(0) * 1.2, s, K, 28, 'middle', true);
       else fit(g, cx, cy - R(i) + band / 2, Math.sqrt(R(i) ** 2 - (R(i) - band / 2) ** 2) * 1.6, band - 6, s, INKS[i % 8], 26, 'middle', true); });
     return g;
@@ -301,12 +304,12 @@ Object.assign(window.RECIPES, {
     const g = mk('g', {}, parent), p = parts(t), eff = p.length > 1 ? txt(p[0]) : 'Plant wilts', C = items(p.at(-1), ['No water', 'Too much sun', 'Poor soil']), n = C.length;
     const cw = w * .36, ew = w * .3, eh = Math.min(150, h * .45), gap = 14, ch = Math.min(90, (h - 40 - gap * (n - 1)) / n);
     const ex = x + w - ew, ey = y + 20 + (h - 20) / 2 - eh / 2, top = y + 20 + (h - 20 - n * ch - (n - 1) * gap) / 2;
-    label(g, x + cw / 2, y + 12, 'causes', GREY, 26, 'middle'); label(g, ex + ew / 2, ey - 14, 'effect', GREY, 26, 'middle');
+    if (showLab(o)) { label(g, x + cw / 2, y + 12, 'causes', GREY, 26, 'middle'); label(g, ex + ew / 2, ey - 14, 'effect', GREY, 26, 'middle'); }
     C.forEach((s, i) => { const by = top + i * (ch + gap), cy = by + ch / 2, ty = ey + eh * (i + 1) / (n + 1);
-      box(g, x, by, cw, ch, i, 12); fit(g, x + cw / 2, cy, cw - 20, ch - 10, s, K, 30);
+      box(g, x, by, cw, ch, i, 12); if (say(o, t)) fit(g, x + cw / 2, cy, cw - 20, ch - 10, s, K, 30);
       arrow(g, x + cw + 8, cy, ex - 8, ty, INKS[i % 8], 3); });
     wash(g, rr(ex, ey, ew, eh, 16), '#f9cdc4'); line(g, rr(ex, ey, ew, eh, 16), INKS[3], 3.4);
-    fit(g, ex + ew / 2, ey + eh / 2, ew - 24, eh - 16, eff, K, 32, 'middle', true);
+    if (say(o, t)) fit(g, ex + ew / 2, ey + eh / 2, ew - 24, eh - 16, eff, K, 32, 'middle', true);
     return g;
   },
 
@@ -317,16 +320,16 @@ Object.assign(window.RECIPES, {
     const hw = w * .19, hh = Math.min(120, h * .3), cy = y + h / 2, sx = x + 30, se = x + w - hw - 8, m = Math.ceil(C.length / 2);
     line(g, `M${sx} ${cy} L${se} ${cy}`, K, 4.4); line(g, `M${sx} ${cy} L${sx - 24} ${cy - 30} M${sx} ${cy} L${sx - 24} ${cy + 30}`, K, 3.4);
     wash(g, rr(x + w - hw, cy - hh / 2, hw, hh, 14), '#f9cdc4'); line(g, rr(x + w - hw, cy - hh / 2, hw, hh, 14), INKS[3], 3.2);
-    fit(g, x + w - hw / 2, cy, hw - 20, hh - 14, prob, K, 28, 'middle', true);
+    if (say(o, t)) fit(g, x + w - hw / 2, cy, hw - 20, hh - 14, prob, K, 28, 'middle', true);
     const reach = h / 2 - 34, slant = reach * .55, span = se - sx - 30;
     C.forEach(([cat, ...subs], i) => {
       const up = i % 2 === 0, j = Math.floor(i / 2), ax = sx + 30 + span * (j + 1) / (m + .4), s = up ? -1 : 1;
       const ex = ax - slant, ey = cy + s * reach, c = i % 8, cbw = Math.min(170, span / m - 10);
       line(g, `M${ax} ${cy} L${ex} ${ey}`, INKS[c], 3.2);
-      box(g, ex - cbw / 2, up ? ey - 44 : ey, cbw, 44, c, 10); fit(g, ex, up ? ey - 22 : ey + 22, cbw - 12, 38, cat, K, 26, 'middle', true);
+      box(g, ex - cbw / 2, up ? ey - 44 : ey, cbw, 44, c, 10); if (say(o, t)) fit(g, ex, up ? ey - 22 : ey + 22, cbw - 12, 38, cat, K, 26, 'middle', true);
       subs.slice(0, 3).forEach((sb, k) => { const f = (k + 1) / (Math.min(3, subs.length) + 1), py = cy + s * reach * (1 - f);
         const qx = ax - slant * (1 - f), sl = Math.min(170, tw(sb, 22) + 16); line(g, `M${qx} ${py} L${qx - sl} ${py}`, INKS[c], 2.2);
-        fit(g, qx - 8, up ? py + 16 : py - 14, 170, 26, sb, K, 22, 'end'); });
+        if (say(o, t)) fit(g, qx - 8, up ? py + 16 : py - 14, 170, 26, sb, K, 22, 'end'); });
     });
     return g;
   },
@@ -340,7 +343,7 @@ Object.assign(window.RECIPES, {
       const up = i % 2 === 0, c = i % 8, [a, ...b] = s.split(':'), what = b.join(':').trim(), bx = clamp(X(i) - cw / 2, x - 20, x + w + 20 - cw), by = up ? y - 50 - chh : y + 50;
       line(g, `M${X(i)} ${y} L${X(i)} ${up ? y - 50 : y + 50}`, INKS[c], 2.4);
       disc(g, X(i), y, 9, MID[c], INKS[c]); box(g, bx, by, cw, chh, c, 12);
-      if (what) { bold(g, bx + cw / 2, by + 30, txt(a), INKS[c], 26); fit(g, bx + cw / 2, by + 60, cw - 16, 36, what, K, 26); }
+      if (!say(o, t)) {} else if (what) { bold(g, bx + cw / 2, by + 30, txt(a), INKS[c], 26); fit(g, bx + cw / 2, by + 60, cw - 16, 36, what, K, 26); }
       else fit(g, bx + cw / 2, by + chh / 2, cw - 16, chh - 12, a, K, 28);
     });
     return g;
@@ -356,10 +359,10 @@ Object.assign(window.RECIPES, {
     if (o.u) label(g, ax - 14, y + 26, txt(o.u), GREY, 22, 'end');
     line(g, `M${ax} ${top - 6} H${ax + aw}`, K, 2.4);
     R.forEach(([nm, a, b], i) => { const ry = top + i * rowH, c = i % 8, bx = X(+a), bw = Math.max(8, X(+b) - X(+a));
-      fit(g, ax - 14, ry + rowH / 2, nw - 20, rowH - 6, nm, K, 28, 'end');
+      if (say(o, t)) fit(g, ax - 14, ry + rowH / 2, nw - 20, rowH - 6, nm, K, 28, 'end');
       wash(g, rr(bx, ry + rowH * .18, bw, rowH * .64, 8), MID[c], { opacity: .85 }); line(g, rr(bx, ry + rowH * .18, bw, rowH * .64, 8), INKS[c], 2.6); });
     if (o.now !== undefined && Number.isFinite(+o.now)) { const nx = X(+o.now);
-      line(g, dashD([[nx, top - 14], [nx, top + n * rowH + 6]]), INKS[3], 3); label(g, nx, top + n * rowH + 32, 'now', INKS[3], 26, 'middle'); }
+      line(g, dashD([[nx, top - 14], [nx, top + n * rowH + 6]]), INKS[3], 3); if (showLab(o)) label(g, nx, top + n * rowH + 32, 'now', INKS[3], 26, 'middle'); }
     return g;
   },
 
@@ -369,10 +372,10 @@ Object.assign(window.RECIPES, {
     const bx = x + 44, bw = w - 44, bh = h - 44, qw = bw / 2, qh = bh / 2;
     [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(([cx, cy], i) => { const qx = bx + cx * qw, qy = y + cy * qh, c = [0, 3, 6, 1][i];
       wash(g, rr(qx + 4, qy + 4, qw - 8, qh - 8, 12), LIGHT[c]); line(g, rr(qx + 4, qy + 4, qw - 8, qh - 8, 12), INKS[c], 2.6);
-      fit(g, qx + qw / 2, qy + qh / 2, qw - 40, qh - 30, Q[i] || '', K, 32, 'middle', true); });
+      if (p[0] || showLab(o)) fit(g, qx + qw / 2, qy + qh / 2, qw - 40, qh - 30, Q[i] || '', K, 32, 'middle', true); });
     arrow(g, bx, y + bh + 14, bx + bw, y + bh + 14, K, 3); arrow(g, bx - 14, y + bh, bx - 14, y, K, 3);
-    label(g, bx + bw / 2, y + bh + 42, A[0] || '', INKS[0], 24, 'middle');
-    if (A[1]) label(g, bx - 26, y + bh / 2, A[1], INKS[0], 24, 'middle').setAttribute('transform', `rotate(-90 ${bx - 26} ${y + bh / 2})`);
+    if (p[1] || showLab(o)) label(g, bx + bw / 2, y + bh + 42, A[0] || '', INKS[0], 24, 'middle');
+    if (A[1] && (p[1] || showLab(o))) label(g, bx - 26, y + bh / 2, A[1], INKS[0], 24, 'middle').setAttribute('transform', `rotate(-90 ${bx - 26} ${y + bh / 2})`);
     return g;
   },
 
@@ -382,7 +385,7 @@ Object.assign(window.RECIPES, {
     const C = ['#7fb7ea', '#9fd3c7', '#ffd84a', '#f4a531', '#e04b3a'], sw = w / C.length, bh = 40;
     C.forEach((c, i) => wash(g, rr(x + i * sw, y, sw, bh, i === 0 || i === C.length - 1 ? 14 : 0), c));
     line(g, rr(x, y, w, bh, 16), K, 3);
-    E.forEach((s, i) => label(g, x + (E.length === 1 ? .5 : i / (E.length - 1)) * w, y + bh + 34, s, K, 24, E.length === 1 ? 'middle' : i === 0 ? 'start' : i === E.length - 1 ? 'end' : 'middle'));
+    if (p[0] || showLab(o)) E.forEach((s, i) => label(g, x + (E.length === 1 ? .5 : i / (E.length - 1)) * w, y + bh + 34, s, K, 24, E.length === 1 ? 'middle' : i === 0 ? 'start' : i === E.length - 1 ? 'end' : 'middle'));
     const mx = x + at * w, d = `M${mx} ${y - 4} L${mx - 16} ${y - 30} L${mx + 16} ${y - 30} Z`;
     wash(g, d, '#e04b3a'); line(g, d, INKS[3], 2.8); line(g, `M${mx} ${y - 2} L${mx} ${y + bh + 2}`, INKS[3], 3);
     if (cap) bold(g, clamp(mx, x + tw(cap, 26) / 2, x + w - tw(cap, 26) / 2), y - 44, cap, INKS[3], 26);
@@ -399,7 +402,7 @@ Object.assign(window.RECIPES, {
     line(g, Array.from({ length: 11 }, (_, i) => { const a = 180 - i * 18; return `M${P(r2, a).join(' ')} L${P(r2 + (i % 5 ? 12 : 22), a).join(' ')}`; }).join(' '), K, 2.2);
     const a = 180 - v * 180, nt = P(r * .9, a);
     line(g, `M${cx} ${cy} L${nt.join(' ')}`, K, 5); disc(g, cx, cy, 14, '#5b6670', K);
-    label(g, cx - r * .81, cy + 34, E[0], K, 24, 'middle'); label(g, cx + r * .81, cy + 34, E.at(-1), K, 24, 'middle');
+    if (p[0] || showLab(o)) { label(g, cx - r * .81, cy + 34, E[0], K, 24, 'middle'); label(g, cx + r * .81, cy + 34, E.at(-1), K, 24, 'middle'); }
     if (cap) bold(g, cx, cy + 52, cap, INKS[0], 30);
     return g;
   },
@@ -414,7 +417,7 @@ Object.assign(window.RECIPES, {
       if (i < done) { disc(g, X(i), y, r, MID[2], INKS[2]); tick(g, X(i), y, 30, '#fff', 5); }
       else if (i === done) { disc(g, X(i), y, r, '#fff0a6', INKS[1]); line(g, ring(X(i), y, r + 7), INKS[1], 2.4); bold(g, X(i), y + 9, String(i + 1), INKS[1], 26); }
       else { disc(g, X(i), y, r, '#eef1f4', '#aab3bb'); bold(g, X(i), y + 9, String(i + 1), GREY, 26); }
-      fit(g, X(i), y + r + 44, Math.min(sp - 10, 200), 56, s, i <= done ? K : GREY, 24);
+      if (say(o, t)) fit(g, X(i), y + r + 44, Math.min(sp - 10, 200), 56, s, i <= done ? K : GREY, 24);
     });
     return g;
   },
@@ -423,10 +426,10 @@ Object.assign(window.RECIPES, {
   ipo: ([x = 60, y = 130, w = 840, h = 260], o, t, parent) => {
     const g = mk('g', {}, parent), p = parts(t || 'Flour, eggs, milk;Mix and cook;Pancakes'), H = ['INPUT', 'PROCESS', 'OUTPUT'], C = [0, 1, 2], gap = 60, bw = (w - 2 * gap) / 3;
     H.forEach((hd, i) => { const bx = x + i * (bw + gap), c = C[i];
-      label(g, bx + bw / 2, y + 26, hd, INKS[c], 24, 'middle').setAttribute('font-weight', 700);
+      if (showLab(o)) label(g, bx + bw / 2, y + 26, hd, INKS[c], 24, 'middle').setAttribute('font-weight', 700);
       const d = i === 1 ? rr(bx, y + 44, bw, h - 44, 18) : polyD(i ? [[bx, y + 44], [bx + bw - 24, y + 44], [bx + bw, y + 44 + (h - 44) / 2], [bx + bw - 24, y + h], [bx, y + h]] : [[bx, y + 44], [bx + bw, y + 44], [bx + bw, y + h], [bx, y + h], [bx + 24, y + 44 + (h - 44) / 2]]);
       wash(g, d, LIGHT[c]); line(g, d, INKS[c], 3);
-      fit(g, bx + bw / 2, y + 44 + (h - 44) / 2, bw - 60, h - 64, p[i] || '…', K, 28);
+      if (say(o, t)) fit(g, bx + bw / 2, y + 44 + (h - 44) / 2, bw - 60, h - 64, p[i] || '…', K, 28);
       if (i < 2) arrow(g, bx + bw + 10, y + 44 + (h - 44) / 2, bx + bw + gap - 10, y + 44 + (h - 44) / 2, K, 3.4); });
     return g;
   },
@@ -440,7 +443,7 @@ Object.assign(window.RECIPES, {
       : [...N.map((_, i) => [i, (i + 1) % n]).slice(0, n > 2 ? n : 1), ...(hub ? N.map((_, i) => [i, n]) : N.map((_, i) => [i, (i + 2) % n]).filter((_, i) => n > 4 && i % 2 === 0))];
     E.forEach(([a, b]) => { const [x0, y0] = all[a], [x1, y1] = all[b], D = Math.hypot(x1 - x0, y1 - y0), ra = a === n && hub ? 54 : nr, rb = b === n && hub ? 54 : nr;
       line(g, `M${x0 + (x1 - x0) * ra / D} ${y0 + (y1 - y0) * ra / D} L${x1 - (x1 - x0) * rb / D} ${y1 - (y1 - y0) * rb / D}`, GREY, 3); });
-    N.forEach(([nx, ny], i) => { disc(g, nx, ny, nr, LIGHT[i % 8], INKS[i % 8]); fit(g, nx, ny, nr * 1.7, nr * 1.2, L[i], K, 26, 'middle', true); });
+    N.forEach(([nx, ny], i) => { disc(g, nx, ny, nr, LIGHT[i % 8], INKS[i % 8]); if (say(o, t)) fit(g, nx, ny, nr * 1.7, nr * 1.2, L[i], K, 26, 'middle', true); });
     if (hub) { disc(g, cx, cy, 54, '#fff0a6', INKS[4]); fit(g, cx, cy, 92, 64, hub, K, 26, 'middle', true); }
     return g;
   },
@@ -462,7 +465,7 @@ Object.assign(window.RECIPES, {
       const dx = px - ecx, dy = py - ecy, D = Math.hypot(dx, dy) || 1, e = boxExt(dx / D, dy / D, w / 2, h / 2) * .95;
       [[.3, 13], [.62, 9], [.9, 6]].forEach(([f, cr]) => { const u = e + (D - e) * f, qx = ecx + dx / D * u, qy = ecy + dy / D * u; wash(g, ring(qx, qy, cr), '#ffffff'); line(g, ring(qx, qy, cr), K, 2.6); });
     } else throw new Error(`callout: unknown k "${k}"`);
-    fit(g, x + w / 2, y + h / 2, w - 50, h - 30, t || 'Did you know?', K, 30);
+    if (say(o, t)) fit(g, x + w / 2, y + h / 2, w - 50, h - 30, t || 'Did you know?', K, 30);
     return g;
   },
 
@@ -475,7 +478,7 @@ Object.assign(window.RECIPES, {
     wash(g, d, C[0]); line(g, d, C[1], 2.6);
     wash(g, `M${s} ${s - f} L${s - f} ${s - f} L${s - f} ${s} Z`, C[1], { opacity: .45 }); line(g, `M${s} ${s - f} L${s - f} ${s - f} L${s - f} ${s}`, C[1], 2.2);
     const tp = `M${-S * .17} ${-s - 14} H${S * .17} V${-s + 14} H${-S * .17} Z`; wash(g, tp, '#e8e2d0', { opacity: .75 }); line(g, tp, '#b9b19a', 1.6);
-    fit(g, 0, 4, S * .8, S * .66, t || 'Remember this!', K, 34);
+    if (say(o, t)) fit(g, 0, 4, S * .8, S * .66, t || 'Remember this!', K, 34);
     return g;
   },
 
@@ -487,7 +490,7 @@ Object.assign(window.RECIPES, {
     if (ttl) { fit(g, x + w / 2, y + 36, w - 40, 44, ttl, INKS[0], 32, 'middle', true); line(g, `M${x + 24} ${y + 64} H${x + w - 24}`, INKS[0], 2.2); }
     L.forEach((s, i) => { const ry = y + head + rowH * (i + .5) + 4;
       disc(g, x + 38, ry, 18, MID[i % 8], INKS[i % 8]); bold(g, x + 38, ry + 8, String(i + 1), '#fff', 24);
-      fit(g, x + 70, ry, w - 92, rowH - 6, s, K, 30, 'start'); });
+      if (say(o, t)) fit(g, x + 70, ry, w - 92, rowH - 6, s, K, 30, 'start'); });
     return g;
   },
 
@@ -562,20 +565,20 @@ Object.assign(window.RECIPES, {
     [[y, qh, 'Q', 0, p[0]], [y + qh + gap, ah, 'A', 2, p[1] || '…']].forEach(([by, bh, b, c, s]) => {
       wash(g, rr(x, by, w, bh, 16), LIGHT[c]); line(g, rr(x, by, w, bh, 16), INKS[c], 3);
       disc(g, x + 44, by + bh / 2, 26, MID[c], INKS[c]); bold(g, x + 44, by + bh / 2 + 11, b, '#fff', 32);
-      fit(g, x + 86, by + bh / 2, w - 110, bh - 24, s, K, b === 'Q' ? 40 : 34, 'start', b === 'Q'); });
+      if (say(o, t)) fit(g, x + 86, by + bh / 2, w - 110, bh - 24, s, K, b === 'Q' ? 40 : 34, 'start', b === 'Q'); });
     return g;
   },
 
   // "termcard x y w h | Term;definition;example" — index card: term on top, ruled definition, e.g. line
   termcard: ([x = 200, y = 80, w = 560, h = 360], o, t, parent) => {
     const g = mk('g', {}, parent), p = parts(t || 'Habitat;The natural home of a plant or animal;A pond for a frog');
-    const ex = p[2] ? txt(p[2]).replace(/^(e\.g\.?\s*)?/i, 'e.g. ') : '';
+    const ex = p[2] ? txt(p[2]).replace(/^(e\.g\.?\s*)?/i, showLab(o) ? 'e.g. ' : '') : '';
     wash(g, rr(x + 6, y + 8, w, h, 10), '#000', { opacity: .1 }); wash(g, rr(x, y, w, h, 10), PAPER); line(g, rr(x, y, w, h, 10), '#9aa4ad', 2.6);
     line(g, Array.from({ length: Math.floor((h - 110) / 42) }, (_, i) => `M${x + 20} ${y + 120 + i * 42} H${x + w - 20}`).join(' '), '#bcd6ee', 1.4);
     line(g, `M${x + 16} ${y + 80} H${x + w - 16}`, INKS[3], 2.4);
-    fit(g, x + w / 2, y + 44, w - 40, 56, p[0], INKS[0], 40, 'middle', true);
-    fit(g, x + w / 2, y + 80 + (h - 80 - (ex ? 56 : 0)) / 2, w - 50, h - 100 - (ex ? 56 : 0), p[1] || '…', K, 36);
-    if (ex) fit(g, x + w / 2, y + h - 32, w - 50, 40, ex, INKS[2], 28);
+    if (say(o, t)) fit(g, x + w / 2, y + 44, w - 40, 56, p[0], INKS[0], 40, 'middle', true);
+    if (say(o, t)) fit(g, x + w / 2, y + 80 + (h - 80 - (ex ? 56 : 0)) / 2, w - 50, h - 100 - (ex ? 56 : 0), p[1] || '…', K, 36);
+    if (ex && say(o, t)) fit(g, x + w / 2, y + h - 32, w - 50, 40, ex, INKS[2], 28);
     return g;
   },
 });

@@ -91,7 +91,7 @@ const RULES = wbRules(WB_LIB);
 // Each subject prompt lists only its categories (plus the shared diagrams) and adds how to teach that subject.
 // find_drawing searches the same categories. Each is its own prompt cache entry (its own prompt_sha).
 const SUBJECTS = {
-  biology: { cats: ['anatomy', 'servier', 'servier-chem', 'biology', 'biouni', 'biogr', 'life', 'cells', 'body', 'health', 'world', 'earth', 'diagrams'], teach: `
+  biology: { cats: ['anatomy', 'servier', 'servier-chem', 'servier-phys', 'servier-car', 'servier-home', 'objects', 'biology', 'biouni', 'biogr', 'life', 'cells', 'body', 'health', 'world', 'earth', 'diagrams'], teach: `
 - Teaching biology: name the real structures with their proper names (labelled drawings, lab=1), then show what they
   do: follow one thing (blood, air, food, a nerve signal, water, sugar) as it travels through them with travel or go.
   For these topics use the detailed diagrams: heartsection, circulation, breathing, gut, reflexarc, dnaladder,
@@ -145,7 +145,7 @@ const SUBJECTS = {
   when one fits. Only when none fits, draw it yourself the way a textbook would (the layers below): never a plain
   circle or box standing in for a body part (an alveolus is a cluster of round sacs on a branching tube; a cell is a
   soft blob with a nucleus and organelles).` },
-  physics: { cats: ['physics', 'phys', 'physuni', 'physadv', 'physgr', 'servier-phys', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
+  physics: { cats: ['anatomy', 'physics', 'phys', 'physuni', 'physadv', 'physgr', 'servier-phys', 'servier', 'servier-chem', 'servier-car', 'servier-home', 'objects', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
 - Teaching physics: show the cause and the effect, with forces, energy and waves drawn as arrows. Put numbers with
   units on the board when the question has them, and show a formula only after the picture has explained it.
 - Match the depth to the asker (the app serves school students and university physics majors): a school question gets
@@ -163,7 +163,7 @@ const SUBJECTS = {
   Everyday objects the lesson talks about (a bulb, a magnet, a rocket, a bicycle, a guitar, a planet, a moon phase, a
   stopwatch) are colour drawings: search "<thing> colour" and draw with "sv id=<name> cx cy height", one or two per
   lesson, beside the diagram, never instead of it.` },
-  chemistry: { cats: ['servier-chem', 'chemistry', 'chemuni', 'chemgr', 'earth', 'math', 'diagrams'], teach: `
+  chemistry: { cats: ['anatomy', 'servier-chem', 'servier', 'servier-phys', 'servier-car', 'servier-home', 'objects', 'chemistry', 'chemuni', 'chemgr', 'earth', 'math', 'diagrams'], teach: `
 - Teaching chemistry: show the particles (atoms, molecules, ions) and what changes and what stays the same. Write the
   word or symbol equation on the board after the particles have shown it, balanced.
 - Match the depth to the asker (the app serves high-school, AP and college chemistry students): a school question gets
@@ -177,7 +177,7 @@ const SUBJECTS = {
   an amino acid) is a drawn structure: search "<name> structure" and draw it with sv.` },
   // Everyday fixes (founder, 20 Oct 2026): any real-life "how to", not only school. Two subjects, so a home question
   // never loads car drawings and the other way round.
-  car: { cats: ['carfix', 'servier-car', 'engineering', 'tech', 'daily', 'diagrams'], teach: `
+  car: { cats: ['anatomy', 'carfix', 'servier-car', 'servier-home', 'servier-phys', 'servier', 'servier-chem', 'objects', 'engineering', 'tech', 'daily', 'diagrams'], teach: `
 - Teaching car: (car care and fixes, for any driver, not mechanics) show the job as the steps a person really does,
   in order: what you need first (tools and parts, drawn), where it is on the car, then each action on the part it
   touches. Everyday names first, the proper name beside them (the lug nuts, the oil drain plug).
@@ -186,11 +186,13 @@ const SUBJECTS = {
   needs a mechanic (brakes feel wrong, a red warning light stays on, airbags, a fuel smell), say so plainly.
 - Numbers go on the board with units (tire pressure in psi, oil in quarts, torque in ft-lb), but never invent one
   car's values: say where to read them (the owner's manual, the sticker in the driver's door jamb).
-- Recipes (carfix): car (k=side|jacked), tire (k=good|flat), lugwrench, jack (up=), lugorder (the star order for
-  tightening lug nuts), warntriangle, enginebay, dipstick (level=), oildrain (flow=1), oilfilter, oilbottle.
+- Car how-to diagrams (carfix): car (k=side|jacked), lugwrench, lugorder (the star order for tightening lug nuts),
+  warntriangle, enginebay, dipstick (level=), oildrain (flow=1), oilfilter, oilbottle, jumpstart (the clamp order),
+  treaddepth, wiper, dashlight (k=engine|oil|battery|temp|brake|tpms), airfilter, fusebox, gearstick, muffler.
+  Shared objects (objects): tire, jack, carbattery, tiregauge, brakes, radiator, belt, headlight, handtool, toolbox.
   Other real parts and tools (a battery, jumper cables, a spark plug, a brake disc, a tire gauge, a wiper) are
   realistic drawings: search find_drawing "<thing> car" and draw with "sv id=<name> cx cy height", one or two big.` },
-  home: { cats: ['homefix', 'servier-home', 'daily', 'tech', 'diagrams'], teach: `
+  home: { cats: ['anatomy', 'homefix', 'servier-home', 'servier-car', 'servier-phys', 'servier', 'servier-chem', 'objects', 'daily', 'tech', 'diagrams'], teach: `
 - Teaching home: (home fixes and everyday how-to) show the job as the steps a person really does, in order: what
   you need first (tools and parts, drawn), where it is in the home, then each action on the part it touches.
   Everyday names first, the proper name beside them (the flapper, the shutoff valve).
@@ -198,9 +200,11 @@ const SUBJECTS = {
   is off), water off at the shutoff valve before opening a pipe, a steady ladder, never mix cleaning chemicals
   (bleach with ammonia or acids). A gas smell: leave and call the gas company. Wiring past a switch, outlet or
   breaker reset, gas lines and anything structural: say a licensed pro should do it.
-- Recipes (homefix): tieknot (k=1|2|3|4, the four steps of tying a tie), breaker (trip=N), ptrap (leak=1),
-  smokealarm (k=ok|beep), handtool (k=hammer|screwdriver|wrench|pliers); rooms and appliances are in daily (sink,
-  washer, door, lamp, stove). Other real fixtures and tools (a toilet tank, a faucet, an outlet, a plunger, a stud
+- Home how-to diagrams (homefix): tieknot (k=1|2|3|4, the four steps of tying a tie), breaker (trip=N), ptrap
+  (leak=1), toilettank (k=ok|running), studfinder, furnacefilter, caulkgun, drywall (k=hole|patch), paintroller.
+  Shared objects (objects): handtool (k=hammer|screwdriver|wrench|pliers), toolbox, tapemeasure, spiritlevel, ladder,
+  outlet (k=standard|gfci), lightswitch, thermostat, smokealarm, waterheater, iron, plunger, shutoff, extinguisher
+  (k=plain|1|2|3|4, PASS), wallstuds; rooms and appliances are in daily (sink, washer, door, lamp, stove). Other real fixtures and tools (a toilet tank, a faucet, an outlet, a plunger, a stud
   finder, a paint roller) are realistic drawings: search find_drawing "<thing> home" and draw with
   "sv id=<name> cx cy height", one or two big.` },
 };
@@ -261,8 +265,15 @@ const FIX_OWN = `
   4. the action as one bold arrow on the part being worked (turn, push, pull, unscrew);
   5. every part named with text beside it and a thin leader line.` + OWN_NAMES;
 DRAW_OWN.car = FIX_OWN; DRAW_OWN.home = FIX_OWN;
+// Reuse (founder, 20 Oct 2026): every drawing is an object any lesson may use; the model names its parts itself.
+const REUSE = `
+- Drawings are reusable: any library or realistic drawing can serve any lesson where that thing appears (a car
+  battery in a circuit lesson, a ladder in a forces one, a heart in a sports one). The shared objects category (tools,
+  fixtures, appliances, car parts) and every realistic drawing are searchable from every subject. Many drawings write
+  their own part names or captions: when you reuse one for something else, or want your own words, add lab=0 to hide
+  them and name the parts yourself (pins on realistic drawings, text with a thin leader line on the others).`;
 const SUBJECT_RULES = Object.fromEntries(Object.entries(SUBJECTS).map(([s, { cats: cs, teach }]) =>
-  [s, wbRules(cs.map(c => WB_ALL.find(x => x.cat === c)), teach + DRAW_OWN[s])]));
+  [s, wbRules(cs.map(c => WB_ALL.find(x => x.cat === c)), teach + REUSE + DRAW_OWN[s])]));
 
 // ---------- Paper motion (stop-motion / paper): scenes of library drawings on a 960x600 canvas ----------
 const smCtx = { window: {} };

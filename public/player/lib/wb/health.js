@@ -8,7 +8,7 @@
   const R = (x, y, w, h, r = 0) => r ? `M${x + r} ${y} H${x + w - r} Q${x + w} ${y} ${x + w} ${y + r} V${y + h - r} Q${x + w} ${y + h} ${x + w - r} ${y + h} H${x + r} Q${x} ${y + h} ${x} ${y + h - r} V${y + r} Q${x} ${y} ${x + r} ${y} Z`
     : `M${x} ${y} H${x + w} V${y + h} H${x} Z`;
   const sheen = (g, d, w = 6) => line(g, d, '#ffffff', w, { opacity: .55 });
-  const lbl = (o) => o.lbl !== '0';
+  const lbl = (o) => o.lbl !== '0' && o.lab !== '0' && o.labels !== '0';
   const L = (g, x, y, t, c = '#444', s = 20, a = 'middle') => label(g, x, y, t, c, s, a);
   const arrow = (g, x1, y1, x2, y2, c, w = 2.5) => { line(g, `M${x1} ${y1} L${x2} ${y2}`, c, w); line(g, head(x2, y2, x1, y1, 10), c, w); };
   const rad = a => a * Math.PI / 180, P = (r, a) => [r * Math.cos(rad(a)), r * Math.sin(rad(a))];
@@ -90,7 +90,7 @@
       part(g, ell(80, -90, 48), '#fdfdfb', '#3a4a5a', 3.4);
       for (let i = 0; i <= 10; i++) { const a = 135 + i * 27, [x1, y1] = P(40, a), [x2, y2] = P(i % 2 ? 34 : 30, a); line(g, `M${f1(80 + x1)} ${f1(-90 + y1)} L${f1(80 + x2)} ${f1(-90 + y2)}`, '#3a4a5a', 1.6); }
       const [nx, ny] = P(34, 135 + 4 * 27); line(g, `M80 -90 L${f1(80 + nx)} ${f1(-90 + ny)}`, '#c0392b', 3); part(g, ell(80, -90, 4), '#3a4a5a', '#3a4a5a', 1);
-      L(g, 136, -84, t || '120/80', '#c0392b', 22, 'start'); L(g, 136, -60, 'mmHg', '#555', 15, 'start');
+      if (t || lbl(o)) L(g, 136, -84, t || '120/80', '#c0392b', 22, 'start'); if (lbl(o)) L(g, 136, -60, 'mmHg', '#555', 15, 'start');
       return g;
     },
 
@@ -105,7 +105,7 @@
       part(g, R(-34, -58, 120, 34, 5), '#1f3340', '#0f1a20', 2);
       L(g, -28, -34, 'SpO₂', '#7fd0ff', 16, 'start'); L(g, 82, -34, t || '98%', '#7ff09a', 20, 'end');
       fill(g, ell(30, 20, 10, 4), '#ff6a5a', { opacity: .6 });
-      L(g, 26, 92, '♥ 72 bpm', '#c0392b', 20);
+      if (lbl(o)) L(g, 26, 92, '♥ 72 bpm', '#c0392b', 20);
       return g;
     },
 
@@ -247,7 +247,7 @@
       part(g, R(-14, 68, 28, 6), '#5a6a7a', '#3a4a5a', 1.6);
       line(g, 'M0 74 L0 136', '#5a6a7a', 5);
       part(g, R(-26, 114, 52, 8, 2), '#dfe7ee', '#5a6a7a', 2); part(g, R(-18, 136, 36, 8, 3), '#dfe7ee', '#5a6a7a', 2);
-      if (lbl(o)) L(g, 30, 60, t || '0.5 mL', '#2b6cc4', 17, 'start');
+      if (t || lbl(o)) L(g, 30, 60, t || '0.5 mL', '#2b6cc4', 17, 'start');
       return g;
     },
 
@@ -284,7 +284,7 @@
           if (k === 2) part(g, R(x + 10, y + 14, 20, 10, 5), '#e04b3a', '#7a1f1f', 1.6);
         }
       }
-      L(g, -160, -22, 'AM', '#555', 16, 'end'); L(g, -160, 36, 'PM', '#555', 16, 'end');
+      if (lbl(o)) { L(g, -160, -22, 'AM', '#555', 16, 'end'); L(g, -160, 36, 'PM', '#555', 16, 'end'); }
       return g;
     },
 
@@ -328,7 +328,7 @@
       if (k === 1) { fill(g, ell(0, -58, 56, 9), '#e0645a', { opacity: .55 }); line(g, 'M-56 -60 Q0 -66 56 -60', '#b0453a', 2.4); }
       else { fill(g, crater, { 2: '#f6a8a8', 3: '#f3c58a', 4: '#eaa494' }[k]); if (k === 4) fill(g, ell(0, 72, 26, 6), '#f7f2e6'); line(g, crater.slice(0, -2), '#9a4a3a', 2.4); }
       line(g, R(-150, -60, 300, 160), '#7a5a4a', 3);
-      L(g, 0, -78, 'Stage ' + k, '#7a2f2a', 22);
+      if (lbl(o)) L(g, 0, -78, 'Stage ' + k, '#7a2f2a', 22);
       if (lbl(o)) for (const [y, h, , s] of lay) if (s) L(g, -158, y + h / 2 + 6, s, '#5a4a3a', 18, 'end');
       return g;
     },
@@ -345,7 +345,7 @@
         if (k === 5) { hand(h, 0, 20, s, 0, 1); line(h, ell(-36, -6, 22), '#e0a100', 3.4); curvedArrow(h, -36, -6, 34); }
         if (k === 6) { hand(h, -10, 20, s, -20, 1); hand(h, 30, -40, s * .8, 160, -1, B); curvedArrow(h, 10, -34, 40); }
         bubbles(h, [[-80, -60, 9], [-90, -30, 6], [80, 40, 8], [92, 10, 5], [70, 70, 6]]);
-        L(h, 0, 116, ['', '1 palm to palm', '2 backs of hands', '3 between fingers', '4 backs of fingers', '5 thumbs', '6 fingertips'][k], '#2b4a6a', 20);
+        if (lbl(o)) L(h, 0, 116, ['', '1 palm to palm', '2 backs of hands', '3 between fingers', '4 backs of fingers', '5 thumbs', '6 fingertips'][k], '#2b4a6a', 20);
       };
       if (o.k === 'strip') { for (let i = 0; i < 6; i++) step(mk('g', { transform: `translate(${-210 + (i % 3) * 210} ${-100 + Math.floor(i / 3) * 210}) scale(.72)` }, g), i + 1); }
       else step(g, Math.min(6, Math.max(1, +o.k || 1)));
@@ -386,7 +386,7 @@
       }
       line(g, 'M-70 -42 Q30 -80 130 -60 M-70 -38 Q30 0 130 50', '#9fc4e6', 2, { 'stroke-dasharray': '6 8' });
       arrow(g, -60, 112, 150, 112, '#555', 2.4); arrow(g, 150, 112, -60, 112, '#555', 2.4);
-      L(g, 45, 136, '6 ft (2 m)', '#333', 18);
+      if (lbl(o)) L(g, 45, 136, '6 ft (2 m)', '#333', 18);
       return g;
     },
 
@@ -401,9 +401,9 @@
         line(c, ell(0, 0, 44, 24), cols[i], 9); line(c, ell(0, 0, 44, 24), '#333', 1.6, { opacity: .5 });
         if (cut === i + 1) { line(c, 'M-12 -34 L12 34', '#fdfdfb', 14); line(c, 'M-24 -24 L24 24 M24 -24 L-24 24', '#c0392b', 5); }
         const [lx, ly] = P(158, a), an = Math.abs(lx) < 20 ? 'middle' : lx > 0 ? 'start' : 'end', ys = ly < -20 ? -18 : ly > 20 ? 14 : -4;
-        names[i].forEach((s, j) => L(g, f1(lx + (an === 'middle' ? 0 : lx > 0 ? -18 : 18)), f1(ly + ys + j * 20), s, '#333', 18, an));
+        if (lbl(o)) names[i].forEach((s, j) => L(g, f1(lx + (an === 'middle' ? 0 : lx > 0 ? -18 : 18)), f1(ly + ys + j * 20), s, '#333', 18, an));
       }
-      L(g, 0, 8, t || 'Infection', '#7a2f2a', fit(t || 'Infection', 110, 24));
+      if (t || lbl(o)) L(g, 0, 8, t || 'Infection', '#7a2f2a', fit(t || 'Infection', 110, 24));
       return g;
     },
 
@@ -424,7 +424,7 @@
           part(g, `M${f1(bx + 22)} ${f1(by - 42)} C${f1(bx + 12)} ${f1(by - 26)} ${f1(bx + 8)} ${f1(by - 18)} ${f1(bx + 8)} ${f1(by - 12)} A14 14 0 0 0 ${f1(bx + 36)} ${f1(by - 12)} C${f1(bx + 36)} ${f1(by - 18)} ${f1(bx + 32)} ${f1(by - 26)} ${f1(bx + 22)} ${f1(by - 42)} Z`, '#7fb7ea', '#2b6cc4', 2); }
         else { part(g, R(f1(bx - 26), f1(by - 52), 52, 52, 6), '#fdfdfb', '#7a6a3a', 2); fill(g, R(f1(bx - 24), f1(by - 30), 48, 28, 4), '#f6dc6a');
           for (const k of [-40, -28, -16]) line(g, `M${f1(bx + 14)} ${f1(by + k)} L${f1(bx + 24)} ${f1(by + k)}`, '#7a6a3a', 1.4); }
-        L(g, f1(x), f1(y + 112), s < 0 ? 'Intake' : 'Output', s < 0 ? '#2b6cc4' : '#8a6414', 20);
+        if (lbl(o)) L(g, f1(x), f1(y + 112), s < 0 ? 'Intake' : 'Output', s < 0 ? '#2b6cc4' : '#8a6414', 20);
         L(g, f1(x), f1(y + 134), (s < 0 ? vin : vout) + ' mL', '#333', 18);
       }
       return g;
@@ -439,7 +439,7 @@
       line(g, drop, '#2b6cc4', 3.4); line(g, 'M-58 50 Q0 44 58 50', '#2b6cc4', 2);
       arrow(g, 0, -40, 0, 20, '#c0392b', 3);
       const signs = [['thirst', -1, -70], ['dry mouth', -1, 0], ['headache', -1, 70], ['dark urine', 1, -70], ['dizziness', 1, 0], ['tiredness', 1, 70]];
-      for (const [s, side, y] of signs) { line(g, `M${side * 72} ${y * .6 + 10} L${side * 96} ${y}`, '#c97a10', 2); part(g, ell(side * 104, y - 6, 6), '#f4a531', '#c97a10', 1.6); L(g, side * 116, y, s, '#7a4a10', 20, side < 0 ? 'end' : 'start'); }
+      for (const [s, side, y] of signs) { line(g, `M${side * 72} ${y * .6 + 10} L${side * 96} ${y}`, '#c97a10', 2); part(g, ell(side * 104, y - 6, 6), '#f4a531', '#c97a10', 1.6); if (lbl(o)) L(g, side * 116, y, s, '#7a4a10', 20, side < 0 ? 'end' : 'start'); }
       return g;
     },
 
@@ -448,7 +448,7 @@
       const g = G(cx, cy, S, 320, o, parent), cs = ['#fbf8e0', '#f8f0b4', '#f5e47e', '#f1d555', '#e9be35', '#dca322', '#c98a1c', '#a86c1a'];
       cs.forEach((c, i) => part(g, R(-60, -150 + i * 37, 70, 33, 6), c, '#7a6a3a', 2.2));
       for (const [y0, y1, c, s] of [[-148, -40, '#2c6a22', 'hydrated'], [-34, 34, '#c97a10', 'drink more'], [40, 146, '#c0392b', 'drink water now']]) {
-        line(g, `M20 ${y0} L28 ${y0} L28 ${y1} L20 ${y1}`, c, 2.6); L(g, 38, (y0 + y1) / 2 + 6, s, c, 20, 'start');
+        line(g, `M20 ${y0} L28 ${y0} L28 ${y1} L20 ${y1}`, c, 2.6); if (lbl(o)) L(g, 38, (y0 + y1) / 2 + 6, s, c, 20, 'start');
       }
       return g;
     },
@@ -459,9 +459,9 @@
       part(g, ell(x0, 10, 132), '#fdfdfb', '#7a8a9a', 3);
       const secs = [[100, 200, '#9bd27a', 'vegetables'], [200, 270, '#f28b80', 'fruits'], [270, 370, '#f8c56a', 'grains'], [10, 100, '#b9a0dc', 'protein']];
       const pg = mk('g', { transform: `translate(${x0} 10)` }, g);
-      for (const [a0, a1, c, s] of secs) { part(pg, sector(0, 112, a0, a1), c, '#5a5a5a', 2.4); const [x, y] = P(62, (a0 + a1) / 2); L(pg, f1(x), f1(y + 6), s, '#2a2a2a', 19); }
+      for (const [a0, a1, c, s] of secs) { part(pg, sector(0, 112, a0, a1), c, '#5a5a5a', 2.4); const [x, y] = P(62, (a0 + a1) / 2); if (lbl(o)) L(pg, f1(x), f1(y + 6), s, '#2a2a2a', 19); }
       part(g, 'M100 -120 L150 -120 L144 -54 Q125 -46 106 -54 Z', '#9cc6ee', '#2b5a8a', 2.6);
-      L(g, 125, -26, 'dairy', '#2a2a2a', 19);
+      if (lbl(o)) L(g, 125, -26, 'dairy', '#2a2a2a', 19);
       return g;
     },
 
@@ -484,12 +484,12 @@
     bmi: ([cx, cy, S = 420], o, t, parent) => {
       const g = G(cx, cy, S, 420, o, parent), X = b => -200 + (Math.max(15, Math.min(40, b)) - 15) * 16, v = +(o.v ?? 22);
       for (const [a, b, c, s] of [[15, 18.5, '#7fb7ea', 'under'], [18.5, 25, '#7cc46a', 'healthy'], [25, 30, '#f3d34a', 'over'], [30, 40, '#ef7a5a', 'obese']]) {
-        part(g, R(X(a), -20, X(b) - X(a), 40), c, '#4a4a4a', 2.4); L(g, (X(a) + X(b)) / 2, 8, s, '#222', 19);
+        part(g, R(X(a), -20, X(b) - X(a), 40), c, '#4a4a4a', 2.4); if (lbl(o)) L(g, (X(a) + X(b)) / 2, 8, s, '#222', 19);
       }
       for (const b of [18.5, 25, 30]) L(g, X(b), 46, String(b), '#555', 17);
       part(g, `M${X(v)} -26 L${X(v) - 12} -48 L${X(v) + 12} -48 Z`, '#333', '#111', 2);
       L(g, X(v), -58, 'BMI ' + v, '#111', 22);
-      L(g, 0, 82, t || 'BMI = weight (kg) ÷ height (m)²', '#555', 17);
+      if (t || lbl(o)) L(g, 0, 82, t || 'BMI = weight (kg) ÷ height (m)²', '#555', 17);
       return g;
     },
 
@@ -511,10 +511,10 @@
     // "hrzones cx cy length v=70" — heart-rate zones as % of max, five rising bars, pointer
     hrzones: ([cx, cy, S = 420], o, t, parent) => {
       const g = G(cx, cy, S, 420, o, parent), z = [['very light', '#c8d0d8'], ['light', '#7fb7ea'], ['moderate', '#7cc46a'], ['hard', '#f4a531'], ['max', '#e04b3a']];
-      z.forEach(([s, c], i) => { const x = -200 + i * 80, h = 40 + i * 22; part(g, R(x, 60 - h, 76, h, 4), c, '#4a4a4a', 2.4); L(g, x + 38, 50 - h, s, '#333', 17); L(g, x + 38, 50, 'Z' + (i + 1), '#222', 18); });
+      z.forEach(([s, c], i) => { const x = -200 + i * 80, h = 40 + i * 22; part(g, R(x, 60 - h, 76, h, 4), c, '#4a4a4a', 2.4); if (lbl(o)) L(g, x + 38, 50 - h, s, '#333', 17); L(g, x + 38, 50, 'Z' + (i + 1), '#222', 18); });
       for (let i = 0; i <= 5; i++) L(g, -202 + i * 80, 84, (50 + i * 10) + '%', '#555', 16);
       if (o.v) { const x = -200 + (Math.max(50, Math.min(100, +o.v)) - 50) * 8; part(g, `M${x} 66 L${x - 10} 96 L${x + 10} 96 Z`, '#c0392b', '#7a1f1f', 1.6); }
-      L(g, -200, -116, t || '% of max heart rate', '#c0392b', 19, 'start');
+      if (t || lbl(o)) L(g, -200, -116, t || '% of max heart rate', '#c0392b', 19, 'start');
       return g;
     },
 
@@ -522,7 +522,7 @@
     sleepcycle: ([cx, cy, S = 440], o, t, parent) => {
       const g = G(cx, cy, S, 440, o, parent), lv = { W: -90, R: -50, 1: -10, 2: 30, 3: 70 }, X = h => -150 + h * 45;
       line(g, 'M-160 -110 L-160 90 L220 90', '#555', 2.6);
-      for (const [k, s] of [['W', 'awake'], ['R', 'REM'], ['1', 'light'], ['2', 'N2'], ['3', 'deep']]) L(g, -168, lv[k] + 6, s, '#444', 17, 'end');
+      for (const [k, s] of [['W', 'awake'], ['R', 'REM'], ['1', 'light'], ['2', 'N2'], ['3', 'deep']]) if (lbl(o)) L(g, -168, lv[k] + 6, s, '#444', 17, 'end');
       for (let h = 0; h <= 8; h += 2) L(g, X(h), 112, h + 'h', '#555', 16);
       const seq = [[0, 'W'], [.2, '1'], [.4, '2'], [.8, '3'], [1.4, '2'], [1.6, 'R'], [1.8, '2'], [2.2, '3'], [2.8, '2'], [3.2, 'R'], [3.6, '2'], [4.2, '3'], [4.5, '2'], [4.9, 'R'], [5.5, '2'], [6, '1'], [6.3, 'R'], [7.1, '1'], [7.4, 'R'], [7.9, 'W'], [8, 'W']];
       let d = `M${X(0)} ${lv.W}`; for (let i = 1; i < seq.length; i++) d += ` L${f1(X(seq[i][0]))} ${lv[seq[i - 1][1]]} L${f1(X(seq[i][0]))} ${lv[seq[i][1]]}`;
@@ -545,7 +545,7 @@
         part(g, ell(f1(x), f1(y), 6, 4.5), '#fdfdfb', '#7a6a5a', 1.6); }
       line(g, 'M4 -160 L4 160', bad ? '#c0392b' : '#2c6a22', 2, { 'stroke-dasharray': '6 7' });
       if (bad) line(g, 'M90 -110 L120 -80 M120 -110 L90 -80', '#c0392b', 5); else line(g, 'M84 -96 L98 -82 L124 -116', '#2c6a22', 5);
-      L(g, 104, -58, t || (bad ? 'slouched' : 'upright'), bad ? '#c0392b' : '#2c6a22', 20);
+      if (t || lbl(o)) L(g, 104, -58, t || (bad ? 'slouched' : 'upright'), bad ? '#c0392b' : '#2c6a22', 20);
       return g;
     },
 
@@ -570,7 +570,7 @@
       fill(g, ell(0, 4, 26), '#e0645a', { opacity: .35 });
       hand(g, 20, 10, .75, -90, 1, '#e8c09a', SKINK); hand(g, 14, -4, .75, -90, -1, '#f3d2b0', SKINK);
       for (const x of [-100, 100]) arrow(g, x, -40, x, 10, '#c0392b', 3.4);
-      L(g, 0, 90, t || '100–120 a minute', '#c0392b', 20); L(g, 0, 118, '2 in (5 cm) deep', '#555', 18);
+      if (t || lbl(o)) L(g, 0, 90, t || '100–120 a minute', '#c0392b', 20); if (lbl(o)) L(g, 0, 118, '2 in (5 cm) deep', '#555', 18);
       return g;
     },
 
@@ -608,8 +608,8 @@
       part(p, R(-140, -70, 36, 18, 3), '#e8834a', '#8a3a14', 2); part(p, R(-146, -54, 48, 46, 8), '#bfe0f4', '#3a7aa0', 2.6);
       L(p, -122, -26, 'ins', '#2b4a6a', 14);
       for (const [x, y] of [[90, -36], [126, -36], [108, -70]]) { part(p, R(x, y, 32, 28, 3), '#fdfdfb', '#7a8a9a', 2.2); line(p, `M${x} ${y} l6 -6 l32 0 l0 28 l-6 6 M${x + 32} ${y} l6 -6`, '#7a8a9a', 1.8); }
-      L(p, -122, 34, 'insulin', '#2b6cc4', 20); L(p, 126, 34, 'glucose', '#c97a10', 20);
-      L(g, 0, 150, t || { high: 'blood sugar high', low: 'blood sugar low' }[o.k] || 'balanced', '#333', 20);
+      if (lbl(o)) { L(p, -122, 34, 'insulin', '#2b6cc4', 20); L(p, 126, 34, 'glucose', '#c97a10', 20); }
+      if (t || lbl(o)) L(g, 0, 150, t || { high: 'blood sugar high', low: 'blood sugar low' }[o.k] || 'balanced', '#333', 20);
       return g;
     },
 
@@ -634,7 +634,7 @@
         line(g, `M${x - 11} -20 l0 3 M${x + 11} -20 l0 3`, '#3a2a1a', 4);
         if (i >= 3) line(g, `M${x - 17} ${-30 + (i - 3) * -2} l10 ${4 + i - 3} M${x + 17} ${-30 + (i - 3) * -2} l-10 ${4 + i - 3}`, '#3a2a1a', 2.2);
         line(g, `M${x - 13} 4 Q${x} ${4 + m} ${x + 13} 4`, '#3a2a1a', 2.6);
-        L(g, x, 44, String(i * 2), '#222', 20); L(g, x, 66, w[i], '#555', 15);
+        L(g, x, 44, String(i * 2), '#222', 20); if (lbl(o)) L(g, x, 66, w[i], '#555', 15);
       }
       return g;
     },

@@ -1,5 +1,5 @@
-// Whiteboard library: carfix — car care and fixes: changing a tire, changing the oil, under the hood
-// (the Car fixes / Home fixes chat subjects, 20 Oct 2026). Catalogue: carfix.txt.
+// Whiteboard library: carfix — car care and fixes: changing a tire, the oil, under the hood (Car fixes subject)
+// Catalogue: carfix.txt. Words a drawing writes itself show by default; lab=0 hides them (the model labels it).
 // Child-safe: no brands, no logos, no real people.
 (() => {
   const DK = '#2f3a45';
@@ -69,36 +69,16 @@
     },
   };
 
+
+  const showLab = o => o.lab !== '0' && o.labels !== '0';
   Object.assign(window.RECIPES, {
-    // ---------- car: changing a tire ----------
     // "car cx cy width k=side|jacked" — family car from the side; jacked = front lifted on a scissor jack, wheel off the ground
     car: make(420, (g, o) => pick(CAR, o.k, 'side', 'car')(g)),
-    // "tire cx cy size k=good|flat" — road wheel: tyre, rim, five lug nuts; flat = squashed bottom with a nail in it
-    tire: make(240, (g, o) => {
-      if (o.k === 'flat') {
-        P(g, 'M-110 0 A110 110 0 0 1 110 0 Q112 70 92 96 Q60 112 0 112 Q-60 112 -92 96 Q-112 70 -110 0 Z', '#3a3f45');
-        line(g, 'M-100 104 H100', '#9aa3ad', 3);
-        line(g, 'M58 70 L84 60', '#9aa3ad', 5); P(g, C(86, 59, 6), '#c9d1d9', DK, 2);
-      } else {
-        P(g, C(0, 0, 110), '#3a3f45');
-        for (let i = 0; i < 28; i++) { const a = i * Math.PI * 2 / 28; line(g, `M${(98 * Math.cos(a)).toFixed(1)} ${(98 * Math.sin(a)).toFixed(1)} L${(110 * Math.cos(a)).toFixed(1)} ${(110 * Math.sin(a)).toFixed(1)}`, '#6a737c', 3); }
-      }
-      P(g, C(0, 0, 66), '#d5dce2', DK, 2.4);
-      for (let i = 0; i < 5; i++) { const a = (-90 + i * 72) * Math.PI / 180; line(g, `M0 0 L${(58 * Math.cos(a)).toFixed(1)} ${(58 * Math.sin(a)).toFixed(1)}`, '#9aa3ad', 10); }
-      P(g, C(0, 0, 22), '#9aa3ad', DK, 2);
-      for (let i = 0; i < 5; i++) { const a = (-54 + i * 72) * Math.PI / 180; P(g, poly(34 * Math.cos(a), 34 * Math.sin(a), 6, 6), '#5a626b', DK, 1.6); }
-      P(g, R(-4, -78, 8, 12, 2), '#5a626b', DK, 1.6);
-    }),
     // "lugwrench cx cy length rot=deg" — four-way cross lug wrench with a socket on each arm
     lugwrench: make(300, g => {
       line(g, 'M-140 0 H140 M0 -140 V140', DK, 16); line(g, 'M-140 0 H140 M0 -140 V140', '#9aa3ad', 10);
       for (const [x, y] of [[-140, 0], [140, 0], [0, -140], [0, 140]]) { P(g, C(x, y, 16), '#c9d1d9', DK, 2.4); P(g, poly(x, y, 8, 6), '#5a626b', DK, 1.6); }
       P(g, C(0, 0, 12), '#c9d1d9', DK, 2.4);
-    }),
-    // "jack cx cy height up=0-100" — scissor jack; up opens it from folded (0) to fully raised (100)
-    jack: make(220, (g, o) => {
-      const up = Math.max(0, Math.min(100, +(o.up ?? 50))) / 100;
-      scissor(g, 20, 100, 100 - (60 + up * 110));
     }),
     // "lugorder cx cy size" — tighten lug nuts in a star: five nuts numbered 1-5 with the star path between them
     lugorder: make(260, g => {
@@ -123,7 +103,6 @@
       P(g, 'M0 -50 L58 48 L-58 48 Z', '#fdfdfb', '#a02a20', 2.4);
     }),
 
-    // ---------- car: changing the oil ----------
     // "enginebay cx cy width" — open hood seen from the front: engine, yellow oil cap and dipstick loop, coolant tank, battery
     enginebay: make(420, g => {
       P(g, 'M-170 -110 L170 -110 L196 -170 L-196 -170 Z', '#4f93d6');
@@ -146,7 +125,7 @@
       line(g, `M${x.toFixed(1)} 0 H184`, OIL, 9);
       line(g, 'M118 -5 l12 10 M130 -5 l12 10 M142 -5 l12 10 M154 -5 l12 10', '#7a848e', 1.6);
       for (const hx of [108, 160]) P(g, C(hx, 0, 5), '#ffffff', DK, 2);
-      label(g, 160, 34, 'MIN', '#c0392b', 18, 'middle'); label(g, 108, 34, 'MAX', '#2c6a22', 18, 'middle');
+      if (showLab(o)) { label(g, 160, 34, 'MIN', '#c0392b', 18, 'middle'); label(g, 108, 34, 'MAX', '#2c6a22', 18, 'middle'); }
     }),
     // "oildrain cx cy width flow=1" — under the car: drain plug out, old oil pouring into a drain pan; flow=1 runs the oil
     oildrain: make(400, (g, o) => {
@@ -176,16 +155,15 @@
       line(g, 'M60 -36 V96', '#c98a1a', 4, { opacity: .7 });
     }),
 
-    // ---------- car: more jobs ----------
     // "jumpstart cx cy width" — jump-starting: dead and good batteries, red and black cables, clamps numbered in the order they go on (1-4)
-    jumpstart: make(460, g => {
+    jumpstart: make(460, (g, o) => {
       for (const [bx, name, f] of [[-120, 'DEAD', '#5a626b'], [120, 'GOOD', '#3a4450']]) {
         P(g, R(bx - 72, -40, 144, 92, 8), f);
         P(g, R(bx - 52, -58, 22, 18, 3), '#e04b3a', DK, 2); P(g, R(bx + 30, -58, 22, 18, 3), '#2f3a45', DK, 2);
         label(g, bx - 41, -66, '+', '#c0392b', 24, 'middle'); label(g, bx + 41, -66, '−', DK, 24, 'middle');
-        label(g, bx, 24, name, '#ffffff', 22, 'middle');
+        if (showLab(o)) label(g, bx, 24, name, '#ffffff', 22, 'middle');
       }
-      P(g, poly(-10, 104, 12, 6), '#c9d1d9', DK, 2); label(g, -10, 140, 'bare metal', '#7a848e', 16, 'middle');
+      P(g, poly(-10, 104, 12, 6), '#c9d1d9', DK, 2); if (showLab(o)) label(g, -10, 140, 'bare metal', '#7a848e', 16, 'middle');
       line(g, 'M-161 -60 Q-40 -170 79 -60', DK, 9); line(g, 'M-161 -60 Q-40 -170 79 -60', '#e04b3a', 5);
       line(g, 'M161 -60 Q236 -40 214 60 Q190 118 -4 98', DK, 9); line(g, 'M161 -60 Q236 -40 214 60 Q190 118 -4 98', '#3a3f45', 5);
       for (const [x, y, n, c] of [[-161, -60, 1, '#c0392b'], [79, -60, 2, '#c0392b'], [161, -60, 3, DK], [-4, 98, 4, DK]]) {
@@ -194,27 +172,15 @@
         label(g, x + (n === 4 ? -30 : 0), y - (n === 4 ? -4 : 34) + 8, String(n), c, 22, 'middle');
       }
     }),
-    // "tiregauge cx cy size psi=0-60" — dial tire-pressure gauge on a valve stem, needle at psi
-    tiregauge: make(300, (g, o) => {
-      const psi = Math.max(0, Math.min(60, +(o.psi ?? 32))), A = v => (-225 + v / 60 * 270) * Math.PI / 180;
-      line(g, 'M0 60 Q0 110 60 120 L100 120', DK, 12); line(g, 'M0 60 Q0 110 60 120 L100 120', '#3a3f45', 7);
-      P(g, R(96, 108, 30, 24, 4), '#c9d1d9', DK, 2); P(g, R(126, 112, 26, 16, 3), '#5a626b', DK, 2);
-      P(g, C(0, -20, 86), '#d5dce2'); P(g, C(0, -20, 72), '#ffffff', DK, 2.4);
-      for (let v = 0; v <= 60; v += 5) { const a = A(v), r1 = v % 10 ? 62 : 56; line(g, `M${(r1 * Math.cos(a)).toFixed(1)} ${(-20 + r1 * Math.sin(a)).toFixed(1)} L${(68 * Math.cos(a)).toFixed(1)} ${(-20 + 68 * Math.sin(a)).toFixed(1)}`, DK, v % 10 ? 1.6 : 2.6);
-        if (v % 20 === 0) label(g, (44 * Math.cos(a)).toFixed(1), (-14 + 44 * Math.sin(a)).toFixed(1), String(v), DK, 15, 'middle'); }
-      const a = A(psi); line(g, `M0 -20 L${(58 * Math.cos(a)).toFixed(1)} ${(-20 + 58 * Math.sin(a)).toFixed(1)}`, '#e04b3a', 4); P(g, C(0, -20, 6), DK, DK, 2);
-      label(g, 0, 30, `${psi} psi`, '#c0392b', 20, 'middle');
-    }),
     // "treaddepth cx cy width k=good|worn" — tire tread in cross-section with a depth gauge in a groove; worn = tread down to the wear bar
     treaddepth: make(400, (g, o) => {
       const worn = o.k === 'worn', h = worn ? 22 : 64;
       P(g, R(-180, 20, 360, 60, 6), '#3a3f45');
       for (let i = 0; i < 5; i++) P(g, R(-176 + i * 74, 20 - h, 52, h + 4, 4), '#4a5058');
       for (let i = 0; i < 4; i++) P(g, R(-124 + i * 74, 2, 22, 18, 2), '#7a848e', DK, 1.6);
-      label(g, -113, 50, 'wear bar', '#c9d1d9', 15, 'middle');
+      if (showLab(o)) label(g, -113, 50, 'wear bar', '#c9d1d9', 15, 'middle');
       P(g, R(30, 20 - h - 90, 16, 90 + h - 2, 3), '#c9d1d9', DK, 2); P(g, R(10, 20 - h - 120, 56, 34, 5), '#ffd84a');
       label(g, 38, 20 - h - 96, worn ? '2/32"' : '8/32"', DK, 18, 'middle');
-      label(g, 140, 20 - h - 30, worn ? 'replace' : 'good', worn ? '#c0392b' : '#2c6a22', 22, 'middle');
     }),
     // "wiper cx cy width" — windshield wiper on the glass: arm from its pivot, blade with its rubber edge, the release tab
     wiper: make(420, g => {
@@ -239,7 +205,6 @@
       pick(S, k, 'engine', 'dashlight')();
     }),
 
-    // ---------- car: parts under the hood and beneath ----------
     // "airfilter cx cy width k=clean|dirty" — engine air filter: pleated panel in its frame; dirty = grey with dust
     airfilter: make(360, (g, o) => {
       const dirty = o.k === 'dirty';
@@ -247,34 +212,6 @@
       P(g, R(-140, -70, 280, 140, 4), dirty ? '#a59a86' : '#f4e3b0', DK, 2);
       for (let x = -130; x <= 130; x += 20) line(g, `M${x} -70 V70`, dirty ? '#7a7062' : '#d9c48a', 3);
       if (dirty) for (const [x, y] of [[-90, -30], [-30, 20], [40, -40], [100, 30], [0, -10]]) P(g, E(x, y, 22, 12), '#8a8070', null);
-    }),
-    // "headlight cx cy width k=on|off" — headlight from the front: lens, reflector and the bulb with its socket behind; on shines a beam
-    headlight: make(380, (g, o) => {
-      if (o.k !== 'off') P(g, 'M60 -40 L190 -90 L190 90 L60 40 Z', '#fff4b8', '#f3c33b', 2);
-      P(g, 'M-170 -60 Q-170 -90 -130 -90 L50 -80 Q80 -78 80 -40 L80 40 Q80 78 50 80 L-130 90 Q-170 90 -170 60 Z', '#e8ecef');
-      P(g, E(-20, 0, 80, 66), '#c9d1d9', DK, 2.4); P(g, E(-20, 0, 46, 38), '#eef1f4', DK, 2);
-      P(g, E(-20, 0, 16, 22), o.k === 'off' ? '#ffffff' : '#ffe38a', DK, 2); line(g, 'M-20 22 V40', DK, 3);
-      P(g, R(-210, -16, 46, 32, 6), '#3a3f45'); line(g, 'M-226 -8 H-210 M-226 8 H-210', '#c9a227', 4);
-    }),
-    // "brakes cx cy size" — disc brake: the rotor on the hub, the caliper over its edge, the two pads squeezing it (arrows)
-    brakes: make(320, g => {
-      P(g, C(-20, 0, 130), '#b8c1ca'); P(g, C(-20, 0, 112), '#d5dce2', DK, 2);
-      for (let i = 0; i < 18; i++) { const a = i * Math.PI / 9; P(g, C(-20 + 92 * Math.cos(a), 92 * Math.sin(a), 4), '#9aa3ad', DK, 1); }
-      P(g, C(-20, 0, 54), '#9aa3ad'); P(g, C(-20, 0, 18), '#5a626b', DK, 2);
-      for (let i = 0; i < 5; i++) { const a = (-90 + i * 72) * Math.PI / 180; P(g, C(-20 + 34 * Math.cos(a), 34 * Math.sin(a), 6), '#3a3f45', DK, 1.4); }
-      P(g, 'M60 -100 Q150 -120 160 -40 L160 40 Q150 120 60 100 L74 70 Q120 70 122 30 L122 -30 Q120 -70 74 -70 Z', '#e04b3a');
-      P(g, R(100, -54, 16, 108, 3), '#5a626b', DK, 2);
-      arrow(g, 'M190 0 H136', 136, 0, 190, 0, '#2b6cc4', 4);
-    }),
-    // "radiator cx cy width" — radiator with its fins, hoses and pressure cap, and the coolant overflow tank with MIN/MAX marks
-    radiator: make(420, g => {
-      P(g, R(-190, -110, 280, 220, 8), '#9aa3ad'); P(g, R(-176, -96, 252, 192, 4), '#c9d1d9', DK, 2);
-      for (let x = -168; x <= 68; x += 12) line(g, `M${x} -96 V96`, '#9aa3ad', 2);
-      P(g, R(-60, -132, 40, 24, 6), '#ffd84a'); label(g, -40, -142, 'HOT: do not open', '#c0392b', 14, 'middle');
-      line(g, 'M90 -80 Q130 -80 130 -120', DK, 14); line(g, 'M90 -80 Q130 -80 130 -120', '#3a3f45', 9);
-      line(g, 'M-190 80 Q-215 80 -215 120', DK, 14); line(g, 'M-190 80 Q-215 80 -215 120', '#3a3f45', 9);
-      P(g, R(140, -60, 70, 120, 12), '#f2f5f7'); P(g, R(142, -10, 66, 68, 0), '#ff9fb6', DK, 1.4); P(g, R(160, -74, 30, 16, 4), '#ffd84a', DK, 2);
-      line(g, 'M212 -30 h10 M212 30 h10', DK, 2.4); label(g, 226, -24, 'MAX', '#2c6a22', 13); label(g, 226, 36, 'MIN', '#c0392b', 13);
     }),
     // "fusebox cx cy width blown=N" — open fuse box: rows of coloured blade fuses with amp numbers, puller tool; blown=N (1-12) marks a broken fuse
     fusebox: make(380, (g, o) => {
@@ -301,22 +238,15 @@
       line(g, 'M-90 30 V120', DK, 10);
       [['clutch', 40, '#9aa3ad'], ['brake', 110, '#9aa3ad'], ['gas', 170, '#9aa3ad']].forEach(([t, x, c], i) => {
         line(g, `M${x} -60 L${x} ${i === 2 ? 60 : 40}`, DK, 6); P(g, R(x - (i === 2 ? 14 : 24), i === 2 ? 40 : 30, i === 2 ? 28 : 48, i === 2 ? 70 : 34, 6), c);
-        label(g, x, 140, t, DK, 18, 'middle'); });
-    }),
-    // "belt cx cy size" — serpentine belt routed round its pulleys: crankshaft, alternator, power steering, A/C, water pump and the spring tensioner
-    belt: make(380, g => {
-      const pul = [['crank', 0, 110, 46], ['A/C', -120, 60, 32], ['alternator', -110, -90, 30], ['tensioner', -20, -40, 20], ['water pump', 50, -110, 32], ['steering', 130, 10, 32]];
-      line(g, 'M-46 110 Q-120 110 -152 60 Q-160 -40 -140 -90 Q-110 -126 -80 -90 Q-40 -60 -10 -60 Q20 -150 50 -142 Q90 -140 82 -110 Q120 -40 162 10 Q160 60 46 110 Z', DK, 10);
-      line(g, 'M-46 110 Q-120 110 -152 60 Q-160 -40 -140 -90 Q-110 -126 -80 -90 Q-40 -60 -10 -60 Q20 -150 50 -142 Q90 -140 82 -110 Q120 -40 162 10 Q160 60 46 110 Z', '#3a3f45', 6);
-      for (const [t, x, y, r] of pul) { P(g, C(x, y, r), '#c9d1d9', DK, 2.4); P(g, C(x, y, r * .3), '#7a848e', DK, 1.6); label(g, x, y + r + 20, t, DK, 15, 'middle'); }
+        if (showLab(o)) label(g, x, 140, t, DK, 18, 'middle'); });
     }),
     // "muffler cx cy width" — exhaust under the car: pipe from the engine, catalytic converter, muffler and tailpipe, smoke out the back
-    muffler: make(460, g => {
+    muffler: make(460, (g, o) => {
       line(g, 'M-220 -30 Q-190 -30 -170 0 H220', DK, 16); line(g, 'M-220 -30 Q-190 -30 -170 0 H220', '#9aa3ad', 10);
-      P(g, R(-130, -24, 90, 48, 22), '#c9d1d9'); label(g, -85, 50, 'catalytic converter', DK, 14, 'middle');
-      P(g, R(20, -38, 150, 76, 30), '#9aa3ad'); label(g, 95, 62, 'muffler', DK, 16, 'middle');
+      P(g, R(-130, -24, 90, 48, 22), '#c9d1d9'); if (showLab(o)) label(g, -85, 50, 'catalytic converter', DK, 14, 'middle');
+      P(g, R(20, -38, 150, 76, 30), '#9aa3ad'); if (showLab(o)) label(g, 95, 62, 'muffler', DK, 16, 'middle');
       for (const [x, y, r] of [[236, -6, 10], [252, -20, 14], [270, -36, 18]]) P(g, C(x, y, r), '#e8ecef', '#9aa3ad', 2);
-      label(g, -220, -48, 'engine', DK, 16, 'middle');
+      if (showLab(o)) label(g, -220, -48, 'engine', DK, 16, 'middle');
     }),
   });
 })();

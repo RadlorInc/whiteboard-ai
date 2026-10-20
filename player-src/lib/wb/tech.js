@@ -2,6 +2,7 @@
 // Wrapped in a function so its helpers never clash with another category's top-level names.
 (() => {
   const DK = '#2f3a45';                                   // dark marker outline for machines
+  const showLab = o => o.lab !== '0' && o.labels !== '0';   // lab=0 / labels=0 hide the recipe's own words
   const G = (cx, cy, s, o, parent) => mk('g', { transform: `translate(${cx} ${cy}) rotate(${o.rot || 0}) scale(${s})` }, parent);
   const P = (g, d, fill, ink = DK, w = 3) => { if (fill) mk('path', { d, fill, filter: 'url(#wc)', class: 'fillable' }, g); return line(g, d, ink, w); };
   const F = (g, d, fill, extra = {}) => mk('path', { d, fill, filter: 'url(#wc)', class: 'fillable', ...extra }, g);   // fill only
@@ -139,7 +140,7 @@
       line(g, pins, '#8a96a3', 5);
       P(g, R(-72, -72, 144, 144, 10), '#3d4a57');
       P(g, R(-40, -40, 80, 80, 6), '#d9b24a', '#7a5a14', 2.5);
-      label(g, 0, 10, t || 'CPU', '#4a3300', 26, 'middle');
+      if (t || showLab(o)) label(g, 0, 10, t || 'CPU', '#4a3300', 26, 'middle');
       return g;
     },
 
@@ -534,7 +535,7 @@
         P(g, 'M-124 -40 L-110 -80 H110 L124 -40 Z', '#ffffff', '#7a1f1f');
         for (let i = 0; i < 6; i += 2) F(g, `M${-124 + i * 41.3} -40 L${-110 + i * 36.7} -80 H${-110 + (i + 1) * 36.7} L${-124 + (i + 1) * 41.3} -40 Z`, '#e04b3a');
         line(g, 'M-124 -40 L-110 -80 H110 L124 -40 Z', '#7a1f1f', 3);
-        P(g, R(-62, -124, 124, 36, 6), '#f7f9fb', '#8a6414'); label(g, 0, -97, t || 'SHOP', TXT.red, 24, 'middle');
+        P(g, R(-62, -124, 124, 36, 6), '#f7f9fb', '#8a6414'); if (t || showLab(o)) label(g, 0, -97, t || 'SHOP', TXT.red, 24, 'middle');
         P(g, R(-92, -14, 100, 70, 3), '#bfe3fa', DK, 2.5); P(g, R(32, 0, 50, 100, 3), '#b07a4a', '#5e3b1c');
       } else if (k === 'bank') {
         P(g, 'M-130 -60 L0 -120 L130 -60 Z', '#e9e4d8', '#6e6250'); label(g, 0, -70, '$', '#6e6250', 30, 'middle');

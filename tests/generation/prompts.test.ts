@@ -55,11 +55,11 @@ describe('prompt sha parity', () => {
 
   // Subject prompts (founder, 18 Oct 2026): new prompts, so no prototype twin; these shas bind them the same way.
   const SUBJECT_EXPECTED = {
-    biology: 'd15effe597e4c6c12cf3341780076af64379ad206498a8f1e1798cb83bc5d3f2',
-    physics: '0aa6e0cfdc3a3a2960d67aaab63279d4f6228cdb703d9c3131c99f8786c49ab1',
-    chemistry: 'cc7eeb6a712c98011d6db37f6b0ec5dbab5b2af79047c3a985895eac0904ff4c',
-    car: '59a1391bd83abd639bbba42101274fb4e40e433e5f6f57fd239dc22e94431192',
-    home: 'ee108ba967651324226f967e936a1bba07bb9f680e600712d7b27d2b98e3b9a0',
+    biology: '366bd79b6e62246c9cf01d85f48d20f6cb1f6010906c479acb80aeb684dc5470',
+    physics: '45ee4e57a39c2efde35868414b98b860a0bbc968e99b9933bbe5f542690e610e',
+    chemistry: '48f14e24b64d7099fb629c2be2a8fdd0016246c77e45ea10df17ccfc7f0e3cdc',
+    car: '5138230db477f2745a7ac6e105229b0b2c0b0ff93927706e69d47c9e4f89efe9',
+    home: '15cbdae9a5acb41f9a6090251290de0d871d708411bb29e05c1115e7cd67da7b',
   } as const;
   for (const s of ['biology', 'physics', 'chemistry', 'car', 'home'] as const) it(`${s}: its own prompt, sha bound, only its categories listed`, () => {
     const t = P.subjects[s].system;
@@ -79,7 +79,7 @@ describe('prompt sha parity', () => {
   it('the physics library (phys + colour drawings, 19 Oct 2026) is only in the physics prompt', () => {
     expect(P.subjects.physics.system).toMatch(/^  phys: seriespar symbols /m);
     expect(P.subjects.physics.system).toMatch(/servier-phys: \d+ realistic drawings, not listed/);
-    for (const s of [P.styles.whiteboard.system, P.subjects.biology.system, P.subjects.chemistry.system]) expect(s).not.toMatch(/seriespar|servier-phys/);
+    for (const s of [P.styles.whiteboard.system, P.subjects.biology.system, P.subjects.chemistry.system]) expect(s).not.toMatch(/seriespar/);
     // university layer (19 Oct 2026): physuni recipes, physics prompt only
     expect(P.subjects.physics.system).toMatch(/^  physuni: doubleslit diffraction /m);
     expect(P.subjects.physics.system).toContain('university physics majors');
@@ -87,12 +87,22 @@ describe('prompt sha parity', () => {
   });
 
   it('Everyday fixes (20 Oct 2026): the car and home libraries are each only in their own prompt', () => {
-    expect(P.subjects.car.system).toMatch(/^  carfix: car tire lugwrench /m);
+    expect(P.subjects.car.system).toMatch(/^  carfix: car lugwrench lugorder /m);
     expect(P.subjects.home.system).toMatch(/^  homefix: tieknot breaker /m);
-    for (const s of [P.styles.whiteboard.system, P.subjects.biology.system, P.subjects.home.system]) expect(s).not.toMatch(/carfix|lugorder|servier-car/);
-    for (const s of [P.styles.whiteboard.system, P.subjects.biology.system, P.subjects.car.system]) expect(s).not.toMatch(/homefix|tieknot|servier-home/);
+    for (const s of [P.styles.whiteboard.system, P.subjects.biology.system, P.subjects.home.system]) expect(s).not.toMatch(/carfix|lugorder/);
+    for (const s of [P.styles.whiteboard.system, P.subjects.biology.system, P.subjects.car.system]) expect(s).not.toMatch(/homefix|tieknot/);
     expect(P.subjects.car.system).toContain('never under a car held only by a jack');
     expect(P.subjects.home.system).toContain('power off at the breaker');
+  });
+
+  it('Reuse (20 Oct 2026): shared objects and every realistic library in every subject, the plain prompt untouched', () => {
+    const SV = ['servier', 'servier-chem', 'servier-phys', 'servier-car', 'servier-home'];
+    for (const s of ['biology', 'physics', 'chemistry', 'car', 'home'] as const) {
+      for (const c of [...SV, 'objects']) expect(P.subjects[s].cats, `${s} lacks ${c}`).toContain(c);
+      expect(P.subjects[s].system).toContain('add lab=0 to hide');
+      expect(P.subjects[s].system).toMatch(/^  objects: tire jack /m);
+    }
+    expect(P.styles.whiteboard.system).not.toMatch(/objects: |lab=0 to hide/);
   });
 
   it('the prompt carries the numbered-steps and no-zoom rules', () => {

@@ -1,21 +1,21 @@
-bridge cx cy width k=beam|arch|suspension|cable|truss forces=1 |text | bridge 480 280 520 k=suspension forces=1 | bridge over water; forces=1 adds compression and tension arrows
+bridge cx cy width k=beam|arch|suspension|cable|truss forces=1 lab=0 |text | bridge 480 280 520 k=suspension forces=1 | bridge over water; forces=1 adds compression and tension arrows; lab=0 hides its words
 skyframe cx baseY height floors=8 | skyframe 480 500 440 | skyscraper steel frame under construction, lower floors glazed
-foundation cx cy width k=pile|raft labels=1 | foundation 480 290 460 k=pile | house on piles or raft slab over labelled soil layers
+foundation cx cy width k=pile|raft labels=1 | foundation 480 290 460 k=pile | house on piles or raft slab over labelled soil layers; lab=0 hides its words
 crane cx baseY height | crane 480 500 440 | tower crane: mast, jib, counterweight, cab, hook lifting a beam
 excavator cx cy length | excavator 480 280 480 | yellow digger on tracks, boom and bucket in dirt
 dam cx cy width | dam 480 270 500 | concrete dam across a valley, reservoir behind; spillway loop flow
-hydro cx cy width labels=1 | hydro 480 270 520 | hydroelectric cut-away: reservoir, penstock, spinning turbine, generator; loop flow
+hydro cx cy width labels=1 | hydro 480 270 520 | hydroelectric cut-away: reservoir, penstock, spinning turbine, generator; loop flow; lab=0 hides its words
 nuclear cx baseY width | nuclear 480 420 480 | nuclear power station: cooling towers with steam, reactor dome
-geothermal cx cy width labels=1 | geothermal 480 270 480 | geothermal plant: cold water down, hot rock, hot water up; loop flow
+geothermal cx cy width labels=1 | geothermal 480 270 480 | geothermal plant: cold water down, hot rock, hot water up; loop flow; lab=0 hides its words
 tidal cx cy width |text | tidal 480 260 480 | underwater tidal turbine on seabed in the current; loop flow
-biomass cx baseY width | biomass 480 420 480 | logs and crops burned in power plant, CO₂ back to trees
+biomass cx baseY width lab=0 | biomass 480 420 480 | logs and crops burned in power plant, CO₂ back to trees; lab=0 hides its words
 batterybank cx cy width |text | batterybank 480 260 480 | grid battery containers wired to a pylon; loop flow
-gridmap cx cy width labels=1 | gridmap 480 270 540 | power station, step-up, pylons, substation, homes; loop flow
+gridmap cx cy width labels=1 | gridmap 480 270 540 | power station, step-up, pylons, substation, homes; loop flow; lab=0 hides its words
 transformer cx cy height |text | transformer 480 270 400 | pole-top transformer: high-voltage wires in, low-voltage out
-watertreat cx cy width labels=1 | watertreat 480 270 560 | water treatment: intake, settle, filter, chlorine, store, tap; loop flow
+watertreat cx cy width labels=1 | watertreat 480 270 560 | water treatment: intake, settle, filter, chlorine, store, tap; loop flow; lab=0 hides its words
 pipevalve cx cy width | pipevalve 480 270 480 | pipes with red-wheel gate valve, tee branch, gauge; loop flow
 pump cx cy size spin=1 | pump 480 280 400 spin=1 | centrifugal pump: motor, spinning impeller, water in and out
-wastewater cx cy width labels=1 | wastewater 480 270 560 | sewage works: screen, settle, aerate, clarify, clean river; loop flow
+wastewater cx cy width labels=1 | wastewater 480 270 560 | sewage works: screen, settle, aerate, clarify, clean river; loop flow; lab=0 hides its words
 irrigation cx cy width | irrigation 480 270 480 | river feeds canal and channels between crop rows; loop flow
 glasshouse cx baseY width | glasshouse 480 400 480 | farm greenhouse building: glass roof spans, vent, tomato plants
 trafficlight cx cy height k=red|amber|green | trafficlight 480 280 400 k=red | traffic light with the named lamp lit
@@ -23,15 +23,15 @@ junction cx cy size | junction 480 270 500 | crossroads from above: lanes, zebra
 roundabout cx cy size | roundabout 480 270 500 | roundabout from above: island, ring road, cars going round
 railsignal cx cy height k=stop|go | railsignal 480 270 420 k=stop | railway semaphore by the track: arm level stop, raised go
 runway cx cy width | runway 480 270 520 | airport runway from above: stripes, numbers, taxiway, terminal, plane
-flightforces cx cy length labels=1 | flightforces 480 270 480 | plane with lift, weight, thrust and drag arrows
+flightforces cx cy length labels=1 | flightforces 480 270 480 | plane with lift, weight, thrust and drag arrows; lab=0 hides its words
 aerocar cx cy length | aerocar 480 270 480 | car with airflow streamlines over it and wake swirls; loop flow
 windtunnel cx cy width | windtunnel 480 270 500 | wind tunnel: fan, test window, wing model, smoke lines; loop flow
 beltdrive cx cy width spin=1 | beltdrive 480 270 460 spin=1 | motor pulley drives big pulley by belt; loop flow moves belt
-hydraulic cx cy width k=press|lift | hydraulic 480 290 480 k=lift | hydraulic: small piston pushed, big piston lifts car or presses
+hydraulic cx cy width k=press|lift lab=0 | hydraulic 480 290 480 k=lift | hydraulic: small piston pushed, big piston lifts car or presses; lab=0 hides its words
 heatpump cx cy width |text | heatpump 480 270 500 | outdoor heat pump unit piping heat into a house; loop flow
-insulation cx cy width labels=1 | insulation 480 270 460 | wall section: plaster, insulation, gap, brick; heat kept inside
+insulation cx cy width labels=1 | insulation 480 270 460 | wall section: plaster, insulation, gap, brick; heat kept inside; lab=0 hides its words
 deforest cx baseY width | deforest 480 380 500 | deforestation: dense forest beside stumps, logs, bare ground
 oceanplastic cx cy width | oceanplastic 480 270 500 | plastic bottles and bag in the sea, turtle and fish
 smog cx baseY width | smog 480 440 500 | air pollution: brown haze over city, chimneys, cars, dim sun
-footprint cx cy height |text | footprint 480 280 400 | carbon footprint: green footprint with CO₂ or text inside
-evpetrol cx cy width labels=1 | evpetrol 480 270 500 | electric car charging vs petrol car at pump with exhaust
+footprint cx cy height lab=0 |text | footprint 480 280 400 | carbon footprint: green footprint with CO₂ or text inside; lab=0 hides its words
+evpetrol cx cy width labels=1 | evpetrol 480 270 500 | electric car charging vs petrol car at pump with exhaust; lab=0 hides its words

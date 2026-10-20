@@ -6,7 +6,7 @@ router cx cy width |text | router 480 290 360 |Router | wifi router, two antenna
 netcloud cx cy width |text | netcloud 480 270 400 |The cloud | cloud-computing cloud with upload and download arrows
 envelope cx cy width |num | envelope 480 270 320 |3 | letter envelope; a number tag makes it a data packet
 cable x1 y1 x2 y2 k=wire|fibre |text | cable 200 200 760 220 k=fibre | sagging cable with plugs; fibre glows orange; loop flow
-chip cx cy size |text | chip 480 270 340 | processor chip with pins, CPU or text on top
+chip cx cy size lab=0 |text | chip 480 270 340 | processor chip with pins, CPU or text on top; lab=0 hides its words
 ram cx cy width | ram 480 270 460 | memory stick: green board, black chips, gold contacts
 harddrive cx cy height | harddrive 480 270 400 | open hard drive: platter, spindle, read arm
 keyboard cx cy width | keyboard 480 270 520 | computer keyboard with keys and space bar
@@ -35,7 +35,7 @@ ship cx cy length | ship 480 280 500 | cargo ship with containers, cabin and fun
 piston cx cy height k=burn | piston 480 270 440 k=burn | engine cylinder cutaway: piston, rod, crank; burn shows flame
 gears cx cy width spin=1 | gears 480 270 460 spin=1 | three meshing gears; spin=1 turns them
 conveyor cx cy length | conveyor 480 280 500 | conveyor belt on rollers carrying boxes; loop flow
-building cx cy width k=house|factory|shop|bank |sign | building 480 280 400 k=shop | house, factory with smoke, shop with awning, or columned bank
+building cx cy width k=house|factory|shop|bank lab=0 |sign | building 480 280 400 k=shop | house, factory with smoke, shop with awning, or columned bank; lab=0 hides its words
 coin cx cy size |value | coin 480 270 240 |$1 | gold coin with its value
 banknote cx cy width |value | banknote 480 270 440 |$10 | paper money note with its value
 card cx cy width |text | card 480 270 440 | plain bank card: chip, contactless waves, number

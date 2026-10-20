@@ -3,6 +3,7 @@
 // closure so they never clash with another category's globals.
 (() => {
   const W = 'url(#wc)', LC = '#3b4a5a';
+  const showLab = o => o.lab !== '0' && o.labels !== '0';
   const E = (x, y, rx, ry = rx) => `M${x - rx} ${y} A${rx} ${ry} 0 1 0 ${x + rx} ${y} A${rx} ${ry} 0 1 0 ${x - rx} ${y} Z`;
   const fillp = (g, d, fill, extra = {}) => mk('path', { d, fill, filter: W, class: 'fillable', ...extra }, g);
   const part = (g, d, fill, ink, w = 3) => { fillp(g, d, fill); line(g, d, ink, w); };
@@ -103,7 +104,7 @@
       golgiD(grp(g, 74, 58, .34, -20));
       const v = E(-98, -52, 8) + E(18, 96, 7) + E(-62, -80, 6);
       fillp(g, v, '#f7d3e1'); line(g, v, '#a3406b', 1.8);
-      if (o.lab) {
+      if (o.lab && showLab(o)) {
         tag(g, -45, -22, -178, -96, 'Nucleus'); tag(g, -139, 12, -178, 12, 'Membrane'); tag(g, -82, 74, -178, 104, 'Mitochondrion');
         tag(g, 98, -66, 178, -100, 'Mitochondrion'); tag(g, 59, -6, 178, -30, 'ER'); tag(g, 92, 50, 178, 52, 'Golgi'); tag(g, 40, 100, 178, 118, 'Cytoplasm');
       }
@@ -122,7 +123,7 @@
       nucD(grp(g, -100, -45, .3));
       for (const [x, y, r] of [[-110, 30, 90], [-95, 76, 15], [-50, -80, 0], [30, -82, 0], [115, -60, 70], [125, 40, 90], [60, 82, -5]]) chloroD(grp(g, x, y, .22, r));
       mitoD(grp(g, -62, 46, .2, -20));
-      if (o.lab) {
+      if (o.lab && showLab(o)) {
         tag(g, 148, -78, 186, -100, 'Cell wall'); tag(g, 137, -16, 186, -16, 'Membrane'); tag(g, 70, -30, 186, 22, 'Vacuole');
         tag(g, 125, 50, 186, 76, 'Chloroplast'); tag(g, -118, -50, -186, -60, 'Nucleus'); tag(g, -112, 12, -186, 12, 'Chloroplast');
       }
@@ -198,7 +199,7 @@
       line(g, grey, '#b8c0c8', 3); line(g, gold, '#e88a3a', 3.4);
       line(g, 'M-200 -16 H200', '#2b6cc4', 5); line(g, 'M-200 16 H200', '#c0392b', 5);
       line(g, 'M-50 -38 Q-50 -50 -38 -50 L0 -50 Q10 -50 10 -60 Q10 -50 20 -50 L58 -50 Q70 -50 70 -38', '#c97a10', 2.6);
-      label(g, 10, -72, t || 'Gene', TXT.orange, 26, 'middle');
+      if (t || showLab(o)) label(g, 10, -72, t || 'Gene', TXT.orange, 26, 'middle');
       return g;
     },
 
@@ -355,7 +356,7 @@
         part(grp(g, -40, -58, 1, -20), 'M-28 -52 L0 -14 L0 -92 L-22 -92 Q-28 -92 -28 -86 Z', '#f4a531', '#a35f0c', 3);
         part(grp(g, 40, -58, 1, 20), 'M28 -52 L0 -14 L0 -92 L22 -92 Q28 -92 28 -86 Z', '#f4a531', '#a35f0c', 3);
       } else part(grp(g, 0, k === 'fit' ? -2 : -58), sub, '#f4a531', '#a35f0c', 3);
-      if (o.lab) { label(g, 0, 50, 'Enzyme', '#1f4f8f', 26, 'middle'); label(g, 40, k === 'fit' ? -70 : -126, k === 'split' ? '' : 'Substrate', TXT.orange, 22); }
+      if (o.lab && showLab(o)) { label(g, 0, 50, 'Enzyme', '#1f4f8f', 26, 'middle'); label(g, 40, k === 'fit' ? -70 : -126, k === 'split' ? '' : 'Substrate', TXT.orange, 22); }
       caption(g, 132, t);
       return g;
     },
@@ -431,7 +432,7 @@
         part(b, E(0, -12, 14, 9), '#f4a531', '#a35f0c', 2); part(b, E(0, 8, 12, 11), '#5d93d6', '#1f4f8f', 2); line(b, 'M-12 -2 L12 -2', '#2f6b21', 1.6); };
       if (mono) for (const [x, y] of [[0, -88], [-52, -66], [52, -66], [-84, -14], [84, -14], [-70, 46], [70, 46], [-26, 84], [30, 84], [-34, -24], [34, -24], [0, 22], [-36, 30], [38, 30], [0, -50]]) bundle(x, y, 0, .62);
       else for (let k = 0; k < 8; k++) { const a = k * 45 - 90; bundle(78 * Math.cos(a * Math.PI / 180), 78 * Math.sin(a * Math.PI / 180), a + 90, 1); }
-      if (o.lab) {
+      if (o.lab && showLab(o)) {
         if (mono) { tag(g, 6, -94, 150, -100, 'Phloem'); tag(g, 6, -82, 150, -66, 'Xylem'); }
         else { tag(g, 10, -92, 150, -100, 'Phloem'); tag(g, 10, -70, 150, -62, 'Xylem'); label(g, 0, 8, 'Pith', LC, 20, 'middle'); }
         tag(g, 116, 30, 150, 40, 'Epidermis');
@@ -455,7 +456,7 @@
       part(g, E(0, -84, 10, 7), '#b6e07a', '#2f6b21', 2.2);
       part(g, E(0, 8, 15, 17), '#9fd37a', '#2f6b21', 2.4);
       const ov = E(-5, 8, 3.5) + E(5, 3, 3.5) + E(2, 15, 3.5); fillp(g, ov, '#fff6d0'); line(g, ov, '#8a7a3a', 1.2);
-      if (o.lab) {
+      if (o.lab && showLab(o)) {
         tag(g, -84, -60, -150, -40, 'Petal'); tag(g, -48, -84, -150, -110, 'Stamen'); tag(g, 10, -88, 130, -110, 'Stigma');
         tag(g, 14, 10, 130, 0, 'Ovary'); tag(g, 46, 6, 130, 40, 'Sepal');
       }
@@ -536,7 +537,7 @@
       arrow(g, 'M-60 112 L-60 -112', -60, -112, -60, -90, '#2b6cc4', 3.4);
       arrow(g, 'M40 -100 L40 100', 40, 100, 40, 80, '#d27b0c', 3);
       arrow(g, 'M62 100 L62 -100', 62, -100, 62, -80, '#d27b0c', 3);
-      if (o.lab !== '0') { label(g, -60, -142, 'Xylem', TXT.blue, 26, 'middle'); label(g, 58, -142, 'Phloem', TXT.orange, 26, 'middle');
+      if (showLab(o)) { label(g, -60, -142, 'Xylem', TXT.blue, 26, 'middle'); label(g, 58, -142, 'Phloem', TXT.orange, 26, 'middle');
         label(g, -60, 158, 'water', TXT.blue, 20, 'middle'); label(g, 58, 158, 'sugar', TXT.orange, 20, 'middle'); }
       return g;
     },
@@ -563,13 +564,13 @@
       RECIPES.beams([-112, -70, -50, -14], {}, '', g);
       RECIPES.leaf([30, 20, 230], { rot: -15 }, '', g);
       arrow(g, 'M-205 10 Q-150 0 -96 14', -96, 14, -130, 6, '#6c6c6c', 3);
-      label(g, -205, -6, 'CO₂', '#555', 24);
+      if (showLab(o)) label(g, -205, -6, 'CO₂', '#555', 24);
       arrow(g, 'M40 150 Q30 110 40 68', 40, 68, 34, 92, INK.blue, 3);
-      label(g, 52, 150, 'H₂O', TXT.blue, 24);
+      if (showLab(o)) label(g, 52, 150, 'H₂O', TXT.blue, 24);
       arrow(g, 'M120 -40 Q150 -80 196 -110', 196, -110, 166, -96, INK.sky, 3);
-      label(g, 196, -124, 'O₂', TXT.sky, 24, 'end');
+      if (showLab(o)) label(g, 196, -124, 'O₂', TXT.sky, 24, 'end');
       arrow(g, 'M150 40 Q170 80 206 104', 206, 104, 180, 92, INK.orange, 3);
-      label(g, 206, 130, 'Sugar', TXT.orange, 24, 'end');
+      if (showLab(o)) label(g, 206, 130, 'Sugar', TXT.orange, 24, 'end');
       return g;
     },
 
