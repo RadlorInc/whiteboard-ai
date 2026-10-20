@@ -18,7 +18,7 @@ export const OK_LICENCE = /^(public domain|cc[- ]?by( 4\.0)?)$/i;
 // categories come as a list ("Anatomy, People"): any People is out, and so is an entry that is only shapes or charts
 const skipCat = c => { const l = c.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
   return !l.length || l.includes('people') || l.every(x => ['shapes', 'data visualization'].includes(x)); };
-const SKIP = /\b(pig|piglet|swine|porcine|hog|boar|dog|puppy|canine|alcohol|beer|wine|syringe drug use|gun|weapon)s?\b/i;   // player-src/lib/README.md
+const SKIP = /\b(pig|piglet|swine|porcine|hog|boar|dog|puppy|canine|alcohol|beer|wine|syringe drug use|gun|weapon)s?\b/i;   // scripts/library/README.md
 
 // Each entry comes in colour versions (the SVG's <imageColor>); the first is often plain beige, so take the most colourful.
 const RANK = ['Multicolor', 'Blue', 'Green', 'Orange', 'Pink', 'Purple', 'Red', 'Yellow', 'Brown', 'Grey', 'Beige', 'BlackWhite'];

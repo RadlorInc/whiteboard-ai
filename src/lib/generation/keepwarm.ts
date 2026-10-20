@@ -5,7 +5,7 @@ import { BadRequestError } from '@anthropic-ai/sdk';
 import { prefix, cost, promptSha, PROMPTS, type ModelClient, type Style, type Subject } from './model';
 import type { GenDb, CacheState } from './db';
 
-export const WARM_HORIZON_MS = 24 * 60 * 60e3;     // D3
+const WARM_HORIZON_MS = 24 * 60 * 60e3;     // D3
 const MIN = 60e3;
 
 // Ping only inside [45, 58) minutes since the last touch — two chances on a 5-minute schedule, and never at ≥58,

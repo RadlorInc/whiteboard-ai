@@ -88,4 +88,4 @@ Talos, Fortinet, Zscaler. Record date and result per vendor here.
 - The local stack only (`supabase start`); never link a remote project (README). `scripts/break-check.sh` may run
   `supabase db reset --local` for a pgTAP schema break, which wipes the local data; never run two at once.
 - The pre-commit hook needs `git config core.hooksPath .githooks` once per clone.
-- The prototype is frozen (`../prototype/README.md`); change drawings in `player-src/` only.
+- The prototype is frozen (`../prototype/README.md`); change drawings in `public/player/` only.

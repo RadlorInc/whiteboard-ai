@@ -8,7 +8,7 @@ export const AGE_OK_COOKIE = "age_ok";
 export const AGE_BLOCK_COOKIE = "age_block";
 export const INVITE_COOKIE = "wb_invite";
 
-export function todayInPagoPago(now = new Date()) {
+function todayInPagoPago(now = new Date()) {
   // en-CA formats as YYYY-MM-DD.
   const s = new Intl.DateTimeFormat("en-CA", { timeZone: "Pacific/Pago_Pago" }).format(now);
   const [y, m, d] = s.split("-").map(Number);

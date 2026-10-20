@@ -35,14 +35,14 @@ export const prefix = (style: Style, subject?: Subject | null) => ({
   output_config: { effort: 'medium' },
 });
 
-export type Usage = { input_tokens?: number | null; output_tokens?: number | null; cache_read_input_tokens?: number | null; cache_creation_input_tokens?: number | null };
+type Usage = { input_tokens?: number | null; output_tokens?: number | null; cache_read_input_tokens?: number | null; cache_creation_input_tokens?: number | null };
 export const cost = (u: Usage) => ((u.input_tokens || 0) * PRICE.in + (u.output_tokens || 0) * PRICE.out
   + (u.cache_read_input_tokens || 0) * PRICE.cacheRead + (u.cache_creation_input_tokens || 0) * PRICE.cacheWrite1h) / 1e6;
 
 export type Block = { type: string; text?: string; id?: string; name?: string; input?: unknown; [k: string]: unknown };
 export type FinalMessage = { id?: string; model?: string; stop_reason: string | null; stop_details?: { category?: string | null } | null; content: Block[]; usage: Usage };
 export type StreamEvent = { type: string; delta?: { type: string; text?: string } };
-export interface ModelStream extends AsyncIterable<StreamEvent> { finalMessage(): Promise<FinalMessage>; request_id?: string | null }
+interface ModelStream extends AsyncIterable<StreamEvent> { finalMessage(): Promise<FinalMessage>; request_id?: string | null }
 export interface ModelClient {
   messages: {
     stream(body: Record<string, unknown>, opts?: { signal?: AbortSignal; timeout?: number }): ModelStream;

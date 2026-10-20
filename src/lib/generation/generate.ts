@@ -8,12 +8,12 @@ export const HOLD_CREDITS = 1;          // 1 video from a plan (a free or admin 
 import { promptSha, STYLES, type ModelClient, type Style } from './model';
 import type { GenDb, Level, ReserveOutcome, Thread } from './db';
 
-export const HEARTBEAT_MS = 10_000;
+const HEARTBEAT_MS = 10_000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (s: unknown): s is string => typeof s === 'string' && UUID.test(s);
 
 // §7.12: NFC, control characters removed (newline kept), runs of spaces collapsed, trimmed; 1–500 code points.
-export function cleanQuestion(q: unknown): string | null {
+function cleanQuestion(q: unknown): string | null {
   if (typeof q !== 'string') return null;
   const s = q.normalize('NFC').replace(/[\u0000-\u0009\u000b-\u001f\u007f-\u009f]/g, '').replace(/[^\S\n]+/g, ' ')
     .replace(/ *\n */g, '\n').trim();
@@ -60,14 +60,14 @@ const LEVEL_TEXT: Record<Level, string> = {
   undergrad: '\nLevel: college (an undergraduate major). Teach what an undergraduate course teaches about this: the real model with its proper terms and its key equation, symbols defined on the board. Same length as any lesson: choose that core idea, do not add more.',
   grad: '\nLevel: graduate school. The asker knows the undergraduate picture: teach what a graduate course teaches about this: the more complete model, or where the simple picture breaks down, with its key result on the board. Same length as any lesson: choose the one idea a graduate course stresses, do not cover more.',
 };
-export function threadContext(t: Thread): string[] {
+function threadContext(t: Thread): string[] {
   const head = `Subject: ${SUBJECT[t.subject]}.${LEVEL_TEXT[t.level ?? 'school']}`;
   if (t.turns.length === 0) return [head];
   return [`${head}\nThis question is a follow-up in a conversation. Earlier questions and the lessons you gave:`,
     ...t.turns.map((x, i) => `${i + 1}. Question: ${x.question}\n   You explained: ${x.says.join(' ')}`)];
 }
 
-export type GenerateDeps = {
+type GenerateDeps = {
   db: GenDb; client: ModelClient | null; userId: string | null; appUrl: string | undefined;
   buildId: string; waitUntil: (p: Promise<unknown>) => void; heartbeatMs?: number;
 };

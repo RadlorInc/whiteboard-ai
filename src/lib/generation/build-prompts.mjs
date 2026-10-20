@@ -3,7 +3,7 @@
 //   node src/lib/generation/build-prompts.mjs          writes prompts.json
 //   node src/lib/generation/build-prompts.mjs --check  exits 1 if prompts.json is stale (tests run the same compare)
 // The prompt half below is copied VERBATIM from prototype/server.mjs (lines 21-37, 39-111, 130-138, 148-174 on
-// 12 Oct 2026). Only two lines differ: `here` is app/player-src (the library's home since D6), and the recipe
+// 12 Oct 2026). Only two lines differ: `here` is app/public/player (the library's only copy since 20 Oct 2026), and the recipe
 // catalogue is read from recipe-catalogue.md (the "## Recipe catalogue" section of PROCESS.md, copied byte for byte).
 // tests/generation/prompts.test.ts proves each style's sha256 equals the prototype's. Any change here is a
 // deliberate new prompt_sha. The subject prompts (SUBJECTS below, 18 Oct 2026) are new and have no prototype twin.
@@ -14,7 +14,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const genDir = path.dirname(fileURLToPath(import.meta.url));
-const here = path.join(genDir, '..', '..', '..', 'player-src');
+const here = path.join(genDir, '..', '..', '..', 'public', 'player');
 const MODEL = 'claude-opus-5-5';                                  // founder: the script model stays Opus 5.5
 
 // ---------- What the model is taught: built once, byte-identical on every request (prompt cache) ----------

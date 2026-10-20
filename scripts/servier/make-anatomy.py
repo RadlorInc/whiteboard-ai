@@ -1,4 +1,4 @@
-# Writes player-src/lib/wb/anatomy.js (+ the public copy) from flattened Servier drawings and their part maps.
+# Writes public/player/lib/wb/anatomy.js from flattened Servier drawings and their part maps.
 #   python3 -I scripts/servier/pptx2svg.py <unzipped pptx> <slide> slide.svg     (vector shapes of one slide)
 #   python3 -I scripts/servier/flatten.py slide.svg <group index> heartcut.json  (one drawing, absolute paths, 0..1000 tall)
 #   python3 -I scripts/servier/make-anatomy.py heartcut.json scripts/servier/parts-heartcut.json [...pairs]
@@ -65,5 +65,5 @@ js = '''// Whiteboard library — anatomy: realistic drawings adapted from Servi
   });
 })();
 '''
-for out in ('player-src/lib/wb/anatomy.js', 'public/player/lib/wb/anatomy.js'): open(out, 'w').write(js)
+open('public/player/lib/wb/anatomy.js', 'w').write(js)
 print('anatomy.js', len(js), 'bytes;', ', '.join(f'{k}: {len(v["shapes"])} shapes, {len(v["parts"])} parts' for k, v in data.items()))
