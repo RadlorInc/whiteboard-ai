@@ -19,5 +19,5 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     </>
   );
   const chats = account.hasAccess ? await listChats(await createClient(), RECENTS) : [];
-  return <AppFrame email={account.user.email ?? ""} available={account.available} chats={chats}>{children}</AppFrame>;
+  return <AppFrame email={account.user.email ?? ""} allowance={account.allowance} chats={chats}>{children}</AppFrame>;
 }

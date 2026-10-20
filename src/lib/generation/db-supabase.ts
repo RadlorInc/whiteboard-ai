@@ -3,6 +3,7 @@ import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/server';
 import type { GenDb, Reserve, CacheState, GenerationRow, Thread, ApprovedDrawing } from './db';
+import { planLevel } from '../videos';
 
 let sb: SupabaseClient | null = null;
 const admin = () => (sb ??= createAdminClient());
@@ -74,6 +75,15 @@ export const supabaseDb: GenDb = {
     const turns = (rows ?? []).reverse().map(r => ({ question: r.question as string,
       says: (((r.script as { steps?: { say?: unknown }[] } | null)?.steps) ?? []).map(s => String(s.say ?? '')) }));
     return { subject: c.subject as Thread['subject'], level: (c.level ?? 'school') as Thread['level'], turns };
+  },
+  async billing(generationId, userId) {
+    const [g, b] = await Promise.all([
+      admin().from('generations').select('paid_with').eq('id', generationId).eq('user_id', userId).maybeSingle(),
+      admin().from('credit_balances').select('sub_plan, sub_expires_at').eq('user_id', userId).maybeSingle(),
+    ]);
+    if (g.error || b.error) throw new Error(`billing: ${(g.error ?? b.error)!.message}`);
+    const active = b.data?.sub_expires_at && Date.parse(b.data.sub_expires_at) > Date.now();
+    return { paidWith: (g.data?.paid_with ?? 'credit') as 'credit' | 'free' | 'admin', planLevel: active ? planLevel(b.data!.sub_plan) : null };
   },
   attach: (generationId, conversationId, userId) =>
     rpc<boolean>('attach_to_conversation', { p_generation_id: generationId, p_conversation_id: conversationId, p_user_id: userId }),

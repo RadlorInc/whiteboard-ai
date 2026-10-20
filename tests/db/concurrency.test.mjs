@@ -52,11 +52,14 @@ describe('reserve_generation under concurrency', () => {
     expect(await drift()).toEqual([]);
   });
 
+  // The plan path: free videos are off for this test (restored after), so each reserve holds 1 from the pack.
   test('20 overlapping reserves with 6 available: exactly one reserved, 19 busy, never below 0', { timeout: 60_000 }, async () => {
     const u = await newUser('conc-b');
     await buyPack(u);
     await sql(`select public._ledger('${u.id}', 'forfeit', 0, -54, 0);`);   // fixture: spent 54 of the 60
     expect(await balance(u.id)).toBe('0/6/0');
+    const [freeBefore] = await sql('select free_videos_monthly from public.ops_settings;');
+    await sql('update public.ops_settings set free_videos_monthly = 0 where id;');
 
     // 20 connections, each holding its transaction 200 ms after its reserve returns, so all 20 truly overlap
     // (over HTTP each call commits in ~2 ms and the calls barely overlap: measured, that version passed with the
@@ -73,12 +76,13 @@ describe('reserve_generation under concurrency', () => {
       expect(busy).toHaveLength(19);
       const id = reserved[0].split(':')[1];
       expect(new Set(busy)).toEqual(new Set([`busy:${id}`]));
-      expect(await balance(u.id)).toBe('0/0/6');
+      expect(await balance(u.id)).toBe('0/5/1');
       const [reserves] = await sql(`select count(*) from public.credit_ledger where user_id = '${u.id}' and kind = 'reserve';`);
       expect(reserves).toBe('1');
       await release(id);
     } finally {
       sessions.forEach((s) => s.close());
+      await sql(`update public.ops_settings set free_videos_monthly = ${freeBefore} where id;`);
     }
     expect(await balance(u.id)).toBe('0/6/0');
     expect(await drift()).toEqual([]);

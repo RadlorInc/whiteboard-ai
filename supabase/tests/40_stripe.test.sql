@@ -3,6 +3,10 @@
 begin;
 set local search_path = public, extensions;
 \ir helpers.psql
+-- The Stripe machinery does not depend on the unit: this file keeps the original catalog (Plus 150, Pro 330, packs on
+-- sale) so its hand-typed numbers stand. The live catalog (Plus 40, Pro 100 videos, no packs) is checked in 87_free_tier.
+update public.price_catalog set credits = case price_key when 'plus' then 150 when 'pro' then 330 else credits end,
+  active = true;
 select plan(100);
 
 create temp table users (k text primary key, id uuid);

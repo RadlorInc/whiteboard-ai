@@ -4,9 +4,9 @@ import { admin, credits, signIn } from "./helpers";
 // One file, one at a time: these tests sign in the same seed users, and a new code for an address cancels the last.
 test.describe.configure({ mode: "serial" });
 
-// The core loop on the local stack with the fake model (no spend): ask -> charged -> library -> share -> signed-out
+// The core loop on the local stack with the fake model (no spend): ask -> free video -> library -> share -> signed-out
 // viewer -> stop sharing -> 404. Seed user A (supabase/seed.sql). One open video per user, so desktop only.
-test("ask, get charged, find it in the library, share it, unshare it", async ({ page, browser }, info) => {
+test("ask, get a free video, find it in the library, share it, unshare it", async ({ page, browser }, info) => {
   test.skip(info.project.name !== "chromium-desktop", "one open video per user: run once");
   test.setTimeout(120_000);
   await signIn(page, "a@example.test");
@@ -22,9 +22,10 @@ test("ask, get charged, find it in the library, share it, unshare it", async ({ 
   // People see "Done." and videos left; the credits charged stay on the element for this check (18 Oct 2026).
   await expect(page.locator("[data-charged]")).toBeVisible({ timeout: 90_000 });
   const used = Number(await page.locator("[data-charged]").getAttribute("data-charged"));
-  expect(used).toBe(4);                                  // the mock rainbow: 515 spoken characters -> ceil(515/150) = 4
+  // Free tier (20 Oct 2026): seed A has this month's free videos, so the video is free and the plan is untouched.
+  expect(used).toBe(0);
   await page.goto("/library");
-  expect(await credits(page)).toBe(before - 4);
+  expect(await credits(page)).toBe(before);
   await page.getByRole("main").getByRole("link", { name: question }).click();   // the sidebar lists the chat too
   // The step controls move the replay: forward one step, then straight to the last one (every step is there at once,
   // 18 Oct 2026), then back one.

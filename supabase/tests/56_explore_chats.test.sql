@@ -35,6 +35,10 @@ create temp table convs as select
   pg_temp.as_user(pg_temp.xb(), $$select public.create_conversation('biology')$$)::uuid flow;
 select pg_temp.video('heart', pg_temp.xa(), 'How does the heart pump blood?', (select heart from convs)) is not null as f \gset
 select pg_temp.video('valves', pg_temp.xa(), 'Why are there valves in it?', (select heart from convs)) is not null as f \gset
+-- now() is one instant in this transaction: the follow-up is made 1 s later, as it would be (explore_series orders by created_at)
+alter table public.generations disable trigger generations_guard;
+update public.generations set created_at = created_at + interval '1 second' where id = pg_temp.v('valves');
+alter table public.generations enable trigger generations_guard;
 select pg_temp.video('rainbow', pg_temp.xb(), 'How does a rainbow form?', null) is not null as f \gset
 select pg_temp.video('contact', pg_temp.xb(), 'DM @robux_king about volcanoes', null) is not null as f \gset
 

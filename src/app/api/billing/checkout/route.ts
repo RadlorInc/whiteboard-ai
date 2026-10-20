@@ -1,7 +1,7 @@
 // POST /api/billing/checkout {price_key} -> {url} of a Stripe Checkout page (§8.3).
 import { NextResponse } from "next/server";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
-import { PRICE_KEYS, isSubscription, priceId, stripe, type PriceKey } from "@/lib/stripe";
+import { ON_SALE, isSubscription, priceId, stripe, type PriceKey } from "@/lib/stripe";
 
 const json = (status: number, body: unknown) => NextResponse.json(body, { status });
 
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   if (!user) return json(401, { code: "signed_out" });
   const body = await req.json().catch(() => null);
   const key = body?.price_key as PriceKey;
-  if (!PRICE_KEYS.includes(key)) return json(400, { code: "bad_request" });
+  if (!ON_SALE.includes(key)) return json(400, { code: "bad_request" });
   const s = stripe(), price = priceId(key);
   if (!s || !price) return json(503, { code: "payments_not_configured" });
 

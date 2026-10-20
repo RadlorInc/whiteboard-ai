@@ -2,8 +2,9 @@
 // route.ts passes the real database, model, user and after(); tests pass fakes.
 import { runGeneration } from './run';
 import { POLICY_VERSION } from './checks.mjs';
+import { taughtLevel } from '../videos';
 
-export const HOLD_CREDITS = 6;
+export const HOLD_CREDITS = 1;          // 1 video from a plan (a free or admin video holds 0: reserve_generation)
 import { promptSha, STYLES, type ModelClient, type Style } from './model';
 import type { GenDb, Level, ReserveOutcome, Thread } from './db';
 
@@ -40,7 +41,7 @@ function refused(outcome: ReserveOutcome, r: { generation_id: string | null; ava
     case 'at_capacity': return json(503, { code: 'at_capacity' }, { 'Retry-After': '30' });
     case 'paused': return json(503, { code: 'paused' });
     case 'spend_cap': return json(503, { code: 'spend_cap' });
-    case 'insufficient': return json(402, { code: 'insufficient_credits', available: r.available, needed: HOLD_CREDITS });
+    case 'insufficient': return json(402, { code: 'insufficient_credits', available: r.available, needed: HOLD_CREDITS, retry_at: r.retry_at });
     default: return json(500, { code: 'server_error' });
   }
 }
@@ -111,6 +112,14 @@ export async function handleGenerate(req: Request, d: GenerateDeps): Promise<Res
   if (r.outcome !== 'reserved' || !r.generation_id) return refused(r.outcome, r);
   const id = r.generation_id;
   if (conversationId) await d.db.attach(id, conversationId, d.userId).catch(() => false);   // unfiled still plays
+  // A plan's videos are taught at the plan's level (founder, 20 Oct 2026): a grad chat on a high-school plan gets a
+  // high-school lesson. Free and admin videos keep the chat's level (the free ones are for trying every level).
+  let capped = false;
+  if (thread && style === 'whiteboard' && d.db.billing) {
+    const b = await d.db.billing(id, d.userId).catch(() => null);
+    const level = b?.paidWith === 'credit' ? taughtLevel(thread.level, b.planLevel) : thread.level;
+    if (level !== thread.level) { thread = { ...thread, level }; capped = true; }
+  }
   if (!(await d.db.start(id))) {
     const f = await d.db.fail(id, 'stale', { steps_sent: 0 });
     return json(503, { code: 'stale', refunded: true, available: f.available });
@@ -125,7 +134,8 @@ export async function handleGenerate(req: Request, d: GenerateDeps): Promise<Res
     start(c) { ctrl = c; },
     cancel() { clientGone = true; },
   });
-  send('accepted', { id, style, creditsHeld: HOLD_CREDITS, capChars: style === 'matchcut' ? 700 : 900 });
+  send('accepted', { id, style, creditsHeld: HOLD_CREDITS, capChars: style === 'matchcut' ? 700 : 900,
+    ...(capped && { level: thread!.level, levelCapped: true }) });
   const hb = setInterval(() => write(': hb\n\n'), d.heartbeatMs ?? HEARTBEAT_MS);
   const client = d.client;
   const userId = d.userId;

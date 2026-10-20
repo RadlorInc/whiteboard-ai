@@ -2,16 +2,20 @@ import "server-only";
 // Stripe (PLAN.md §8). Credits enter ONLY through the signature-verified webhook; nothing here grants credits.
 import Stripe from "stripe";
 
-export const PRICE_KEYS = ["plus", "pro", "topup_60", "topup_132", "topup_282"] as const;
+export const PRICE_KEYS = ["plus", "pro", "plus_college", "pro_college", "plus_grad", "pro_grad", "topup_60", "topup_132", "topup_282"] as const;
 export type PriceKey = (typeof PRICE_KEYS)[number];
+// On sale (free tier, 20 Oct 2026): the plans only, one pair per level. Packs stay in PRICE_KEYS so their old webhooks still map.
+export const ON_SALE: PriceKey[] = ["plus", "pro", "plus_college", "pro_college", "plus_grad", "pro_grad"];
 const ENV: Record<PriceKey, string> = {
   plus: "STRIPE_PRICE_PLUS", pro: "STRIPE_PRICE_PRO",
+  plus_college: "STRIPE_PRICE_PLUS_COLLEGE", pro_college: "STRIPE_PRICE_PRO_COLLEGE",
+  plus_grad: "STRIPE_PRICE_PLUS_GRAD", pro_grad: "STRIPE_PRICE_PRO_GRAD",
   topup_60: "STRIPE_PRICE_TOPUP_60", topup_132: "STRIPE_PRICE_TOPUP_132", topup_282: "STRIPE_PRICE_TOPUP_282",
 };
 export const priceId = (k: PriceKey) => process.env[ENV[k]] || null;
 export const priceKeyOf = (id: string | null | undefined): PriceKey | null =>
   (id && PRICE_KEYS.find(k => priceId(k) === id)) || null;
-export const isSubscription = (k: PriceKey) => k === "plus" || k === "pro";
+export const isSubscription = (k: PriceKey) => !k.startsWith("topup_");
 
 // null when payments are not set up (no key yet): the routes answer 503 instead of failing later.
 export function stripe(): Stripe | null {

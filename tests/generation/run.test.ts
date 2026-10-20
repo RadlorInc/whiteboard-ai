@@ -240,7 +240,7 @@ describe('POST /api/generate refusals reserve nothing', () => {
       const res = await handleGenerate(req(ok), deps(db));
       expect(res.status).toBe(status);
       if (outcome === 'at_capacity') expect(res.headers.get('retry-after')).toBe('30');
-      if (outcome === 'insufficient') expect(await res.json()).toEqual({ code: 'insufficient_credits', available: 4, needed: 6 });
+      if (outcome === 'insufficient') expect(await res.json()).toEqual({ code: 'insufficient_credits', available: 4, needed: 1, retry_at: expect.any(String) });
       expect(log.start + log.finish.length + log.fail.length).toBe(0);
     });
   it('start_generation refused (lease gone): released once, 503', async () => {
@@ -251,7 +251,7 @@ describe('POST /api/generate refusals reserve nothing', () => {
   it('the full SSE body of a good whiteboard answer', async () => {
     const { db } = fakeDb();
     const ev = await readSse(await handleGenerate(req(ok), deps(db)));
-    expect(ev[0]).toEqual({ event: 'accepted', data: { id: ID, style: 'whiteboard', creditsHeld: 6, capChars: 900 } });
+    expect(ev[0]).toEqual({ event: 'accepted', data: { id: ID, style: 'whiteboard', creditsHeld: 1, capChars: 900 } });
     expect(ev.map(e => e.event).filter(e => e !== 'stage' && e !== 'need')).toEqual(['accepted', 'els', ...rainbow.steps.map(() => 'step'), 'done']);
   });
 });
@@ -290,8 +290,19 @@ describe('POST /api/generate in a conversation', () => {
     const f = fakeClient([{ tool: { names: ['sun'] } }, { text: text(rainbow) }]);
     const ev = await readSse(await handleGenerate(req(ask), { db, client: f.client, userId: 'u1', appUrl: 'http://localhost:3100', buildId: 't', waitUntil: () => {} }));
     expect(((f.seen[0] as Any).messages[0].content as { text: string }[])[0].text).toMatch(/^Subject: Physics\.\nLevel: graduate school\..*Same length as any lesson/);
-    expect(ev.find(e => e.event === 'accepted')?.data).toMatchObject({ creditsHeld: 6, capChars: 900 });
+    expect(ev.find(e => e.event === 'accepted')?.data).toMatchObject({ creditsHeld: 1, capChars: 900 });
     expect((f.seen.at(-1) as Any).max_tokens).toBe(16_000);
+  });
+
+  it('a grad chat paid by a high-school plan is taught at high-school level; a free video keeps grad', async () => {
+    for (const [paidWith, want, capped] of [['credit', 'high school', true], ['free', 'graduate school', false]] as const) {
+      const { db } = fakeDb({ thread: { subject: 'physics', level: 'grad', turns: [] } });
+      db.billing = async () => ({ paidWith, planLevel: 'school' });
+      const f = fakeClient([{ tool: { names: ['sun'] } }, { text: text(rainbow) }]);
+      const ev = await readSse(await handleGenerate(req(ask), { db, client: f.client, userId: 'u1', appUrl: 'http://localhost:3100', buildId: 't', waitUntil: () => {} }));
+      expect(((f.seen[0] as Any).messages[0].content as { text: string }[])[0].text).toContain(`Level: ${want}.`);
+      expect((ev.find(e => e.event === 'accepted')?.data as Any).levelCapped).toBe(capped || undefined);
+    }
   });
 
   // Subjects (founder, 18 Oct 2026): the chat's subject picks the whiteboard prompt and the drawing library.

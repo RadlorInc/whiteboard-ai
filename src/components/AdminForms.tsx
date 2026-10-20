@@ -22,7 +22,8 @@ export function SwitchForm({ k, label, on }: { k: string; label: string; on: boo
 
 const LIMIT_LABELS: [string, string, string?][] = [
   ["daily_spend_cap_usd", "App-wide model spend a day ($)", "0.01"], ["max_open_generations", "Videos made at once, app-wide"],
-  ["user_daily_cap", "Videos a user a day"], ["user_monthly_cap", "Videos a user a month"],
+  ["free_videos_monthly", "Free videos a user a month (then a plan)"],
+  ["user_daily_cap", "Videos a user a day (fair use, all users)"], ["user_monthly_cap", "Videos a user a month (fair use, all users)"],
   ["slow_1_after", "First wait after this many videos today"], ["slow_1_seconds", "First wait (seconds, max 60)"],
   ["slow_2_after", "Second wait after this many videos today"], ["slow_2_seconds", "Second wait (seconds, max 60)"],
 ];
@@ -45,9 +46,9 @@ export function CreditsForm() {
   const [s, act, pending] = useActionState(adjustCredits, {});
   return (
     <form action={act} className="card stack">
-      <strong>Give or take credits (top-up bucket)</strong>
+      <strong>Give or take videos (top-up bucket, 1 = 1 video)</strong>
       <label>Email or user id<input name="who" className="input" required /></label>
-      <label>Credits (+ to give, − to take)<input name="delta" type="number" className="input" required /></label>
+      <label>Videos (+ to give, − to take)<input name="delta" type="number" className="input" required /></label>
       <label>Reason<input name="reason" className="input" required minLength={5} /></label>
       <button className="btn" disabled={pending}>Apply</button>
       <Result s={s} />
