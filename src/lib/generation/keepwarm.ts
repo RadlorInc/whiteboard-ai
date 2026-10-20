@@ -10,7 +10,11 @@ const MIN = 60e3;
 
 // Ping only inside [45, 58) minutes since the last touch — two chances on a 5-minute schedule, and never at ≥58,
 // where a dead cache would bill a $0.107 write — and only for a style a real user asked within the horizon.
-export function shouldPing(row: Pick<CacheState, 'last_touch_at' | 'last_real_at'> | undefined, now: number) {
+// KEEP_WARM_ALWAYS=1 (launch): every prompt stays warm with no user, and a cold one (a new prompt_sha after a deploy,
+// or a cache that died) is written on the next run, so the first video after a deploy is warm too.
+export function shouldPing(row: Pick<CacheState, 'last_touch_at' | 'last_real_at'> | undefined, now: number,
+  always = process.env.KEEP_WARM_ALWAYS === '1') {
+  if (always) return !row?.last_touch_at || now - Date.parse(row.last_touch_at) >= 45 * MIN;
   if (!row?.last_touch_at || !row.last_real_at) return false;
   const idle = now - Date.parse(row.last_touch_at);
   return idle >= 45 * MIN && idle < 58 * MIN && now - Date.parse(row.last_real_at) < WARM_HORIZON_MS;
