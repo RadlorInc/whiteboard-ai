@@ -9,6 +9,7 @@ import { Icon } from "./Icon";
 import { resetDay } from "@/lib/videos";
 import { PLANS_ON } from "@/product";
 import { ShareButton } from "./ShareButton";
+import { VideoFeedback } from "./VideoFeedback";
 
 export type Style = "whiteboard" | "paper" | "matchcut";
 type Script = Record<string, unknown> & { steps?: { say: string }[]; objects?: { say: string }[] };
@@ -395,6 +396,7 @@ export function Watch({ question, style, subject, explore = false, conversationI
           <a href={`/videos/${result.id}`} className="btn ghost sm"><Icon name="external" size={16} /> Open this video</a>
         </p>
       )}
+      {result && <VideoFeedback id={result.id} />}
       {exploreNote && <p className="answer-meta" role="status">{exploreNote}</p>}
       {steps.length > 0 && (
         <details className="transcript"><summary>Transcript</summary><ol>{steps.map((s, i) => <li key={i}>{s}</li>)}</ol></details>

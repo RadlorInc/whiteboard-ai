@@ -4,6 +4,7 @@ import { useState, useSyncExternalStore, useTransition } from "react";
 import { Player, type Style } from "./Watch";
 import { VoiceProgress } from "./Voice";
 import { Icon } from "./Icon";
+import { VideoFeedback } from "./VideoFeedback";
 import { deleteVideo, setExplore, shareVideo, unshareVideo } from "@/app/(app)/videos/actions";
 
 export const exploreRefusal = (e?: string) => e === "contact_info" ? "This question has contact details in it, so it can't go on Explore."
@@ -52,6 +53,7 @@ export function VideoView({ id, style, script, slug: initial, inExplore: initial
       </div>
       {url && <p className="muted share-url">{url}</p>}
       {note && <p role="status" className="muted small">{note}</p>}
+      <VideoFeedback id={id} />
     </section>
   );
 }

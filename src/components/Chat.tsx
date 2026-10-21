@@ -9,6 +9,7 @@ import { AskComposer } from "./AskComposer";
 import { Player, Watch, type Style } from "./Watch";
 import { deleteChat, startConversation } from "@/app/(app)/c/actions";
 import { ShareButton } from "./ShareButton";
+import { VideoFeedback } from "./VideoFeedback";
 import { SUBJECT_NAME, type Subject } from "./Chats";
 import { LEVEL_NAME, type Allowance, type Level } from "@/lib/videos";
 import { Icon } from "./Icon";
@@ -36,6 +37,7 @@ function PastTurn({ t, subject }: { t: Turn; subject: Subject }) {
               <ShareButton id={t.id} title={t.question} />
               <Link href={`/videos/${t.id}`} className="btn ghost sm"><Icon name="external" size={16} /> Open</Link>
             </p>
+            <VideoFeedback id={t.id} />
           </>}
     </section>
   );

@@ -563,3 +563,8 @@ li.now .tick { border-color: transparent; }
 .menu.profile > summary:focus-visible { outline-offset: 1px; border-radius: 50%; }
 .menu.profile > summary:focus:not(:focus-visible) { outline: none; }
 
+
+/* Video feedback (VideoFeedback.tsx): thumbs meet the 44 px touch size; the chosen one is marked. */
+.feedback .answer-meta .btn.ghost.sm { min-width: 44px; min-height: 44px; justify-content: center; }
+.feedback .answer-meta .btn.ghost.sm[aria-pressed="true"] { color: var(--accent); background: var(--surface-2); }
+.feedback-why { margin-top: 4px; max-width: 520px; }
