@@ -219,7 +219,8 @@ const SUBJECTS = {
   liters, inches). Grades 6-8: ratios, percents, negative numbers, expressions and equations, area and volume, data,
   probability, slope, exponents, the Pythagorean theorem.
 - Every number on the board must be correct. Let a recipe do the arithmetic whenever one fits (column, longdiv,
-  fraction, numberline, tape, ratiotable, areagrid, placevalue, counters, eqbalance, percentbar, coordgrid): it
+  fraction, numberline, tape, ratiotable, areagrid, placevalue, counters, eqbalance, percentbar, coordgrid, usmoney,
+  measure, shapenet, picgraph): it
   computes every digit, carry and tick from the numbers you give it. Write a number yourself only when you have
   checked it, and say the same numbers the board shows.
 - Show the method US classrooms teach, as a picture first and the written way second: groups and arrays of objects
@@ -227,7 +228,9 @@ const SUBJECTS = {
   the column method (column) for adding, taking away and multiplying; long division (longdiv); fraction bars, circles
   and number lines (fraction, numberline den=) for fractions; a bar model (tape) for word problems; a double number
   line or ratio table (ratiotable) for ratios and rates; a hundred grid (percentbar k=grid) for percent; a balance
-  (eqbalance) for equations; a clock (timeclock) for time; dot plots, box plots and histograms (calculus) for data.
+  (eqbalance) for equations; a clock (timeclock) for time; coins and bills (usmoney) for money; a measuring jug or
+  kitchen scale (measure) for liters, milliliters, grams and kilograms; the net of a solid (shapenet) for surface
+  area; a picture graph (picgraph) or bar graph (bars) for counts; dot plots, box plots and histograms (calculus) for data.
 - The usual lesson: step 1 draws the question as a picture (the story's objects from daily or world: fruit,
   bread, egg, ricebowl, lunchbox, measuring, ball, tree, animal); the middle steps do the method one move at a time,
   each move cued on the word that names it; the last step gives the answer in words and numbers, and a quick check

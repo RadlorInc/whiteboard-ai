@@ -13,9 +13,9 @@ body `{question ≤300, band: '3-5'|'6-8'}`) and plays the lesson in its own cop
 - **Nothing about the child is kept here**: no user, no generations row, no conversation, no Explore, no saved
   drawings; cost rows have `generation_id` and `raw_text` null. Kill switch, provider block and spend cap still apply.
 - A screen call first (Opus 5.5, effort low, JSON verdict): `not_maths` / `personal` / `unsafe` → 422, nothing drawn.
-- New subject **`maths`** (prompt sha `bf1524…`, kids' teaching rules, gender-neutral people) and a new subject-only
+- New subject **`maths`** (prompt sha `2ae6a8…`, kids' teaching rules, gender-neutral people) and a new subject-only
   category **`schoolmath`**: timeclock, tape (bar model), column (+ − × with carries/borrows, decimals), longdiv,
-  ratiotable. Maths may not use sv/pin (run.ts refuses; Radlic's copy ships no realistic drawings). The plain
+  ratiotable, usmoney (coins and bills), measure (jug, kitchen scale), shapenet (nets), picgraph. Maths may not use sv/pin (run.ts refuses; Radlic's copy ships no realistic drawings). The plain
   prompt's sha is unchanged; keep-warm now also pings the maths prompt when it is used.
 - Not done: a real-model run of the maths prompt (no live calls from agents); set `RADLIC_PARTNER_SECRET` in Vercel
   (and the same value in Radlic) before Radlic turns the feature on. No migration.
