@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
+import { getT } from "@/lib/lang";
 
-export const metadata: Metadata = { title: "Help" };
+export async function generateMetadata(): Promise<Metadata> { return { title: (await getT())("Help") }; }
 const QA: [string, string][] = [
   ["How many videos do I get?", "10 free videos every month; they come back on the 1st (UTC). After that each video comes from a plan: Plus has 40 a month, Pro 100. A video that fails is never counted."],
   ["My video failed. Was I charged?", "No. Failed, refused and timed-out videos are always free."],
@@ -14,16 +15,17 @@ const QA: [string, string][] = [
   ["How do I delete my data?", "Account → Download my data, or Delete account."],
 ];
 
-export default function Help() {
+export default async function Help() {
+  const t = await getT();
   return (
     <main className="page narrow stack">
-      <h1>Help</h1>
+      <h1>{t("Help")}</h1>
       <div className="faq">
         {QA.map(([q, a]) => (
-          <details key={q}><summary>{q}<Icon name="chevronDown" size={18} /></summary><p>{a}</p></details>
+          <details key={q}><summary>{t(q)}<Icon name="chevronDown" size={18} /></summary><p>{t(a)}</p></details>
         ))}
       </div>
-      <p className="muted">Still stuck? <Link href="/contact">Contact us</Link>.</p>
+      <p className="muted">{t("Still stuck?")} <Link href="/contact">{t("Contact us")}</Link>.</p>
     </main>
   );
 }

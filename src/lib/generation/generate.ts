@@ -3,6 +3,7 @@
 import { runGeneration } from './run';
 import { POLICY_VERSION } from './checks.mjs';
 import { taughtLevel } from '../videos';
+import { isLang, type Lang } from '../i18n';
 
 export const HOLD_CREDITS = 1;          // 1 video from a plan (a free or admin video holds 0: reserve_generation)
 import { promptSha, STYLES, type ModelClient, type Style } from './model';
@@ -60,8 +61,20 @@ const LEVEL_TEXT: Record<Level, string> = {
   undergrad: '\nLevel: college (an undergraduate major). Teach what an undergraduate course teaches about this: the real model with its proper terms and its key equation, symbols defined on the board. Same length as any lesson: choose that core idea, do not add more.',
   grad: '\nLevel: graduate school. The asker knows the undergraduate picture: teach what a graduate course teaches about this: the more complete model, or where the simple picture breaks down, with its key result on the board. Same length as any lesson: choose the one idea a graduate course stresses, do not cover more.',
 };
-function threadContext(t: Thread): string[] {
-  const head = `Subject: ${SUBJECT[t.subject]}.${LEVEL_TEXT[t.level ?? 'school']}`;
+// The video's language (founder, 21 Oct 2026: launch in the Netherlands): said in the user turn like the level, so
+// the cached system prompt stays the same for every language. English needs no line.
+const LANG_TEXT: Record<Lang, string> = {
+  en: '',
+  nl: '\nLanguage: Dutch. The viewer is a student in the Netherlands. Write every "say" and every word shown on the ' +
+    'board (tags, text, labels, pins) in natural Dutch, with the terms Dutch schools and universities use. Every "say" ' +
+    'begins "Stap 1:", "Stap 2:" and so on (not "Step"), and every @word cue is the Dutch word as written in its say. ' +
+    'Element types, commands, options and drawing names stay exactly as the instructions give them. Library drawings ' +
+    'write their own part names in English: add lab=0 to any drawing that would show English words and name its parts ' +
+    'yourself in Dutch. Dutch runs longer than English: stay within the same 900 characters by saying it more ' +
+    'tightly, not by dropping the idea.',
+};
+function threadContext(t: Thread, lang: Lang): string[] {
+  const head = `Subject: ${SUBJECT[t.subject]}.${LEVEL_TEXT[t.level ?? 'school']}${LANG_TEXT[lang]}`;
   if (t.turns.length === 0) return [head];
   return [`${head}\nThis question is a follow-up in a conversation. Earlier questions and the lessons you gave:`,
     ...t.turns.map((x, i) => `${i + 1}. Question: ${x.question}\n   You explained: ${x.says.join(' ')}`)];
@@ -89,7 +102,10 @@ export async function handleGenerate(req: Request, d: GenerateDeps): Promise<Res
   const conversationId = body.conversation_id ?? null;
   if (conversationId !== null && !isUuid(conversationId)) return json(400, { code: 'bad_request' });
   // Every new video goes on Explore (founder, 15 Oct 2026); explore: false keeps it off (tests that share by hand).
-  const explore = body.explore !== false;
+  // A Vercel preview runs against the production database (the Dutch review, 21 Oct 2026): its test videos must not
+  // reach the live Explore.
+  const explore = body.explore !== false && process.env.VERCEL_ENV !== 'preview';
+  const lang: Lang = isLang(body.lang) ? body.lang : 'en';       // the asker's UI language; anything else is English
 
   // A retry of an accepted ask gets its id back before any other check (§6.6 step 1).
   const prior = await d.db.findByRequest(d.userId, requestId);
@@ -139,7 +155,8 @@ export async function handleGenerate(req: Request, d: GenerateDeps): Promise<Res
   const hb = setInterval(() => write(': hb\n\n'), d.heartbeatMs ?? HEARTBEAT_MS);
   const client = d.client;
   const userId = d.userId;
-  const work = runGeneration({ id, style, question, context: thread ? threadContext(thread) : undefined, subject: thread?.subject, client, db: d.db, send,
+  const context = thread ? threadContext(thread, lang) : LANG_TEXT[lang] ? [LANG_TEXT[lang].trim()] : undefined;
+  const work = runGeneration({ id, style, question, context, lang, subject: thread?.subject, client, db: d.db, send,
     explore: explore ? () => d.db.explore(id, userId) : undefined })
     .catch(() => send('failed', { code: 'provider_error', refunded: false }))   // finish/fail itself failed: the sweep releases
     .finally(() => { clearInterval(hb); if (!clientGone) try { ctrl?.close(); } catch {} });

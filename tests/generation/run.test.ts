@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 // The generation run and its money paths (PLAN.md §7.3, §7.5, §6.6), driven by a fake model and an in-memory DB.
 // Rule under test: every path ends in exactly one charge (finish) or one release (fail), never both, never neither.
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { APIError, APIConnectionError } from '@anthropic-ai/sdk';
 import { runGeneration, providerCode } from '../../src/lib/generation/run';
 import { handleGenerate } from '../../src/lib/generation/generate';
@@ -253,6 +253,44 @@ describe('POST /api/generate refusals reserve nothing', () => {
     const ev = await readSse(await handleGenerate(req(ok), deps(db)));
     expect(ev[0]).toEqual({ event: 'accepted', data: { id: ID, style: 'whiteboard', creditsHeld: 1, capChars: 900 } });
     expect(ev.map(e => e.event).filter(e => e !== 'stage' && e !== 'need')).toEqual(['accepted', 'els', ...rainbow.steps.map(() => 'step'), 'done']);
+  });
+});
+
+// Dutch (founder, 21 Oct 2026, the Netherlands launch): the asker's language reaches the model in the user turn (the
+// system prompt stays the cached one) and is saved on the script, so replays speak Dutch.
+describe('POST /api/generate in Dutch', () => {
+  const req = (body: Any) => new Request('http://localhost:3100/api/generate', { method: 'POST',
+    headers: { origin: 'http://localhost:3100', 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  const ask = (lang?: string) => ({ question: 'Hoe ontstaat een regenboog?', style: 'whiteboard', client_request_id: crypto.randomUUID(), ...(lang && { lang }) });
+  const run = async (lang?: string) => {
+    const { db, log } = fakeDb(), f = fakeClient([{ text: text(rainbow) }]);
+    await readSse(await handleGenerate(req(ask(lang)), { db, client: f.client, userId: 'u1', appUrl: 'http://localhost:3100', buildId: 't', waitUntil: () => {} }));
+    return { content: (f.seen[0] as Any).messages[0].content, system: (f.seen[0] as Any).system, saved: log.finish[0] as Any };
+  };
+  it('nl: a Dutch line before the question, the same system prompt, lang saved', async () => {
+    const nl = await run('nl'), en = await run();
+    expect(nl.content[0].text).toMatch(/^Language: Dutch\..*"Stap 1:"/);
+    expect(nl.content.at(-1).text).toBe('New question: Hoe ontstaat een regenboog?');
+    expect(nl.system).toEqual(en.system);
+    expect(JSON.stringify(nl.saved)).toContain('"lang":"nl"');
+  });
+  it('a Vercel preview never puts a video on Explore (it shares the production database)', async () => {
+    vi.stubEnv('VERCEL_ENV', 'preview');
+    try {
+      const { db } = fakeDb(); let asked = 0;
+      db.explore = async () => { asked++; return 'shown'; };
+      const ev = await readSse(await handleGenerate(req({ ...ask('nl'), explore: true }),
+        { db, client: fakeClient([{ text: text(rainbow) }]).client, userId: 'u1', appUrl: 'http://localhost:3100', buildId: 't', waitUntil: () => {} }));
+      expect(asked).toBe(0);
+      expect(ev.find(e => e.event === 'done')?.data).toMatchObject({ explore: null });
+    } finally { vi.unstubAllEnvs(); }
+  });
+  it('no lang, or one we do not speak: English, as before (the question alone, no lang saved)', async () => {
+    for (const lang of [undefined, 'fr']) {
+      const r = await run(lang);
+      expect(r.content).toBe('Hoe ontstaat een regenboog?');
+      expect(JSON.stringify(r.saved)).not.toContain('"lang"');
+    }
   });
 });
 

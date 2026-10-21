@@ -14,7 +14,7 @@ export const LEGAL: Record<string, Doc> = {
     ["What you get", [
       `${P} turns your question into a short animated, narrated explanation, written by AI. AI can be wrong: check anything important, especially health, legal or money questions. It is not medical, legal or financial advice.`,
       "Every new question makes a new video and uses one of your videos for the month. Watching a video you already made is free.",
-      "The narration voice is made on your own device. The first time, your browser downloads a voice model (about 166 MB, mostly from Hugging Face) and keeps it; devices that cannot run it use the browser's own voice."]],
+      "The narration voice is made on your own device. The first time, your browser downloads a voice model (about 166 MB for English, about 82 MB for Dutch, mostly from Hugging Face) and keeps it; devices that cannot run it use the browser's own voice."]],
     ["Free videos, plans and payments", [
       "Every account gets 10 free videos each calendar month (UTC). Unused free videos do not carry over. After that, each video uses one video from a paid plan. Failed or refused videos are never counted.",
       "Plans come in three levels (high school, college, grad school). Videos from a plan are taught at that plan's level, whatever level a chat is set to; free videos can be made at any level.",
@@ -74,7 +74,8 @@ export const LEGAL: Record<string, Doc> = {
     ["Reporting", ["If you believe a shared or Explore video infringes your copyright, use the Contact page with the link and your details."]],
     ["Narration voice", [
       "The narration is made with Pocket TTS by Kyutai, licensed under Creative Commons Attribution 4.0 (CC BY 4.0), using the in-browser version by KevinAHM (Apache License 2.0).",
-      "Its voices come from recordings by Alba MacKenna (CC BY 4.0), the VCTK corpus of the Centre for Speech Technology Research, University of Edinburgh (CC BY 4.0), and Kyutai's Unmute voice donation project (CC0)."]],
+      "Its voices come from recordings by Alba MacKenna (CC BY 4.0), the VCTK corpus of the Centre for Speech Technology Research, University of Edinburgh (CC BY 4.0), and Kyutai's Unmute voice donation project (CC0).",
+      "Dutch narration is made with Piper (MIT License) and its Dutch voices Pim and Ronnie from rhasspy/piper-voices (CC0), turned from text into sounds by eSpeak NG (GNU General Public License v3; source at github.com/espeak-ng/espeak-ng) in the WebAssembly build of piper-wasm by Diffusion Studio (MIT License)."]],
     ["Illustrations", [
       "Some anatomy drawings (such as the heart cut open) are adapted from Servier Medical Art by Servier (smart.servier.com), licensed under Creative Commons Attribution 4.0 (CC BY 4.0). We converted them to our whiteboard format, recoloured nothing, and added our own labels and animation.",
       "Plant, animal, microbe and virus drawings come from Bioicons (bioicons.com), converted to our whiteboard format. Licensed under Creative Commons Attribution 4.0 (CC BY 4.0): Alejandro Matía, Alexis Maizel, Andi Wilson, Ciera Martinez, Connor Tansley, DBCLS (TogoTV), Daniel Carvalho, Durvesh Burhade & Niliksha Patel, Erin Sparks, Frédéric Bouché, Guillaume Lobet, Lucien Hinderling and Roman Schwob, Matthew Dzievit and Plant Illustrations. Under CC BY 3.0: Servier. Public domain (CC0): Ben Murrell, Ewa Oz, Geomicrobio, Gina Vong, James Lloyd, Mariana Ruiz Villareal, Pauline Franz, Samuel Nestor Meckoni and Simon Dürr. The full list, drawing by drawing, is kept with our source code.",

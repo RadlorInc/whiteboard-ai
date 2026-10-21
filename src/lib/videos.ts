@@ -1,3 +1,4 @@
+import { LOCALE, tFor, type Lang, type T } from "@/lib/i18n";
 // Free 10 a month, then a plan (founder, 20 Oct 2026; migration 20261020000400_free_tier.sql). 1 credit = 1 video:
 // the month's free videos come first, then each video takes 1 from a plan. Admins never run out.
 export type Allowance = {
@@ -12,7 +13,7 @@ export const HOLD_CREDITS = 1;
 export const canAsk = (a: Allowance) => a.admin || a.freeLeft > 0 || a.plan >= HOLD_CREDITS;
 export const videosLeft = (a: Allowance) => a.freeLeft + a.plan;
 /** "November 1": the day the free videos come back (dates are UTC on the server). */
-export const resetDay = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "UTC" });
+export const resetDay = (iso: string, lang: Lang = "en") => new Date(iso).toLocaleDateString(LOCALE[lang], { month: "long", day: "numeric", timeZone: "UTC" });
 /** The plans (= price_catalog; founder, 20 Oct 2026): 40 or 100 videos a month, one pair per level, each priced to
  *  keep $3 a month after Stripe, a 10% referral commission and the model cost. A plan's videos are taught at its level. */
 export const PLANS = [
@@ -32,4 +33,4 @@ export const taughtLevel = (chat: Level, cap: Level | null): Level =>
 export type Level = "school" | "undergrad" | "grad";
 export const LEVELS: Level[] = ["school", "undergrad", "grad"];
 export const LEVEL_NAME: Record<Level, string> = { school: "High school", undergrad: "College", grad: "Grad school" };
-export const videos = (n: number) => `${n} ${n === 1 ? "video" : "videos"}`;
+export const videos = (n: number, t: T = tFor("en")) => (n === 1 ? t("1 video") : t("{n} videos", { n }));

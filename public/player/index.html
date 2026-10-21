@@ -368,7 +368,9 @@ function say(text) {
     const guess = 1200 + text.length * 70, tts = window.speechSynthesis;
     if (!tts) { self.voiceStart?.(text, guess / 1000); return wait(guess).then(done); }
     const u = new SpeechSynthesisUtterance(text), v = tts.getVoices();
-    u.voice = v.find(x => /Samantha|Google UK English Female|Veena|Rishi/.test(x.name)) || v.find(x => x.lang.startsWith('en')) || null;
+    // a Dutch video (bridge.js self.LANG): the device's Dutch voice, or the default voice told it is Dutch
+    if (self.LANG === 'nl') { u.lang = 'nl-NL'; u.voice = v.find(x => /^nl[-_]NL/i.test(x.lang)) || v.find(x => x.lang.toLowerCase().startsWith('nl')) || null; }
+    else u.voice = v.find(x => /Samantha|Google UK English Female|Veena|Rishi/.test(x.name)) || v.find(x => x.lang.startsWith('en')) || null;
     u.rate = 0.97;
     let fin = false; const end = () => { if (!fin) { fin = true; done(); } };
     u.onend = end; u.onerror = end;

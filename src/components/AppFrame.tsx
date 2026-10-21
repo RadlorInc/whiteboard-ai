@@ -8,6 +8,7 @@ import { PRODUCT_NAME } from "@/product";
 import { SignOutButton } from "./SignOutButton";
 import { ChatList, SUBJECT_NAME, type ChatRow, type Subject } from "./Chats";
 import { Icon, type IconName } from "./Icon";
+import { useT } from "./Lang";
 
 import { canAsk, videos, videosLeft, type Allowance } from "@/lib/videos";
 
@@ -26,6 +27,7 @@ export function AppFrame({ email, allowance, chats, children }: {
   email: string; allowance: Allowance; chats: ChatRow[]; children: React.ReactNode;
 }) {
   const path = usePathname();
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(path);
   const [only, setOnly] = useState<Subject | null>(null);       // the subject filter on Recents
@@ -69,7 +71,7 @@ export function AppFrame({ email, allowance, chats, children }: {
   // Full at the month's free videos or more (free tier, 20 Oct 2026); an admin's is always full.
   const left = videosLeft(allowance), share = allowance.admin ? 1 : Math.min(left / Math.max(1, allowance.freeMonthly), 1);
   const ring = !canAsk(allowance) || share < 0.2 ? "red" : share < 0.5 ? "amber" : "green";
-  const leftText = allowance.admin ? "Unlimited (admin)" : `${videos(left)} left`;
+  const leftText = allowance.admin ? t("Unlimited (admin)") : t("{videos} left", { videos: videos(left, t) });
   const nav: [string, IconName, string][] = [["/explore", "compass", "Explore"], ["/saved", "bookmark", "Collection"], ["/library", "videos", "Your videos"]];
   const active = path.startsWith("/c/") ? path.slice(3) : undefined;
   const subjects = (Object.keys(SUBJECT_NAME) as Subject[]).filter((s) => chats.some((c) => c.subject === s));
@@ -77,50 +79,50 @@ export function AppFrame({ email, allowance, chats, children }: {
 
   return (
     <div className="app">
-      <aside id="sidebar" className={`sidebar${open ? " open" : ""}`} aria-label="Sidebar">
+      <aside id="sidebar" className={`sidebar${open ? " open" : ""}`} aria-label={t("Sidebar")}>
         <div className="side-head">
           <Brand />
-          <button type="button" className="icon-btn side-close" aria-label="Close menu" onClick={() => setOpen(false)}>
+          <button type="button" className="icon-btn side-close" aria-label={t("Close menu")} onClick={() => setOpen(false)}>
             <Icon name="close" />
           </button>
         </div>
         {/* a full load, so a chat in progress starts over clean */}
-        <a href="/ask" className="side-new"><Icon name="newChat" size={18} /> New chat</a>
-        <nav className="side-nav" aria-label="Main">
+        <a href="/ask" className="side-new"><Icon name="newChat" size={18} /> {t("New chat")}</a>
+        <nav className="side-nav" aria-label={t("Main")}>
           {nav.map(([href, icon, label]) => (
             <Link key={href} href={href} aria-current={path === href ? "page" : undefined}>
-              <Icon name={icon} size={18} /> {label}
+              <Icon name={icon} size={18} /> {t(label)}
             </Link>
           ))}
         </nav>
         <div className="side-recents">
           {/* One chip per subject the person has chats in, in SUBJECT_NAME's order: a new subject gets its chip by itself. */}
           {subjects.length > 1 && (
-            <div className="side-filter" role="group" aria-label="Filter chats by subject">
-              <button type="button" aria-pressed={!only} onClick={() => setOnly(null)}>All</button>
+            <div className="side-filter" role="group" aria-label={t("Filter chats by subject")}>
+              <button type="button" aria-pressed={!only} onClick={() => setOnly(null)}>{t("All")}</button>
               {subjects.map((s) => (
-                <button key={s} type="button" aria-pressed={only === s} onClick={() => setOnly(only === s ? null : s)}>{SUBJECT_NAME[s]}</button>
+                <button key={s} type="button" aria-pressed={only === s} onClick={() => setOnly(only === s ? null : s)}>{t(SUBJECT_NAME[s])}</button>
               ))}
             </div>
           )}
-          <p className="side-label">Recents</p>
-          {chats.length > 0 && shown.length === 0 ? <p className="side-empty">No chat matches.</p> : <ChatList chats={shown} active={active} />}
-          {chats.length >= 10 && <Link href="/chats" className="side-all">All chats</Link>}
+          <p className="side-label">{t("Recents")}</p>
+          {chats.length > 0 && shown.length === 0 ? <p className="side-empty">{t("No chat matches.")}</p> : <ChatList chats={shown} active={active} empty={t("Your chats will show here.")} />}
+          {chats.length >= 10 && <Link href="/chats" className="side-all">{t("All chats")}</Link>}
         </div>
       </aside>
       {open && <div className="scrim" aria-hidden="true" onClick={() => setOpen(false)} />}
       <div className="app-main" id="main" tabIndex={-1}>
         <header className="topbar">
-          <button type="button" className="icon-btn" aria-label="Open menu" aria-expanded={open} aria-controls="sidebar"
+          <button type="button" className="icon-btn" aria-label={t("Open menu")} aria-expanded={open} aria-controls="sidebar"
             onClick={() => setOpen(true)}>
             <Icon name="menu" />
           </button>
           <Brand />
           <div className="topbar-end">
-            <a href="/ask" className="icon-btn topbar-new" aria-label="New chat"><Icon name="newChat" /></a>
+            <a href="/ask" className="icon-btn topbar-new" aria-label={t("New chat")}><Icon name="newChat" /></a>
           {/* Profile, top right (founder, 18 Oct 2026) */}
           <details className="menu down profile" ref={menu}>
-            <summary aria-label={`Account menu, ${leftText}`} data-credits={allowance.plan}>
+            <summary aria-label={t("Account menu, {left}", { left: leftText })} data-credits={allowance.plan}>
               <span className={`vring ${ring}`} aria-hidden="true">
                 <svg viewBox="0 0 40 40" width="40" height="40">
                   <circle cx="20" cy="20" r="18" className="ring-track" />
@@ -131,12 +133,12 @@ export function AppFrame({ email, allowance, chats, children }: {
             </summary>
             <div className="menu-list">
               <p className="menu-who"><span className="avatar" aria-hidden="true">{email.slice(0, 1).toUpperCase()}</span><span>{email}</span></p>
-              <Link href="/buy" className="menu-videos"><Icon name="videos" size={18} /> {leftText}{allowance.admin ? "" : " · Get more"}</Link>
+              <Link href="/buy" className="menu-videos"><Icon name="videos" size={18} /> {leftText}{allowance.admin ? "" : ` · ${t("Get more")}`}</Link>
               <hr />
-              <Link href="/settings"><Icon name="settings" size={18} /> Settings</Link>
-              <Link href="/account"><Icon name="user" size={18} /> Account</Link>
-              <Link href="/help"><Icon name="help" size={18} /> Help</Link>
-              <Link href="/legal/terms"><Icon name="file" size={18} /> Terms and privacy</Link>
+              <Link href="/settings"><Icon name="settings" size={18} /> {t("Settings")}</Link>
+              <Link href="/account"><Icon name="user" size={18} /> {t("Account")}</Link>
+              <Link href="/help"><Icon name="help" size={18} /> {t("Help")}</Link>
+              <Link href="/legal/terms"><Icon name="file" size={18} /> {t("Terms and privacy")}</Link>
               <hr />
               <SignOutButton className="" label="Sign out" icon />
             </div>
@@ -151,6 +153,7 @@ export function AppFrame({ email, allowance, chats, children }: {
 
 // Signed out: the brand on the left, Explore and Sign in on the right.
 export function PublicHeader() {
+  const t = useT();
   return (
     <header className="public-header">
       <Link href="/" className="brand">
@@ -158,10 +161,10 @@ export function PublicHeader() {
         <img src="/logo.png" alt="" width={36} height={25} />
         <span>{PRODUCT_NAME}</span>
       </Link>
-      <nav aria-label="Main" className="public-nav">
-        <Link href="/explore">Explore</Link>
-        <Link href="/pricing">Pricing</Link>
-        <Link href="/signin" className="btn secondary sm">Sign in</Link>
+      <nav aria-label={t("Main")} className="public-nav">
+        <Link href="/explore">{t("Explore")}</Link>
+        <Link href="/pricing">{t("Pricing")}</Link>
+        <Link href="/signin" className="btn secondary sm">{t("Sign in")}</Link>
       </nav>
     </header>
   );

@@ -1,6 +1,7 @@
 "use client";
 import { useActionState, useState } from "react";
 import { submitAge } from "@/app/actions";
+import { useT } from "@/components/Lang";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
   "November", "December"];
@@ -8,6 +9,7 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 // §5.4: neutral, two selects with no default, Continue disabled until both are chosen; nothing hints that 13 matters.
 export function AgeForm({ src, next, initialError }: { src?: string; next?: string | null; initialError?: string }) {
   const [state, action, pending] = useActionState(submitAge, initialError ? { error: initialError } : undefined);
+  const t = useT();
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
   const thisYear = new Date().getFullYear();
@@ -17,23 +19,23 @@ export function AgeForm({ src, next, initialError }: { src?: string; next?: stri
       {src && <input type="hidden" name="src" value={src} />}
       {next && <input type="hidden" name="next" value={next} />}
       <label className="field">
-        <span>Month</span>
+        <span>{t("Month")}</span>
         <select name="month" value={month} onChange={(e) => setMonth(e.target.value)} required>
           <option value="" disabled>
-            Month
+            {t("Month")}
           </option>
           {MONTHS.map((m, i) => (
             <option key={m} value={i + 1}>
-              {m}
+              {t(m)}
             </option>
           ))}
         </select>
       </label>
       <label className="field">
-        <span>Year</span>
+        <span>{t("Year")}</span>
         <select name="year" value={year} onChange={(e) => setYear(e.target.value)} required>
           <option value="" disabled>
-            Year
+            {t("Year")}
           </option>
           {years.map((y) => (
             <option key={y} value={y}>
@@ -43,7 +45,7 @@ export function AgeForm({ src, next, initialError }: { src?: string; next?: stri
         </select>
       </label>
       <button type="submit" className="btn block" disabled={!month || !year || pending}>
-        Continue
+        {t("Continue")}
       </button>
       {state?.error && (
         <p role="alert" className="error">

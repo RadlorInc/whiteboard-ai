@@ -10,8 +10,9 @@ import { SignInMethods } from "@/components/SignInMethods";
 import { Footer } from "@/components/Footer";
 import { PublicHeader } from "@/components/AppFrame";
 import Link from "next/link";
+import { getT } from "@/lib/lang";
 
-export const metadata: Metadata = { title: "Sign up" };
+export async function generateMetadata(): Promise<Metadata> { return { title: (await getT())("Sign up") }; }
 
 // §5.3–5.4: (invite code) → age → methods. The age screen always comes before any email is asked for.
 export default async function SignUp({ searchParams }: PageProps<"/signup">) {
@@ -24,14 +25,15 @@ export default async function SignUp({ searchParams }: PageProps<"/signup">) {
   const ageOk = verify<AgeOk>(jar.get(AGE_OK_COOKIE)?.value);
   const next = okNext(q.next);
   const mode = await signupMode();
+  const t = await getT();
 
   let body: React.ReactNode;
   if (mode === "closed") {
-    body = <p>Sign-ups are closed for now.</p>;
+    body = <p>{t("Sign-ups are closed for now.")}</p>;
   } else if (!ageOk && mode === "invite" && !verify(jar.get(INVITE_COOKIE)?.value)) {
     body = (
       <>
-        <p>Private beta, invite only. Enter your invite code to continue.</p>
+        <p>{t("Private beta, invite only. Enter your invite code to continue.")}</p>
         <InviteForm action={checkInvite} src={src} next={next} />
       </>
     );
@@ -50,9 +52,9 @@ export default async function SignUp({ searchParams }: PageProps<"/signup">) {
       <main className="auth stack" id="main">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="" width={64} height={44} className="auth-mark" />
-        <h1>Create your account</h1>
+        <h1>{t("Create your account")}</h1>
         <p className="auth-sub small">
-          Already have an account? <Link href="/signin">Sign in here</Link>: no invite code or birth date needed again.
+          {t("Already have an account?")} <Link href="/signin">{t("Sign in here")}</Link>{t(": no invite code or birth date needed again.")}
         </p>
         {body}
       </main>

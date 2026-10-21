@@ -20,8 +20,9 @@ export async function listChats(sb: SupabaseClient, limit = 30): Promise<ChatRow
 }
 
 // The chat list: the sidebar's Recents, and the /chats page. Titles only; the subject shows inside the chat.
-export function ChatList({ chats, active }: { chats: ChatRow[]; active?: string }) {
-  if (chats.length === 0) return <p className="side-empty">Your chats will show here.</p>;
+// empty: the line shown with no chats, translated by the caller (this renders on the server and in the client).
+export function ChatList({ chats, active, empty = "Your chats will show here." }: { chats: ChatRow[]; active?: string; empty?: string }) {
+  if (chats.length === 0) return <p className="side-empty">{empty}</p>;
   return (
     <ul className="chat-list">
       {chats.map(c => (

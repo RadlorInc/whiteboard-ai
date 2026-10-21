@@ -161,7 +161,8 @@ export function checkPolicy(a, style) {
   if (chars > cap) errs.push(`policy: ${chars} spoken characters, at most ${cap}`);
   if (style !== 'matchcut' && items.length > 7) errs.push(`policy: ${items.length} steps, at most 7`);
   if (style === 'whiteboard') items.forEach((s, i) => {
-    if (typeof s?.say === 'string' && !s.say.startsWith(`Step ${i + 1}:`)) errs.push(`steps[${i}]: say must begin "Step ${i + 1}:"`);
+    // "Stap" in a Dutch video (generate.ts LANG_TEXT)
+    if (typeof s?.say === 'string' && !s.say.startsWith(`Step ${i + 1}:`) && !s.say.startsWith(`Stap ${i + 1}:`)) errs.push(`steps[${i}]: say must begin "Step ${i + 1}:"`);
     for (const cmd of Array.isArray(s?.do) ? s.do : [])
       if (bare(cmd).split(/\s+/)[0] === 'cam') errs.push(`steps[${i}]: no cam (the whole board is always in view)`);
   });

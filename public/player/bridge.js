@@ -203,6 +203,8 @@
     const carried = m.drawings || m.script?.drawings;
     if (carried && typeof carried === 'object' && self.SV) for (const [id, d] of Object.entries(carried))
       if (/^[a-z0-9-]{1,60}$/.test(id) && !SV.data[id] && okDrawing(d)) SV.add(id, d);
+    // The video's language (21 Oct 2026, Dutch): the browser voice that speaks a line the app's voice could not make.
+    if (m.type === 'els' || m.type === 'script') self.LANG = m.lang === 'nl' ? 'nl' : 'en';
     if (m.type === 'reset') { gen++; A = null; done = false; PAUSED = false; held = []; hush(); }
     else if (m.type === 'script') playScript(m.script, m.voice);
     else if (m.type === 'wav' && self.VOICE_WAVS && Number.isInteger(m.i) && m.i >= 0 && m.i < self.VOICE_WAVS.length) {

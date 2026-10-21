@@ -8,6 +8,7 @@ import { candidateGroups, savedCat, SAVED_CAT } from './drawings.mjs';
 import P from './prompts.json' with { type: 'json' };
 import { prefix, cost, promptSha, type ModelClient, type FinalMessage, type Style, type Subject, type Block } from './model';
 import type { GenDb, FailCode, Metrics } from './db';
+import type { Lang } from '../i18n';
 
 export const LIMITS = { deadlineMs: 240_000, maxTokens: 16_000, toolRounds: 5, outputBudget: 40_000 };
 export type Send = (event: string, data: unknown) => void;
@@ -35,6 +36,7 @@ export function providerCode(e: unknown): FailCode {
 
 export async function runGeneration(o: {
   id: string; style: Style; question: string; context?: string[]; subject?: Subject | null; client: ModelClient; db: GenDb; send: Send;
+  lang?: Lang;                          // not English: saved on the script, so every replay speaks it in that language
   deadlineMs?: number; retryWaitMs?: (n: number) => number;
   explore?: () => Promise<string>;      // after a video is saved: put it on Explore (the outcome goes in 'done')
 }) {
@@ -210,6 +212,7 @@ export async function runGeneration(o: {
 
   async function succeed(a: Json) {
     a.q = question;                                       // the model never chooses a share-page title
+    if (o.lang && o.lang !== 'en') a.lang = o.lang;
     if (style === 'whiteboard') {                         // anything the stream did not already show
       const els = a.els as Json;
       if (!sentEls) send('els', { els, drawings: drawingsFor(els) });

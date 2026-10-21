@@ -1,11 +1,15 @@
-// The narration voice (founder's pick for every device, 13 Oct 2026): Pocket TTS, made in the viewer's browser on the
-// CPU — no server, no per-video cost. One worker per tab (public/tts/pocket-worker.js) loads the model once: the first
-// time it downloads ~166 MB (pinned, hash-checked) and keeps it in the browser. startVoice() begins that as soon as a
-// signed-in page opens; speakLine() gives a line's WAV in the viewer's chosen voice, or null when it cannot (a failed
-// download, an old browser): the player then says the line with the browser's own voice.
-// NEXT_PUBLIC_VOICE=browser turns it off (the e2e suite does, so CI never downloads the model).
+// The narration voice (founder's pick for every device, 13 Oct 2026): made in the viewer's browser on the CPU — no
+// server, no per-video cost. English: Pocket TTS (public/tts/pocket-worker.js; first time ~166 MB). Dutch (founder,
+// 21 Oct 2026, the Netherlands launch; Pocket speaks no Dutch): Piper (public/tts/piper-worker.js; first time ~82 MB).
+// One worker per language per tab loads its model once (pinned, hash-checked, kept in the browser). startVoice()
+// begins that as soon as a signed-in page opens, in the page's language; speakLine() gives a line's WAV in the
+// viewer's chosen voice for the video's language, or null when it cannot (a failed download, an old browser): the
+// player then says the line with the browser's own voice.
+// NEXT_PUBLIC_VOICE=browser turns it off (the e2e suite does, so CI never downloads a model).
 import { useSyncExternalStore } from "react";
 import { DEFAULT_VOICE, VOICES } from "../../public/tts/pocket-files.mjs";
+import { DEFAULT_PIPER_VOICE, PIPER_VOICES } from "../../public/tts/piper-files.mjs";
+import { isLang, type Lang } from "./i18n";
 
 export { VOICES };
 export type VoiceStatus = {
@@ -18,72 +22,91 @@ export type VoiceStatus = {
 
 const ON = process.env.NEXT_PUBLIC_VOICE !== "browser";
 export const voiceOn = () => ON && typeof Worker !== "undefined";
+// The page's language (the root layout sets <html lang>): the default for everything below.
+export const pageLang = (): Lang => {
+  const l = typeof document === "undefined" ? "" : document.documentElement.lang;
+  return isLang(l) ? l : "en";
+};
 
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((f) => f());
 const subscribe = (f: () => void) => { listeners.add(f); return () => { listeners.delete(f); }; };
 
-let status: VoiceStatus = { state: "off", stage: null, loaded: 0, total: 0 };
-const set = (s: Partial<VoiceStatus>) => { status = { ...status, ...s }; emit(); };
-
-let worker: Worker | null = null;
-let ready: Promise<boolean> | null = null;
+type Engine = {
+  url: string; key: string; voices: { id: string; name: string }[]; fallback: string;
+  status: VoiceStatus; worker: Worker | null; ready: Promise<boolean> | null; warmed: string | null;
+  waiting: Map<number, (wav: ArrayBuffer | null) => void>;
+};
+const engine = (url: string, key: string, voices: { id: string; name: string }[], fallback: string): Engine =>
+  ({ url, key, voices, fallback, status: { state: "off", stage: null, loaded: 0, total: 0 }, worker: null, ready: null, warmed: null, waiting: new Map() });
+const ENGINES: Record<Lang, Engine> = {
+  en: engine("/tts/pocket-worker.js", "wb.voice", VOICES, DEFAULT_VOICE),
+  nl: engine("/tts/piper-worker.js", "wb.voice.nl", PIPER_VOICES, DEFAULT_PIPER_VOICE),
+};
+const set = (e: Engine, s: Partial<VoiceStatus>) => { e.status = { ...e.status, ...s }; emit(); };
 let nextId = 0;
-const waiting = new Map<number, (wav: ArrayBuffer | null) => void>();
 
-export function startVoice(): Promise<boolean> {
-  if (ready) return ready;
-  if (!voiceOn()) return (ready = Promise.resolve(false));
-  set({ state: "loading", stage: null });
-  ready = new Promise<boolean>((resolve) => {
-    const fail = (why: string) => {
+// Loads the language's model for the viewer's voice (the Dutch voices are separate models: a new pick loads it).
+export function startVoice(lang: Lang = pageLang()): Promise<boolean> {
+  const e = ENGINES[lang], voice = getVoice(lang);
+  if (e.ready && (e.warmed === voice || e.status.state === "failed")) return e.ready;
+  if (!voiceOn()) return (e.ready = Promise.resolve(false));
+  e.warmed = voice;
+  set(e, { state: "loading", stage: null, loaded: 0, total: 0 });
+  e.ready = new Promise<boolean>((resolve) => {
+    const off = (why: string) => {
       console.warn("Narration voice off, the browser voice speaks instead:", why);
-      set({ state: "failed", stage: null, why: why.slice(0, 160) }); resolve(false);
-      waiting.forEach((w) => w(null)); waiting.clear();
+      set(e, { state: "failed", stage: null, why: why.slice(0, 160) }); resolve(false);
+      e.waiting.forEach((w) => w(null)); e.waiting.clear();
     };
-    try { worker = new Worker("/tts/pocket-worker.js", { type: "module" }); }
-    catch (e) { fail(String(e)); return; }
-    worker.onerror = (e) => fail(e.message || "the worker did not start");
-    worker.onmessage = ({ data }) => {
-      if ("download" in data) { set({ stage: "download", loaded: data.download, total: data.total }); return; }
-      if ("stage" in data) { set({ stage: data.stage }); return; }
-      if (data.warm) { if (data.warm === "ok") { set({ state: "ready", stage: null }); resolve(true); } else fail(data.error); return; }
-      const w = waiting.get(data.id); waiting.delete(data.id);
+    if (!e.worker) {
+      try { e.worker = new Worker(e.url, { type: "module" }); }
+      catch (err) { off(String(err)); return; }
+      e.worker.onerror = (ev) => off(ev.message || "the worker did not start");
+    }
+    e.worker.onmessage = ({ data }) => {
+      if ("download" in data) { set(e, { stage: "download", loaded: data.download, total: data.total }); return; }
+      if ("stage" in data) { set(e, { stage: data.stage }); return; }
+      if (data.warm) { if (data.warm === "ok") { set(e, { state: "ready", stage: null }); resolve(true); } else off(data.error); return; }
+      const w = e.waiting.get(data.id); e.waiting.delete(data.id);
       if (data.error && data.error !== "cancelled") console.warn("The narration voice could not make a line:", data.error);
       w?.(data.error ? null : data.wav);
     };
-    worker.postMessage({ warm: true });
+    e.worker.postMessage({ warm: true, voice });
   });
-  return ready;
+  return e.ready;
 }
 
-// The viewer's voice, remembered on this device (localStorage can be missing in private mode: then the default).
-const KEY = "wb.voice";
-export function getVoice(): string {
-  try { const v = localStorage.getItem(KEY); if (v && VOICES.some((x) => x.id === v)) return v; } catch {}
-  return DEFAULT_VOICE;
+// The viewer's voice for a language, remembered on this device (localStorage can be missing in private mode: then
+// the default).
+export function getVoice(lang: Lang = pageLang()): string {
+  const e = ENGINES[lang];
+  try { const v = localStorage.getItem(e.key); if (v && e.voices.some((x) => x.id === v)) return v; } catch {}
+  return e.fallback;
 }
-export function setVoice(id: string) {
-  try { localStorage.setItem(KEY, id); } catch {}
+export function setVoice(id: string, lang: Lang = pageLang()) {
+  try { localStorage.setItem(ENGINES[lang].key, id); } catch {}
   emit();
 }
-export function useVoiceChoice(): string {
-  return useSyncExternalStore(subscribe, getVoice, () => DEFAULT_VOICE);
+export const voicesFor = (lang: Lang) => ENGINES[lang].voices;
+export function useVoiceChoice(lang: Lang = pageLang()): string {
+  return useSyncExternalStore(subscribe, () => getVoice(lang), () => ENGINES[lang].fallback);
 }
 
 // A line made once (in one voice) is kept for the life of the tab: a Replay remounts the player and gets it at once.
 // Failures are not kept. ponytail: unbounded, ~250 KB a line; bound it if one tab plays hundreds of videos.
 const made = new Map<string, Promise<ArrayBuffer | null>>();
 const asked = new Map<string, number>();     // a line still being made (or queued): its worker id, for cancelLine
-export function speakLine(text: string, voice = getVoice()): Promise<ArrayBuffer | null> {
+export function speakLine(text: string, lang: Lang = pageLang(), voice = getVoice(lang)): Promise<ArrayBuffer | null> {
   const key = `${voice}\n${text}`, hit = made.get(key);
   if (hit) return hit;
+  const e = ENGINES[lang];
   const p = (async () => {
-    if (!(await startVoice()) || !worker) return null;
-    const w = worker;
+    if (!(await startVoice(lang)) || !e.worker) return null;
+    const w = e.worker;
     return new Promise<ArrayBuffer | null>((resolve) => {
       const id = nextId++; asked.set(key, id);
-      waiting.set(id, (wav) => { asked.delete(key); resolve(wav); });
+      e.waiting.set(id, (wav) => { asked.delete(key); resolve(wav); });
       w.postMessage({ id, text, voice });
     });
   })();
@@ -94,13 +117,13 @@ export function speakLine(text: string, voice = getVoice()): Promise<ArrayBuffer
 
 /** Stop making a line nobody needs now (a jump to another step): it resolves null and is not kept, so asking for it
  *  again makes it afresh. */
-export function cancelLine(text: string, voice = getVoice()) {
+export function cancelLine(text: string, lang: Lang = pageLang(), voice = getVoice(lang)) {
   const id = asked.get(`${voice}\n${text}`);
-  if (id !== undefined) worker?.postMessage({ cancel: id });
+  if (id !== undefined) ENGINES[lang].worker?.postMessage({ cancel: id });
 }
 
-export function useVoiceStatus(): VoiceStatus {
-  return useSyncExternalStore(subscribe, () => status, () => status);
+export function useVoiceStatus(lang: Lang = pageLang()): VoiceStatus {
+  return useSyncExternalStore(subscribe, () => ENGINES[lang].status, () => ENGINES[lang].status);
 }
 
 // ── Playing the lines ─────────────────────────────────────────────────────────────────────────────────────────────

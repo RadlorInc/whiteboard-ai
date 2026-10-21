@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getT } from "@/lib/lang";
 
 // §5.2: public pages and Account. Pricing, Help and Contact arrive with their pages (M5/M6); until then they 404.
 const LINKS: [string, string][] = [
@@ -13,13 +14,14 @@ const LINKS: [string, string][] = [
   ["/legal/copyright", "Copyright"],
 ];
 
-export function Footer() {
+export async function Footer() {
+  const t = await getT();
   return (
     <footer className="site-footer">
       <ul>
         {LINKS.map(([href, label]) => (
           <li key={href}>
-            <Link href={href}>{label}</Link>
+            <Link href={href}>{t(label)}</Link>
           </li>
         ))}
         <li>

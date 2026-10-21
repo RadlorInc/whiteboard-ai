@@ -6,12 +6,14 @@ import { canAsk } from "@/lib/videos";
 import { redeemInvite } from "@/app/actions";
 import { InviteForm } from "@/components/InviteForm";
 import { Chat } from "@/components/Chat";
+import { getT } from "@/lib/lang";
 
-export const metadata: Metadata = { title: "Ask" };
+export async function generateMetadata(): Promise<Metadata> { return { title: (await getT())("Ask") }; }
 
 // §5.3 / §5.6: a new chat (founder, 18 Oct 2026): pick a subject and ask; your chats are in the sidebar.
 export default async function Ask() {
   const account = await requireAccount("/ask");
+  const t = await getT();
   // The month's free videos used up and no plan: show the plans once (free tier, 20 Oct 2026).
   if (account.hasAccess && !canAsk(account.allowance) && !(await cookies()).has(START_SEEN_COOKIE)) {
     redirect("/start");
@@ -20,8 +22,8 @@ export default async function Ask() {
     <Chat conversationId={null} subject={null} turns={[]} allowance={account.allowance} firstRun={!account.everPaid} />
   ) : (
     <main className="page narrow stack">
-      <h1>Enter your invite code</h1>
-      <p className="muted">This is a private beta, invite only.</p>
+      <h1>{t("Enter your invite code")}</h1>
+      <p className="muted">{t("This is a private beta, invite only.")}</p>
       <InviteForm action={redeemInvite} />
     </main>
   );

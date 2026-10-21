@@ -129,3 +129,26 @@ test("Explore is open without signing in", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Explore");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+// Dutch (founder, 21 Oct 2026, the Netherlands launch): the language cookie turns the app Dutch, a question asked
+// there is made in Dutch (saved with lang: nl), and its replay plays with Dutch controls.
+test("in Dutch: the app, the making and the replay", async ({ page, context }, info) => {
+  test.skip(info.project.name !== "chromium-desktop", "one open video per user: run once");
+  test.setTimeout(120_000);
+  await signIn(page, "a@example.test");
+  await context.addCookies([{ name: "wb_lang", value: "nl", url: "http://localhost:3100" }]);
+  await page.addInitScript(() => localStorage.setItem("wb.explore", "off"));
+  await page.goto("/ask");
+  await expect(page.locator("html")).toHaveAttribute("lang", "nl");
+  await expect(page.getByLabel("Je vraag")).toBeVisible();
+  const asked = page.waitForRequest(r => r.url().endsWith("/api/generate"));
+  await page.locator("textarea").fill(`Hoe ontstaat een regenboog? (e2e ${Date.now()})`);
+  await page.getByRole("button", { name: "Vraag", exact: true }).click();
+  expect((await asked).postDataJSON()).toMatchObject({ lang: "nl" });
+  await expect(page.locator(".making")).toHaveCount(0, { timeout: 60_000 });   // the first step is on the board
+  await expect(page.locator("[data-charged]")).toHaveText("Klaar.", { timeout: 90_000 });
+  await page.getByRole("link", { name: "Open deze video" }).click();
+  await expect(page.locator(".player-controls span")).toHaveText(/^Stap 1 van \d+$/, { timeout: 30_000 });
+  await page.getByRole("button", { name: "Volgende stap" }).click();
+  await expect(page.locator(".player-controls span")).toHaveText(/^Stap 2 van \d+$/);
+});

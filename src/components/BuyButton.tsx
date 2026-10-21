@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useT } from "@/components/Lang";
 
 const MSG: Record<string, string> = {
   payments_not_configured: "Payments aren't switched on yet.",
@@ -8,6 +9,7 @@ const MSG: Record<string, string> = {
 };
 
 export function BuyButton({ priceKey, label }: { priceKey: string; label: string }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   return (
@@ -18,8 +20,8 @@ export function BuyButton({ priceKey, label }: { priceKey: string; label: string
           body: JSON.stringify({ price_key: priceKey }) });
         const j = await r.json().catch(() => ({}));
         if (j.url) { location.href = j.url; return; }
-        setError(MSG[j.code] ?? "Couldn't start checkout. Try again."); setBusy(false);
-      }}>{busy ? "Opening checkout…" : label}</button>
+        setError(t(MSG[j.code] ?? "Couldn't start checkout. Try again.")); setBusy(false);
+      }}>{busy ? t("Opening checkout…") : label}</button>
       {error && <p role="alert" className="error">{error}</p>}
     </div>
   );

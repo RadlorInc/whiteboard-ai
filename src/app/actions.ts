@@ -11,6 +11,7 @@ import {
 } from "@/lib/age";
 import { START_SEEN_COOKIE, getAccount, landing } from "@/lib/session";
 import { blockUnder13, completeSignup, cookieOpts, finishSignIn } from "@/lib/signup";
+import { getT } from "@/lib/lang";
 
 function hmac(s: string) {
   const k = process.env.RATE_LIMIT_HMAC_KEY;
@@ -32,15 +33,17 @@ async function allowed(key: string, windowSeconds: number, max: number) {
 }
 
 export type FormState = { error?: string } | undefined;
+// An error for the form, in the viewer's language.
+const fail = async (msg: string): Promise<FormState> => ({ error: (await getT())(msg) });
 
 // ---------- Invite (invite mode, before the age screen) ----------
 
 export async function checkInvite(_: FormState, form: FormData): Promise<FormState> {
   const code = String(form.get("code") ?? "").trim();
-  if (!code || code.length > 64) return { error: "Enter your invite code." };
-  if (!(await allowed(`invite:${await ipHash()}`, 3600, 10))) return { error: "Too many tries. Wait an hour and try again." };
+  if (!code || code.length > 64) return fail("Enter your invite code.");
+  if (!(await allowed(`invite:${await ipHash()}`, 3600, 10))) return fail("Too many tries. Wait an hour and try again.");
   const { data } = await createAdminClient().rpc("invite_available", { p_code: code });
-  if (data !== true) return { error: "That invite code isn't valid or has been used up." };
+  if (data !== true) return fail("That invite code isn't valid or has been used up.");
   (await cookies()).set(INVITE_COOKIE, sign({ code }, 1800), cookieOpts(1800));
   redirect(`/age${srcQuery(form)}`);
 }
@@ -49,10 +52,10 @@ export async function redeemInvite(_: FormState, form: FormData): Promise<FormSt
   const code = String(form.get("code") ?? "").trim();
   const account = await getAccount();
   if (!account) redirect("/signin");
-  if (!code || code.length > 64) return { error: "Enter your invite code." };
-  if (!(await allowed(`invite:${account.user.id}`, 3600, 10))) return { error: "Too many tries. Wait an hour and try again." };
+  if (!code || code.length > 64) return fail("Enter your invite code.");
+  if (!(await allowed(`invite:${account.user.id}`, 3600, 10))) return fail("Too many tries. Wait an hour and try again.");
   const { data } = await (await createClient()).rpc("redeem_invite", { p_code: code });
-  if (data !== true) return { error: "That invite code isn't valid or has been used up." };
+  if (data !== true) return fail("That invite code isn't valid or has been used up.");
   redirect(await landing(account));
 }
 
@@ -66,7 +69,7 @@ export async function submitAge(_: FormState, form: FormData): Promise<FormState
   const month = Number(form.get("month"));
   const year = Number(form.get("year"));
   const check = ageCheck(year, month);
-  if (check === "invalid") return { error: "Choose your birth month and year." };
+  if (check === "invalid") return fail("Choose your birth month and year.");
 
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
@@ -96,17 +99,17 @@ export async function submitAge(_: FormState, form: FormData): Promise<FormState
 export async function verifyCode(emailIn: string, token: string, next: string): Promise<FormState> {
   const email = String(emailIn).trim().toLowerCase();
   if (!/^\d{6,10}$/.test(String(token)) || !email.includes("@") || email.length > 254) {
-    return { error: "That code isn't right. Check the latest email." };
+    return fail("That code isn't right. Check the latest email.");
   }
   if (!(await allowed(`otp:${hmac(email)}`, 600, 5))) {
-    return { error: "Too many tries. Wait a minute and send a new code." };
+    return fail("Too many tries. Wait a minute and send a new code.");
   }
   const supabase = await createClient();
   const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
   if (error || !data.user) {
-    if (error?.status === 429) return { error: "Too many tries. Wait a minute and send a new code." };
+    if (error?.status === 429) return fail("Too many tries. Wait a minute and send a new code.");
     // GoTrue answers otp_expired for a wrong code and an expired one alike, so one message covers both.
-    return { error: "That code isn't right or has expired. Check the latest email, or send a new code." };
+    return fail("That code isn't right or has expired. Check the latest email, or send a new code.");
   }
   redirect(await finishSignIn(next));
 }

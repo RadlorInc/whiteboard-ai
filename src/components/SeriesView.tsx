@@ -7,10 +7,12 @@ import { VoiceProgress } from "./Voice";
 import { BoardPreview } from "./BoardPreview";
 import Link from "next/link";
 import { Icon } from "./Icon";
+import { useT } from "./Lang";
 
 export type SeriesItem = { slug: string; question: string; style: Style; script: Record<string, unknown> };
 
 export function SeriesView({ items, start }: { items: SeriesItem[]; start: number }) {
+  const t = useT();
   const [at, setAt] = useState({ i: start, n: 0 });
   const play = (i: number) => setAt((a) => ({ i, n: a.n + 1 }));
   return (
@@ -23,12 +25,12 @@ export function SeriesView({ items, start }: { items: SeriesItem[]; start: numbe
             <>
               <Player key={at.n} style={v.style} script={v.script} onEnded={i + 1 < items.length ? () => play(i + 1) : undefined} />
               <p className="answer-meta">
-                <button type="button" className="btn ghost sm" onClick={() => play(i)}><Icon name="replay" size={16} /> Replay</button>
-                {i + 1 < items.length && <span>Next starts when this one ends.</span>}
+                <button type="button" className="btn ghost sm" onClick={() => play(i)}><Icon name="replay" size={16} /> {t("Replay")}</button>
+                {i + 1 < items.length && <span>{t("Next starts when this one ends.")}</span>}
               </p>
             </>
           ) : (
-            <button type="button" className="poster has-preview" onClick={() => play(i)} aria-label={`Play: ${v.question}`}>
+            <button type="button" className="poster has-preview" onClick={() => play(i)} aria-label={t("Play: {question}", { question: v.question })}>
               <BoardPreview style={v.style} script={v.script} label="" />
               <span className="poster-play"><Icon name="play" size={22} /></span>
             </button>
@@ -42,6 +44,7 @@ export function SeriesView({ items, start }: { items: SeriesItem[]; start: numbe
 // Signed out: the chat's other videos, blurred and not playable (their scripts are not on the page), under a card that
 // asks to sign up or log in. Logging in comes back here.
 export function SeriesGate({ questions, next }: { questions: string[]; next: string }) {
+  const t = useT();
   const more = questions.length;
   return (
     <section className="gate-zone" aria-labelledby="gate-title">
@@ -56,11 +59,12 @@ export function SeriesGate({ questions, next }: { questions: string[]; next: str
       <div className="gate-card">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="" width={56} height={39} />
-        <h2 id="gate-title">Sign up to watch the rest</h2>
-        <p className="muted small">{more} more {more === 1 ? "video" : "videos"} in this lesson. Watching is free with an account.</p>
+        <h2 id="gate-title">{t("Sign up to watch the rest")}</h2>
+        <p className="muted small">{more === 1 ? t("1 more video in this lesson. Watching is free with an account.")
+          : t("{n} more videos in this lesson. Watching is free with an account.", { n: more })}</p>
         <div className="toolbar" style={{ justifyContent: "center" }}>
-          <Link className="btn" href={`/signup?src=share&next=${encodeURIComponent(next)}`}>Sign up</Link>
-          <Link className="btn secondary" href={`/signin?next=${encodeURIComponent(next)}`}>Log in</Link>
+          <Link className="btn" href={`/signup?src=share&next=${encodeURIComponent(next)}`}>{t("Sign up")}</Link>
+          <Link className="btn secondary" href={`/signin?next=${encodeURIComponent(next)}`}>{t("Log in")}</Link>
         </div>
       </div>
     </section>

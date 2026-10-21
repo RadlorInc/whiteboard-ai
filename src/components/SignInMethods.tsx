@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { verifyCode } from "@/app/actions";
+import { useT } from "@/components/Lang";
 
 const RESEND_SECONDS = 60;
 const OTP_KEY = "wb.otp";
@@ -21,6 +22,7 @@ declare global {
 }
 
 export function SignInMethods({ next, showGoogle, inApp }: { next: string; showGoogle: boolean; inApp: boolean }) {
+  const t = useT();
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -59,11 +61,11 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
   async function send() {
     setError(null);
     const address = email.trim().toLowerCase();
-    if (!address.includes("@")) return setError("Enter your email address.");
+    if (!address.includes("@")) return setError(t("Enter your email address."));
     if (TURNSTILE_SITE_KEY && !captcha.token) {
-      return setError(captcha.failed
+      return setError(t(captcha.failed
         ? "We couldn't check this browser. Try again, or open this page in Safari or Chrome."
-        : "Checking this browser… try again in a moment.");
+        : "Checking this browser… try again in a moment."));
     }
     setSending(true);
     const { error } = await createClient().auth.signInWithOtp({
@@ -73,9 +75,9 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
     setSending(false);
     captcha.reset();
     if (error) {
-      return setError(error.status === 429
+      return setError(t(error.status === 429
         ? "Too many codes sent. Wait a minute and try again."
-        : "We couldn't send the code. Try again.");
+        : "We couldn't send the code. Try again."));
     }
     const at = Date.now();
     try { sessionStorage.setItem(OTP_KEY, JSON.stringify({ email: address, sentAt: at })); } catch {}
@@ -106,7 +108,7 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
       provider: "google",
       options: { redirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(next)}`, scopes: "openid email profile" },
     });
-    if (error) setError("Sign-in didn't finish. Try again.");
+    if (error) setError(t("Sign-in didn't finish. Try again."));
   }
 
   return (
@@ -116,9 +118,9 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
           {showGoogle && (
             <>
               <button type="button" className="btn secondary block" onClick={google}>
-                Continue with Google
+                {t("Continue with Google")}
               </button>
-              <p className="muted small" style={{ textAlign: "center" }}>or</p>
+              <p className="muted small" style={{ textAlign: "center" }}>{t("or")}</p>
             </>
           )}
           {inApp && <InAppNote />}
@@ -130,7 +132,7 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
             }}
           >
             <label className="field">
-              <span>Email</span>
+              <span>{t("Email")}</span>
               <input
                 type="email"
                 name="email"
@@ -141,9 +143,9 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
                 onChange={(e) => setEmail(e.target.value)}
               />
             </label>
-            <p className="muted small">Use an email you&apos;ll keep. We&apos;ll send you a {OTP_LENGTH}-digit code.</p>
+            <p className="muted small">{t("Use an email you'll keep. We'll send you a {n}-digit code.", { n: OTP_LENGTH })}</p>
             <button type="submit" className="btn block" disabled={sending}>
-              {sending ? "Sending…" : "Continue with email"}
+              {sending ? t("Sending…") : t("Continue with email")}
             </button>
           </form>
         </>
@@ -156,10 +158,10 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
           }}
         >
           <p>
-            We sent a {OTP_LENGTH}-digit code to <strong>{email}</strong>.
+            {t("We sent a {n}-digit code to", { n: OTP_LENGTH })} <strong>{email}</strong>.
           </p>
           <label className="field">
-            <span>Code</span>
+            <span>{t("Code")}</span>
             <input
               ref={codeRef}
               className="code-input"
@@ -178,18 +180,18 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
             />
           </label>
           <button type="submit" className="btn block" disabled={pending || code.length !== OTP_LENGTH}>
-            {pending ? "Checking…" : "Continue"}
+            {pending ? t("Checking…") : t("Continue")}
           </button>
           <p className="muted small">
-            Didn&apos;t get it? Check spam, or{" "}
+            {t("Didn't get it? Check spam, or")}{" "}
             {wait > 0 ? (
-              <span>resend in {Math.floor(wait / 60)}:{String(wait % 60).padStart(2, "0")}</span>
+              <span>{t("resend in {time}", { time: `${Math.floor(wait / 60)}:${String(wait % 60).padStart(2, "0")}` })}</span>
             ) : (
               <button type="button" className="btn link" onClick={send} disabled={sending}>
-                send a new code
+                {t("send a new code")}
               </button>
             )}
-            . School email sometimes blocks codes; a personal email works best.
+            .{" "}{t("School email sometimes blocks codes; a personal email works best.")}
           </p>
           <button
             type="button"
@@ -200,7 +202,7 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
               setError(null);
             }}
           >
-            Wrong email?
+            {t("Wrong email?")}
           </button>
         </form>
       )}
@@ -211,18 +213,19 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
         </p>
       )}
       <p className="muted small">
-        By continuing you agree to the <Link href="/legal/terms">Terms</Link> and{" "}
-        <Link href="/legal/privacy">Privacy Policy</Link>.
+        {t("By continuing you agree to the")} <Link href="/legal/terms">{t("Terms")}</Link> {t("and")}{" "}
+        <Link href="/legal/privacy">{t("Privacy Policy")}</Link>.
       </p>
     </div>
   );
 }
 
 function InAppNote() {
+  const t = useT();
   const [copied, setCopied] = useState(false);
   return (
     <div className="card small">
-      <p>Use email, or open this page in Safari or Chrome to use Google.</p>
+      <p>{t("Use email, or open this page in Safari or Chrome to use Google.")}</p>
       <button
         type="button"
         className="btn link"
@@ -233,7 +236,7 @@ function InAppNote() {
           } catch {}
         }}
       >
-        {copied ? "Link copied" : "Copy link"}
+        {copied ? t("Link copied") : t("Copy link")}
       </button>
     </div>
   );

@@ -18,10 +18,10 @@ export function Toaster() {
   return <div className="toast-region" role="status" aria-live="polite">{msg && <div key={msg.n} className="toast">{msg.text}</div>}</div>;
 }
 
-// Share a link: the phone's share sheet where there is one, else copy it. Says what happened.
-export async function shareLink(url: string, title: string) {
+// Share a link: the phone's share sheet where there is one, else copy it. Says what happened (copied: in the viewer's language).
+export async function shareLink(url: string, title: string, copied = "Link copied") {
   if (navigator.share && matchMedia("(pointer: coarse)").matches) {
     try { await navigator.share({ title, url }); return; } catch (e) { if ((e as Error).name === "AbortError") return; }
   }
-  try { await navigator.clipboard.writeText(url); toast("Link copied"); } catch { toast(url); }
+  try { await navigator.clipboard.writeText(url); toast(copied); } catch { toast(url); }
 }

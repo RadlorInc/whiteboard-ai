@@ -141,6 +141,10 @@ describe('checkPolicy (policy 1)', () => {
   for (const [name, plant] of Object.entries(planted)) it(`catches: ${name}`, () => {
     const a = clone(ok); plant(a); expect(checkPolicy(a, 'whiteboard').length).toBeGreaterThan(0);
   });
+  it('a Dutch video numbers its steps "Stap N:" (generate.ts LANG_TEXT)', () => {
+    const a = clone(ok); a.steps.forEach((s: Any) => { s.say = s.say.replace(/^Step/, 'Stap'); });
+    expect(checkPolicy(a, 'whiteboard')).toEqual([]);
+  });
   it('match-cut cap is 700 characters', () => {
     const a = clone(mc[0]); a.objects[0].say = 'a'.repeat(701);
     expect(checkPolicy(a, 'matchcut')).toEqual([expect.stringMatching(/at most 700/)]);

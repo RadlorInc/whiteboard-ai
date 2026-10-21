@@ -3,13 +3,19 @@ import { cookies } from "next/headers";
 import "./globals.css";
 import { PRODUCT_NAME } from "@/product";
 import { Toaster } from "@/components/Toast";
+import { LangProvider } from "@/components/Lang";
+import { getLang } from "@/lib/lang";
+import { tFor } from "@/lib/i18n";
 
-export const metadata: Metadata = {
-  title: { default: PRODUCT_NAME, template: `%s · ${PRODUCT_NAME}` },
-  description: "Ask any question and watch it drawn and explained.",
-  // Link previews need absolute image URLs.
-  metadataBase: process.env.APP_URL ? new URL(process.env.APP_URL) : undefined,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = tFor(await getLang());
+  return {
+    title: { default: PRODUCT_NAME, template: `%s · ${PRODUCT_NAME}` },
+    description: t("Ask any question and watch it drawn and explained."),
+    // Link previews need absolute image URLs.
+    metadataBase: process.env.APP_URL ? new URL(process.env.APP_URL) : undefined,
+  };
+}
 
 // §5.12: never maximum-scale or user-scalable=no.
 export const viewport: Viewport = {
@@ -26,15 +32,18 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const jar = await cookies();
   const motion = jar.get("wb_motion")?.value;
+  const lang = await getLang();
   return (
     <html
-      lang="en"
+      lang={lang}
       data-motion={motion === "reduce" || motion === "full" ? motion : undefined}
     >
       <body>
-        <a href="#main" className="skip-link">Skip to content</a>
-        {children}
-        <Toaster />
+        <LangProvider lang={lang}>
+          <a href="#main" className="skip-link">{tFor(lang)("Skip to content")}</a>
+          {children}
+          <Toaster />
+        </LangProvider>
       </body>
     </html>
   );

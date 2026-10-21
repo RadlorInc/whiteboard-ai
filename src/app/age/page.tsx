@@ -8,12 +8,14 @@ import { getAccount, signupMode } from "@/lib/session";
 import { AgeForm } from "@/components/AgeForm";
 import { Footer } from "@/components/Footer";
 import { PublicHeader } from "@/components/AppFrame";
+import { getT } from "@/lib/lang";
 
-export const metadata: Metadata = { title: "Your age" };
+export async function generateMetadata(): Promise<Metadata> { return { title: (await getT())("Your age") }; }
 
 // §5.4 (C24). Also the under-13 block page, while the 24 h age_block cookie exists.
 export default async function Age({ searchParams }: PageProps<"/age">) {
   const jar = await cookies();
+  const t = await getT();
   if (jar.has(AGE_BLOCK_COOKIE)) {
     return (
       <>
@@ -21,9 +23,9 @@ export default async function Age({ searchParams }: PageProps<"/age">) {
       <main className="auth stack" id="main">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="" width={64} height={44} className="auth-mark" />
-          <h1>Sorry, you can&apos;t use {PRODUCT_NAME}.</h1>
+          <h1>{t("Sorry, you can't use {product}.", { product: PRODUCT_NAME })}</h1>
           <p>
-            <Link href="/legal/privacy">Privacy Policy</Link>
+            <Link href="/legal/privacy">{t("Privacy Policy")}</Link>
           </p>
         </main>
         <Footer />
@@ -46,8 +48,8 @@ export default async function Age({ searchParams }: PageProps<"/age">) {
       <main className="auth stack" id="main">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="" width={64} height={44} className="auth-mark" />
-        <h1>What&apos;s your birth month and year?</h1>
-        <AgeForm src={src} next={okNext(q.next)} initialError={q.e === "invalid" ? "Choose your birth month and year." : undefined} />
+        <h1>{t("What's your birth month and year?")}</h1>
+        <AgeForm src={src} next={okNext(q.next)} initialError={q.e === "invalid" ? t("Choose your birth month and year.") : undefined} />
       </main>
       <Footer />
     </>
