@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { AGE_BLOCK_COOKIE, AGE_OK_COOKIE, INVITE_COOKIE, verify, type AgeOk } from "@/lib/age";
 import { getAccount, landing, safeNext } from "@/lib/session";
+import { REF_COOKIE, parseRef, reportRef } from "@/lib/radlorOps";
 
 if (typeof window !== "undefined") throw new Error("lib/signup imported in the browser");
 
@@ -46,6 +47,7 @@ export async function completeSignup(userId: string, age: AgeOk): Promise<string
   }
   if (result === "invalid") return "/age?e=invalid";
   jar.delete(AGE_OK_COOKIE);
+  await keepReferral(userId);
   if (age.invite) await (await createClient()).rpc("redeem_invite", { p_code: age.invite });
   const account = await getAccount();
   if (!account) return "/signin";
@@ -61,3 +63,14 @@ export async function finishSignIn(next: string): Promise<string> {
   return age ? completeSignup(account.user.id, age) : "/age";
 }
 
+
+/** A new account that arrived through a market rep's link: stored on the user (checkout reads it) and reported. */
+async function keepReferral(userId: string) {
+  const jar = await cookies();
+  const ref = parseRef(jar.get(REF_COOKIE)?.value);
+  if (!ref) return;
+  jar.delete(REF_COOKIE);
+  const { error } = await createAdminClient().auth.admin.updateUserById(userId, { app_metadata: { ref: ref.code, ref_self: ref.self } });
+  if (error) return;
+  await reportRef({ kind: ref.self ? "join" : "signup", code: ref.code, app_user: userId, event_key: `signup:${userId}` });
+}

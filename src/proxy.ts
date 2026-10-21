@@ -3,6 +3,7 @@
 // auth.getUser(), never here.
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { REF_COOKIE, REF_DAYS, refCookieValue } from "@/lib/radlorOps";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -59,6 +60,9 @@ export async function proxy(request: NextRequest) {
   h.set("X-Frame-Options", "DENY");
   h.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()");
   h.set("Cross-Origin-Opener-Policy", "same-origin");
+  // A market rep's link (?ref=…): remembered until sign-up, which reads it (lib/signup.ts). The latest link wins.
+  const ref = refCookieValue(request.nextUrl.searchParams);
+  if (ref) response.cookies.set(REF_COOKIE, ref, { httpOnly: true, secure: request.nextUrl.protocol === "https:", sameSite: "lax", path: "/", maxAge: REF_DAYS * 86400 });
   return response;
 }
 

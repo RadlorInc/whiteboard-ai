@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/server";
 import { priceKeyOf, verifyEvent } from "@/lib/stripe";
+import { reportRef } from "@/lib/radlorOps";
 
 type Obj = Record<string, unknown>;
 const id = (v: unknown): string | null => (typeof v === "string" ? v : (v as Obj | null)?.id as string) ?? null;
@@ -16,7 +17,9 @@ function invoiceFields(inv: Obj) {
   const price = (line.price as Obj)?.id ?? ((line.pricing as Obj)?.price_details as Obj)?.price;
   const sub = inv.subscription ?? ((inv.parent as Obj)?.subscription_details as Obj)?.subscription;
   const pi = inv.payment_intent ?? (((inv.payments as Obj)?.data as Obj[] | undefined)?.[0]?.payment as Obj)?.payment_intent;
+  const subMeta = ((inv.parent as Obj)?.subscription_details as Obj)?.metadata ?? (inv.subscription_details as Obj)?.metadata ?? {};
   return {
+    sub_meta: subMeta as Obj,
     subscription: id(sub), price_key: priceKeyOf(id(price)), line_amount: (line.amount as number) ?? null,
     period_end: ts((line.period as Obj)?.end), payment_intent: id(pi),
   };
@@ -93,6 +96,15 @@ export async function POST(req: Request) {
     }
     console.error("stripe webhook: database error", event.type, error.code);  // no payload: it may hold an email
     return NextResponse.json({ code: "retry" }, { status: 500 });
+  }
+  // A paid invoice of a market rep's referral is reported only after it is recorded here, so a retry reports again
+  // (Radlor Ops keeps one row per invoice id).
+  if (event.type === "invoice.paid") {
+    const f = invoiceFields(o), ref = f.sub_meta.ref, user = f.sub_meta.user_id;
+    if (typeof ref === "string" && typeof user === "string" && typeof o.amount_paid === "number" && o.amount_paid > 0) {
+      const paidAt = ts((o.status_transitions as Obj)?.paid_at) ?? ts(event.created);
+      await reportRef({ kind: "payment", code: ref, app_user: user, amount_cents: o.amount_paid, paid_at: paidAt!, event_key: `invoice:${o.id}` });
+    }
   }
   return NextResponse.json({ outcome: data });
 }
