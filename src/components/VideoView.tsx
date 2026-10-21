@@ -8,7 +8,8 @@ import { useT } from "./Lang";
 import { deleteVideo, setExplore, shareVideo, unshareVideo } from "@/app/(app)/videos/actions";
 
 export const exploreRefusal = (e?: string) => e === "contact_info" ? "This question has contact details in it, so it can't go on Explore."
-  : e === "share_limit" ? "That's a lot of shared videos today. Try again tomorrow." : "Couldn't change Explore. Try again.";
+  : e === "share_limit" ? "That's a lot of shared videos today. Try again tomorrow."
+  : e === "preview" ? "This is a preview: its videos don't go on Explore." : "Couldn't change Explore. Try again.";
 
 const noop = () => () => {};
 

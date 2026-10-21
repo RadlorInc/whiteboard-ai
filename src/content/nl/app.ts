@@ -225,5 +225,6 @@ const nl: Record<string, string> = {
   "In this chat": "In dit gesprek",
   "Before this": "Hiervoor",
   "After this": "Hierna",
+  "This is a preview: its videos don't go on Explore.": "Dit is een preview: de video's hiervan komen niet op Ontdekken.",
 };
 export default nl;

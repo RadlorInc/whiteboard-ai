@@ -27,6 +27,9 @@ export async function unshareVideo(id: string) {
 // none (the same contact-info refusal and daily limit as Share); hiding keeps the link.
 export async function setExplore(id: string, on: boolean): Promise<{ slug?: string; error?: string }> {
   if (!isId(id)) return { error: "bad_request" };
+  // A Vercel preview shares the production database (the Dutch review, 21 Oct 2026): it never puts a video on the
+  // live Explore. Taking one off still works.
+  if (on && process.env.VERCEL_ENV === "preview") return { error: "preview" };
   const { data, error } = await (await createClient()).rpc("set_explore", { p_generation_id: id, p_on: on === true });
   const r = Array.isArray(data) ? data[0] : data;
   revalidatePath(`/videos/${id}`); revalidatePath("/explore");
