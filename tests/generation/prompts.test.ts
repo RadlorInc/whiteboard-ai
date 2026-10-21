@@ -60,8 +60,9 @@ describe('prompt sha parity', () => {
     chemistry: '921660f1f830ac44fd34c31220676876f9fdb73172eafc9e3f76d223ba0e0082',
     car: '663fa90033aed54f59cebfbb659227fe5012a3c429f663dd15e3f399ec256bd6',
     home: '75ab043b2a605ee6fb0bc30a86565fa63dc014694ddd783f59dbbfd9673c6f8f',
+    maths: 'bf1524762bc7091ac4fe0a7cdef3daa4e67de8d0923a113801ff46c4c344c886',   // children's maths, Radlic only (21 Oct 2026)
   } as const;
-  for (const s of ['biology', 'physics', 'chemistry', 'car', 'home'] as const) it(`${s}: its own prompt, sha bound, only its categories listed`, () => {
+  for (const s of ['biology', 'physics', 'chemistry', 'car', 'home', 'maths'] as const) it(`${s}: its own prompt, sha bound, only its categories listed`, () => {
     const t = P.subjects[s].system;
     expect(sha(t)).toBe(SUBJECT_EXPECTED[s]); expect(P.subjects[s].sha256).toBe(SUBJECT_EXPECTED[s]);
     const listed = [...t.split('More recipes, by subject')[1].split('Worked examples')[0].matchAll(/^  ([\w-]+): /gm)].map(m => m[1]);

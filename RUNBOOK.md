@@ -15,6 +15,9 @@ Vercel Instant Rollback, done by the founder. Then fix forward on `main`.
 ### Leaked key
 **Rotate first, investigate after** (§9.7). Revoke it in the provider's console, set the new key in Vercel, redeploy.
 Keys are never printed in chat, logs or test output. If it was ever committed or pushed, treat it as leaked.
+`RADLIC_PARTNER_SECRET` (children's maths for Radlic) is one value in two projects: set the new one in both Vercel
+projects (here `RADLIC_PARTNER_SECRET`, Radlic `WHITEBOARD_PARTNER_SECRET`) and redeploy both; until both match, Radlic's
+Ask maths answers "not available" and nothing else breaks.
 
 ### Webhook gap
 The daily digest's reconciliation fixes it; or call `/api/cron/digest` by hand with `CRON_SECRET`. _(empty: M5, M6)_
@@ -65,6 +68,8 @@ The founder sets them; check once after setup with a burst test against staging.
 - `/v/*` and `/og/*`: 60 requests a minute per IP.
 - `/api/*`: 120 a minute per IP.
 - `/api/stripe/webhook` and `/api/cron/*`: exempt from rate limits and bot challenges (Stripe and Vercel Cron must pass).
+- `/api/partner/maths`: exempt from bot challenges (Radlic's server calls it, from Vercel's IPs); it has its own
+  limit (60 a minute, `hit_rate_limit('partner:radlic')`) behind the secret.
 
 ## Support rules (§11.10)
 
