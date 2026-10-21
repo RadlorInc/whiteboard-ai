@@ -29,12 +29,14 @@ export async function POST(req: Request) {
     customer = typeof linked === "string" && linked.startsWith("cus_") ? linked : c.id;
   }
   const app = process.env.APP_URL;
+  // A referred user's subscription carries the market rep's code; the webhook reports its invoices (lib/radlorOps.ts).
+  const ref = user.app_metadata?.ref_self ? null : (typeof user.app_metadata?.ref === "string" ? user.app_metadata.ref : null);
   const session = await s.checkout.sessions.create({
     mode: isSubscription(key) ? "subscription" : "payment",
     customer, client_reference_id: user.id,
     line_items: [{ price, quantity: 1 }],
     metadata: { price_key: key, user_id: user.id },
-    ...(isSubscription(key) ? { subscription_data: { metadata: { price_key: key, user_id: user.id } } } : {}),
+    ...(isSubscription(key) ? { subscription_data: { metadata: { price_key: key, user_id: user.id, ...(ref ? { ref } : {}) } } } : {}),
     success_url: `${app}/buy/success`, cancel_url: `${app}/buy`,
   });
   return json(200, { url: session.url });
