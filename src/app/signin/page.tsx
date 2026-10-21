@@ -16,6 +16,7 @@ const ERRORS: Record<string, string> = {
   expired: "That link expired. Send a new code.",
   browser: "Sign-in started in a different browser. Start again here.",
   closed: "Sign-ups are closed for now.",
+  email: "Use your own everyday email address. Addresses with a + tag and temporary inboxes can't make an account.",
   failed: "Sign-in didn't finish. Try again.",
 };
 

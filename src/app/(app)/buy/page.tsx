@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import { requireAccount } from "@/lib/session";
 import { resetDay, videos } from "@/lib/videos";
 import { PlanCards } from "@/components/PlanCards";
+import { PLANS_ON } from "@/product";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Get more videos" };
 
 // Free 10 a month, then a plan (founder, 20 Oct 2026): plans renew monthly (unused plan videos end 3 days after the
 // period). Packs are no longer sold.
 export default async function Buy() {
+  if (!PLANS_ON) redirect("/ask");
   const { allowance: a } = await requireAccount("/buy");
   return (
     <main className="page stack">

@@ -5,11 +5,14 @@ import { notNow, redeemInvite } from "@/app/actions";
 import { InviteForm } from "@/components/InviteForm";
 import { resetDay } from "@/lib/videos";
 import { PlanCards } from "@/components/PlanCards";
+import { PLANS_ON } from "@/product";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Get more videos" };
 
 // §5.4 /start: shown once the month's free videos are used up (free tier, 20 Oct 2026). Checkout is not live yet.
 export default async function Start() {
+  if (!PLANS_ON) redirect("/ask");
   const account = await requireAccount("/start");
   const country = (await headers()).get("x-vercel-ip-country");
   return (

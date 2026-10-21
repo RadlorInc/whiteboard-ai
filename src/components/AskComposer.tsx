@@ -8,6 +8,7 @@ import { VoiceProgress } from "./Voice";
 import { Icon } from "./Icon";
 import { SUBJECT_GROUPS, SUBJECT_NAME, type Subject } from "./Chats";
 
+import { PLANS_ON } from "@/product";
 import { LEVELS, LEVEL_NAME, canAsk, resetDay, taughtLevel, videos, type Allowance, type Level } from "@/lib/videos";
 const EXAMPLES: Record<Subject, string[]> = {
   biology: ["How does the heart pump blood?", "How do we breathe?", "What does DNA do?"],
@@ -122,12 +123,14 @@ export function AskComposer({ allowance: a, firstRun, onAsk, busy = false, place
             <button type="submit" className="send" aria-label="Ask" disabled={empty || busy}>
               {busy ? <span className="spinner sm" aria-hidden="true" /> : <Icon name="arrowUp" size={18} />}
             </button>
-          ) : (
+          ) : PLANS_ON ? (
             <Link href="/start" className="btn sm send-buy">Get more videos</Link>
+          ) : (
+            <button type="submit" className="send" aria-label="Ask" disabled><Icon name="arrowUp" size={18} /></button>
           )}
         </div>
       </div>
-      {!enough && <p className="composer-note">You&apos;ve used your {a.freeMonthly} free videos this month. They come back on {resetDay(a.resetsAt)}, or <Link href="/buy">get a plan</Link> for more.</p>}
+      {!enough && <p className="composer-note">You&apos;ve used your {a.freeMonthly} free videos this month. They come back on {resetDay(a.resetsAt)}{PLANS_ON ? <>, or <Link href="/buy">get a plan</Link> for more</> : null}.</p>}
       {enough && left && <p className="composer-note">{left}</p>}
       {capped && <p className="composer-note">Your plan teaches at {LEVEL_NAME[taught].toLowerCase()} level, so these videos will be {LEVEL_NAME[taught].toLowerCase()} lessons. <Link href="/buy">Get a {LEVEL_NAME[level].toLowerCase()} plan</Link> for {LEVEL_NAME[level].toLowerCase()} depth.</p>}
       <VoiceProgress />

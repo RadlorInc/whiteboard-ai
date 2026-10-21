@@ -99,8 +99,8 @@ export function Chat({ conversationId, subject: initialSubject, level: initialLe
           <div className="hero">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.png" alt="" width={96} height={66} />
-            <h1>What do you want to understand?</h1>
-            <p className="muted">Ask {PRODUCT_NAME} a question. It draws and explains the answer, step by step.</p>
+            <h1>What would you like to know?</h1>
+            <p className="muted">{PRODUCT_NAME} draws and explains the answer, step by step.</p>
           </div>
         ) : (
           <header className="chat-head">
@@ -138,7 +138,7 @@ export function Chat({ conversationId, subject: initialSubject, level: initialLe
             </button>
           )}
           <AskComposer allowance={allowance} firstRun={firstRun && empty} onAsk={ask} busy={busy}
-            placeholder={empty ? "Ask anything…" : "Ask a follow-up…"} subject={subject}
+            placeholder={empty ? "Go ahead and ask your question…" : "Ask a follow-up…"} subject={subject}
             onSubject={conv ? undefined : setSubject} level={level} onLevel={conv ? undefined : setLevel} />
         </div>
       </div>
