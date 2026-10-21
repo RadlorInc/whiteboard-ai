@@ -84,7 +84,10 @@
   // the steps before it are drawn at once (FAST, index.html), then it plays on from there. The player tells the page
   // where it is: {type:'at', i, n, done} (i = n once it has ended).
   let A = null, done = false, gen = 0, at = 0, fastBy = 0, wavWait = {};
-  const where = () => tell({ type: 'at', i: at, n: A.steps.length, done, paused: PAUSED, waiting: !!A.voice && A.steps[at]?.wav === undefined });
+  // waiting: the step's line is still being made. Past the last step of a finished video there is no line to wait for
+  // (21 Oct 2026: "Preparing the voice for step 6…" stayed up over "End" on a 5-step video).
+  const where = () => tell({ type: 'at', i: at, n: A.steps.length, done, paused: PAUSED,
+    waiting: !!A.voice && !(done && at >= A.steps.length) && A.steps[at]?.wav === undefined });
   async function streamPlay(my, i = 0) {
     try {
       while (my === gen) {
