@@ -7,8 +7,10 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { verifyCode } from "@/app/actions";
+import { emailProblem } from "@/lib/email-check";
 
 const RESEND_SECONDS = 60;
+const EMAIL_PROBLEM = "Use your own everyday email address. Addresses with a + tag and temporary inboxes can't make an account.";
 const OTP_KEY = "wb.otp";
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
@@ -66,14 +68,16 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
         : "Checking this browser… try again in a moment.");
     }
     setSending(true);
+    // An alias or throwaway address may still sign in to an account it already has, but never makes a new one.
+    const problem = emailProblem(address);
     const { error } = await createClient().auth.signInWithOtp({
       email: address,
-      options: { shouldCreateUser: true, captchaToken: captcha.token ?? undefined },
+      options: { shouldCreateUser: !problem, captchaToken: captcha.token ?? undefined },
     });
     setSending(false);
     captcha.reset();
     if (error) {
-      return setError(error.status === 429
+      return setError(problem && error.status !== 429 ? EMAIL_PROBLEM : error.status === 429
         ? "Too many codes sent. Wait a minute and try again."
         : "We couldn't send the code. Try again.");
     }

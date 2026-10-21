@@ -5,6 +5,7 @@ import { cache } from "react";
 import { okNext } from "@/lib/age";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { canAsk, planLevel, type Allowance } from "@/lib/videos";
+import { PLANS_ON } from "@/product";
 
 export const START_SEEN_COOKIE = "wb_start_seen";
 
@@ -63,7 +64,7 @@ export async function requireAccount(path: string) {
 
 /** Where a signed-in, age-done user lands: nothing left to ask with and not yet past /start → /start, else `next`. */
 export async function landing(account: NonNullable<Account>, next = "/ask") {
-  if (!canAsk(account.allowance) && !(await cookies()).has(START_SEEN_COOKIE)) return "/start";
+  if (PLANS_ON && !canAsk(account.allowance) && !(await cookies()).has(START_SEEN_COOKIE)) return "/start";
   return next;
 }
 
@@ -71,6 +72,9 @@ export async function landing(account: NonNullable<Account>, next = "/ask") {
 async function settings() {
   const { data } = await createAdminClient().from("ops_settings").select("signup_mode, free_videos_monthly").maybeSingle();
   return { signupMode: (data?.signup_mode as "invite" | "open" | "closed") ?? "invite", freeMonthly: data?.free_videos_monthly ?? 10 };
+}
+export async function freeMonthly(): Promise<number> {
+  return (await settings()).freeMonthly;
 }
 export async function signupMode(): Promise<"invite" | "open" | "closed"> {
   return (await settings()).signupMode;

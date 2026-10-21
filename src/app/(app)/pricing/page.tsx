@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PlanCards } from "@/components/PlanCards";
+import { PLANS_ON } from "@/product";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Pricing" };
 
 // §5.5: public pricing. Free 10 a month, then a plan (founder, 20 Oct 2026). Every video is the same quality.
 export default function Pricing() {
+  if (!PLANS_ON) redirect("/ask");
   return (
     <main className="page stack">
       <div>

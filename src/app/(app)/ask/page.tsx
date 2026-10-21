@@ -6,6 +6,7 @@ import { canAsk } from "@/lib/videos";
 import { redeemInvite } from "@/app/actions";
 import { InviteForm } from "@/components/InviteForm";
 import { Chat } from "@/components/Chat";
+import { PLANS_ON } from "@/product";
 
 export const metadata: Metadata = { title: "Ask" };
 
@@ -13,7 +14,7 @@ export const metadata: Metadata = { title: "Ask" };
 export default async function Ask() {
   const account = await requireAccount("/ask");
   // The month's free videos used up and no plan: show the plans once (free tier, 20 Oct 2026).
-  if (account.hasAccess && !canAsk(account.allowance) && !(await cookies()).has(START_SEEN_COOKIE)) {
+  if (PLANS_ON && account.hasAccess && !canAsk(account.allowance) && !(await cookies()).has(START_SEEN_COOKIE)) {
     redirect("/start");
   }
   return account.hasAccess ? (
