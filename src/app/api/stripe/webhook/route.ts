@@ -9,6 +9,10 @@ import { reportRef } from "@/lib/radlorOps";
 
 type Obj = Record<string, unknown>;
 const id = (v: unknown): string | null => (typeof v === "string" ? v : (v as Obj | null)?.id as string) ?? null;
+// The Stripe account is shared with Radlic (founder, 22 Oct 2026): our checkouts and subscriptions carry price_key in
+// their metadata (billing/checkout); anything without it is another app's and is only recorded as ignored.
+// ponytail: refunds, disputes and fraud warnings are not filtered (no metadata on charges); a Radlic one shows in review.
+const ours = (meta: unknown) => typeof (meta as Obj | null)?.price_key === "string";
 const ts = (s: unknown) => (typeof s === "number" ? new Date(s * 1000).toISOString() : null);
 
 // Fields moved between Stripe API versions; read both shapes.
@@ -37,8 +41,8 @@ export async function POST(req: Request) {
   switch (event.type as Stripe.Event.Type) {
     case "checkout.session.completed":
     case "checkout.session.async_payment_succeeded": {
-      if (o.mode !== "payment" || o.payment_status !== "paid") break;          // plans are paid through invoice.paid
-      const meta = (o.metadata ?? {}) as Obj;
+      if (o.mode !== "payment" || o.payment_status !== "paid" || !ours(o.metadata)) break;  // plans: invoice.paid
+      const meta = o.metadata as Obj;
       fn = "stripe_topup_paid";
       args = { ...base, p_customer_id: id(o.customer), p_client_reference_id: o.client_reference_id ?? null,
         p_session_id: o.id, p_payment_intent_id: id(o.payment_intent), p_price_key: meta.price_key ?? null,
@@ -47,7 +51,7 @@ export async function POST(req: Request) {
     }
     case "invoice.paid": {
       const f = invoiceFields(o);
-      if (!f.subscription) break;
+      if (!f.subscription || !ours(f.sub_meta)) break;
       fn = "stripe_invoice_paid";
       args = { ...base, p_customer_id: id(o.customer), p_invoice_id: o.id, p_subscription_id: f.subscription,
         p_billing_reason: o.billing_reason ?? null, p_price_key: f.price_key, p_line_amount: f.line_amount,
@@ -55,6 +59,7 @@ export async function POST(req: Request) {
       break;
     }
     case "invoice.payment_failed": {
+      if (!ours(invoiceFields(o).sub_meta)) break;
       fn = "stripe_payment_failed";
       args = { ...base, p_customer_id: id(o.customer), p_subscription_id: invoiceFields(o).subscription, p_invoice_id: o.id };
       break;
@@ -62,6 +67,7 @@ export async function POST(req: Request) {
     case "customer.subscription.created":
     case "customer.subscription.updated":
     case "customer.subscription.deleted": {
+      if (!ours(o.metadata)) break;
       const item = ((o.items as Obj)?.data as Obj[] | undefined)?.[0] ?? {};
       fn = "stripe_subscription_sync";
       args = { ...base, p_customer_id: id(o.customer), p_subscription_id: o.id, p_status: o.status,
