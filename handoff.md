@@ -16,7 +16,8 @@
   and `FRIEND_BONUS`/`FRIENDS_MAX` in `lib/videos.ts`: change both together.
 - Limits (founder: keep it light): no self-invite, one inviter per account, bonus for 2 friends at most.
   Rep links (`?ref=`, `lib/radlorOps.ts`) are separate and unchanged; both can apply to one sign-up.
-- To ship: merge the PR, run migrate-prod (founder's OK), then the code deploys. Terms text changed but
+- To ship (expand/contract, no window where live code and DB disagree): DB-only PR `free-20-db` → migrate-prod
+  → this PR (#38, auto-deploys) → once Vercel shows it live, migrate-prod again (drops `free_videos_monthly`). Terms text changed but
   `current_terms_version` was NOT bumped (would make everyone re-accept): founder/attorney to decide.
 
 ## Production (12 Oct 2026, end of day)

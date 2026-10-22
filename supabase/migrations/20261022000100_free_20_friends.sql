@@ -1,5 +1,5 @@
 -- First 20 videos free, once; refer a friend for 10 more (founder, 22 Oct 2026; replaces "10 free every UTC month").
---  * ops_settings.free_videos (was free_videos_monthly) = 20, counted once from ops_settings.free_from (= when this
+--  * ops_settings.free_videos = 20, counted once from ops_settings.free_from (= when this
 --    migration ran): everyone, old users too, starts with a fresh 20. Failed videos never use one, as before.
 --  * Each user has a friend link (/?friend=<profiles.friend_code>). A new account made through it is stored in
 --    friend_referrals; once that friend has made a video, the inviter gets 10 more free videos, for at most 2 friends
@@ -7,11 +7,13 @@
 --  * Market-rep links (/?ref=, lib/radlorOps.ts) are separate and unchanged.
 -- Security change: new table friend_referrals (RLS on, service_role SELECT only), new SECURITY DEFINER functions
 -- free_videos and add_friend_referral (service_role), and redefines reserve_generation and admin_set_settings.
+-- Ships BEFORE the code (expand/contract): the app still live reads free_videos_monthly and calls the same
+-- reserve_generation / admin_set_settings, so the old column stays (set to 20 so old screens say 20) and both
+-- settings keys are accepted. 20261022000200_drop_free_videos_monthly.sql drops it once the new code is live.
 
-alter table public.ops_settings rename column free_videos_monthly to free_videos;
-alter table public.ops_settings alter column free_videos set default 20,
+alter table public.ops_settings add column free_videos int not null default 20 check (free_videos >= 0),
   add column free_from timestamptz not null default now();
-update public.ops_settings set free_videos = 20 where id;
+update public.ops_settings set free_videos_monthly = 20 where id;   -- only what the old screens show, until the drop
 
 alter table public.profiles add column friend_code text not null unique
   default left(replace(gen_random_uuid()::text, '-', ''), 12);    -- volatile default: a different code per row
@@ -211,7 +213,7 @@ begin
   if p_request_id is null or p_changes is null or jsonb_typeof(p_changes) <> 'object' or p_changes = '{}'
      or exists (select 1 from jsonb_object_keys(p_changes) k where k not in ('generation_enabled','purchases_enabled',
        'signup_mode','daily_spend_cap_usd','max_open_generations','user_uncharged_cap_usd','smoke_user_id','notice',
-       'user_daily_cap','user_monthly_cap','free_videos','slow_1_after','slow_1_seconds','slow_2_after','slow_2_seconds')) then
+       'user_daily_cap','user_monthly_cap','free_videos','free_videos_monthly','slow_1_after','slow_1_seconds','slow_2_after','slow_2_seconds')) then
     raise exception 'rejected:invalid_input' using errcode = '22023';
   end if;
   if exists (select 1 from public.admin_audit where request_id = p_request_id) then return true; end if;
@@ -224,6 +226,7 @@ begin
       user_uncharged_cap_usd = v_new.user_uncharged_cap_usd, smoke_user_id = v_new.smoke_user_id,
       notice = v_new.notice, user_daily_cap = v_new.user_daily_cap, user_monthly_cap = v_new.user_monthly_cap,
       free_videos = v_new.free_videos,
+      free_videos_monthly = v_new.free_videos_monthly,
       slow_1_after = v_new.slow_1_after, slow_1_seconds = v_new.slow_1_seconds,
       slow_2_after = v_new.slow_2_after, slow_2_seconds = v_new.slow_2_seconds, updated_at = now(), updated_by = auth.uid()
      where id;
