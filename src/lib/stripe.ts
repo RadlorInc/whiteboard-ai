@@ -2,15 +2,19 @@ import "server-only";
 // Stripe (PLAN.md §8). Credits enter ONLY through the signature-verified webhook; nothing here grants credits.
 import Stripe from "stripe";
 
-export const PRICE_KEYS = ["plus", "pro", "plus_college", "pro_college", "plus_grad", "pro_grad", "topup_60", "topup_132", "topup_282"] as const;
+export const PRICE_KEYS = ["plus_all", "pro_all", "plus", "pro", "plus_college", "pro_college", "plus_grad", "pro_grad", "topup_60", "topup_132", "topup_282",
+  "topup_20", "topup_45", "topup_100"] as const;
 export type PriceKey = (typeof PRICE_KEYS)[number];
-// On sale (free tier, 20 Oct 2026): the plans only, one pair per level. Packs stay in PRICE_KEYS so their old webhooks still map.
-export const ON_SALE: PriceKey[] = ["plus", "pro", "plus_college", "pro_college", "plus_grad", "pro_grad"];
+// On sale (founder, 22 Oct 2026): one plan pair for every level, and three packs. The rest stay in PRICE_KEYS so their
+// old webhooks still map.
+export const ON_SALE: PriceKey[] = ["plus_all", "pro_all", "topup_20", "topup_45", "topup_100"];
 const ENV: Record<PriceKey, string> = {
-  plus: "STRIPE_PRICE_PLUS", pro: "STRIPE_PRICE_PRO",
+  plus_all: "STRIPE_PRICE_PLUS", pro_all: "STRIPE_PRICE_PRO",
+  plus: "STRIPE_PRICE_PLUS_SCHOOL", pro: "STRIPE_PRICE_PRO_SCHOOL",
   plus_college: "STRIPE_PRICE_PLUS_COLLEGE", pro_college: "STRIPE_PRICE_PRO_COLLEGE",
   plus_grad: "STRIPE_PRICE_PLUS_GRAD", pro_grad: "STRIPE_PRICE_PRO_GRAD",
   topup_60: "STRIPE_PRICE_TOPUP_60", topup_132: "STRIPE_PRICE_TOPUP_132", topup_282: "STRIPE_PRICE_TOPUP_282",
+  topup_20: "STRIPE_PRICE_TOPUP_20", topup_45: "STRIPE_PRICE_TOPUP_45", topup_100: "STRIPE_PRICE_TOPUP_100",
 };
 export const priceId = (k: PriceKey) => process.env[ENV[k]] || null;
 export const priceKeyOf = (id: string | null | undefined): PriceKey | null =>

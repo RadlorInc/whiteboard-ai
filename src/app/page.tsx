@@ -45,7 +45,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
             </Link>
             <Link href="/signin" className="btn secondary">I have an account: sign in</Link>
           </div>
-          <p className="muted small">Your first {free} videos are free.{PLANS_ON && " Want more? Plans from $9.99 a month."}</p>
+          <p className="muted small">Your first {free} videos are free.{PLANS_ON && " Want more? Packs from $4.99, plans from $13.99 a month."}</p>
           <Link href="/explore" className="small">See videos people made</Link>
         </section>
 

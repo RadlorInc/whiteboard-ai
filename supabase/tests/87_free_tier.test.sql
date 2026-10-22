@@ -41,9 +41,10 @@ select is(pg_temp.as_admin('aal2', $$select public.admin_set_settings('{"free_vi
   'true', 'free_videos is set from /admin');
 select is((select free_videos from public.ops_settings where id), 5, '... and stored');
 select is((select string_agg(price_key || '=' || credits || ':' || unit_amount_cents || ':' || level || ':' || active, ',' order by price_key) from public.price_catalog),
-  'plus=40:999:school:true,plus_college=40:1399:undergrad:true,plus_grad=40:1399:grad:true,pro=100:1999:school:true,'
-  || 'pro_college=100:2599:undergrad:true,pro_grad=100:2599:grad:true,topup_132=132:999:school:false,topup_282=282:1999:school:false,'
-  || 'topup_60=60:499:school:false', 'plans in videos, a pair per level (40, 100); packs off sale');
+  'plus=40:999:school:false,plus_all=70:1399:grad:true,plus_college=40:1399:undergrad:false,plus_grad=40:1399:grad:false,'
+  || 'pro=100:1999:school:false,pro_all=150:2599:grad:true,pro_college=100:2599:undergrad:false,pro_grad=100:2599:grad:false,'
+  || 'topup_100=100:1999:school:true,topup_132=132:999:school:false,topup_20=20:499:school:true,topup_282=282:1999:school:false,'
+  || 'topup_45=45:999:school:true,topup_60=60:499:school:false', 'one plan pair for every level (70, 150); packs 20 / 45 / 100 on sale, old ones off');
 select is(pg_temp.svc(format('select public._ledger(%L, %L, 0, -1, 0)::text', pg_temp.ua(), 'convert')) ~ '^[0-9]+$', false,
   'service_role cannot write the ledger directly');
 select pg_temp.new_user('college1') as c \gset
