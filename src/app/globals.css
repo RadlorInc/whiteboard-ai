@@ -461,6 +461,11 @@ li.now .tick { border-color: transparent; }
   background: color-mix(in srgb, var(--surface) 92%, transparent); border: 1px solid var(--border-strong);
   box-shadow: 0 24px 60px rgb(0 0 0 / 0.55); backdrop-filter: blur(10px); }
 .gate-card img { width: 56px; height: auto; }
+.signup-popup { margin: auto; width: min(400px, calc(100% - 32px)); padding: 24px; border: 1px solid var(--border-strong); border-radius: 16px;
+  background: var(--surface); color: var(--text); text-align: center; display: grid; gap: 12px; justify-items: center; }
+.signup-popup:not([open]) { display: none; }
+.signup-popup::backdrop { background: rgb(0 0 0 / 0.6); }
+.signup-popup img { width: 56px; height: auto; }
 .gate-card .toolbar { margin-top: 6px; }
 
 /* ---- Skip link (keyboard users jump past the sidebar) ---- */
