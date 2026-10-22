@@ -7,6 +7,7 @@ import { isInAppBrowser, safeNext } from "@/lib/session";
 import { SignInMethods } from "@/components/SignInMethods";
 import { Footer } from "@/components/Footer";
 import { PublicHeader } from "@/components/AppFrame";
+import { EMAIL_PROBLEM } from "@/lib/email-check";
 
 export const metadata: Metadata = { title: "Sign in" };
 
@@ -16,7 +17,7 @@ const ERRORS: Record<string, string> = {
   expired: "That link expired. Send a new code.",
   browser: "Sign-in started in a different browser. Start again here.",
   closed: "Sign-ups are closed for now.",
-  email: "Use your own everyday email address. Addresses with a + tag and temporary inboxes can't make an account.",
+  email: EMAIL_PROBLEM,
   failed: "Sign-in didn't finish. Try again.",
 };
 
