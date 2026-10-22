@@ -16,6 +16,8 @@ test("full-size drawings and straight lines are painted", async ({ page }) => {
     addEventListener("message", (e) => { if (e.data?.type === "posterDone") done(); });
     postMessage({ type: "poster", script: s }, "*");
   }), script);
+  // "fill" fades the colour in over 0.7 s (a CSS transition): measure once it has landed (CI is slower than a laptop)
+  await page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a instanceof CSSTransition).map((a) => a.finished)));
   const board = await page.locator("svg").first().boundingBox();
   const k = board!.width / 960;
   // Share of ink (non-paper) pixels in a small square at a board point: 0 when nothing was painted there.

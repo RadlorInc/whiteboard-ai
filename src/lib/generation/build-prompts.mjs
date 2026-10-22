@@ -283,8 +283,19 @@ const TEACHER = `
 - Point back, like a teacher: mark <id> circle|underline|point circles, underlines or points an arrow at something
   already on the board, from this step or an earlier one, in red chalk that fades after a moment. Cue it on the word
   that names it (e.g. "@valve mark v1 circle") when the voice comes back to that part or stresses a term or number.`;
+// Show what you say, finish the story (founder, 22 Oct 2026, from beta feedback on "How does medicine know where to go":
+// brain and muscles were only words at the end of a line, and the lesson stopped before the body cleared the drug).
+const SHOW_AND_FINISH = `
+- Show what you say: every concrete thing the voice names (an organ or body part, a place, a device, a molecule) is
+  drawn on the board in the step that names it, cued on that word. Search find_drawing for it first: realistic
+  drawings cover the organs (brain, heart, lungs, kidney, liver, muscle, stomach) and many devices. A word at the end
+  of a line is not enough when a drawing exists. If a step names more things than the board can show, name fewer.
+- Finish the story: when the question asks how something goes, travels, works or happens, the last step shows how it
+  ends: where it arrives, or how it stops, wears off or leaves (a medicine is broken down by the liver and removed by
+  the kidneys; food leaves the gut). Share the 900 characters across the whole journey; do not stop at its most
+  interesting middle part.`;
 const SUBJECT_RULES = Object.fromEntries(Object.entries(SUBJECTS).map(([s, { cats: cs, teach }]) =>
-  [s, wbRules(cs.map(c => WB_ALL.find(x => x.cat === c)), teach + REUSE + TEACHER + DRAW_OWN[s])]));
+  [s, wbRules(cs.map(c => WB_ALL.find(x => x.cat === c)), teach + REUSE + TEACHER + SHOW_AND_FINISH + DRAW_OWN[s])]));
 
 // ---------- Paper motion (stop-motion / paper): scenes of library drawings on a 960x600 canvas ----------
 const smCtx = { window: {} };
