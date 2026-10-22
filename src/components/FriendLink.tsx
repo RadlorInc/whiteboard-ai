@@ -4,7 +4,7 @@ import { shareLink } from "./Toast";
 
 export function FriendLink({ code }: { code: string }) {
   return (
-    <button className="btn" type="button" onClick={() => shareLink(`${location.origin}/?friend=${code}`, "Try askRadlor: your first 20 videos are free")}>
+    <button className="btn" type="button" onClick={() => shareLink(`${location.origin}/?friend=${code}`, "Try Ask Radlor: your first 20 videos are free")}>
       Share your invite link
     </button>
   );

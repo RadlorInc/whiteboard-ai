@@ -162,7 +162,7 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
             We sent a {OTP_LENGTH}-digit code to <strong>{email}</strong>.
           </p>
           {/* Outlook/Hotmail file our code under Junk while radlor.com's sender reputation is new (22 Oct 2026). */}
-          <p className="muted small">Can&apos;t find it? Check your Junk or Spam folder for an email from askRadlor.</p>
+          <p className="muted small">Can&apos;t find it? Check your Junk or Spam folder for an email from Ask Radlor.</p>
           <label className="field">
             <span>Code</span>
             <input
