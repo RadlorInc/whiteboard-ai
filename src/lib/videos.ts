@@ -15,16 +15,17 @@ export const canAsk = (a: Allowance) => a.admin || a.freeLeft > 0 || a.plan >= H
 export const videosLeft = (a: Allowance) => a.freeLeft + a.plan;
 /** "November 1": the day a monthly limit lifts (dates are UTC on the server). */
 export const resetDay = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "UTC" });
-/** The plans (= price_catalog; founder, 20 Oct 2026): 40 or 100 videos a month, one pair per level, each priced to
- *  keep $3 a month after Stripe, a 10% referral commission and the model cost. A plan's videos are taught at its level. */
+/** The plans and packs (= price_catalog, migration 20261022000300; founder, 22 Oct 2026): one price for every level.
+ *  Level "grad" = never capped, so a plan's videos are taught at the chat's level. */
 export const PLANS = [
-  { key: "plus", level: "school", name: "Plus", price: "$9.99", videos: 40 },
-  { key: "pro", level: "school", name: "Pro", price: "$19.99", videos: 100 },
-  { key: "plus_college", level: "undergrad", name: "College Plus", price: "$13.99", videos: 40 },
-  { key: "pro_college", level: "undergrad", name: "College Pro", price: "$25.99", videos: 100 },
-  { key: "plus_grad", level: "grad", name: "Grad Plus", price: "$13.99", videos: 40 },
-  { key: "pro_grad", level: "grad", name: "Grad Pro", price: "$25.99", videos: 100 },
+  { key: "plus", level: "grad", name: "Plus", price: "$13.99", videos: 70 },
+  { key: "pro", level: "grad", name: "Pro", price: "$25.99", videos: 150 },
 ] as const satisfies readonly { key: string; level: Level; name: string; price: string; videos: number }[];
+export const PACKS = [
+  { key: "topup_20", price: "$4.99", videos: 20 },
+  { key: "topup_45", price: "$9.99", videos: 45 },
+  { key: "topup_100", price: "$19.99", videos: 100 },
+] as const;
 export const planLevel = (key: string | null | undefined): Level | null => PLANS.find(p => p.key === key)?.level ?? null;
 /** The level a video is taught at: the chat's, capped to the plan's when a plan pays for it. */
 export const taughtLevel = (chat: Level, cap: Level | null): Level =>
