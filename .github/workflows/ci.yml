@@ -41,8 +41,8 @@ jobs:
       - run: supabase test db
       - run: npx vitest run
       - run: WB_LOCAL_DB=1 npx vitest run tests/billing tests/db tests/generation/localdb.test.ts
-      # The browser download hung for 10-30 min on GitHub several times (22 Oct 2026): keep the browsers between runs,
-      # give each try 4 minutes, and retry up to 3 times.
+      # The install hung for 10-30 min several times (22 Oct 2026): apt stalls on a slow Ubuntu mirror. apt gets its own
+      # timeout and retries; each try gets 4 minutes, and a stuck apt is killed before the next one (it holds the lock).
       - uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
@@ -50,9 +50,12 @@ jobs:
       - name: Install the e2e browsers
         timeout-minutes: 13
         run: |
+          printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\n' | sudo tee /etc/apt/apt.conf.d/99ci-net
           for i in 1 2 3; do
             timeout 240 npx playwright install --with-deps chromium webkit && exit 0
             echo "playwright install try $i failed or hung; retrying"
+            sudo pkill -f apt-get || true
+            sudo dpkg --configure -a || true
           done
           exit 1
       - run: CI=1 npx playwright test
