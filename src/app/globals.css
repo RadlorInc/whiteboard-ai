@@ -564,7 +564,10 @@ li.now .tick { border-color: transparent; }
 .menu.profile > summary:focus:not(:focus-visible) { outline: none; }
 
 
-/* Video feedback (VideoFeedback.tsx): thumbs meet the 44 px touch size; the chosen one is marked. */
-.feedback .answer-meta .btn.ghost.sm { min-width: 44px; min-height: 44px; justify-content: center; }
-.feedback .answer-meta .btn.ghost.sm[aria-pressed="true"] { color: var(--accent); background: var(--surface-2); }
-.feedback-why { margin-top: 4px; max-width: 520px; }
+/* Video feedback (VideoFeedback.tsx): two thumbs inside a row of video actions, 44 px to tap; the chosen one is
+   marked. The thumbs-down form takes a line of its own under the row. */
+.feedback { display: inline-flex; gap: 4px; }
+.btn.thumb { min-width: 44px; min-height: 44px; padding: 0 10px; justify-content: center; }
+.answer-meta .btn.ghost.sm.thumb { min-height: 44px; }
+.btn.thumb[aria-pressed="true"] { color: var(--text); background: var(--surface-2); border-color: var(--border-strong); }
+.feedback-why { flex-basis: 100%; margin-top: 4px; max-width: 520px; color: var(--text); font-size: 1rem; }

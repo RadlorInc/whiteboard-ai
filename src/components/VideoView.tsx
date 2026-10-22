@@ -50,10 +50,10 @@ export function VideoView({ id, style, script, slug: initial, inExplore: initial
         <button className="btn danger" type="button" disabled={busy} onClick={() => {
           if (window.confirm("Delete this video? This can't be undone. Used videos aren't given back.")) start(() => deleteVideo(id));
         }}><Icon name="trash" size={16} /> Delete</button>
+        <VideoFeedback id={id} big />
       </div>
       {url && <p className="muted share-url">{url}</p>}
       {note && <p role="status" className="muted small">{note}</p>}
-      <VideoFeedback id={id} />
     </section>
   );
 }

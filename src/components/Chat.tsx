@@ -33,11 +33,11 @@ function PastTurn({ t, subject }: { t: Turn; subject: Subject }) {
                   <BoardPreview style={t.style} subject={subject} script={t.script} label="" />
                   <span className="poster-play"><Icon name="play" size={22} /></span>
                 </button>}
-            <p className="answer-meta">
+            <div className="answer-meta">
               <ShareButton id={t.id} title={t.question} />
               <Link href={`/videos/${t.id}`} className="btn ghost sm"><Icon name="external" size={16} /> Open</Link>
-            </p>
-            <VideoFeedback id={t.id} />
+              <VideoFeedback id={t.id} />
+            </div>
           </>}
     </section>
   );

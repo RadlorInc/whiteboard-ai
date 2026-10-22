@@ -2,6 +2,8 @@
 // Feedback on one of your own videos (founder, 22 Oct 2026: collect it for every video). A thumb saves at once, so a
 // single tap is enough; a thumbs-down then asks why, optionally. One row per video (submit_feedback upserts), read
 // back on load so the choice shows again. The table, the function and its checks have existed since §11.10.
+// It sits inside a row of video actions, beside Share and Open (founder, 22 Oct 2026): the thumbs are two more
+// buttons in that row, and the thumbs-down form wraps onto a line of its own below it.
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "./Toast";
@@ -16,7 +18,7 @@ const REASONS = [
 ] as const;
 type Reason = (typeof REASONS)[number][0];
 
-export function VideoFeedback({ id }: { id: string }) {
+export function VideoFeedback({ id, big = false }: { id: string; big?: boolean }) {
   const [rating, setRating] = useState<1 | -1 | null>(null);
   const [reasons, setReasons] = useState<Reason[]>([]);
   const [note, setNote] = useState("");
@@ -57,15 +59,15 @@ export function VideoFeedback({ id }: { id: string }) {
     if (await save(-1, reasons, note)) { setOpen(false); toast("Thanks. We'll look at this video."); }
   }
 
+  const cls = `btn ${big ? "secondary" : "ghost sm"} thumb`;
   return (
-    <div className="feedback">
-      <div className="answer-meta">
-        <span>Was this video helpful?</span>
-        <button type="button" className="btn ghost sm" aria-pressed={rating === 1} aria-label="Yes, helpful" disabled={busy}
+    <>
+      <span className="feedback" role="group" aria-label="Was this video helpful?">
+        <button type="button" className={cls} aria-pressed={rating === 1} aria-label="Helpful" title="Helpful" disabled={busy}
           onClick={() => thumb(1)}><Icon name="thumbUp" size={16} /></button>
-        <button type="button" className="btn ghost sm" aria-pressed={rating === -1} aria-label="No, not helpful" disabled={busy}
+        <button type="button" className={cls} aria-pressed={rating === -1} aria-label="Not helpful" title="Not helpful" disabled={busy}
           onClick={() => thumb(-1)}><Icon name="thumbDown" size={16} /></button>
-      </div>
+      </span>
       {open && (
         <form className="feedback-why stack" onSubmit={(e) => { e.preventDefault(); send(); }}>
           <p className="muted small">What went wrong? (optional)</p>
@@ -89,6 +91,6 @@ export function VideoFeedback({ id }: { id: string }) {
           </div>
         </form>
       )}
-    </div>
+    </>
   );
 }
