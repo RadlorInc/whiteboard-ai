@@ -3,7 +3,7 @@
 --    migration ran): everyone, old users too, starts with a fresh 20. Failed videos never use one, as before.
 --  * Each user has a friend link (/?friend=<profiles.friend_code>). A new account made through it is stored in
 --    friend_referrals; once that friend has made a video, the inviter gets 10 more free videos, for at most 2 friends
---    (so 20 + 2 x 10 = 40 free at most). No self-invite, one inviter per account, only brand-new accounts with no video.
+--    (so 20 + 2 x 10 = 40 free at most). No self-invite, one inviter per account (founder: no other limit).
 --  * Market-rep links (/?ref=, lib/radlorOps.ts) are separate and unchanged.
 -- Security change: new table friend_referrals (RLS on, service_role SELECT only), new SECURITY DEFINER functions
 -- free_videos and add_friend_referral (service_role), and redefines reserve_generation and admin_set_settings.
@@ -39,7 +39,7 @@ language sql stable security definer set search_path = '' as $$
 revoke all on function public.free_videos(uuid) from public, anon, authenticated;
 grant execute on function public.free_videos(uuid) to service_role;
 
--- Sign-up through a friend link (lib/signup.ts). Only a brand-new account with no video yet, never the inviter's own.
+-- Sign-up through a friend link (lib/signup.ts). Never the inviter's own account; one inviter per account.
 create function public.add_friend_referral(p_friend uuid, p_code text) returns boolean
 language plpgsql security definer set search_path = '' as $$
 begin
@@ -47,8 +47,6 @@ begin
   insert into public.friend_referrals (friend, referrer)
   select p_friend, p.id from public.profiles p
    where p.friend_code = p_code and p.id <> p_friend and p.deleted_at is null
-     and exists (select 1 from public.profiles n where n.id = p_friend and n.created_at > now() - interval '1 day')
-     and not exists (select 1 from public.generations g where g.user_id = p_friend)
   on conflict (friend) do nothing;
   return found;
 end $$;

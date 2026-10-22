@@ -5,7 +5,7 @@
 begin;
 set local search_path = public, extensions;
 \ir helpers.psql
-select plan(31);
+select plan(30);
 
 update public.ops_settings set free_videos = 2, slow_1_after = 1000, slow_2_after = 1000 where id;
 select pg_temp.new_user('free1') as u \gset
@@ -64,7 +64,6 @@ select pg_temp.new_user('fr2') as f2 \gset
 select pg_temp.new_user('fr3') as f3 \gset
 select is(pg_temp.refer(:'i', :'code'), 'false', 'no self-invite');
 select is(pg_temp.refer(:'f1', 'nope'), 'false', 'a bad code is ignored');
-select is(pg_temp.refer(:'u', :'code'), 'false', 'an account that already made a video cannot be invited');
 select is(pg_temp.refer(:'f1', :'code'), 'true', 'a new account through a friend link is kept');
 select is(pg_temp.refer(:'f1', (select friend_code from public.profiles where id = :'c')), 'false', '... once: one inviter per account');
 select is(pg_temp.fv(:'i'), '5:0:0', 'the friend has made no video yet: no bonus');

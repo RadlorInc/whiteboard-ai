@@ -75,7 +75,7 @@ export async function finishSignIn(next: string): Promise<string> {
 
 
 /** A new account that arrived through a friend's link: the inviter gets 10 free videos once this account makes a video
- * (add_friend_referral refuses self-invites, a second inviter and accounts that already made one). */
+ * (add_friend_referral refuses self-invites and a second inviter). */
 async function keepFriend(userId: string) {
   const jar = await cookies();
   const code = jar.get(FRIEND_COOKIE)?.value;

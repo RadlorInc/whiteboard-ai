@@ -14,7 +14,7 @@
 - Migration `20261022000100_free_20_friends.sql`: `free_videos_monthly` → `free_videos` (20), table
   `friend_referrals`, functions `free_videos()` and `add_friend_referral()`. 10 and 2 are constants in `free_videos()`
   and `FRIEND_BONUS`/`FRIENDS_MAX` in `lib/videos.ts`: change both together.
-- Limits: no self-invite, one inviter per account, only a brand-new account (made in the last day, no video yet).
+- Limits (founder: keep it light): no self-invite, one inviter per account, bonus for 2 friends at most.
   Rep links (`?ref=`, `lib/radlorOps.ts`) are separate and unchanged; both can apply to one sign-up.
 - To ship: merge the PR, run migrate-prod (founder's OK), then the code deploys. Terms text changed but
   `current_terms_version` was NOT bumped (would make everyone re-accept): founder/attorney to decide.
