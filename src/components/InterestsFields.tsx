@@ -33,7 +33,7 @@ export function InterestsFields({ initial = [], level: initialLevel = "school", 
       </fieldset>
       {picked.some(isStudy) ? (
         <label className="field">
-          <span>Level for biology, physics and chemistry</span>
+          <span>Explanation level for biology, physics and chemistry</span>
           <select name="level" value={level} onChange={(e) => setLevel(e.target.value as Level)}>
             {LEVELS.map((l) => <option key={l} value={l}>{LEVEL_NAME[l]}</option>)}
           </select>

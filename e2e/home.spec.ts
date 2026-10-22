@@ -5,5 +5,5 @@ test("the home page renders the product name", async ({ page }) => {
   const response = await page.goto("/");
   expect(response?.status()).toBe(200);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ask anything. Watch it drawn.");
-  await expect(page).toHaveTitle("askRadlor");
+  await expect(page).toHaveTitle("Ask Radlor");
 });

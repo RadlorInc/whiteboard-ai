@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { data } = /^[A-Za-z0-9_-]{22}$/.test(slug) ? await (await createClient()).rpc("explore_series", { p_slug: slug }) : { data: null };
   const v = (data ?? []).find((r: { slug: string }) => r.slug === slug) as { question: string } | undefined;
   const title = v?.question ?? "Shared video";
-  const description = "A short lesson, drawn and explained step by step. Ask your own question on askRadlor.";
+  const description = "A short lesson, drawn and explained step by step. Ask your own question on Ask Radlor.";
   return { title, description, robots: { index: false, follow: false },
     openGraph: { title, description, type: "video.other", images: ["/icon.png"] }, twitter: { card: "summary", title, description } };
 }
