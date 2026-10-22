@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type Subject = "biology" | "physics" | "chemistry" | "home" | "car";
-export const SUBJECT_NAME: Record<Subject, string> = { biology: "Biology", physics: "Physics", chemistry: "Chemistry", home: "Home fixes", car: "Car fixes" };
+export const SUBJECT_NAME: Record<Subject, string> = { biology: "Biology", physics: "Physics", chemistry: "Chemistry", home: "Home improvements", car: "Auto repairs" };
 // The picker's groups (founder, 20 Oct 2026): school subjects, then Everyday fixes with its own Home and Car libraries.
 export const SUBJECT_GROUPS: [string, Subject[]][] = [["Study", ["biology", "physics", "chemistry"]], ["Everyday fixes", ["home", "car"]]];
 export type ChatRow = { id: string; subject: Subject; title: string };
