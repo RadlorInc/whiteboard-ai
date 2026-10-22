@@ -42,7 +42,9 @@ export default async function Shared({ params }: { params: Promise<{ slug: strin
   const subject = items[0].subject ? SUBJECT_NAME[items[0].subject as Subject] : null;
   const start = Math.max(0, items.findIndex((v) => v.slug === slug));
   const gated = !account && items.length > 1;
-  const shown = gated ? [items[start]] : items;
+  // Signed out (founder, 23 Oct 2026): the first half of the video plays, then a sign-up popup. Only that half's steps
+  // leave the server.
+  const shown = gated || !account ? [halfOf(items[start])] : items;
   const locked = gated ? items.filter((_, i) => i !== start).map((v) => v.question) : [];
   return (
     <main className="page stack">
@@ -52,7 +54,7 @@ export default async function Shared({ params }: { params: Promise<{ slug: strin
         <SaveButton slug={items[0].slug} saved={saved.includes(items[0].slug)} signedIn={!!account} label className="sm" />
         <p className="page-sub small">{[subject, items.length > 1 ? `${items.length} videos` : null, `Made with ${PRODUCT_NAME}`].filter(Boolean).join(" · ")}</p>
       </div>
-      <SeriesView items={shown} start={gated ? 0 : start} />
+      <SeriesView items={shown} start={account ? start : 0} signUpAfter={account ? undefined : `/v/${slug}`} />
       {gated && <SeriesGate questions={locked} next={`/v/${slug}`} />}
       <div className="card row" style={{ justifyContent: "space-between" }}>
         <p className="muted small">Ask any question and watch it drawn.</p>
@@ -70,4 +72,10 @@ export default async function Shared({ params }: { params: Promise<{ slug: strin
       )}
     </main>
   );
+}
+
+function halfOf<T extends SeriesItem>(v: T): T {
+  const steps = (v.script as { steps?: unknown[] }).steps;
+  if (!Array.isArray(steps) || steps.length < 2) return v;
+  return { ...v, script: { ...v.script, steps: steps.slice(0, Math.ceil(steps.length / 2)) } };
 }
