@@ -1,289 +1,119 @@
 # Handoff: askRadlor (repo and Vercel project still named whiteboard-ai)
 
 **Current state and open items only. Under 15 KB.** Delete an item when it is done. The spec is
-`../app-plan/PLAN.md` (build order §3); how to run things is in `README.md`.
+`../app-plan/PLAN.md` (build order §3); how to run things is in `README.md`; the business plan is `../STRATEGY.md`.
 
-**Before going live: [LAUNCH.md](LAUNCH.md)** — the checklist of what was left for launch (migration + merge order, keep-warm, Stripe, legal).
+**Before and after going live: [LAUNCH.md](LAUNCH.md)** (Stripe, legal, first-days checks, Greek fonts in Safari).
 
-## Production (12 Oct 2026, end of day)
+## Production (beta live; last deploy #36, 22 Oct 2026)
 
-- **Live** on Vercel (project `whiteboard-ai`, Production env only) against its own Supabase project. The project ref
-  is NOT in this public repo: it is the `PROD_PROJECT_REF` variable on the GitHub `production-db` environment.
-- Migrations reach production only through `.github/workflows/migrate-prod.yml` (manual dispatch, typed confirmation,
-  `production-db` approval). It runs **from `main` only** (environment branch rule), so land a migration on `main`
-  before the code that needs it (as #21 did on 19 Oct). Never seeds. Never link the CLI locally.
-- Auth settings live in the Supabase dashboard (config.toml is local only): Site URL, redirect `/auth/callback`,
-  code templates (**both** Magic Link and Confirm signup = `supabase/templates/*.html`; 13 Oct production's Magic Link
-  still had the default link, so returning users on a new device got a link), OTP expiry 600, **Email OTP Length must equal NEXT_PUBLIC_OTP_LENGTH (6)** — hosted defaults to 8.
-- Production env names (values in Vercel): NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, APP_URL,
-  SUPABASE_SERVICE_ROLE_KEY, CRON_SECRET, AGE_COOKIE_KEY, RATE_LIMIT_HMAC_KEY, ANTHROPIC_API_KEY.
-- Bootstrapping an admin on a fresh project (the founder runs SQL in the dashboard; agents never query production):
-  `insert into public.invites (code, max_uses, note) values ('<CODE>', 1, 'founder bootstrap');` → sign up with it →
-  `insert into public.admins (user_id) select p.id from public.profiles p join auth.users u on u.id = p.id where
-  u.email = '<email>' and p.deleted_at is null returning user_id;` (expect 1 row) → /admin enrols an authenticator.
-- The repo is public while we build; it goes private at launch. Not yet: Stripe keys (checkout answers 503),
-  keep-warm cron, Turnstile.
+- Vercel project `whiteboard-ai` (Production env only) against its own Supabase project. The project ref is NOT in
+  this public repo: it is `PROD_PROJECT_REF` on the GitHub `production-db` environment. Agents never query or write
+  production: the founder pastes SQL into the dashboard (`sql/`, `../sql/usage-per-video.sql`).
+- Migrations reach production only through `.github/workflows/migrate-prod.yml` (manual dispatch, typed project
+  ref, `production-db` approval), **from `main` only**. Never seeds. Never link the CLI locally.
+- Auth settings live in the Supabase dashboard: Site URL, redirect `/auth/callback`, code templates (Magic Link and
+  Confirm signup = `supabase/templates/*.html`), OTP expiry 600, **Email OTP Length 6** (= NEXT_PUBLIC_OTP_LENGTH).
+- Env names (values in Vercel): NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, APP_URL,
+  SUPABASE_SERVICE_ROLE_KEY, CRON_SECRET, AGE_COOKIE_KEY, RATE_LIMIT_HMAC_KEY, ANTHROPIC_API_KEY, KEEP_WARM,
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY. `APP_URL` = `https://www.askradlor.com` (apex 308s to www).
+- **Sign-up is open** (`ops_settings.signup_mode = open`; invite/closed still work from /admin). Turnstile on
+  (Cloudflare widget "askRadlor sign-in", `interaction-only`: most people see no box; Supabase captcha holds the
+  secret). Sign-up refuses `name+tag@` aliases and ~60 throwaway domains (`lib/email-check.ts`, browser and
+  `completeSignup`; #32). Not caught: Gmail dot variants (needs a stored normalised address).
+- **Keep-warm is live:** Vercel cron every 5 min, 200s in the logs (22 Oct). It warms only prompts used in the last
+  24 h, so the first video of a quiet subject pays a cold write (seen: transformer $0.22, benzene $0.18).
+- /admin (22 Oct): daily cap $50, videos at once 4, free videos 10 (**founder to set 40**), fair use 100/day 110/month.
+- A bad Anthropic key or empty balance fails videos as `provider_config` and pauses generation 10 min
+  (`provider_blocked_until`); 2 such failures on 22 Oct when the balance was ~$3.86.
+- Daily check: scheduled task `askradlor-daily-check` (09:03 local, Chrome, read-only) summarises /admin, Anthropic
+  limits and credits, and keep-warm.
 
-## Built and checked (12 Oct; details in git history and PLAN.md)
+## Anthropic capacity (org "Radlor", renamed from "Mohammed's Individual Org", 22 Oct)
 
-- M0–M7 core, `/admin` (TOTP), legal beta drafts, e2e and a probed security review. The player runs in
-  `<iframe sandbox="allow-scripts">`; the Claude desktop browser pane does not run sandboxed iframes, so test players
-  in Chrome or Playwright.
-- Tests: `npm run test:pgtap` (resets the DB first), `npx vitest run`, `npx playwright test` (mock model; e2e is
-  judged in CI).
+- **Evaluation tier:** Opus 5.5 80K output tokens/min, 500K input, 1K requests. One video ≈ 8K output/min →
+  safe `max_open_generations` = 0.7 × OTPM / 8,000 = **7**. More at once → 429s mid-video.
+- Higher tiers: Start 400K (35 at once, $500/month cap), Build 1M (80, $1,000), Scale 2M (150). The Console's
+  "Request tier increase" appears only after peak use passes 50% of the tier; the Contact Sales form (custom limits:
+  asked ~2M OTPM, ~$5,000/month) was filled 22 Oct, reply unknown. Turn on credit auto-reload.
+- To serve 100 at once: Scale tier, then `max_open_generations` ~120 and daily cap ~$200. Vercel and Supabase DB are
+  not the limit; Resend free (100 emails/day) and Supabase Auth emails/hour are, for sign-up codes.
 
-## Voice: Pocket TTS in the browser (live since 13 Oct 2026, #5, #7)
+## Plans and free videos
 
-- Pocket TTS (Kyutai) on the CPU via `public/tts/pocket-worker.js`; first visit ~166 MB, files pinned and SHA-checked
-  (`public/tts/pocket-files.mjs`), kept in OPFS / Cache Storage. 6 of 8 voices: the two CC BY-NC ones are left out
-  (`tests/voice/pocket-files.test.ts` guards it). **Security change:** `/tts/*` CSP has `'unsafe-eval'` (tokenizer).
-- Not yet: the first iPhone run of the app, iOS's 7-day storage eviction, a second download source (R2), the
-  attorney's look at the CC BY credits.
+- **Plans are off** (`PLANS_ON = false` in `product.ts`, #32): no plan, price or buy button anywhere; `/pricing`,
+  `/buy`, `/start` redirect to `/ask`. Free count comes from /admin (`free_videos_monthly`). The plan machinery from
+  #27 (price_catalog per level, `reserve_generation` free → plan, Stripe prices) is intact for when they return;
+  legal text still talks about plans/credits.
+- Founder's numbers (22 Oct, chat only, not in code): high school Plus $9.99 = 70 videos, Pro $19.99 = 150; free
+  videos are a separate marketing budget. Stripe 5.1% + $0.30 assumed.
+- **Measured cost (prod):** high school $0.08 warm. College + grad, 10 videos 22 Oct: avg $0.115 (college $0.127,
+  grad $0.103; warm-only $0.093). **New prompt (#36), one medicine video:** $0.255 = $0.124 one-off cache write +
+  ~$0.131 per video vs $0.082 before (3 calls not 2, output +46%, 521 vs 384 chars). One sample: run the "average
+  cost per prompt" SQL after a day; at $0.13 a $9.99/70 plan barely breaks even.
+- **Known drift:** `credit_drift()` reports 38 accounts: one user's 38 videos imported on 13 Oct with
+  credits_charged and no ledger rows. Founder to decide: leave, or zero their charge by a migration.
 
-## Explore and reports (live since 13 Oct 2026, #1)
+## Subjects, levels and prompts
 
-- `/explore` is public (noindex); every new video goes there (no tick since #12), the maker removes it on the video
-  page. An item is a share with `explore_at`; DEFINER `set_explore` and the Explore readers never expose owner ids.
-  **Report this video** on every /v page (5 a day per visitor, IP HMAC); /admin resolves reports (audited).
-- Legal drafts describe Explore, reports and the voice; **the terms version was not bumped** (`/legal/accept` is not
-  built), the attorney review and the bump go together.
-- **Before production:** the attorney review; no question screening yet (decline policy), so reports + the admin
-  form are the only brake.
+- Picker: Study (Biology, Physics, Chemistry) and Everyday fixes (Home, Car). A study chat also picks High school /
+  College / Grad school (locked once started). **The level changes what is taught, never the length** (900 chars,
+  4-7 steps); `LEVEL_TEXT` in the user turn keeps the cached prompts unchanged. Founder: no splitting a lesson into
+  smaller parts to save cost.
+- `build-prompts.mjs` → `prompts.json`: plain prompt (`332e6d…`, the prototype's, outside a chat) + one per subject
+  = rules + `teach` + `REUSE` (`lab=0`) + `TEACHER` (`@word` cues, `mark`) + **`SHOW_AND_FINISH`** (#36: draw every
+  concrete thing the voice names, find_drawing first; a journey/process lesson ends on how it ends) + `DRAW_OWN`.
+  Subject shas bound in `prompts.test.ts` (biology `5589b3d9…`). Each prompt is its own cache entry.
+- Live check of #36 (22 Oct, medicine, high school): stomach, liver, kidney drawn as realistic drawings; ends
+  "Kidneys remove". Slips: the stomach drawing shows two stomachs; an arrow crossed the "blood" label.
+- Beta feedback becomes general rules, never one video's fix: watch /admin → Video feedback weekly; a complaint
+  seen 3+ times becomes a prompt rule, tried on ~10 questions old vs new (quality and cost) before merging.
 
-## Invite credits (13 Oct 2026)
+## Drawing library (`public/player/lib`, the only copy; notes in `scripts/library/README.md`)
 
-- First access by an invite code gives +100 top-up credits once (`redeem_invite` writes one `invite_grant`); not
-  retroactive; invite credits do not count as "ever paid". Flaky, not new: WebKit e2e `signed-out pages …` under the
-  full suite.
-- **Not built yet:** emails beyond sign-in codes (digest, alerts, outbox), the decline policy + red-team run, OG
-  images, parent email for 13–17 payers, Turnstile, `/api/telemetry`, `/legal/accept` re-acceptance.
-- Admin "missing drawings" locally lists primitives from mock runs (production: none); check the miss counter.
-- The founder decides the first commit; accounts to create are PLAN.md §2 E1–E18.
+- Recipes (`lib/wb/<cat>.js` + `.txt`; ~900; `WB_CATS` shared, `WB_EXTRA` per subject via `?subject=`), `objects`
+  loaded by every subject. Realistic drawings (`lib/sv/<id>.js`, ~3,790, found via `find_drawing`, `sv id=<name>`;
+  organs: brain, heart, lungs, kidney, liver, muscle, stomach). Licences: no SA, no NC; credits on /legal/copyright
+  (**add the 6 Wikimedia CC0 car/home files**). `heartcut` + 69 drawings have named parts for `pin`.
+- Coverage: `scripts/coverage/check.mjs` → `report.md`; a test requires zero gaps.
+- Model-made drawings (`new_<name>_*`) become /admin candidates; waiting: `xfmr` (transformer, 22 Oct).
 
-## UI round, rename and /ask cleanup (live since 15 Oct 2026, #10, #12, #13)
+## Player, voice, UI
 
-- Public name **askRadlor** (`PRODUCT_NAME`, `src/product.ts`; logo `public/logo.png`); repo and Vercel project are
-  still `whiteboard-ai`. /ask is whiteboard only (old paper/match-cut videos still replay; Paper streaming PR #11 was
-  closed). Step controls (`seek`, `FAST`), the making cover with the stream's real stages.
-- **To fix:** `src/content/legal.ts` still says "Show in Explore" can be unticked when asking; the tick is gone
-  (#12). Fix the Privacy/Terms wording with the attorney review.
-- Local stack: `admin.spec.ts` fails past 50 users (first `listUsers` page); `tests/db` needs `supabase db reset`.
+- Player in `<iframe sandbox="allow-scripts">`; test in Chrome or Playwright (the desktop browser pane can't).
+  **Safari (#35):** the hand-drawn filters (`#rough`, `#wc`) now cover each shape's box + 20% (a fixed 6000-unit
+  region passed WebKit's ~4096² px filter limit and full-size drawings vanished); straight lines lose the filter in
+  `build()`; finished text has no clip-path (Safari cut H₂O to H₂C). `e2e/player-safari.spec.ts` guards it.
+  7 real boards: WebKit now within 0.2–1.8% of Chrome; the rest is Greek-letter fallback fonts (LAUNCH.md).
+- Teacher at the board: `@word` cues (`bridge.js` `untilWord`), `mark` chalk; subject prompts only.
+- Voice: Pocket TTS on the device (~166 MB first visit + 40 MB voices); `/tts/*` CSP has `'unsafe-eval'`.
+- UI: always dark; new chat "What would you like to know?" / "askRadlor draws and explains the answer, step by
+  step." / "Go ahead and ask your question…" (#32). **Video feedback (#34):** 👍 👎 beside Share/Open (and on
+  `/videos/[id]` after Delete), thumbs-down asks reasons + note (`submit_feedback`, one row per video); /admin →
+  Video feedback (7 days, latest 20 thumbs-down with a watch link). /admin drawing preview fixed (#33).
+- Explore is public (noindex); every new production video goes there (previews never do).
 
-## Local demo
+## Dutch (founder, 21 Oct: Netherlands first) — branch `dutch-launch`, not merged
 
-- `GENERATION_MOCK=1 npm run dev` (no API spend; credits are the local seed users'). Sign in as `b@example.test`
-  with the code from Mailpit (`127.0.0.1:55324`). Use Chrome.
-- Parked: local branch `paper-stream` (paper plays as it streams; e2e watched red). On the local stack,
-  `admin.spec.ts` fails past 50 users (it reads only the first `listUsers` page), and `tests/db` needs a fresh
-  `supabase db reset`.
+- In review on its preview URL. UI strings in `src/content/nl/*.ts` keyed by the English text: **merge `main`
+  into it and translate the new strings** (#32 new-chat lines and email error, #34 feedback, #35 nothing).
+  Videos speak Dutch via `LANG_TEXT`; Piper voice (espeak-ng is GPL-3.0). Vercel Authentication is OFF on previews
+  (turn on after the review). Not done: iDEAL, Dutch auth emails, GDPR consent age 16 vs 13+.
 
-## Audience: 18+ majors (founder, 19 Oct 2026)
+## Open items
 
-- The app is for the **18+ category**: undergraduate and postgraduate biology and physics majors, not only school
-  students. Build the library, prompts and examples from their view (university depth), still correct for a school
-  question.
-- Open: the biology prompt's "Keep the facts correct at school level" (build-prompts.mjs) and the school-only
-  library (phys, life, biology recipes) need a university layer: e.g. interference/diffraction, Maxwell, quantum,
-  relativity, solid state, thermodynamics cycles; molecular and cell biology, physiology, immunology, genetics.
-- Sources dropped as "no school topics" are worth a second look: NIH BioArt (~96% public domain, SVG) and Reactome
-  icons (CC BY 4.0, SVG: cell types, tissues, proteins, receptors). PNG tracing was tried and is not worth it in bulk
-  (engravings trace to 240-850 KB; colour plates turn to blobs).
+- Set free videos 40 and videos-at-once 7 in /admin; Anthropic auto-reload + tier increase (above).
+- Cost of #36 over a day of real videos; decide plans/free budget from it.
+- Legal: attorney review (Explore, reports, voice, credits); terms version bump with `/legal/accept` (not built);
+  legal text still describes plans; no question screening yet.
+- Not built: emails beyond sign-in codes, OG images, `/api/telemetry`, Gmail-dot farm check, a second voice source.
+- To check: first iPhone runs (Safari fix live since #35), Greek fonts in Safari, model layout overlaps.
 
-## Off-library drawing fixes (19 Oct 2026, not committed yet)
+## Local
 
-- Real-model test on three topics the library lacks (tardigrade, Stirling engine, C60): biology was fine, the
-  physics device came out as loose boxes and the C60 cage with bent rings, words sat on a recipe's formula, and
-  e⁻ / C₆₀ lost their marks (the hand font has no super/subscript glyphs).
-- **Fixes:** `DRAW_OWN` is per subject in build-prompts.mjs (biology: organism layers + cells; physics: textbook
-  cutaway with joined moving parts and computed geometry; chemistry: fixed bond length, regular rings, CPK colours,
-  projected 3D with dashed back edges, curly arrows) plus a shared "keep words in free space" rule. Player:
-  `richText` in recipes.js turns Unicode super/subscripts, `_x`/`_{..}` and `^x`/`^{..}` into raised/lowered tspans
-  for script text, tags and every recipe label; `unclutter()` in index.html moves a script text or tag that sits on
-  other words up or down to the nearest free place (drawings never move; old videos get it too).
-- After: physics drew a proper alpha Stirling engine (flywheel, cranks, regenerator, leader lines), chemistry a
-  projected truncated icosahedron. Then: `unclutter` also fixes a word running across a library drawing's edge (a
-  title shrinks first, others move then shrink; a word wholly inside a drawing stays), and a lone superscript sign
-  (e⁻, Cl⁻) is drawn at 90% bold instead of 66%. Not handled: words over the model's own primitive shapes.
-- **Smoke test before merge (6 real videos on the new recipes, $0.32):** 5 picked the new recipes (krebs,
-  actionpotential + channelgating, doubleslit, sn2 + energyprofile, titration + burette); the Feynman one drew its
-  own. Found an old player bug: a tag drawn but never filled showed an empty box (3 of 6 videos); now a tag's words
-  show when its box is drawn. A tag may no longer sit on a library drawing (unclutter). Left: a model title or note
-  over a recipe's own heading where no free spot exists. **Fixed (20 Oct):** unclutter now scores nearby spots
-  (up/down, left/right for text) and sizes (a title shrinks most readily) and takes the least overlap even when no
-  spot is wholly free; crossing a library drawing counts in full; a word from outside is never pushed into a
-  drawing; it runs again once the hand font has loaded. Checked on 10 saved boards.
-  Cost of the 6 test videos ~$2. Shas: biology `d15eff…`, physics `0aa6e0…`, chemistry `cc7eeb…`.
-
-## Graduate (master's) layer, all three subjects (19 Oct 2026, not committed yet)
-
-- Checklist now 283 topics (HS, AP, UG, GR); `scripts/coverage/check.mjs` matches keys as whole id words (a loose
-  substring match had counted "bell" emoji as the Bell test). Coverage: biology 101/101, physics 102/102, chemistry
-  80/80; the test now requires 0 gaps.
-- New recipe files (subject-only, `WB_EXTRA`, listed in their prompts): `biogr` 27 (aminoacid, foldfunnel,
-  ramachandran, cryoem, alignment, phylotree, genenetwork, mapk, wnt, rtk, cyclins, methylation, splicing, rnai,
-  ngsflow, flowcytometry, vdj, nernst, channelgating, ltp, morphogen, allosteric, metabolicmap, geneticdrift,
-  lotkavolterra, quorum, qpcrcurve), `physgr` 26 (doublependulum … bindingenergy), `chemgr` 27 (pointgroup …
-  raoult). Molecules: 154 (added cisplatin, EDTA, 18-crown-6, porphine, heme b, 4 steroids, reagents/solvents,
-  Grignard, GABA, histamine, norepinephrine, adenosine, NAD+).
-- Prompt shas: biology `791092…`, physics `d30fb7…`, chemistry `93c1be…`. Subject prompts are 24-31k chars.
-- **Cost to watch:** today's recipe files add 464 KB (145 KB gzipped) to every player load, since wb-load.js loads
-  every category for every lesson. Loading subject-only categories per subject would remove it.
-- **Not done:** no real-model video with these; not reviewed by teachers.
-
-## US coverage pass: biology, physics, chemistry (19 Oct 2026, not committed yet)
-
-- **US market first** (founder): checklist `scripts/coverage/topics.json` (196 topics, NGSS/AP/college/grad), checker
-  `node scripts/coverage/check.mjs` -> `scripts/coverage/report.md`; a test keeps each subject at <= 2 gaps.
-  Now biology 70/71, physics 75/75, chemistry 49/50 (left: generic amino-acid R-group structure, nuclear chemistry
-  diagrams not in the chemistry prompt).
-- **New recipes:** `biouni` (17: michaelis, lightreactions, calvin, glycolysis, krebs, atpsynthase, codon, operon,
-  pedigree, hardyweinberg, pcrcycle, speciation, popgrowth, actionpotential, o2curve, proteinlevels, elisa),
-  `physadv` (19: kepler … blackbody, incl. feynman, standardmodel, hrdiagram), `chemuni` (27: econfig … rateorder,
-  incl. modiagram, titration, nmr/ir/mass spectra, sn2). Subject-only (`WB_EXTRA`), listed in each subject prompt.
-  The hand fonts lack superscript glyphs: physadv/chemuni draw them raised by hand (`sup`, `lb`).
-- **Molecules:** `scripts/molecules/` (molecules.json SMILES -> render.py with RDKit -> build.mjs), 124 structures,
-  kit `Molecules`, subject chemistry (0.5 MB). Biology search now covers `servier-chem` too (molecules, lab gear).
-- Prompts: chemistry gained the depth rule and recipe list. Shas: biology `8f0863…`, physics `2bbbe6…`, chemistry
-  `054a31…`.
-- **Not done:** no real-model video with any of it; not reviewed by teachers.
-
-## Physics university layer (19 Oct 2026, not committed yet)
-
-- `lib/wb/physuni.*` (physics prompt only, `WB_EXTRA`), 25 recipes: doubleslit, diffraction (single/grating),
-  thinfilm, polarisation, michelson, emwave, gauss (sphere/cylinder), capacitorfield, maxwelleqs
-  (integral/differential), wellbox, tunnelling, energylevels (hydrogen), compton, orbitals (s/p/d), sterngerlach,
-  wavepacket, lightclock, spacetime, contraction, pvcycle (carnot/otto/diesel; Carnot adiabat drawn steeper, as
-  textbooks do), heatengine (engine/fridge), speeddist, bands, crystal (sc/bcc/fcc), pnjunction (bias).
-- Physics prompt: depth matches the asker (school or university), lists the university recipes. Sha `ace863…`.
-- **Not done:** no real-model university physics video; not reviewed by a physics teacher.
-
-## Biology university layer (19 Oct 2026, not committed yet)
-
-- **Reactome Icon Library** (CC BY 4.0), `scripts/reactome/build.mjs`, kits `Reactome-*`: 754 drawings (cell types,
-  organelles, tissues, receptors, transporters, shaped proteins; 3.7 MB). Left out: compounds (hexagon tokens), ~1,200
-  capsule-shaped proteins, 37 MT-* gene glyphs, arrows, backgrounds, drugs. Designers in `credits.json`.
-- **NIH BioArt Source** (public domain only), `scripts/nih-bioart/build.mjs`, kits `NIHBioArt-*`: 633 drawings
-  (immune cells, parasites, viruses, proteins, lab gear, animals; 16.9 MB). No API: entry pages crawled for title,
-  licence, keywords and a `filemapping` of file ids; the most colourful colour version is used (first is often
-  beige); ns0: prefixes stripped; people, shapes/charts, one-colour blobs and house-rule words left out.
-- Both credited on /legal/copyright. 11 + 80 files over the cap were skipped.
-- **Prompt:** biology no longer says "school level": depth matches the asker (school or university), with
-  university search examples. Biology sha `db41d2…`.
-- **Search:** `findDrawing` glues a 1-2 letter word to the next ("B cell" -> "bcell"), so B/T cell queries work.
-- **Not done:** no real-model university video yet.
-
-## Physics library (19 Oct 2026, not committed yet)
-
-- **Size cap (founder, always):** every library drawing <= 150 KB (`MAX_BYTES` in `scripts/library/svg2sv.mjs`;
-  bigger ones are skipped and listed). Lesson JSON stores only the drawing's name, so the DB does not grow; the cost
-  is deploy size and phone download. Test `library size cap`: no drawing over it (the 235 older ones were shrunk by
-  the shrink session, 19 Oct; `lib/sv` is now 90 MB with the university layer).
-- **Sources:** no free Servier-like physics set exists (gwoptics optics = CC BY-NC, not for a paid app; Wikimedia
-  dropped earlier). So: 127 colour drawings from Fluent Emoji (MIT), `scripts/physics-emoji/build.mjs`, kit
-  `Physics-Fluent`, subject `physics`, search category `servier-phys` (0.2 MB, biggest 8 KB). Diagrams are recipes.
-- **New recipes `lib/wb/phys.*`** (physics prompt only, `WB_EXTRA`): seriespar, symbols, static, wirefield, induction,
-  refraction (slab/bent/tir/fibre), raydiagram (lens formula), curvedmirror, eyedefect, pinhole, shadow, periscope,
-  belljar, echo, wavecompare, collision, circular, moments, hooke, freefall, pressure, bimetal, penetration, halflife,
-  goldfoil, photoelectric, plug3 (uk/india colours), motiongraph. Physics prompt sha `c2a4ad…`.
-- **Not done:** no real-model physics video yet; drawings not reviewed by a teacher.
-
-## Biology library complete + model-made drawings (19 Oct 2026; live since 19 Oct, #20, #21)
-
-- **Merged and live, in order:** #21 (only `supabase/`: the four migrations below, so `migrate-prod` could run from
-  `main`; `production-db` deploys from `main` only), then #16 → #17 → #18 → #19 → #20. `migrate-prod` applied
-  `conversations`, `explore_chats`, `saved_items`, `library_drawings` (19 Oct 06:39 UTC). #4 and #8 (old 13 Oct
-  handoff drafts) closed. Production deploy `4c46131` checked: home, /explore, /legal/copyright, library files 200.
-- **Library sources** (all credited on /legal/copyright; one shared converter `scripts/library/svg2sv.mjs`: SVG →
-  `public/player/lib/sv/<id>.js` + `scripts/servier/sv-catalogue.json`; `build-sv.py` keeps the other sources):
-  - Bioicons 416 (CC0 / CC BY, no SA; no pig or dog), `scripts/bioicons/build.mjs`, clone the repo to rebuild.
-  - PhyloPic 73 silhouettes (CC0 / PD / CC BY), `scripts/phylopic/build.mjs` (fetches by scientific name).
-  - Fluent Emoji 201 colour drawings (MIT, Microsoft), `scripts/emoji/build.mjs`; MIT text at
-    `public/licenses/fluent-emoji-MIT.txt`.
-  - Tried and dropped: Wikimedia (founder: not useful; most school diagrams are CC BY-SA), Openclipart (search
-    broken), NIH BioArt (no school topics), PublicDomainVectors (bot check).
-- **Drawn, not dropped in:** sources without pen lines get thin Servier-like outlines (#333, 40 biggest parts);
-  the player gives a whole drawing a fixed pen budget (realistic ~1 s; was 50 ms a line, a crow took 56 s).
-- **New recipes:** `lib/wb/life.*` (biology only): nitrogen cycle, habitats, cactus, fungi, finch, peppered moth,
-  cladogram, homolog (homologous limbs), protists, moss/fern, dispersal, osmosis, diffusion, respiration,
-  fermentation, transpiration, energy pyramid, quadrat, genetic engineering, cloning, kingdoms. `world.js`: fox,
-  polar bear, deer, 4 invertebrates, 11 critters/life-cycle stages, and a `DETAIL` pass (shadow, highlight, iris,
-  ground shadow, own details) on every older animal; the detailed frog and grasshopper replaced the simple ones.
-- **Prompts:** biology lists `life` and `earth`; order of choice: recipe → colour (Fluent/Bioicons) → silhouette →
-  draw it yourself. All subject prompts gained `DRAW_OWN`: the 7-layer way to draw what the library lacks, with
-  parts named `new_<name>_<part>`. `find_drawing`: a drawing whose name is a query word ranks first.
-- **Model-made drawings** (`library_drawings`): after a video, `new_<name>_*` shapes are kept as a candidate (3 a
-  video, 3 waiting per name); /admin → *Drawings to review* previews each on the player; approve = `sv id=<slug>`
-  (data sent with the script, `bridge.js` checks it; 5-minute cache per server), audited `review_drawing`.
-- Demo clips (hand-written lessons, no API): `../reports/bio-demos/`.
-- **Not done:** no real-model video with the new library (check that it picks recipes/colour/silhouettes and that
-  `new_*` drawings arrive in /admin); the drawings are school-level, not yet reviewed by a teacher.
-
-## UI redesign + Explore + Collection (18 Oct 2026, #19; live since 19 Oct)
-
-- **Look (founder):** like Claude, always dark, monochrome + the glowing robot logo (`public/logo.png`, app icons
-  RGBA: an RGB favicon 500s every page). `globals.css` rewritten, no light theme. `Icon.tsx`, no emoji icons.
-- **Frame:** `src/app/(app)/layout.tsx` + `AppFrame.tsx`. Sidebar: New chat, Explore, Collection, Your videos,
-  subject chips, Recents (latest 10, "All chats"). **No chat search in any form** (founder: not a chat app).
-  Profile top right: avatar with a videos-left ring (green / amber / red, full at 25), menu with videos left.
-  Phones: top bar + drawer. Signed out: `PublicHeader` + footer. No `(app)/loading.tsx` (made `notFound()` a 200).
-- **Videos left, not credits** (`lib/videos.ts`: 4 credits a video, an estimate); Your videos show no credits.
-  Pricing/Help/legal copy still says credits. e2e reads balances from `data-credits` / `data-charged`.
-- **Chat:** composer with the subject picker inside; header with Share and Delete chat; Share per answer;
-  jump-to-latest; AI note at the bottom of a new chat.
-- **Player:** every step goes in at once and the Player makes the voice behind it from the current step; a jump
-  draws at once (only step 1 waits for its line), cancels the line in progress (worker `{cancel}`), its line joins
-  when made (~4–7 s). Controls: step segments, play/pause, keys, full screen. Embedded players: no frame, light
-  captions, no 100vh, `place-items: normal`.
-- **Explore** (migration `20261018000200_explore_chats.sql`): one card per chat with a board still (player
-  `poster`), search over questions + narration, subject chips; the server puts each finished video on Explore.
-  `/v/[slug]` plays the chat in order + "More like this". Signed out: only the opened video plays, the rest is
-  blurred behind sign-up (scripts not sent); sign up / log in return there (`next` + `okNext`).
-- **Collection** (migration `20261018000300_saved_items.sql`): bookmark on cards and lessons, `/saved`.
-- Locally, 20_writes and 60_deletion fail a few fixture checks (seed users hold dev data; fresh CI is the judge).
-  **e2e only runs in CI**: locally Playwright would reuse the dev server on the live model.
-- **Open:** the founder's look at the whole UI on a phone.
-
-## Subjects: own prompt + library per chat subject (18 Oct 2026, #17; live since 19 Oct)
-
-- `build-prompts.mjs` → `prompts.json` `subjects.*` = `{system, sha256, cats}`. The rules and examples are the plain
-  prompt's; the categories are only the subject's (+ `diagrams`), plus a "- Teaching <subject>:" rule.
-  - The plain prompt is unchanged (`332e6d…`) and is used outside a chat.
-  - The subject shas are bound in `prompts.test.ts`.
-- The chat's subject picks the `prompt_sha` (`promptSha(style, subject)`), `prefix(style, subject)` and the
-  `find_drawing` categories.
-- Keep-warm covers 6 prompts (`PROMPTS`). No migration: `prompt_cache_state` is keyed by `prompt_sha`.
-- A subject prompt is ~10k tokens: a cold write ~$0.08 (est.); all three warm ~$0.17/day.
-- Biology library `lib/wb/biology.*` (`WB_EXTRA` in `wb-load.js`; only the biology prompt lists it): 9 labelled,
-  polished drawings (`lab=0` hides words).
-- Proof: biology-chat tests in `run.test.ts` and `localdb.test.ts`.
-- **Next:** physics, then chemistry, the way biology was done (19 Oct section).
-
-## 18 Oct 2026 session: chats, realistic biology, follow-up cost (#16, #18; live since 19 Oct)
-
-- **#16 Chats:** `conversations` (owner + subject; title = first question). /ask = new chat with a Biology / Physics /
-  Chemistry picker; /c/[id] reopens; list left on laptops, /chats on phones; a new question scrolls into view.
-  A follow-up's model call gets the subject + last 6 answered questions with their narration (no drawings), one text
-  block per turn, the last a 1-hour cache breakpoint (run.ts), so earlier turns are read at the cache price.
-- **#18 Realistic library (Servier Medical Art, CC BY 4.0, credited on /legal/copyright):**
-  - `scripts/servier/`: `pptx2svg.py` turns a kit's native vector slides into SVG (no tracing); `extract.py`,
-    `curate.py` (drops diseases, treatments, copies), `build-sv.py` → 1,428 drawings, one file each in
-    `public/player/lib/sv/<id>.js` (68 MB, loaded only when a lesson uses them: `SV.need` in anatomy.js/bridge.js).
-    The 32 downloaded kits live outside the repo (scratch); re-download from smart.servier.com to rebuild.
-  - Biology/chemistry prompts list them as search-only categories (`servier`, `servier-chem`); `sv id=<name> cx cy h`
-    draws one; checks reject unknown ids.
-  - **Pins:** `heartcut` (the hand-mapped heart) + 69 core drawings (`scripts/servier/core.json`) have named parts
-    (`parts/<id>.json` → `apply-parts.mjs`; review with `grid.mjs`, `preview-parts.mjs`). `pin of=<el> part=<name>`
-    traces the part (inside the drawing, so it beats with it) and writes its name with a haloed leader. `trace:false`
-    marks a label-only part.
-  - **Flows over a drawing** (founder chose B + C of a 4-style demo): an arrow/line over an anatomy drawing gets a
-    white edge and a running shimmer; that step dims the drawing (spotlight); older flows fade. Player-only, so old
-    videos get it too. Prompt: no tags/text over the drawing, one flow per step, pins for parts.
-- **Cost by prompt version:** `npm run cost` (local) or `sql/cost-by-version.sql`.
-- 13 test videos (heart follow-ups and more), all correct: $1.07; warm ≈ $0.05 a video, a hand-drawn diagram
-  ~$0.10–0.12.
-- **Pricing decided in talk, not built** (founder, 18 Oct): charge per spoken length, not per token. Leaning to
-  "1 question = 1 video": Plus 40 videos/month, Pro "unlimited, fair use 150", 3 bonus videos at 0, replays and
-  Explore free (margins with keep-warm: Plus ~70%, Pro ~57%). Needs money functions, Stripe prices and /pricing.
-- **Next:** the LAUNCH.md list. Physics and Chemistry later (`servier-chem`, no pins).
-- Local: `.env.local`'s Anthropic key was replaced 18 Oct (the one in `prototype/.env` is revoked). A 401 makes the app block generation ~10 min (`ops_state.provider_blocked_until`); delete that row locally.
-
+- Demo: `GENERATION_MOCK=1 npm run dev`; sign in as `a@example.test`/`b@example.test` with the code from Mailpit
+  (`127.0.0.1:55324`). `.env.local` holds a live Anthropic key; a 401 blocks generation ~10 min.
+- Tests: `npx vitest run`; `npm run test:pgtap` **wipes local videos**; `npx playwright test` (CI judges e2e).
+- The player alone: serve `public/` (`python3 -m http.server`) and post `{type: "poster", script}` to
+  `player/index.html` from the page itself; compare WebKit and Chromium with Playwright.
+- Cost of real videos: `npm run cost` or `sql/cost-by-version.sql`.
