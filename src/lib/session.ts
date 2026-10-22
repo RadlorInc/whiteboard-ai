@@ -4,7 +4,8 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 import { okNext } from "@/lib/age";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
-import { canAsk, planLevel, type Allowance } from "@/lib/videos";
+import { LEVELS, canAsk, planLevel, type Allowance } from "@/lib/videos";
+import { SUBJECTS, type Interests } from "@/lib/interests";
 import { PLANS_ON } from "@/product";
 
 export const START_SEEN_COOKIE = "wb_start_seen";
@@ -24,7 +25,7 @@ export const getAccount = cache(async () => {
   const user = data.user;
   if (!user || !user.email_confirmed_at) return null;
   const [profile, balance, paid, ops, admin, free] = await Promise.all([
-    supabase.from("profiles").select("age_band, access_granted_at, friend_code").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("age_band, access_granted_at, friend_code, subjects, study_level").eq("id", user.id).maybeSingle(),
     supabase.from("credit_balances").select("sub, topup, held, sub_plan, sub_expires_at").eq("user_id", user.id).maybeSingle(),
     // invite credits and their conversion to videos are free: they do not make an account "ever paid"
     supabase.from("credit_ledger").select("id").eq("user_id", user.id).not("kind", "in", "(invite_grant,convert)").limit(1),
@@ -48,6 +49,11 @@ export const getAccount = cache(async () => {
     available,
     allowance,
     everPaid: (paid.data?.length ?? 0) > 0,
+    // null = every subject at high school (accounts from before 22 Oct 2026)
+    interests: {
+      subjects: SUBJECTS.filter((s) => ((profile.data?.subjects as string[] | null) ?? SUBJECTS).includes(s)),
+      level: LEVELS.find((l) => l === profile.data?.study_level) ?? "school",
+    } satisfies Interests,
   };
 });
 

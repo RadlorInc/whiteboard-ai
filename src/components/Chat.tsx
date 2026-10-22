@@ -43,14 +43,16 @@ function PastTurn({ t, subject }: { t: Turn; subject: Subject }) {
   );
 }
 
-export function Chat({ conversationId, subject: initialSubject, level: initialLevel, turns, allowance, firstRun }: {
-  conversationId: string | null; subject: Subject | null; level?: Level; turns: Turn[]; allowance: Allowance; firstRun: boolean;
+// subjects: the ones a new chat offers (the person's categories, founder, 22 Oct 2026); level: the chat's, or for a new
+// chat the one chosen on /settings.
+export function Chat({ conversationId, subject: initialSubject, subjects, level: initialLevel, turns, allowance, firstRun }: {
+  conversationId: string | null; subject: Subject | null; subjects?: Subject[]; level?: Level; turns: Turn[]; allowance: Allowance;
+  firstRun: boolean;
 }) {
   const router = useRouter();
   const [conv, setConv] = useState(conversationId);
-  const [subject, setSubject] = useState<Subject>(initialSubject ?? "biology");
-  const [pickedLevel, setLevel] = useState<Level>(initialLevel ?? "school");
-  const level: Level = subject === "home" || subject === "car" ? "school" : pickedLevel;   // fixes have one length
+  const [subject, setSubject] = useState<Subject>(initialSubject ?? subjects?.[0] ?? "biology");
+  const level: Level = subject === "home" || subject === "car" ? "school" : initialLevel ?? "school";   // fixes have one length
   const [live, setLive] = useState<Live[]>([]);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
@@ -141,7 +143,7 @@ export function Chat({ conversationId, subject: initialSubject, level: initialLe
           )}
           <AskComposer allowance={allowance} firstRun={firstRun && empty} onAsk={ask} busy={busy}
             placeholder={empty ? "Go ahead and ask your question…" : "Ask a follow-up…"} subject={subject}
-            onSubject={conv ? undefined : setSubject} level={level} onLevel={conv ? undefined : setLevel} />
+            subjects={subjects} onSubject={conv ? undefined : setSubject} level={level} />
         </div>
       </div>
     </main>
