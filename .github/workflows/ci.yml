@@ -50,6 +50,8 @@ jobs:
       - name: Install the e2e browsers
         timeout-minutes: 13
         run: |
+          # The runner's own mirror (azure.archive.ubuntu.com) crawled at ~50 kB/s on 22 Oct 2026: use Ubuntu's main one.
+          printf 'https://archive.ubuntu.com/ubuntu/\tpriority:1\n' | sudo tee /etc/apt/apt-mirrors.txt
           printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\n' | sudo tee /etc/apt/apt.conf.d/99ci-net
           for i in 1 2 3; do
             timeout 240 npx playwright install --with-deps chromium webkit && exit 0
