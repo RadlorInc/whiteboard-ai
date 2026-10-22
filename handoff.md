@@ -17,8 +17,15 @@ body `{question ≤300, band: '3-5'|'6-8'}`) and plays the lesson in its own cop
   category **`schoolmath`**: timeclock, tape (bar model), column (+ − × with carries/borrows, decimals), longdiv,
   ratiotable, usmoney (coins and bills), measure (jug, kitchen scale), shapenet (nets), picgraph. Maths may not use sv/pin (run.ts refuses; Radlic's copy ships no realistic drawings). The plain
   prompt's sha is unchanged; keep-warm now also pings the maths prompt when it is used.
-- Not done: a real-model run of the maths prompt (no live calls from agents); set `RADLIC_PARTNER_SECRET` in Vercel
-  (and the same value in Radlic) before Radlic turns the feature on. No migration.
+- `GENERATION_MOCK=1` has a hand-made maths demo lesson: any question containing "coins" gets it (usmoney, a column
+  sum, $0.84). Every other question still gets the rainbow.
+- **State (22 Oct):** 4 commits on `kids-maths` (7679fdd, ece5798, f0f83fd + this handoff), **local only, not pushed,
+  no PR**. Tried end to end locally with Radlic (mock model): 401 without the secret, `not_maths` / `personal` refused,
+  lessons streamed, nothing kept here (checked `generations` and `generation_calls`).
+- Not done: a real-model run of the maths prompt (no live calls from agents; about $0.12 a question); push + Draft PR;
+  set `RADLIC_PARTNER_SECRET` in Vercel (and the same value in Radlic) before Radlic turns the feature on. No migration.
+- Claude's in-app browser pane blocks every sandboxed iframe (ERR_BLOCKED_BY_CLIENT, our /player too): look at boards in
+  real Chrome.
 
 ## Production (12 Oct 2026, end of day)
 
