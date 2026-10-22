@@ -14,7 +14,8 @@ export default async function Admin() {
   const db = createAdminClient();
   const day = new Date(); day.setUTCHours(0, 0, 0, 0);
   const since = day.toISOString();
-  const [gens, calls, settings, drift, misses, users, reports, drawings] = await Promise.all([
+  const week = new Date(day.getTime() - 6 * 864e5).toISOString();
+  const [gens, calls, settings, drift, misses, users, reports, drawings, feedback] = await Promise.all([
     db.from("generations").select("id, created_at, style, status, credits_charged, error_code").gte("created_at", since).order("created_at", { ascending: false }).limit(500),
     db.from("generation_calls").select("cost_usd").gte("started_at", since),
     db.from("ops_settings").select("*").single(),
@@ -23,7 +24,15 @@ export default async function Admin() {
     db.from("profiles").select("id", { count: "exact", head: true }),
     db.from("reports").select("id, slug, reason, note, created_at").is("resolved_at", null).order("created_at", { ascending: false }).limit(50),
     sb.rpc("admin_list_drawings", { p_status: "pending", p_limit: 30 }),
+    db.from("video_feedback").select("generation_id, rating, reasons, note, created_at").gte("created_at", week).order("created_at", { ascending: false }).limit(1000),
   ]);
+  // Video feedback, last 7 days (VideoFeedback.tsx). A thumbs-down links to the video's public page when it has one.
+  const fb = feedback.data ?? [], downs = fb.filter(f => f.rating === -1);
+  const why = new Map<string, number>();
+  for (const f of downs) for (const r of f.reasons ?? []) why.set(r, (why.get(r) ?? 0) + 1);
+  const recent = downs.slice(0, 20);
+  const slugs = new Map((recent.length ? (await db.from("shares").select("generation_id, slug").in("generation_id", recent.map(f => f.generation_id))).data ?? [] : [])
+    .map(x => [x.generation_id, x.slug]));
   // Each waiting drawing, normalised the way approving it would, shown on the player as "sv id=candidate".
   const waiting = ((drawings.data ?? []) as { id: string; name: string; subject: string | null; created_at: string; lines: Record<string, string> }[]).map(d => {
     try { return { d, problem: null, preview: { q: d.name, els: { p: "sv id=candidate 480 270 460" }, steps: [{ say: "", do: ["draw p", "fill p"] }],
@@ -49,6 +58,18 @@ export default async function Admin() {
         <SwitchForm k="purchases_enabled" label="Purchases" on={s.purchases_enabled} />
         <LimitsForm values={s} />
       </div>
+      <section className="card stack">
+        <h2>Video feedback (last 7 days)</h2>
+        <p>{fb.length} rated · <strong>{fb.length - downs.length}</strong> helpful · <strong>{downs.length}</strong> not helpful{fb.length ? ` · ${Math.round((fb.length - downs.length) / fb.length * 100)}% helpful` : ""}</p>
+        {why.size > 0 && <p className="muted small">Why not: {[...why].sort((a, b) => b[1] - a[1]).map(([r, n]) => `${r.replace("_", " ")} ×${n}`).join(" · ")}</p>}
+        {recent.length === 0 ? <p className="muted">No thumbs-down yet.</p>
+          : <ul className="stack" style={{ listStyle: "none", padding: 0 }}>{recent.map(f => (
+              <li key={f.generation_id} className="small">
+                {f.created_at.slice(0, 16).replace("T", " ")} UTC · {(f.reasons ?? []).join(", ") || "no reason"}
+                {f.note ? <> · “{f.note}”</> : null}
+                {slugs.get(f.generation_id) ? <> · <a href={`/v/${slugs.get(f.generation_id)}`} target="_blank" rel="noreferrer">watch</a></> : null}
+              </li>))}</ul>}
+      </section>
       <section className="card stack">
         <h2>Open reports ({(reports.data ?? []).length})</h2>
         {(reports.data ?? []).length === 0 ? <p className="muted">None.</p>

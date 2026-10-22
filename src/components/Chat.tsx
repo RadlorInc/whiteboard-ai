@@ -9,6 +9,7 @@ import { AskComposer } from "./AskComposer";
 import { Player, Watch, type Style } from "./Watch";
 import { deleteChat, startConversation } from "@/app/(app)/c/actions";
 import { ShareButton } from "./ShareButton";
+import { VideoFeedback } from "./VideoFeedback";
 import { SUBJECT_NAME, type Subject } from "./Chats";
 import { LEVEL_NAME, type Allowance, type Level } from "@/lib/videos";
 import { Icon } from "./Icon";
@@ -32,23 +33,26 @@ function PastTurn({ t, subject }: { t: Turn; subject: Subject }) {
                   <BoardPreview style={t.style} subject={subject} script={t.script} label="" />
                   <span className="poster-play"><Icon name="play" size={22} /></span>
                 </button>}
-            <p className="answer-meta">
+            <div className="answer-meta">
               <ShareButton id={t.id} title={t.question} />
               <Link href={`/videos/${t.id}`} className="btn ghost sm"><Icon name="external" size={16} /> Open</Link>
-            </p>
+              <VideoFeedback id={t.id} />
+            </div>
           </>}
     </section>
   );
 }
 
-export function Chat({ conversationId, subject: initialSubject, level: initialLevel, turns, allowance, firstRun }: {
-  conversationId: string | null; subject: Subject | null; level?: Level; turns: Turn[]; allowance: Allowance; firstRun: boolean;
+// subjects: the ones a new chat offers (the person's categories, founder, 22 Oct 2026); level: the chat's, or for a new
+// chat the one chosen on /settings.
+export function Chat({ conversationId, subject: initialSubject, subjects, level: initialLevel, turns, allowance, firstRun }: {
+  conversationId: string | null; subject: Subject | null; subjects?: Subject[]; level?: Level; turns: Turn[]; allowance: Allowance;
+  firstRun: boolean;
 }) {
   const router = useRouter();
   const [conv, setConv] = useState(conversationId);
-  const [subject, setSubject] = useState<Subject>(initialSubject ?? "biology");
-  const [pickedLevel, setLevel] = useState<Level>(initialLevel ?? "school");
-  const level: Level = subject === "home" || subject === "car" ? "school" : pickedLevel;   // fixes have one length
+  const [subject, setSubject] = useState<Subject>(initialSubject ?? subjects?.[0] ?? "biology");
+  const level: Level = subject === "home" || subject === "car" ? "school" : initialLevel ?? "school";   // fixes have one length
   const [live, setLive] = useState<Live[]>([]);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
@@ -99,8 +103,8 @@ export function Chat({ conversationId, subject: initialSubject, level: initialLe
           <div className="hero">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.png" alt="" width={96} height={66} />
-            <h1>What do you want to understand?</h1>
-            <p className="muted">Ask {PRODUCT_NAME} a question. It draws and explains the answer, step by step.</p>
+            <h1>What would you like to know?</h1>
+            <p className="muted">{PRODUCT_NAME} draws and explains the answer, step by step.</p>
           </div>
         ) : (
           <header className="chat-head">
@@ -138,8 +142,8 @@ export function Chat({ conversationId, subject: initialSubject, level: initialLe
             </button>
           )}
           <AskComposer allowance={allowance} firstRun={firstRun && empty} onAsk={ask} busy={busy}
-            placeholder={empty ? "Ask anything…" : "Ask a follow-up…"} subject={subject}
-            onSubject={conv ? undefined : setSubject} level={level} onLevel={conv ? undefined : setLevel} />
+            placeholder={empty ? "Go ahead and ask your question…" : "Ask a follow-up…"} subject={subject}
+            subjects={subjects} onSubject={conv ? undefined : setSubject} level={level} />
         </div>
       </div>
     </main>

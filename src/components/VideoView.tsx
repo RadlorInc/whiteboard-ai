@@ -4,6 +4,7 @@ import { useState, useSyncExternalStore, useTransition } from "react";
 import { Player, type Style } from "./Watch";
 import { VoiceProgress } from "./Voice";
 import { Icon } from "./Icon";
+import { VideoFeedback } from "./VideoFeedback";
 import { deleteVideo, setExplore, shareVideo, unshareVideo } from "@/app/(app)/videos/actions";
 
 export const exploreRefusal = (e?: string) => e === "contact_info" ? "This question has contact details in it, so it can't go on Explore."
@@ -49,6 +50,7 @@ export function VideoView({ id, style, script, slug: initial, inExplore: initial
         <button className="btn danger" type="button" disabled={busy} onClick={() => {
           if (window.confirm("Delete this video? This can't be undone. Used videos aren't given back.")) start(() => deleteVideo(id));
         }}><Icon name="trash" size={16} /> Delete</button>
+        <VideoFeedback id={id} big />
       </div>
       {url && <p className="muted share-url">{url}</p>}
       {note && <p role="status" className="muted small">{note}</p>}

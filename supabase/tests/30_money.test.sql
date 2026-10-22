@@ -67,8 +67,8 @@ select is(pg_temp.drift(), '0', 'drift empty after the charge table');
 
 -- ---- Refusals that reserve nothing.
 select pg_temp.mk('ins', 0, 0) is not null as fixture \gset
-select is(pg_temp.reserve(pg_temp.u('ins')), 'insufficient::0:' || (date_trunc('month', now() at time zone 'utc') at time zone 'utc' + interval '1 month'),
-  'no free video and nothing from a plan -> insufficient, retry_at = when the free videos come back');
+select is(pg_temp.reserve(pg_temp.u('ins')), 'insufficient::0',
+  'no free video and nothing from a plan -> insufficient, no retry_at (free videos do not come back)');
 select is((select count(*)::int from public.credit_ledger where user_id = pg_temp.u('ins')), 0,
   '... no ledger row');
 select is((select count(*)::int from public.generations where user_id = pg_temp.u('ins')), 0, '... no generation row');
@@ -132,7 +132,7 @@ select is(pg_temp.fail(pg_temp.g('run1'), 'timeout'), 'already_final:20', 'fail 
 
 select pg_temp.mk('exp', 150, 0) is not null as fixture \gset
 update public.credit_balances set sub_expires_at = now() - interval '1 second' where user_id = pg_temp.u('exp');
-select matches(pg_temp.reserve(pg_temp.u('exp')), '^insufficient::0:', 'plan videos past their expiry are not spendable before the sweep');
+select matches(pg_temp.reserve(pg_temp.u('exp')), '^insufficient::0$', 'plan videos past their expiry are not spendable before the sweep');
 select is(public.sweep(), 0, 'the sweep releases nothing here ...');
 select is((select sub || ':' || sub_cycle || ':' || (select string_agg(sub_delta::text, ',') from public.credit_ledger
              where user_id = pg_temp.u('exp') and kind = 'expire_sub') from public.credit_balances where user_id = pg_temp.u('exp')),

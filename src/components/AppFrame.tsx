@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { PRODUCT_NAME } from "@/product";
+import { PLANS_ON, PRODUCT_NAME } from "@/product";
 import { SignOutButton } from "./SignOutButton";
 import { ChatList, SUBJECT_NAME, type ChatRow, type Subject } from "./Chats";
 import { Icon, type IconName } from "./Icon";
@@ -66,8 +66,8 @@ export function AppFrame({ email, allowance, chats, children }: {
 
   // The ring round the avatar (founder, 18 Oct 2026): how many videos are left, at a glance;
   // green, then amber under half, red under a fifth or at none.
-  // Full at the month's free videos or more (free tier, 20 Oct 2026); an admin's is always full.
-  const left = videosLeft(allowance), share = allowance.admin ? 1 : Math.min(left / Math.max(1, allowance.freeMonthly), 1);
+  // Full at all the free videos or more (free tier, 22 Oct 2026); an admin's is always full.
+  const left = videosLeft(allowance), share = allowance.admin ? 1 : Math.min(left / Math.max(1, allowance.freeTotal), 1);
   const ring = !canAsk(allowance) || share < 0.2 ? "red" : share < 0.5 ? "amber" : "green";
   const leftText = allowance.admin ? "Unlimited (admin)" : `${videos(left)} left`;
   const nav: [string, IconName, string][] = [["/explore", "compass", "Explore"], ["/saved", "bookmark", "Collection"], ["/library", "videos", "Your videos"]];
@@ -131,7 +131,9 @@ export function AppFrame({ email, allowance, chats, children }: {
             </summary>
             <div className="menu-list">
               <p className="menu-who"><span className="avatar" aria-hidden="true">{email.slice(0, 1).toUpperCase()}</span><span>{email}</span></p>
-              <Link href="/buy" className="menu-videos"><Icon name="videos" size={18} /> {leftText}{allowance.admin ? "" : " · Get more"}</Link>
+              {PLANS_ON
+                ? <Link href="/buy" className="menu-videos"><Icon name="videos" size={18} /> {leftText}{allowance.admin ? "" : " · Get more"}</Link>
+                : <Link href="/account" className="menu-videos"><Icon name="videos" size={18} /> {leftText}</Link>}
               <hr />
               <Link href="/settings"><Icon name="settings" size={18} /> Settings</Link>
               <Link href="/account"><Icon name="user" size={18} /> Account</Link>
@@ -160,7 +162,7 @@ export function PublicHeader() {
       </Link>
       <nav aria-label="Main" className="public-nav">
         <Link href="/explore">Explore</Link>
-        <Link href="/pricing">Pricing</Link>
+        {PLANS_ON && <Link href="/pricing">Pricing</Link>}
         <Link href="/signin" className="btn secondary sm">Sign in</Link>
       </nav>
     </header>

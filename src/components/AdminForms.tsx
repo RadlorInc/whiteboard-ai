@@ -22,7 +22,7 @@ export function SwitchForm({ k, label, on }: { k: string; label: string; on: boo
 
 const LIMIT_LABELS: [string, string, string?][] = [
   ["daily_spend_cap_usd", "App-wide model spend a day ($)", "0.01"], ["max_open_generations", "Videos made at once, app-wide"],
-  ["free_videos_monthly", "Free videos a user a month (then a plan)"],
+  ["free_videos", "Free videos a new user gets, once (+10 per friend, up to 2)"],
   ["user_daily_cap", "Videos a user a day (fair use, all users)"], ["user_monthly_cap", "Videos a user a month (fair use, all users)"],
   ["slow_1_after", "First wait after this many videos today"], ["slow_1_seconds", "First wait (seconds, max 60)"],
   ["slow_2_after", "Second wait after this many videos today"], ["slow_2_seconds", "Second wait (seconds, max 60)"],
@@ -87,7 +87,7 @@ export function ReportRow({ r }: { r: { id: string; slug: string; reason: string
   const [s, act, pending] = useActionState(handleReport, {});
   return (
     <li className="card stack">
-      <span><a href={`/v/${r.slug}`} target="_blank" rel="noreferrer">/v/{r.slug}</a> · <strong>{r.reason}</strong> · {new Date(r.created_at).toLocaleString()}</span>
+      <span><a href={`/v/${r.slug}`} target="_blank" rel="noreferrer">/v/{r.slug}</a> · <strong>{r.reason}</strong> · {utc(r.created_at)}</span>
       {r.note && <span className="muted">{r.note}</span>}
       <form action={act} className="row" style={{ gap: 8, flexWrap: "wrap" }}>
         <input type="hidden" name="id" value={r.id} /><input type="hidden" name="slug" value={r.slug} />
@@ -100,15 +100,18 @@ export function ReportRow({ r }: { r: { id: string; slug: string; reason: string
   );
 }
 
+// Server (UTC) and browser render the same text: toLocaleString differed and React threw #418 on hydration.
+const utc = (iso: string) => `${new Date(iso).toISOString().slice(0, 16).replace("T", " ")} UTC`;
+
 // A drawing the model made for something the library lacked: its preview is exactly what lessons will draw.
 export function DrawingRow({ d, preview, problem }: { d: { id: string; name: string; subject: string | null; created_at: string };
   preview: unknown; problem: string | null }) {
   const [s, act, pending] = useActionState(reviewDrawing, {});
   return (
     <li className="card stack">
-      <span><strong>{d.name}</strong> · {d.subject ?? "no subject"} · {new Date(d.created_at).toLocaleString()}</span>
+      <span><strong>{d.name}</strong> · {d.subject ?? "no subject"} · {utc(d.created_at)}</span>
       {problem ? <p className="error">Cannot read it: {problem}</p>
-        : <div style={{ maxWidth: 420 }}><BoardPreview style="whiteboard" script={preview} label={`Drawing: ${d.name}`} /></div>}
+        : <div style={{ maxWidth: 420, position: "relative", aspectRatio: "16 / 9", overflow: "hidden" }}><BoardPreview style="whiteboard" script={preview} label={`Drawing: ${d.name}`} /></div>}
       <form action={act} className="row" style={{ gap: 8, flexWrap: "wrap" }}>
         <input type="hidden" name="id" value={d.id} />
         <input name="slug" className="input" defaultValue={d.name} aria-label="Library name" />

@@ -2,7 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SIGNUP_SOURCES } from "@/lib/age";
 import { createClient } from "@/lib/supabase/server";
-import { signupMode } from "@/lib/session";
+import { freeVideos, signupMode } from "@/lib/session";
+import { PLANS_ON } from "@/product";
 import { Footer } from "@/components/Footer";
 import { PublicHeader } from "@/components/AppFrame";
 import { Icon } from "@/components/Icon";
@@ -25,6 +26,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
   const utm = typeof q.utm_source === "string" ? q.utm_source.toLowerCase() : "";
   const src = SIGNUP_SOURCES.includes(utm) ? utm : q.ref ? "ref" : q.from === "share" ? "share" : "";
   const invite = (await signupMode()) === "invite";
+  const free = await freeVideos();
 
   return (
     <>
@@ -43,14 +45,14 @@ export default async function Home({ searchParams }: PageProps<"/">) {
             </Link>
             <Link href="/signin" className="btn secondary">I have an account: sign in</Link>
           </div>
-          <p className="muted small">10 free videos every month. Want more? Plans from $9.99 a month.</p>
+          <p className="muted small">Your first {free} videos are free.{PLANS_ON && " Want more? Packs from $4.99, plans from $13.99 a month."}</p>
           <Link href="/explore" className="small">See videos people made</Link>
         </section>
 
         <section className="landing-section">
           <p className="section-label">How it works</p>
           <ol className="steps3">
-            <li className="card"><h3>Type a question</h3><p className="muted small">Biology, physics, chemistry, or a home or car fix. One question per video works best.</p></li>
+            <li className="card"><h3>Type a question</h3><p className="muted small">Biology, physics, chemistry, home improvements or auto repairs. One question per video works best.</p></li>
             <li className="card"><h3>Watch it drawn</h3><p className="muted small">A whiteboard lesson, voiced, step by step. Ask a follow-up in the same chat.</p></li>
             <li className="card"><h3>Replay any time</h3><p className="muted small">Your videos stay in your library. Watching again is free.</p></li>
           </ol>
@@ -60,8 +62,8 @@ export default async function Home({ searchParams }: PageProps<"/">) {
           <p className="section-label">Good to know</p>
           <ul className="facts">
             {[
-              "10 free videos every month; a plan adds more. A video that fails is never counted.",
-              "Replaying your own videos is free. Cancel a plan any time.",
+              `Your first ${free} videos are free${PLANS_ON ? "; a plan adds more" : ""}. Invite a friend for 10 more. A video that fails is never counted.`,
+              PLANS_ON ? "Replaying your own videos is free. Cancel a plan any time." : "Replaying your own videos is free.",
               "For ages 13 and over.",
               "Answers are written by AI and can be wrong.",
             ].map((t) => <li key={t}><Icon name="check" size={16} />{t}</li>)}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PLANS_ON } from "@/product";
 
 // §5.2: public pages and Account. Pricing, Help and Contact arrive with their pages (M5/M6); until then they 404.
 const LINKS: [string, string][] = [
@@ -17,7 +18,7 @@ export function Footer() {
   return (
     <footer className="site-footer">
       <ul>
-        {LINKS.map(([href, label]) => (
+        {LINKS.filter(([href]) => PLANS_ON || href !== "/pricing").map(([href, label]) => (
           <li key={href}>
             <Link href={href}>{label}</Link>
           </li>

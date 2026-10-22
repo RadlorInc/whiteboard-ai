@@ -55,11 +55,11 @@ describe('prompt sha parity', () => {
 
   // Subject prompts (founder, 18 Oct 2026): new prompts, so no prototype twin; these shas bind them the same way.
   const SUBJECT_EXPECTED = {
-    biology: 'd97867f9d1a4523675d28f36f712fc5fab942c2d1b388f3c851f4c836f3b1473',
-    physics: '09bc8ffb112ccc5b76818bd2f777b91f03594e7de4dd4a1ff51252535e16951c',
-    chemistry: '921660f1f830ac44fd34c31220676876f9fdb73172eafc9e3f76d223ba0e0082',
-    car: '663fa90033aed54f59cebfbb659227fe5012a3c429f663dd15e3f399ec256bd6',
-    home: '75ab043b2a605ee6fb0bc30a86565fa63dc014694ddd783f59dbbfd9673c6f8f',
+    biology: '5589b3d9c641509c0635468dd0691a559494bdbc5733e130522ff6790db7a070',
+    physics: '0f35da0f0fdfed80f158919d1cfa038e07cb9c05a106a0716414f199f60f882c',
+    chemistry: 'cd8b6b8539f89a37db47183747a0b16b4162a98a284e6187fdeb0ae9591db75c',
+    car: '14e4025c4653d974d3b58fe7995108bcdd693d1caa3cf14cc0e8635785eef81e',
+    home: '800292c188dfbc18d6602f276cf4209f1dbe6fa088f327ce808845231907f70d',
     maths: '2ae6a8108f8a96ce65903ccb35d0b4d22b1a6574d3ab67a13ea25c9ce15369ce',   // children's maths, Radlic only (21 Oct 2026)
   } as const;
   for (const s of ['biology', 'physics', 'chemistry', 'car', 'home', 'maths'] as const) it(`${s}: its own prompt, sha bound, only its categories listed`, () => {
@@ -68,6 +68,10 @@ describe('prompt sha parity', () => {
     const listed = [...t.split('More recipes, by subject')[1].split('Worked examples')[0].matchAll(/^  ([\w-]+): /gm)].map(m => m[1]);
     expect(listed).toEqual(P.subjects[s].cats);
     expect(t).toContain(`- Teaching ${s}:`);
+    // beta feedback, 22 Oct 2026: draw what the voice names; end the story where it ends
+    // (not maths: no realistic drawings on its board, and a sum is not a journey)
+    if (s === 'maths') { expect(t).not.toContain('- Show what you say:'); expect(t).not.toContain('- Finish the story:'); }
+    else { expect(t).toContain('- Show what you say:'); expect(t).toContain('- Finish the story:'); }
     // the rules and worked examples are the plain prompt's, word for word
     expect(t.split('Worked examples')[1]).toBe(P.styles.whiteboard.system.split('Worked examples')[1]);
     expect(t.split('- Only these element types exist')[0]).toBe(P.styles.whiteboard.system.split('- Only these element types exist')[0]);

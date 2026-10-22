@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
+import { PLANS_ON } from "@/product";
+import { freeVideos } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Help" };
 const QA: [string, string][] = [
-  ["How many videos do I get?", "10 free videos every month; they come back on the 1st (UTC). After that each video comes from a plan: Plus has 40 a month, Pro 100. A video that fails is never counted."],
+  ["How many videos do I get?", "Your first {free} videos are free. After that each video comes from a plan: Plus has 40 a month, Pro 100. A video that fails is never counted."],
+  ["How do I get more free videos?", "Invite a friend from your Account page: when they make their first video you get 10 more free (up to 2 friends)."],
   ["My video failed. Was I charged?", "No. Failed, refused and timed-out videos are always free."],
   ["The video looks wrong.", "Open it from Your videos and use Contact with the link. Wrong or broken plan videos reported within 7 days are given back."],
   ["Can I watch a video again?", "Yes, as often as you like, for free, from Your videos."],
@@ -14,12 +17,16 @@ const QA: [string, string][] = [
   ["How do I delete my data?", "Account → Download my data, or Delete account."],
 ];
 
-export default function Help() {
+export default async function Help() {
+  const free = String(await freeVideos());
+  const qa = QA
+    .filter(([q]) => PLANS_ON || q !== "How do I cancel my plan?")
+    .map(([q, a]): [string, string] => [q, (PLANS_ON ? a : a.replace(/ After that each video comes from a plan[^.]*\./, "")).replace("{free}", free)]);
   return (
     <main className="page narrow stack">
       <h1>Help</h1>
       <div className="faq">
-        {QA.map(([q, a]) => (
+        {qa.map(([q, a]) => (
           <details key={q}><summary>{q}<Icon name="chevronDown" size={18} /></summary><p>{a}</p></details>
         ))}
       </div>

@@ -1,5 +1,5 @@
 // Invites through the API the app uses (the user's own session calls redeem_invite): access, and since the free tier
-// (20 Oct 2026: 10 free videos a month) no credits. pgTAP (35_invite_credits) covers the edge cases; this drives the real caller.
+// (20 Oct 2026; 22 Oct: first 20 free once) no credits. pgTAP (35_invite_credits) covers the edge cases; this drives the real caller.
 import { describe, expect, test } from 'vitest';
 import { balance, drift, newUser, sql, stack } from './stack.mjs';
 

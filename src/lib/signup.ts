@@ -4,7 +4,8 @@ import { cookies } from "next/headers";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { AGE_BLOCK_COOKIE, AGE_OK_COOKIE, INVITE_COOKIE, verify, type AgeOk } from "@/lib/age";
 import { getAccount, landing, safeNext } from "@/lib/session";
-import { REF_COOKIE, parseRef, reportRef } from "@/lib/radlorOps";
+import { FRIEND_COOKIE, REF_COOKIE, parseRef, reportRef } from "@/lib/radlorOps";
+import { emailProblem } from "@/lib/email-check";
 
 if (typeof window !== "undefined") throw new Error("lib/signup imported in the browser");
 
@@ -27,6 +28,14 @@ export async function blockUnder13(userId: string | undefined) {
 /** complete_signup, then the invite. Returns where to go next. */
 export async function completeSignup(userId: string, age: AgeOk): Promise<string> {
   const admin = createAdminClient();
+  // The browser already refuses these; this is the check that holds (a direct Supabase call or Google skips it).
+  const { data: who } = await admin.auth.admin.getUserById(userId);
+  if (emailProblem(who.user?.email ?? "")) {
+    await admin.auth.admin.deleteUser(userId);
+    await (await createClient()).auth.signOut({ scope: "local" });
+    (await cookies()).delete(AGE_OK_COOKIE);
+    return "/signin?e=email";
+  }
   const { data: terms } = await admin.rpc("current_terms_version");
   const { data: result, error } = await admin.rpc("complete_signup", {
     p_user_id: userId, p_birth_year: age.year, p_birth_month: age.month, p_gate_version: age.gate_version,
@@ -47,7 +56,12 @@ export async function completeSignup(userId: string, age: AgeOk): Promise<string
   }
   if (result === "invalid") return "/age?e=invalid";
   jar.delete(AGE_OK_COOKIE);
+  if (age.interests) {
+    const { error: e } = await admin.rpc("set_interests", { p_user_id: userId, p_subjects: age.interests.subjects, p_level: age.interests.level });
+    if (e) console.error("set_interests failed", e.code);   // not fatal: the account works with every subject
+  }
   await keepReferral(userId);
+  await keepFriend(userId);
   if (age.invite) await (await createClient()).rpc("redeem_invite", { p_code: age.invite });
   const account = await getAccount();
   if (!account) return "/signin";
@@ -63,6 +77,16 @@ export async function finishSignIn(next: string): Promise<string> {
   return age ? completeSignup(account.user.id, age) : "/age";
 }
 
+
+/** A new account that arrived through a friend's link: the inviter gets 10 free videos once this account makes a video
+ * (add_friend_referral refuses self-invites and a second inviter). */
+async function keepFriend(userId: string) {
+  const jar = await cookies();
+  const code = jar.get(FRIEND_COOKIE)?.value;
+  if (!code) return;
+  jar.delete(FRIEND_COOKIE);
+  await createAdminClient().rpc("add_friend_referral", { p_friend: userId, p_code: code });
+}
 
 /** A new account that arrived through a market rep's link: stored on the user (checkout reads it) and reported. */
 async function keepReferral(userId: string) {

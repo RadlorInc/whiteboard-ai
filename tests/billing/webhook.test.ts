@@ -60,4 +60,12 @@ describe.skipIf(!on)("Stripe webhook on the local stack", () => {
     expect((await r.json()).outcome).toBe("needs_review:amount_mismatch");
     expect(await topup()).toBe(before);
   });
+  it("ignores another app's checkout on the shared Stripe account (no price_key in metadata)", async () => {
+    const before = await topup(), e = session(`evt_radlic_${Date.now()}`, 499);
+    e.data.object.metadata = {} as typeof e.data.object.metadata;
+    const r = await send(e);
+    expect(r.status).toBe(200);
+    expect((await r.json()).outcome).toBe("ignored");
+    expect(await topup()).toBe(before);
+  });
 });

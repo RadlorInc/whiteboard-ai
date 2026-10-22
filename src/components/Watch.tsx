@@ -7,7 +7,9 @@ import { VoiceProgress } from "./Voice";
 import { exploreRefusal } from "./VideoView";
 import { Icon } from "./Icon";
 import { resetDay } from "@/lib/videos";
+import { PLANS_ON } from "@/product";
 import { ShareButton } from "./ShareButton";
+import { VideoFeedback } from "./VideoFeedback";
 
 export type Style = "whiteboard" | "paper" | "matchcut";
 type Script = Record<string, unknown> & { steps?: { say: string }[]; objects?: { say: string }[] };
@@ -34,7 +36,7 @@ const STAGE: Record<string, string> = {
   reading: "Reading your question…", drawings: "Picking drawings…", writing: "Writing the lesson…", fixing: "Fixing a step…",
 };
 const FAILED: Record<string, string> = {
-  insufficient_credits: "You've used this month's free videos. Get a plan for more.",
+  insufficient_credits: PLANS_ON ? "You've used your free videos. Invite a friend from Account for 10 more, or get a plan." : "You've used your free videos. Invite a friend from Account for 10 more.",
   busy: "A video is already being made. Wait for it to finish.",
   rate_limited: "You've reached today's limit. Try again tomorrow.",
   paused: "Making videos is paused right now. Try again soon.",
@@ -44,10 +46,9 @@ const FAILED: Record<string, string> = {
   timeout: "This took too long, so nothing was charged. Try again.",
   provider_error: "Something went wrong on our side. Nothing was charged.",
 };
-// A limit says when it lifts (founder, 20 Oct 2026): the free videos come back on the 1st; a month's cap ends then too.
+// A limit says when it lifts (founder, 20 Oct 2026): a month's cap ends on the 1st. Free videos do not come back (22 Oct).
 const msg = (code: string, retryAt?: string) => {
   const later = retryAt && Date.parse(retryAt) - Date.now() > 36 * 3600e3;            // past tomorrow: the month's
-  if (code === "insufficient_credits" && retryAt) return `You've used this month's free videos. They come back on ${resetDay(retryAt)}, or get a plan for more.`;
   if (code === "rate_limited" && later) return `You've reached this month's limit. It resets on ${resetDay(retryAt)}.`;
   return FAILED[code] ?? "Something went wrong. Nothing was charged.";
 };
@@ -388,11 +389,12 @@ export function Watch({ question, style, subject, explore = false, conversationI
         </div>
       )}
       {result && (
-        <p className="answer-meta">
+        <div className="answer-meta">
           <span data-charged={result.charged}>Done.</span>
           <ShareButton id={result.id} title={question} />
           <a href={`/videos/${result.id}`} className="btn ghost sm"><Icon name="external" size={16} /> Open this video</a>
-        </p>
+          <VideoFeedback id={result.id} />
+        </div>
       )}
       {exploreNote && <p className="answer-meta" role="status">{exploreNote}</p>}
       {steps.length > 0 && (

@@ -1,6 +1,7 @@
 "use server";
 // Sign-up, sign-in and the age gate (PLAN.md §5.3–5.4). Every write goes through these server actions, which Next
 // checks for a same-origin request.
+import { readInterests } from "@/lib/interests";
 import { createHmac } from "node:crypto";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -31,7 +32,7 @@ async function allowed(key: string, windowSeconds: number, max: number) {
   return data === true;
 }
 
-export type FormState = { error?: string } | undefined;
+export type FormState = { error?: string; ok?: boolean } | undefined;
 
 // ---------- Invite (invite mode, before the age screen) ----------
 
@@ -67,6 +68,8 @@ export async function submitAge(_: FormState, form: FormData): Promise<FormState
   const year = Number(form.get("year"));
   const check = ageCheck(year, month);
   if (check === "invalid") return { error: "Choose your birth month and year." };
+  const interests = readInterests(form);
+  if (!interests) return { error: "Choose at least one category." };
 
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
@@ -80,7 +83,7 @@ export async function submitAge(_: FormState, form: FormData): Promise<FormState
   const invite = verify<{ code: string }>(jar.get(INVITE_COOKIE)?.value)?.code ?? null;
   const age: AgeOk = {
     month, year, gate_version: AGE_GATE_VERSION, source: SIGNUP_SOURCES.includes(src) ? src : null, invite,
-    next: okNext(form.get("next")),
+    next: okNext(form.get("next")), interests,
   };
 
   // Signed in already (Google first, or a code from /signin): finish here.
@@ -89,6 +92,19 @@ export async function submitAge(_: FormState, form: FormData): Promise<FormState
   jar.set(AGE_OK_COOKIE, sign(age, 1800), cookieOpts(1800));
   jar.delete(INVITE_COOKIE);
   redirect("/signup");
+}
+
+// ---------- Interests (/settings) ----------
+
+export async function saveInterests(_: FormState, form: FormData): Promise<FormState> {
+  const { data } = await (await createClient()).auth.getUser();
+  if (!data.user) redirect("/signin?next=/settings");
+  const interests = readInterests(form);
+  if (!interests) return { error: "Choose at least one category." };
+  const { error } = await createAdminClient().rpc("set_interests",
+    { p_user_id: data.user.id, p_subjects: interests.subjects, p_level: interests.level });
+  if (error) return { error: "Couldn't save. Try again." };
+  return { ok: true };
 }
 
 // ---------- Email code ----------

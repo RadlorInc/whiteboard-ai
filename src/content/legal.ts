@@ -13,10 +13,10 @@ export const LEGAL: Record<string, Doc> = {
       "One person per account. Keep your sign-in email safe; you are responsible for what happens in your account."]],
     ["What you get", [
       `${P} turns your question into a short animated, narrated explanation, written by AI. AI can be wrong: check anything important, especially health, legal or money questions. It is not medical, legal or financial advice.`,
-      "Every new question makes a new video and uses one of your videos for the month. Watching a video you already made is free.",
+      "Every new question makes a new video and uses one of your videos. Watching a video you already made is free.",
       "The narration voice is made on your own device. The first time, your browser downloads a voice model (about 166 MB, mostly from Hugging Face) and keeps it; devices that cannot run it use the browser's own voice."]],
     ["Free videos, plans and payments", [
-      "Every account gets 10 free videos each calendar month (UTC). Unused free videos do not carry over. After that, each video uses one video from a paid plan. Failed or refused videos are never counted.",
+      "Every account gets its first 20 videos free, once; they do not renew. When a friend signs up with your invite link and makes their first video, you get 10 more free videos, for up to 2 friends. Invite only people you know; we may remove bonus videos from accounts made to game this. After that, each video uses one video from a paid plan. Failed or refused videos are never counted.",
       "Plans come in three levels (high school, college, grad school). Videos from a plan are taught at that plan's level, whatever level a chat is set to; free videos can be made at any level.",
       "Monthly plans renew automatically until you cancel. Plan videos end 3 days after each billing period. Videos bought in packs before packs were withdrawn do not expire.",
       "Payments are handled by Stripe. Prices are in US dollars, plus tax where applicable. See Refunds for when money comes back."]],

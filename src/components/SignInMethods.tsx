@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { verifyCode } from "@/app/actions";
+import { EMAIL_PROBLEM, emailProblem } from "@/lib/email-check";
 
 const RESEND_SECONDS = 60;
 const OTP_KEY = "wb.otp";
@@ -66,14 +67,16 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
         : "Checking this browser… try again in a moment.");
     }
     setSending(true);
+    // An alias or throwaway address may still sign in to an account it already has, but never makes a new one.
+    const problem = emailProblem(address);
     const { error } = await createClient().auth.signInWithOtp({
       email: address,
-      options: { shouldCreateUser: true, captchaToken: captcha.token ?? undefined },
+      options: { shouldCreateUser: !problem, captchaToken: captcha.token ?? undefined },
     });
     setSending(false);
     captcha.reset();
     if (error) {
-      return setError(error.status === 429
+      return setError(problem && error.status !== 429 ? EMAIL_PROBLEM : error.status === 429
         ? "Too many codes sent. Wait a minute and try again."
         : "We couldn't send the code. Try again.");
     }
@@ -158,6 +161,8 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
           <p>
             We sent a {OTP_LENGTH}-digit code to <strong>{email}</strong>.
           </p>
+          {/* Outlook/Hotmail file our code under Junk while radlor.com's sender reputation is new (22 Oct 2026). */}
+          <p className="muted small">Can&apos;t find it? Check your Junk or Spam folder for an email from askRadlor.</p>
           <label className="field">
             <span>Code</span>
             <input

@@ -4,7 +4,9 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 import { okNext } from "@/lib/age";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
-import { canAsk, planLevel, type Allowance } from "@/lib/videos";
+import { LEVELS, canAsk, planLevel, type Allowance } from "@/lib/videos";
+import { SUBJECTS, type Interests } from "@/lib/interests";
+import { PLANS_ON } from "@/product";
 
 export const START_SEEN_COOKIE = "wb_start_seen";
 
@@ -22,33 +24,36 @@ export const getAccount = cache(async () => {
   const { data } = await supabase.auth.getUser();
   const user = data.user;
   if (!user || !user.email_confirmed_at) return null;
-  const month = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
-  const nextMonth = new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth() + 1, 1));
   const [profile, balance, paid, ops, admin, free] = await Promise.all([
-    supabase.from("profiles").select("age_band, access_granted_at").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("age_band, access_granted_at, friend_code, subjects, study_level").eq("id", user.id).maybeSingle(),
     supabase.from("credit_balances").select("sub, topup, held, sub_plan, sub_expires_at").eq("user_id", user.id).maybeSingle(),
     // invite credits and their conversion to videos are free: they do not make an account "ever paid"
     supabase.from("credit_ledger").select("id").eq("user_id", user.id).not("kind", "in", "(invite_grant,convert)").limit(1),
     settings(),
     createAdminClient().from("admins").select("user_id").eq("user_id", user.id).maybeSingle(),
-    // this month's free videos: the ones that did not fail (= reserve_generation's count)
-    supabase.from("generations").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("paid_with", "free")
-      .neq("status", "failed").gte("created_at", month.toISOString()),
+    // the free videos: total (20 + friend bonus) and used, the same count reserve_generation uses
+    createAdminClient().rpc("free_videos", { p_user: user.id }).single<{ total: number; used: number; friends: number }>(),
   ]);
   const b = balance.data;
   const available = b ? b.sub + b.topup - b.held : 0;
   const allowance: Allowance = {
-    admin: !!admin.data, freeMonthly: ops.freeMonthly, freeLeft: Math.max(0, ops.freeMonthly - (free.count ?? 0)),
-    plan: available, resetsAt: nextMonth.toISOString(),
+    admin: !!admin.data, freeTotal: free.data?.total ?? 0, friends: free.data?.friends ?? 0,
+    freeLeft: Math.max(0, (free.data?.total ?? 0) - (free.data?.used ?? 0)), plan: available,
     planLevel: b?.sub_expires_at && Date.parse(b.sub_expires_at) > Date.now() ? planLevel(b.sub_plan) : null,
   };
   return {
     user,
     ageBand: (profile.data?.age_band as string | null) ?? null,
+    friendCode: (profile.data?.friend_code as string | undefined) ?? null,
     hasAccess: ops.signupMode !== "invite" || !!profile.data?.access_granted_at,
     available,
     allowance,
     everPaid: (paid.data?.length ?? 0) > 0,
+    // null = every subject at high school (accounts from before 22 Oct 2026)
+    interests: {
+      subjects: SUBJECTS.filter((s) => ((profile.data?.subjects as string[] | null) ?? SUBJECTS).includes(s)),
+      level: LEVELS.find((l) => l === profile.data?.study_level) ?? "school",
+    } satisfies Interests,
   };
 });
 
@@ -63,14 +68,17 @@ export async function requireAccount(path: string) {
 
 /** Where a signed-in, age-done user lands: nothing left to ask with and not yet past /start → /start, else `next`. */
 export async function landing(account: NonNullable<Account>, next = "/ask") {
-  if (!canAsk(account.allowance) && !(await cookies()).has(START_SEEN_COOKIE)) return "/start";
+  if (PLANS_ON && !canAsk(account.allowance) && !(await cookies()).has(START_SEEN_COOKIE)) return "/start";
   return next;
 }
 
 /** ops_settings, through the service role (the table has no client policy). */
 async function settings() {
-  const { data } = await createAdminClient().from("ops_settings").select("signup_mode, free_videos_monthly").maybeSingle();
-  return { signupMode: (data?.signup_mode as "invite" | "open" | "closed") ?? "invite", freeMonthly: data?.free_videos_monthly ?? 10 };
+  const { data } = await createAdminClient().from("ops_settings").select("signup_mode, free_videos").maybeSingle();
+  return { signupMode: (data?.signup_mode as "invite" | "open" | "closed") ?? "invite", freeVideos: data?.free_videos ?? 20 };
+}
+export async function freeVideos(): Promise<number> {
+  return (await settings()).freeVideos;
 }
 export async function signupMode(): Promise<"invite" | "open" | "closed"> {
   return (await settings()).signupMode;

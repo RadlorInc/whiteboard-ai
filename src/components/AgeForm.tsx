@@ -1,6 +1,7 @@
 "use client";
 import { useActionState, useState } from "react";
 import { submitAge } from "@/app/actions";
+import { InterestsFields } from "./InterestsFields";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
   "November", "December"];
@@ -10,6 +11,7 @@ export function AgeForm({ src, next, initialError }: { src?: string; next?: stri
   const [state, action, pending] = useActionState(submitAge, initialError ? { error: initialError } : undefined);
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
+  const [picked, setPicked] = useState(0);
   const thisYear = new Date().getFullYear();
   const years = Array.from({ length: 121 }, (_, i) => thisYear - i);
   return (
@@ -42,7 +44,8 @@ export function AgeForm({ src, next, initialError }: { src?: string; next?: stri
           ))}
         </select>
       </label>
-      <button type="submit" className="btn block" disabled={!month || !year || pending}>
+      <InterestsFields onChange={setPicked} />
+      <button type="submit" className="btn block" disabled={!month || !year || !picked || pending}>
         Continue
       </button>
       {state?.error && (
