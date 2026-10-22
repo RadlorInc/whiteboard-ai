@@ -7,10 +7,9 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { verifyCode } from "@/app/actions";
-import { emailProblem } from "@/lib/email-check";
+import { EMAIL_PROBLEM, emailProblem } from "@/lib/email-check";
 
 const RESEND_SECONDS = 60;
-const EMAIL_PROBLEM = "Use your own everyday email address. Addresses with a + tag and temporary inboxes can't make an account.";
 const OTP_KEY = "wb.otp";
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
