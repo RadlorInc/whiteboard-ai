@@ -18,8 +18,8 @@ export const resetDay = (iso: string) => new Date(iso).toLocaleDateString("en-US
 /** The plans and packs (= price_catalog, migration 20261022000300; founder, 22 Oct 2026): one price for every level.
  *  Level "grad" = never capped, so a plan's videos are taught at the chat's level. */
 export const PLANS = [
-  { key: "plus", level: "grad", name: "Plus", price: "$13.99", videos: 70 },
-  { key: "pro", level: "grad", name: "Pro", price: "$25.99", videos: 150 },
+  { key: "plus_all", level: "grad", name: "Plus", price: "$13.99", videos: 70 },
+  { key: "pro_all", level: "grad", name: "Pro", price: "$25.99", videos: 150 },
 ] as const satisfies readonly { key: string; level: Level; name: string; price: string; videos: number }[];
 export const PACKS = [
   { key: "topup_20", price: "$4.99", videos: 20 },
