@@ -46,3 +46,8 @@ item is ticked. Agents never touch production: each step names who does it.
 - [ ] Daily: spend against the cap, failed generations, reports on Explore videos, sign-ups per IP.
 - [ ] Optional: `KEEP_WARM_ALWAYS=1` keeps all 6 prompts warm with no user (≈ $13/month fixed). Worth it only when
       `generation_calls` show more than ~4 cold videos a day that `KEEP_WARM=1` alone does not prevent.
+- [ ] Greek letters in Safari (22 Oct 2026, found while checking the Safari drawing fix, #35): the hand font has no
+      Greek (τ, ω, μ, σ), so each browser picks its own fallback font. Safari's makes τ look like a bold "T". Nothing
+      is missing (Safari and Chrome boards differ by 0.2–1.8% after #35, all of it these letters). Fix: give the
+      player's hand text one fixed fallback font for Greek, then compare a physics and a chemistry board in Safari and
+      Chrome.
