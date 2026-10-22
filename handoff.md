@@ -5,6 +5,21 @@
 
 **Before going live: [LAUNCH.md](LAUNCH.md)** — the checklist of what was left for launch (migration + merge order, keep-warm, Stripe, legal).
 
+## Free videos: first 20 once + invite a friend (22 Oct 2026, branch `free-20-refer`, Draft PR, not on prod)
+
+- Founder's plan (replaces "10 free every UTC month" and the "set 40" note): first 20 videos free, once; a friend
+  who signs up with your link (`/?friend=<profiles.friend_code>`, Account → Invite a friend) and makes a video gives
+  you 10 more, for at most 2 friends (40 free at most). Everyone, old users too, got a fresh 20 from the moment the
+  migration ran (`ops_settings.free_from`).
+- Migration `20261022000100_free_20_friends.sql`: `free_videos_monthly` → `free_videos` (20), table
+  `friend_referrals`, functions `free_videos()` and `add_friend_referral()`. 10 and 2 are constants in `free_videos()`
+  and `FRIEND_BONUS`/`FRIENDS_MAX` in `lib/videos.ts`: change both together.
+- Limits (founder: keep it light): no self-invite, one inviter per account, bonus for 2 friends at most.
+  Rep links (`?ref=`, `lib/radlorOps.ts`) are separate and unchanged; both can apply to one sign-up.
+- To ship (expand/contract, no window where live code and DB disagree): DB-only PR `free-20-db` → migrate-prod
+  → this PR (#38, auto-deploys) → once Vercel shows it live, migrate-prod again (drops `free_videos_monthly`). Terms text changed but
+  `current_terms_version` was NOT bumped (would make everyone re-accept): founder/attorney to decide.
+
 ## Production (12 Oct 2026, end of day)
 
 - **Live** on Vercel (project `whiteboard-ai`, Production env only) against its own Supabase project. The project ref

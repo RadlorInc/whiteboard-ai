@@ -58,8 +58,8 @@ describe('reserve_generation under concurrency', () => {
     await buyPack(u);
     await sql(`select public._ledger('${u.id}', 'forfeit', 0, -54, 0);`);   // fixture: spent 54 of the 60
     expect(await balance(u.id)).toBe('0/6/0');
-    const [freeBefore] = await sql('select free_videos_monthly from public.ops_settings;');
-    await sql('update public.ops_settings set free_videos_monthly = 0 where id;');
+    const [freeBefore] = await sql('select free_videos from public.ops_settings;');
+    await sql('update public.ops_settings set free_videos = 0 where id;');
 
     // 20 connections, each holding its transaction 200 ms after its reserve returns, so all 20 truly overlap
     // (over HTTP each call commits in ~2 ms and the calls barely overlap: measured, that version passed with the
@@ -82,7 +82,7 @@ describe('reserve_generation under concurrency', () => {
       await release(id);
     } finally {
       sessions.forEach((s) => s.close());
-      await sql(`update public.ops_settings set free_videos_monthly = ${freeBefore} where id;`);
+      await sql(`update public.ops_settings set free_videos = ${freeBefore} where id;`);
     }
     expect(await balance(u.id)).toBe('0/6/0');
     expect(await drift()).toEqual([]);

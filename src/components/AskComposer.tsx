@@ -9,7 +9,7 @@ import { Icon } from "./Icon";
 import { SUBJECT_GROUPS, SUBJECT_NAME, type Subject } from "./Chats";
 
 import { PLANS_ON } from "@/product";
-import { LEVELS, LEVEL_NAME, canAsk, resetDay, taughtLevel, videos, type Allowance, type Level } from "@/lib/videos";
+import { FRIENDS_MAX, LEVELS, LEVEL_NAME, canAsk, taughtLevel, videos, type Allowance, type Level } from "@/lib/videos";
 const EXAMPLES: Record<Subject, string[]> = {
   biology: ["How does the heart pump blood?", "How do we breathe?", "What does DNA do?"],
   physics: ["How does a rainbow form?", "Why do things fall?", "How does a car engine work?"],
@@ -55,10 +55,10 @@ export function AskComposer({ allowance: a, firstRun, onAsk, busy = false, place
 
   const study = subject !== "home" && subject !== "car";
   const enough = canAsk(a);
-  // What is left this month (founder, 20 Oct 2026: show it): free first, then the plan. Admins see nothing.
+  // What is left (founder, 20 Oct 2026: show it): free first, then the plan. Admins see nothing.
   const left = a.admin ? null
-    : a.freeLeft > 0 ? `${a.freeLeft} of ${a.freeMonthly} free videos left this month${a.plan > 0 ? ` · ${videos(a.plan)} from your plan` : ""}`
-    : a.plan > 0 ? `${videos(a.plan)} left from your plan · free videos come back ${resetDay(a.resetsAt)}` : null;
+    : a.freeLeft > 0 ? `${a.freeLeft} of ${a.freeTotal} free videos left${a.plan > 0 ? ` · ${videos(a.plan)} from your plan` : ""}`
+    : a.plan > 0 ? `${videos(a.plan)} left from your plan` : null;
   // Free videos used up: a plan pays, and teaches at its level (generate.ts caps it the same way).
   const taught = taughtLevel(level, a.planLevel);
   const capped = study && !a.admin && a.freeLeft === 0 && a.plan > 0 && taught !== level;
@@ -130,7 +130,7 @@ export function AskComposer({ allowance: a, firstRun, onAsk, busy = false, place
           )}
         </div>
       </div>
-      {!enough && <p className="composer-note">You&apos;ve used your {a.freeMonthly} free videos this month. They come back on {resetDay(a.resetsAt)}{PLANS_ON ? <>, or <Link href="/buy">get a plan</Link> for more</> : null}.</p>}
+      {!enough && <p className="composer-note">You&apos;ve used your {a.freeTotal} free videos.{a.friends < FRIENDS_MAX && <> <Link href="/account">Invite a friend</Link> for 10 more free.</>}{PLANS_ON ? <> Or <Link href="/buy">get a plan</Link>.</> : null}</p>}
       {enough && left && <p className="composer-note">{left}</p>}
       {capped && <p className="composer-note">Your plan teaches at {LEVEL_NAME[taught].toLowerCase()} level, so these videos will be {LEVEL_NAME[taught].toLowerCase()} lessons. <Link href="/buy">Get a {LEVEL_NAME[level].toLowerCase()} plan</Link> for {LEVEL_NAME[level].toLowerCase()} depth.</p>}
       <VoiceProgress />

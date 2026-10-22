@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { requireAccount } from "@/lib/session";
-import { resetDay, videos } from "@/lib/videos";
+import { videos } from "@/lib/videos";
 import { PlanCards } from "@/components/PlanCards";
 import { PLANS_ON } from "@/product";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Get more videos" };
 
-// Free 10 a month, then a plan (founder, 20 Oct 2026): plans renew monthly (unused plan videos end 3 days after the
+// First 20 free once, then a plan (founder, 22 Oct 2026): plans renew monthly (unused plan videos end 3 days after the
 // period). Packs are no longer sold.
 export default async function Buy() {
   if (!PLANS_ON) redirect("/ask");
@@ -17,7 +17,7 @@ export default async function Buy() {
       <div>
         <h1>Get more videos</h1>
         <p className="page-sub">
-          {a.freeLeft} of {a.freeMonthly} free videos left this month (they come back on {resetDay(a.resetsAt)})
+          {a.freeLeft} of {a.freeTotal} free videos left
           {a.plan > 0 ? `, plus ${videos(a.plan)} from your plan` : ""}. Videos that fail are never counted.
         </p>
       </div>

@@ -19,7 +19,7 @@ export async function setSwitch(_: R, f: FormData): Promise<R> {
 }
 
 // The number settings: app-wide brakes and the per-user fair-use caps (20 Oct 2026). The database checks each range.
-const LIMITS = ["daily_spend_cap_usd", "max_open_generations", "free_videos_monthly", "user_daily_cap", "user_monthly_cap",
+const LIMITS = ["daily_spend_cap_usd", "max_open_generations", "free_videos", "user_daily_cap", "user_monthly_cap",
   "slow_1_after", "slow_1_seconds", "slow_2_after", "slow_2_seconds"] as const;
 export async function setLimits(_: R, f: FormData): Promise<R> {
   const { sb } = await requireAdmin();

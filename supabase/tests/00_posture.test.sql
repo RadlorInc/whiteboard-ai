@@ -11,12 +11,12 @@ insert into want_tables values ('profiles'),('saved_items'),('invites'),('price_
   ('generation_calls'),('generation_internal'),('credit_ledger'),('prompt_cache_state'),('miss_counts'),('purchases'),
   ('subscriptions'),('stripe_events'),('shares'),('video_feedback'),('reports'),('support_messages'),('admins'),
   ('admin_audit'),('account_flags'),('ops_settings'),('ops_alerts'),('ops_state'),('rate_limits'),('client_errors'),
-  ('email_outbox'),('conversations'),('library_drawings');
+  ('email_outbox'),('conversations'),('library_drawings'),('friend_referrals');
 
 select set_eq(
   $$select relname::text from pg_class where relnamespace = 'public'::regnamespace and relkind in ('r','p','v','m','f')$$,
   $$select t from want_tables$$,
-  'public holds exactly the 29 hand-listed tables (no views, no unlisted table)');
+  'public holds exactly the 30 hand-listed tables (no views, no unlisted table)');
 
 select is_empty(
   $$select relname from pg_class where relnamespace = 'public'::regnamespace and relkind in ('r','p') and not relrowsecurity$$,
@@ -93,7 +93,7 @@ insert into want_fn values
   ('record_client_error','{service_role}',true), ('raise_ops_alert','{service_role}',true),
   ('outbox_claim','{service_role}',true), ('outbox_done','{service_role}',true),
   ('unfinished_signups','{service_role}',true), ('delete_account_data','{service_role}',true),
-  ('credit_drift','{service_role}',true),
+  ('credit_drift','{service_role}',true), ('free_videos','{service_role}',true), ('add_friend_referral','{service_role}',true),
   -- none (cron runs as postgres; triggers; helpers called only inside DEFINER functions)
   ('sweep','{}',true), ('daily','{}',true), ('check_credit_drift','{}',true), ('is_admin','{}',true),
   ('handle_new_user','{}',true), ('on_auth_user_deleted','{}',true),
