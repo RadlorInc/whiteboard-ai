@@ -94,6 +94,7 @@ insert into want_fn values
   ('outbox_claim','{service_role}',true), ('outbox_done','{service_role}',true),
   ('unfinished_signups','{service_role}',true), ('delete_account_data','{service_role}',true),
   ('credit_drift','{service_role}',true), ('free_videos','{service_role}',true), ('add_friend_referral','{service_role}',true),
+  ('set_interests','{service_role}',true),
   -- none (cron runs as postgres; triggers; helpers called only inside DEFINER functions)
   ('sweep','{}',true), ('daily','{}',true), ('check_credit_drift','{}',true), ('is_admin','{}',true),
   ('handle_new_user','{}',true), ('on_auth_user_deleted','{}',true),

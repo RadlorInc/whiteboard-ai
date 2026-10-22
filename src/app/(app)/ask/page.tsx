@@ -18,7 +18,7 @@ export default async function Ask() {
     redirect("/start");
   }
   return account.hasAccess ? (
-    <Chat conversationId={null} subject={null} turns={[]} allowance={account.allowance} firstRun={!account.everPaid} />
+    <Chat conversationId={null} subject={null} subjects={account.interests.subjects} level={account.interests.level} turns={[]} allowance={account.allowance} firstRun={!account.everPaid} />
   ) : (
     <main className="page narrow stack">
       <h1>Enter your invite code</h1>

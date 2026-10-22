@@ -56,6 +56,10 @@ export async function completeSignup(userId: string, age: AgeOk): Promise<string
   }
   if (result === "invalid") return "/age?e=invalid";
   jar.delete(AGE_OK_COOKIE);
+  if (age.interests) {
+    const { error: e } = await admin.rpc("set_interests", { p_user_id: userId, p_subjects: age.interests.subjects, p_level: age.interests.level });
+    if (e) console.error("set_interests failed", e.code);   // not fatal: the account works with every subject
+  }
   await keepReferral(userId);
   await keepFriend(userId);
   if (age.invite) await (await createClient()).rpc("redeem_invite", { p_code: age.invite });
