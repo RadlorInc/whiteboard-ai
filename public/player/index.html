@@ -247,7 +247,10 @@ async function write(id, ms = 900) {
   if (el.tagName === 'g') { const ts = [...el.querySelectorAll('text.hand:not(.fillable)')]; for (const t of ts) await write(t, ms / ts.length); return; }
   const b = el.getBBox();
   marker.style.opacity = 1;
-  return frames(ms, t => { el.style.clipPath = `inset(0 ${100 - t * 100}% 0 0)`; markAt(el, b.x + b.width * t, b.y + b.height * .75); });
+  await frames(ms, t => { el.style.clipPath = `inset(0 ${100 - t * 100}% 0 0)`; markAt(el, b.x + b.width * t, b.y + b.height * .75); });
+  // Written: no clip at all. Safari clips "inset(0 0% 0 0)" at the text's box, cutting a hand-font letter's tail or a
+  // subscript (H2O read H2C, NADH read NADh); Chrome showed them (22 Oct 2026).
+  el.style.clipPath = 'none';
 }
 async function penUp() {
   if (marker.style.opacity === '0') return;
