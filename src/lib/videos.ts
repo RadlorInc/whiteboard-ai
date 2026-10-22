@@ -1,17 +1,19 @@
-// Free 10 a month, then a plan (founder, 20 Oct 2026; migration 20261020000400_free_tier.sql). 1 credit = 1 video:
-// the month's free videos come first, then each video takes 1 from a plan. Admins never run out.
+// First 20 videos free, once, plus 10 per invited friend who made a video (at most 2 friends), then a plan (founder,
+// 22 Oct 2026; migration 20261022000100_free_20_friends.sql). 1 credit = 1 video: the free videos come first, then each
+// video takes 1 from a plan. Admins never run out.
 export type Allowance = {
   admin: boolean;
-  freeLeft: number;        // free videos left this UTC month
-  freeMonthly: number;     // ops_settings.free_videos_monthly
+  freeLeft: number;        // free videos left (they do not come back)
+  freeTotal: number;       // ops_settings.free_videos (20) + 10 per friend who made a video
+  friends: number;         // friends counted for the bonus (0-2, FRIENDS_MAX)
   plan: number;            // videos from a plan (and old packs or converted credits)
   planLevel: Level | null; // the active plan's level: its videos are taught at it; null = no plan
-  resetsAt: string;        // when the free videos come back: the 1st of next month, UTC
 };
+export const FRIEND_BONUS = 10, FRIENDS_MAX = 2;   // = free_videos() in the migration
 export const HOLD_CREDITS = 1;
 export const canAsk = (a: Allowance) => a.admin || a.freeLeft > 0 || a.plan >= HOLD_CREDITS;
 export const videosLeft = (a: Allowance) => a.freeLeft + a.plan;
-/** "November 1": the day the free videos come back (dates are UTC on the server). */
+/** "November 1": the day a monthly limit lifts (dates are UTC on the server). */
 export const resetDay = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "UTC" });
 /** The plans (= price_catalog; founder, 20 Oct 2026): 40 or 100 videos a month, one pair per level, each priced to
  *  keep $3 a month after Stripe, a 10% referral commission and the model cost. A plan's videos are taught at its level. */

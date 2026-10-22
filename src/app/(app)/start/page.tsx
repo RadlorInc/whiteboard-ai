@@ -3,14 +3,13 @@ import { headers } from "next/headers";
 import { requireAccount } from "@/lib/session";
 import { notNow, redeemInvite } from "@/app/actions";
 import { InviteForm } from "@/components/InviteForm";
-import { resetDay } from "@/lib/videos";
 import { PlanCards } from "@/components/PlanCards";
 import { PLANS_ON } from "@/product";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Get more videos" };
 
-// §5.4 /start: shown once the month's free videos are used up (free tier, 20 Oct 2026). Checkout is not live yet.
+// §5.4 /start: shown once the free videos are used up (founder, 22 Oct 2026). Checkout is not live yet.
 export default async function Start() {
   if (!PLANS_ON) redirect("/ask");
   const account = await requireAccount("/start");
@@ -26,8 +25,8 @@ export default async function Start() {
       ) : (
         <>
           <div>
-            <h1>You&apos;ve used this month&apos;s free videos</h1>
-            <p className="page-sub">Your {account.allowance.freeMonthly} free videos come back on {resetDay(account.allowance.resetsAt)}. Want more now? Pick a plan at the level you study at. Failed videos are never counted.</p>
+            <h1>You&apos;ve used your free videos</h1>
+            <p className="page-sub">You&apos;ve made all {account.allowance.freeTotal} of your free videos. Want more? Pick a plan at the level you study at{account.allowance.friends < 2 ? ", or invite a friend from your Account page for 10 more free" : ""}. Failed videos are never counted.</p>
           </div>
           {country && country !== "US" && <p className="notice">Payments: US cards only for now.</p>}
           <PlanCards buy="off" />

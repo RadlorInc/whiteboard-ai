@@ -3,7 +3,7 @@
 // auth.getUser(), never here.
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { REF_COOKIE, REF_DAYS, refCookieValue } from "@/lib/radlorOps";
+import { FRIEND_COOKIE, FRIEND_CODE, REF_COOKIE, REF_DAYS, refCookieValue } from "@/lib/radlorOps";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -63,6 +63,9 @@ export async function proxy(request: NextRequest) {
   // A market rep's link (?ref=…): remembered until sign-up, which reads it (lib/signup.ts). The latest link wins.
   const ref = refCookieValue(request.nextUrl.searchParams);
   if (ref) response.cookies.set(REF_COOKIE, ref, { httpOnly: true, secure: request.nextUrl.protocol === "https:", sameSite: "lax", path: "/", maxAge: REF_DAYS * 86400 });
+  // A user's friend link (?friend=…, 22 Oct 2026): separate from a rep's ?ref=, read at sign-up the same way.
+  const friend = request.nextUrl.searchParams.get("friend");
+  if (friend && FRIEND_CODE.test(friend)) response.cookies.set(FRIEND_COOKIE, friend, { httpOnly: true, secure: request.nextUrl.protocol === "https:", sameSite: "lax", path: "/", maxAge: REF_DAYS * 86400 });
   return response;
 }
 

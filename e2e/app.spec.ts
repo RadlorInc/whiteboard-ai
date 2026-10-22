@@ -22,7 +22,7 @@ test("ask, get a free video, find it in the library, share it, unshare it", asyn
   // People see "Done." and videos left; the credits charged stay on the element for this check (18 Oct 2026).
   await expect(page.locator("[data-charged]")).toBeVisible({ timeout: 90_000 });
   const used = Number(await page.locator("[data-charged]").getAttribute("data-charged"));
-  // Free tier (20 Oct 2026): seed A has this month's free videos, so the video is free and the plan is untouched.
+  // Free tier (20 Oct 2026): seed A has free videos left (first 20, once; 22 Oct 2026), so the video is free and the plan is untouched.
   expect(used).toBe(0);
   await page.goto("/library");
   expect(await credits(page)).toBe(before);

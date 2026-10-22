@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { AGE_BLOCK_COOKIE, AGE_OK_COOKIE, INVITE_COOKIE, verify, type AgeOk } from "@/lib/age";
 import { getAccount, landing, safeNext } from "@/lib/session";
-import { REF_COOKIE, parseRef, reportRef } from "@/lib/radlorOps";
+import { FRIEND_COOKIE, REF_COOKIE, parseRef, reportRef } from "@/lib/radlorOps";
 import { emailProblem } from "@/lib/email-check";
 
 if (typeof window !== "undefined") throw new Error("lib/signup imported in the browser");
@@ -57,6 +57,7 @@ export async function completeSignup(userId: string, age: AgeOk): Promise<string
   if (result === "invalid") return "/age?e=invalid";
   jar.delete(AGE_OK_COOKIE);
   await keepReferral(userId);
+  await keepFriend(userId);
   if (age.invite) await (await createClient()).rpc("redeem_invite", { p_code: age.invite });
   const account = await getAccount();
   if (!account) return "/signin";
@@ -72,6 +73,16 @@ export async function finishSignIn(next: string): Promise<string> {
   return age ? completeSignup(account.user.id, age) : "/age";
 }
 
+
+/** A new account that arrived through a friend's link: the inviter gets 10 free videos once this account makes a video
+ * (add_friend_referral refuses self-invites, a second inviter and accounts that already made one). */
+async function keepFriend(userId: string) {
+  const jar = await cookies();
+  const code = jar.get(FRIEND_COOKIE)?.value;
+  if (!code) return;
+  jar.delete(FRIEND_COOKIE);
+  await createAdminClient().rpc("add_friend_referral", { p_friend: userId, p_code: code });
+}
 
 /** A new account that arrived through a market rep's link: stored on the user (checkout reads it) and reported. */
 async function keepReferral(userId: string) {

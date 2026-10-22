@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "Ask" };
 // §5.3 / §5.6: a new chat (founder, 18 Oct 2026): pick a subject and ask; your chats are in the sidebar.
 export default async function Ask() {
   const account = await requireAccount("/ask");
-  // The month's free videos used up and no plan: show the plans once (free tier, 20 Oct 2026).
+  // The free videos used up and no plan: show the plans once (free tier, 22 Oct 2026).
   if (PLANS_ON && account.hasAccess && !canAsk(account.allowance) && !(await cookies()).has(START_SEEN_COOKIE)) {
     redirect("/start");
   }

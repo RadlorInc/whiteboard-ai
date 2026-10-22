@@ -14,7 +14,7 @@ export function PlanCards({ buy }: { buy?: "live" | "off" }) {
               <li key={p.key} className="card plan">
                 <h2>{p.name}</h2>
                 <p className="price">{p.price} <small>/ month</small></p>
-                <p className="muted small">{p.videos} videos a month, on top of the free 10. Taught at {LEVEL_NAME[l].toLowerCase()} level. Cancel any time.</p>
+                <p className="muted small">{p.videos} videos a month, on top of your free videos. Taught at {LEVEL_NAME[l].toLowerCase()} level. Cancel any time.</p>
                 {buy === "live" && <div style={{ marginTop: 10 }}><BuyButton priceKey={p.key} label={`Get ${p.name}`} /></div>}
                 {buy === "off" && <button type="button" className="btn block" disabled aria-describedby="checkout-off" style={{ marginTop: 10 }}>Choose {p.name}</button>}
               </li>

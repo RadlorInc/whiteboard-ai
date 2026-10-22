@@ -6,6 +6,9 @@
 if (typeof window !== "undefined") throw new Error("lib/radlorOps imported in the browser");
 
 export const REF_COOKIE = "ar_ref";
+// A user's own friend link, `/?friend=<profiles.friend_code>` (not reported to Radlor Ops; lib/signup.ts keepFriend).
+export const FRIEND_COOKIE = "ar_friend";
+export const FRIEND_CODE = /^[0-9a-f]{12}$/;
 export const REF_DAYS = 60;
 const CODE = /^[0-9a-f]{10}$/;
 

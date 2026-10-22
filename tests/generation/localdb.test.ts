@@ -15,7 +15,7 @@ vi.mock('@/lib/supabase/server', () => ({ createAdminClient: local }));
 vi.mock('server-only', () => ({}));
 
 describe.runIf(on)('local stack money path (WB_LOCAL_DB=1)', () => {
-  // Free tier (20 Oct 2026): A's first videos this month are free (nothing held or charged); past them, 1 from the plan.
+  // Free tier (20 Oct 2026): A's first 20 videos are free, once (22 Oct 2026) (nothing held or charged); past them, 1 from the plan.
   it('charges the rainbow (free or 1 from the plan), releases a refusal, and leaves no drift', async () => {
     const { supabaseDb: db } = await import('../../src/lib/generation/db-supabase');
     const { runGeneration } = await import('../../src/lib/generation/run');
