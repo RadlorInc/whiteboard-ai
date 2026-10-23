@@ -2,6 +2,7 @@
 // before any account exists, whether to show the under-13 page. Same rule as the SQL: the youngest possible birth
 // date is the last day of the month, against today's date in Pago Pago (the earliest US calendar date).
 import { createHmac, timingSafeEqual } from "node:crypto";
+import type { Interests } from "@/lib/interests";
 
 export const AGE_GATE_VERSION = "v1";
 export const AGE_OK_COOKIE = "age_ok";
@@ -59,7 +60,8 @@ export function verify<T extends Record<string, unknown>>(value: string | undefi
 }
 
 // next: where a sign-up started from (a shared video, 18 Oct 2026); the new account lands there instead of /start.
-export type AgeOk = { month: number; year: number; gate_version: string; source: string | null; invite: string | null; next?: string | null };
+export type AgeOk = { month: number; year: number; gate_version: string; source: string | null; invite: string | null; next?: string | null;
+  interests?: Interests };
 
 export const SIGNUP_SOURCES = ["tiktok", "instagram", "youtube", "reddit", "discord", "ref", "share", "direct"];
 

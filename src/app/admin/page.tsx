@@ -15,7 +15,7 @@ export default async function Admin() {
   const day = new Date(); day.setUTCHours(0, 0, 0, 0);
   const since = day.toISOString();
   const week = new Date(day.getTime() - 6 * 864e5).toISOString();
-  const [gens, calls, settings, drift, misses, users, reports, drawings, feedback] = await Promise.all([
+  const [gens, calls, settings, drift, misses, users, reports, drawings, feedback, support] = await Promise.all([
     db.from("generations").select("id, created_at, style, status, credits_charged, error_code").gte("created_at", since).order("created_at", { ascending: false }).limit(500),
     db.from("generation_calls").select("cost_usd").gte("started_at", since),
     db.from("ops_settings").select("*").single(),
@@ -25,6 +25,8 @@ export default async function Admin() {
     db.from("reports").select("id, slug, reason, note, created_at").is("resolved_at", null).order("created_at", { ascending: false }).limit(50),
     sb.rpc("admin_list_drawings", { p_status: "pending", p_limit: 30 }),
     db.from("video_feedback").select("generation_id, rating, reasons, note, created_at").gte("created_at", week).order("created_at", { ascending: false }).limit(1000),
+    // the contact form (founder, 23 Oct 2026): newest 30; reply by email
+    db.from("support_messages").select("id, email, topic, message, created_at").order("created_at", { ascending: false }).limit(30),
   ]);
   // Video feedback, last 7 days (VideoFeedback.tsx). A thumbs-down links to the video's public page when it has one.
   const fb = feedback.data ?? [], downs = fb.filter(f => f.rating === -1);
@@ -74,6 +76,16 @@ export default async function Admin() {
         <h2>Open reports ({(reports.data ?? []).length})</h2>
         {(reports.data ?? []).length === 0 ? <p className="muted">None.</p>
           : <ul className="stack" style={{ listStyle: "none", padding: 0 }}>{(reports.data ?? []).map(r => <ReportRow key={r.id} r={r} />)}</ul>}
+      </section>
+      <section className="card stack">
+        <h2>Contact messages ({(support.data ?? []).length})</h2>
+        {(support.data ?? []).length === 0 ? <p className="muted">None.</p>
+          : <ul className="stack" style={{ listStyle: "none", padding: 0 }}>{(support.data ?? []).map(m => (
+              <li key={m.id} className="stack" style={{ gap: 4 }}>
+                <span className="small muted">{new Date(m.created_at).toISOString().slice(0, 16).replace("T", " ")} UTC · {m.topic} ·{" "}
+                  <a href={`mailto:${m.email}?subject=${encodeURIComponent("Re: your message to Ask Radlor")}`}>{m.email}</a></span>
+                <span style={{ whiteSpace: "pre-wrap" }}>{m.message}</span>
+              </li>))}</ul>}
       </section>
       <div className="grid">
         <CreditsForm />

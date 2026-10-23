@@ -16,6 +16,9 @@ const THROWAWAY = new Set([
   "teleworm.us", "harakirimail.com", "mailpoof.com", "easytrashmail.com", "anonaddy.me", "33mail.com",
 ]);
 
+/** What the person sees when emailProblem() refuses an address (founder, 22 Oct 2026: "ask for a valid email address"). */
+export const EMAIL_PROBLEM = "Please enter a valid email address. Addresses with a + tag and temporary inboxes can't make an account.";
+
 /** Why an address can't make an account, or null when it can. */
 export function emailProblem(email: string): "alias" | "throwaway" | null {
   const [local = "", domain = ""] = email.trim().toLowerCase().split("@");

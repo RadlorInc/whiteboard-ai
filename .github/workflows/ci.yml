@@ -1,7 +1,11 @@
-# Every push and PR: types, lint, secret scan, unit + local-DB tests, pgTAP, e2e (mock model: never spends).
+# Every PR and every push to main: types, lint, secret scan, unit + local-DB tests, pgTAP, e2e (mock model: never spends).
 # Inert until the private GitHub repo exists (PLAN.md E2); make "ci" a required check so a red PR cannot merge.
 name: ci
-on: [push, pull_request]
+# push only on main: a PR already runs on pull_request, and a second identical run doubled the waits and downloads.
+on:
+  push:
+    branches: [main]
+  pull_request:
 permissions:
   contents: read
 concurrency:
@@ -37,7 +41,25 @@ jobs:
       - run: supabase test db
       - run: npx vitest run
       - run: WB_LOCAL_DB=1 npx vitest run tests/billing tests/db tests/generation/localdb.test.ts
-      - run: npx playwright install --with-deps chromium webkit
+      # The install hung for 10-30 min several times (22 Oct 2026): apt stalls on a slow Ubuntu mirror. apt gets its own
+      # timeout and retries; each try gets 4 minutes, and a stuck apt is killed before the next one (it holds the lock).
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the e2e browsers
+        timeout-minutes: 13
+        run: |
+          # The runner's own mirror (azure.archive.ubuntu.com) crawled at ~50 kB/s on 22 Oct 2026: use Ubuntu's main one.
+          printf 'https://archive.ubuntu.com/ubuntu/\tpriority:1\n' | sudo tee /etc/apt/apt-mirrors.txt
+          printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\n' | sudo tee /etc/apt/apt.conf.d/99ci-net
+          for i in 1 2 3; do
+            timeout 240 npx playwright install --with-deps chromium webkit && exit 0
+            echo "playwright install try $i failed or hung; retrying"
+            sudo pkill -f apt-get || true
+            sudo dpkg --configure -a || true
+          done
+          exit 1
       - run: CI=1 npx playwright test
       - name: Keep the e2e evidence when it fails
         if: failure()

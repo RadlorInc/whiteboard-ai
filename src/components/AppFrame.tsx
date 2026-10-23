@@ -66,8 +66,8 @@ export function AppFrame({ email, allowance, chats, children }: {
 
   // The ring round the avatar (founder, 18 Oct 2026): how many videos are left, at a glance;
   // green, then amber under half, red under a fifth or at none.
-  // Full at the month's free videos or more (free tier, 20 Oct 2026); an admin's is always full.
-  const left = videosLeft(allowance), share = allowance.admin ? 1 : Math.min(left / Math.max(1, allowance.freeMonthly), 1);
+  // Full at all the free videos or more (free tier, 22 Oct 2026); an admin's is always full.
+  const left = videosLeft(allowance), share = allowance.admin ? 1 : Math.min(left / Math.max(1, allowance.freeTotal), 1);
   const ring = !canAsk(allowance) || share < 0.2 ? "red" : share < 0.5 ? "amber" : "green";
   const leftText = allowance.admin ? "Unlimited (admin)" : `${videos(left)} left`;
   const nav: [string, IconName, string][] = [["/explore", "compass", "Explore"], ["/saved", "bookmark", "Collection"], ["/library", "videos", "Your videos"]];

@@ -9,7 +9,7 @@ import { Icon } from "./Icon";
 import { SUBJECT_GROUPS, SUBJECT_NAME, type Subject } from "./Chats";
 
 import { PLANS_ON } from "@/product";
-import { LEVELS, LEVEL_NAME, canAsk, resetDay, taughtLevel, videos, type Allowance, type Level } from "@/lib/videos";
+import { FRIENDS_MAX, LEVEL_NAME, canAsk, taughtLevel, videos, type Allowance, type Level } from "@/lib/videos";
 const EXAMPLES: Record<Subject, string[]> = {
   biology: ["How does the heart pump blood?", "How do we breathe?", "What does DNA do?"],
   physics: ["How does a rainbow form?", "Why do things fall?", "How does a car engine work?"],
@@ -20,12 +20,14 @@ const EXAMPLES: Record<Subject, string[]> = {
 const MAX = 500;
 
 // onAsk: the chat takes the question; busy holds the button while its video is made (one video at a time).
-// onSubject: the subject can still change (a new chat); without it the subject is fixed and only shown. The level
-// (study subjects only; founder, 20 Oct 2026) works the same way: onLevel while the chat is new.
-export function AskComposer({ allowance: a, firstRun, onAsk, busy = false, placeholder = "Ask anything…", subject, onSubject, level = "school", onLevel }: {
+// onSubject: the subject can still change (a new chat); without it the subject is fixed and only shown. subjects: the
+// person's categories, the only ones offered (founder, 22 Oct 2026). The level is chosen on /settings, not here.
+export function AskComposer({ allowance: a, firstRun, onAsk, busy = false, placeholder = "Ask anything…", subject, subjects, onSubject, level = "school" }: {
   allowance: Allowance; firstRun: boolean; onAsk: (question: string, explore: boolean) => void; busy?: boolean;
-  placeholder?: string; subject: Subject; onSubject?: (s: Subject) => void; level?: Level; onLevel?: (l: Level) => void;
+  placeholder?: string; subject: Subject; subjects?: Subject[]; onSubject?: (s: Subject) => void; level?: Level;
 }) {
+  const groups = SUBJECT_GROUPS.map(([g, list]) => [g, list.filter((s) => !subjects || subjects.includes(s))] as const)
+    .filter(([, list]) => list.length);
   const [question, setQuestion] = useState("");
   const [explore, setExploreTick] = useState(true);   // every new video goes to Explore (founder, 15 Oct 2026)
   const box = useRef<HTMLTextAreaElement>(null);
@@ -55,10 +57,10 @@ export function AskComposer({ allowance: a, firstRun, onAsk, busy = false, place
 
   const study = subject !== "home" && subject !== "car";
   const enough = canAsk(a);
-  // What is left this month (founder, 20 Oct 2026: show it): free first, then the plan. Admins see nothing.
+  // What is left (founder, 20 Oct 2026: show it): free first, then the plan. Admins see nothing.
   const left = a.admin ? null
-    : a.freeLeft > 0 ? `${a.freeLeft} of ${a.freeMonthly} free videos left this month${a.plan > 0 ? ` · ${videos(a.plan)} from your plan` : ""}`
-    : a.plan > 0 ? `${videos(a.plan)} left from your plan · free videos come back ${resetDay(a.resetsAt)}` : null;
+    : a.freeLeft > 0 ? `${a.freeLeft} of ${a.freeTotal} free videos left${a.plan > 0 ? ` · ${videos(a.plan)} from your plan` : ""}`
+    : a.plan > 0 ? `${videos(a.plan)} left from your plan` : null;
   // Free videos used up: a plan pays, and teaches at its level (generate.ts caps it the same way).
   const taught = taughtLevel(level, a.planLevel);
   const capped = study && !a.admin && a.freeLeft === 0 && a.plan > 0 && taught !== level;
@@ -94,11 +96,11 @@ export function AskComposer({ allowance: a, firstRun, onAsk, busy = false, place
           }}
         />
         <div className="composer-bar">
-          {onSubject ? (
+          {onSubject && groups.flatMap(([, l]) => l).length > 1 ? (
             <label className="subject-pick">
               <span className="sr-only">Subject</span>
               <select value={subject} onChange={(e) => onSubject(e.target.value as Subject)}>
-                {SUBJECT_GROUPS.map(([group, list]) => (
+                {groups.map(([group, list]) => (
                   <optgroup key={group} label={group}>{list.map((s) => <option key={s} value={s}>{SUBJECT_NAME[s]}</option>)}</optgroup>
                 ))}
               </select>
@@ -107,17 +109,6 @@ export function AskComposer({ allowance: a, firstRun, onAsk, busy = false, place
           ) : (
             <span className="subject-pick locked" title="A chat keeps its subject. Start a new chat for another.">{SUBJECT_NAME[subject]}</span>
           )}
-          {study && (onLevel ? (
-            <label className="subject-pick" title="What to teach: a high-school, college or grad-school lesson">
-              <span className="sr-only">Level</span>
-              <select value={level} onChange={(e) => onLevel(e.target.value as Level)}>
-                {LEVELS.map((l) => <option key={l} value={l}>{LEVEL_NAME[l]}</option>)}
-              </select>
-              <Icon name="chevronDown" size={14} />
-            </label>
-          ) : (
-            <span className="subject-pick locked" title="A chat keeps its level. Start a new chat for another.">{LEVEL_NAME[level]}</span>
-          ))}
           {question.length >= 400 && <span className="count">{question.length} / {MAX}</span>}
           {enough ? (
             <button type="submit" className="send" aria-label="Ask" disabled={empty || busy}>
@@ -130,7 +121,7 @@ export function AskComposer({ allowance: a, firstRun, onAsk, busy = false, place
           )}
         </div>
       </div>
-      {!enough && <p className="composer-note">You&apos;ve used your {a.freeMonthly} free videos this month. They come back on {resetDay(a.resetsAt)}{PLANS_ON ? <>, or <Link href="/buy">get a plan</Link> for more</> : null}.</p>}
+      {!enough && <p className="composer-note">You&apos;ve used your {a.freeTotal} free videos.{a.friends < FRIENDS_MAX && <> <Link href="/account">Invite a friend</Link> for 10 more free.</>}{PLANS_ON ? <> Or <Link href="/buy">get a plan</Link>.</> : null}</p>}
       {enough && left && <p className="composer-note">{left}</p>}
       {capped && <p className="composer-note">Your plan teaches at {LEVEL_NAME[taught].toLowerCase()} level, so these videos will be {LEVEL_NAME[taught].toLowerCase()} lessons. <Link href="/buy">Get a {LEVEL_NAME[level].toLowerCase()} plan</Link> for {LEVEL_NAME[level].toLowerCase()} depth.</p>}
       <VoiceProgress />

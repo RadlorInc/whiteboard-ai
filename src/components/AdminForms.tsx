@@ -22,7 +22,7 @@ export function SwitchForm({ k, label, on }: { k: string; label: string; on: boo
 
 const LIMIT_LABELS: [string, string, string?][] = [
   ["daily_spend_cap_usd", "App-wide model spend a day ($)", "0.01"], ["max_open_generations", "Videos made at once, app-wide"],
-  ["free_videos_monthly", "Free videos a user a month (then a plan)"],
+  ["free_videos", "Free videos a new user gets, once (+10 per friend, up to 2)"],
   ["user_daily_cap", "Videos a user a day (fair use, all users)"], ["user_monthly_cap", "Videos a user a month (fair use, all users)"],
   ["slow_1_after", "First wait after this many videos today"], ["slow_1_seconds", "First wait (seconds, max 60)"],
   ["slow_2_after", "Second wait after this many videos today"], ["slow_2_seconds", "Second wait (seconds, max 60)"],

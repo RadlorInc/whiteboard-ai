@@ -152,7 +152,7 @@ select set_eq($$select conrelid::regclass::text, confdeltype::text from pg_const
                  where contype = 'f' and confrelid = 'public.profiles'::regclass$$,
   $$values ('credit_balances','r'), ('credit_ledger','r'), ('generations','r'), ('purchases','r'), ('subscriptions','r'),
            ('admins','r'), ('account_flags','c'), ('shares','c'), ('video_feedback','c'), ('support_messages','c'),
-           ('conversations','r'), ('saved_items','c')$$,
+           ('conversations','r'), ('saved_items','c'), ('friend_referrals','c')$$,
   'FKs to profiles(id) equal the hand-written list with their rules (none from admin_audit or email_outbox)');
 
 -- A live user is untouched.

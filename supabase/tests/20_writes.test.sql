@@ -3,7 +3,7 @@
 begin;
 set local search_path = public, extensions;
 \ir helpers.psql
-select plan(624);
+select plan(633);
 
 create temp table tbl (t text primary key);
 insert into tbl values ('profiles'),('invites'),('price_catalog'),('credit_balances'),('generations'),
@@ -60,7 +60,7 @@ insert into fn values
   ('stripe_reverse','{service_role}'), ('stripe_efw','{service_role}'), ('hit_rate_limit','{service_role}'),
   ('submit_report','{service_role}'), ('submit_support_message','{service_role}'), ('record_client_error','{service_role}'),
   ('raise_ops_alert','{service_role}'), ('outbox_claim','{service_role}'), ('outbox_done','{service_role}'),
-  ('unfinished_signups','{service_role}'), ('delete_account_data','{service_role}'), ('credit_drift','{service_role}'),
+  ('unfinished_signups','{service_role}'), ('delete_account_data','{service_role}'), ('credit_drift','{service_role}'), ('free_videos','{service_role}'), ('add_friend_referral','{service_role}'), ('set_interests','{service_role}'),
   ('sweep','{}'), ('daily','{}'), ('check_credit_drift','{}'), ('is_admin','{}'), ('narration_chars','{}'),
   ('_ledger','{}'), ('_expire_bucket','{}'), ('_write_internal','{}'), ('_clips_ok','{}'), ('_fail_locked','{}'),
   ('_stripe_begin','{}'), ('_stripe_outcome','{}'), ('_stripe_args_ok','{}'), ('_has_contact_info','{}'),
@@ -75,7 +75,7 @@ select set_eq($$select proname::text from pg_proc where pronamespace = 'public':
                  and prorettype <> 'trigger'::regtype$$, 'select f from fn',
   'the matrix below covers every non-trigger function in public');
 
--- 81 functions x 3 roles = 243: refused where not granted, callable where granted.
+-- 82 functions x 3 roles = 246: refused where not granted, callable where granted.
 select case when w.r = any (fn.roles)
   then unalike(coalesce(pg_temp.q(w.r, w.sub, 'aal1', pg_temp.call_sql(fn.f)), '(null)'),
                'ERROR 42501: permission denied for function%', format('%s CAN call %s', w.r, fn.f))

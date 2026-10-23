@@ -7,10 +7,9 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { verifyCode } from "@/app/actions";
-import { emailProblem } from "@/lib/email-check";
+import { EMAIL_PROBLEM, emailProblem } from "@/lib/email-check";
 
 const RESEND_SECONDS = 60;
-const EMAIL_PROBLEM = "Use your own everyday email address. Addresses with a + tag and temporary inboxes can't make an account.";
 const OTP_KEY = "wb.otp";
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
@@ -162,6 +161,8 @@ export function SignInMethods({ next, showGoogle, inApp }: { next: string; showG
           <p>
             We sent a {OTP_LENGTH}-digit code to <strong>{email}</strong>.
           </p>
+          {/* Outlook/Hotmail file our code under Junk while radlor.com's sender reputation is new (22 Oct 2026). */}
+          <p className="muted small">Can&apos;t find it? Check your Junk or Spam folder for an email from Ask Radlor.</p>
           <label className="field">
             <span>Code</span>
             <input
