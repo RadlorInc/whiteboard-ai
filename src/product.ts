@@ -1,6 +1,16 @@
 // The product's public name, in one place until the founder picks the real one (PLAN.md §2 A1).
 export const PRODUCT_NAME = "Ask Radlor"; // founder, 15 Oct 2026; two words since 23 Oct 2026
 
+// The public origin, for canonical URLs, the sitemap and link previews. Hard-coded so a preview deploy never names
+// itself canonical; the bare askradlor.com 308s here. radlor.com/askradlor names this app by PRODUCT_ID.
+export const SITE_URL = "https://www.askradlor.com";
+export const PRODUCT_ID = `${SITE_URL}/#app`;
+// Search-result wording (founder, 23 Oct 2026: price first, "around 20¢" on purpose so it stays true if prices move a
+// little; Pro 17¢, Plus 20¢, packs 20-25¢). First sentence stands alone under ~155 characters.
+export const searchDescription = (free: number, plansOn: boolean) =>
+  `Your first ${free} videos are free${plansOn ? ", then around 20¢ a video" : ""}. Type any question and watch a short ` +
+  "voiced video draw the answer step by step: biology, physics, chemistry, home and car fixes. Ages 13+.";
+
 // FOUNDER DECIDES (A11): the real address once the domain exists.
 export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@example.com";
 

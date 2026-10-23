@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LEGAL } from "@/content/legal";
+import { SITE_URL } from "@/product";
 
 // §11.8: beta drafts; the attorney reviews them before public launch (C9).
 export async function generateMetadata({ params }: PageProps<"/legal/[doc]">): Promise<Metadata> {
   const { doc } = await params;
-  return { title: LEGAL[doc]?.title ?? "Not found" };
+  const d = LEGAL[doc];
+  return d ? { title: d.title, description: `${d.title} for Ask Radlor, a service of Radlor Inc.`, alternates: { canonical: `${SITE_URL}/legal/${doc}` } }
+    : { title: "Not found" };
 }
 
 export default async function Legal({ params }: PageProps<"/legal/[doc]">) {

@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PlanCards } from "@/components/PlanCards";
-import { PLANS_ON } from "@/product";
+import { PLANS_ON, SITE_URL } from "@/product";
 import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Pricing" };
+export const metadata: Metadata = {
+  title: "Pricing",
+  description: "Your first 20 videos are free. Then Plus is $13.99 a month for 70 videos, Pro $25.99 for 150, or packs from $4.99 paid once.",
+  alternates: { canonical: `${SITE_URL}/pricing` },
+};
 
 // §5.5: public pricing. First 20 free once, then a plan or a pack (founder, 22 Oct 2026). Every video is the same quality.
 export default function Pricing() {

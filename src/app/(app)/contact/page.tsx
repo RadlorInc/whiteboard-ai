@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
-import { SUPPORT_EMAIL } from "@/product";
+import { SUPPORT_EMAIL, SITE_URL } from "@/product";
 import { getAccount } from "@/lib/session";
 import { ContactForm } from "@/components/ContactForm";
 
-export const metadata: Metadata = { title: "Contact" };
+export const metadata: Metadata = {
+  title: "Contact",
+  description: "Contact the Ask Radlor team about your account, a payment or a video. We reply within 2 business days.",
+  alternates: { canonical: `${SITE_URL}/contact` },
+};
 
 // §11.10: a form (founder, 23 Oct 2026; messages show on /admin) and the email address. Replies within 2 business days.
 export default async function Contact() {

@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
-import { PLANS_ON } from "@/product";
+import { PLANS_ON, SITE_URL } from "@/product";
 import { freeVideos } from "@/lib/session";
 
-export const metadata: Metadata = { title: "Help" };
+export const metadata: Metadata = {
+  title: "Help",
+  description: "Answers about free videos, plans, failed videos and inviting a friend for 10 more free videos on Ask Radlor.",
+  alternates: { canonical: `${SITE_URL}/help` },
+};
 const QA: [string, string][] = [
   ["How many videos do I get?", "Your first {free} videos are free. After that each video comes from a plan (Plus 70 a month, Pro 150) or a pack (20, 45 or 100 videos, paid once). A video that fails is never counted."],
   ["How do I get more free videos?", "Invite a friend from your Account page: when they make their first video you get 10 more free (up to 2 friends)."],

@@ -3,11 +3,41 @@ import { redirect } from "next/navigation";
 import { SIGNUP_SOURCES } from "@/lib/age";
 import { createClient } from "@/lib/supabase/server";
 import { freeVideos, signupMode } from "@/lib/session";
-import { PLANS_ON } from "@/product";
+import type { Metadata } from "next";
+import { PLANS_ON, PRODUCT_ID, PRODUCT_NAME, SITE_URL, searchDescription } from "@/product";
 import { Footer } from "@/components/Footer";
 import { PublicHeader } from "@/components/AppFrame";
 import { Icon } from "@/components/Icon";
 import { PriceCompare } from "@/components/PriceCompare";
+
+const TITLE = `${PRODUCT_NAME}: ask anything, watch the answer drawn`;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const description = searchDescription(await freeVideos(), PLANS_ON);
+  return {
+    title: { absolute: TITLE }, description, alternates: { canonical: `${SITE_URL}/` },
+    // A page's openGraph/twitter replace the layout's whole object, so the shared keys are repeated here.
+    openGraph: { siteName: PRODUCT_NAME, type: "website", locale: "en_US", title: TITLE, description, url: `${SITE_URL}/` },
+    twitter: { card: "summary_large_image", title: TITLE, description },
+  };
+}
+
+// What search engines and answer engines read as "the app": the same @id radlor.com/askradlor points at, published by
+// Radlor's organization entity there. Offers only while plans are on, and only figures /pricing shows.
+function AppJsonLd({ free }: { free: number }) {
+  const json = {
+    "@context": "https://schema.org", "@type": "SoftwareApplication", "@id": PRODUCT_ID, name: PRODUCT_NAME, url: SITE_URL,
+    applicationCategory: "EducationalApplication", operatingSystem: "Web browser",
+    description: searchDescription(free, PLANS_ON), publisher: { "@id": "https://radlor.com/#organization" },
+    sameAs: ["https://radlor.com/askradlor"],
+    offers: PLANS_ON
+      ? [{ "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD" },
+         { "@type": "Offer", name: "Plus", price: "13.99", priceCurrency: "USD" },
+         { "@type": "Offer", name: "Pro", price: "25.99", priceCurrency: "USD" }]
+      : [{ "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD" }],
+  };
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(json).replace(/</g, "\\u003c") }} />;
+}
 
 // Landing (§5.5), a placeholder until the demo player exists (M4). A valid session goes to /ask from the server,
 // before any HTML (§5.2).
@@ -31,6 +61,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
 
   return (
     <>
+      <AppJsonLd free={free} />
       <PublicHeader />
       <main className="landing" id="main">
         <section className="landing-hero">

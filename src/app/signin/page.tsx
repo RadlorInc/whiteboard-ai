@@ -9,7 +9,7 @@ import { Footer } from "@/components/Footer";
 import { PublicHeader } from "@/components/AppFrame";
 import { EMAIL_PROBLEM } from "@/lib/email-check";
 
-export const metadata: Metadata = { title: "Sign in" };
+export const metadata: Metadata = { title: "Sign in", robots: { index: false, follow: true } };
 
 // §5.4: fixed copy per error code; error_description is never shown.
 const ERRORS: Record<string, string> = {
