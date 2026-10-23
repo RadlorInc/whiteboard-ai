@@ -6,16 +6,22 @@ import { toDrawing } from "@/lib/generation/drawings.mjs";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
 const usd = (n: number) => `$${n.toFixed(2)}`;
+const IST = 5.5 * 3600e3;
+const istDay = (t: string | number) => new Date(new Date(t).getTime() + IST).toISOString().slice(0, 10);
+const istTime = (t: string) => new Date(new Date(t).getTime() + IST).toISOString().slice(5, 16).replace("T", " ");
 
 // §11.3: today's spend and failures, credit drift, switches and audited money actions. No question text is shown
 // here: viewing one is its own audited action (admin_view_generation).
 export default async function Admin() {
   const { sb } = await requireAdmin();
   const db = createAdminClient();
-  const day = new Date(); day.setUTCHours(0, 0, 0, 0);
+  const now = new Date(), day = new Date(now); day.setUTCHours(0, 0, 0, 0);
   const since = day.toISOString();
   const week = new Date(day.getTime() - 6 * 864e5).toISOString();
-  const [gens, calls, settings, drift, misses, users, reports, drawings, feedback, support] = await Promise.all([
+  // Last 7 days in India time (today + 6 before), for the week view below.
+  const days = Array.from({ length: 7 }, (_, i) => istDay(now.getTime() - i * 864e5));
+  const since7 = new Date(new Date(`${days[6]}T00:00:00Z`).getTime() - IST).toISOString();
+  const [gens, calls, settings, drift, misses, users, reports, drawings, feedback, support, wkUsers, wkGens, wkCalls, admins] = await Promise.all([
     db.from("generations").select("id, created_at, style, status, credits_charged, error_code").gte("created_at", since).order("created_at", { ascending: false }).limit(500),
     db.from("generation_calls").select("cost_usd").gte("started_at", since),
     db.from("ops_settings").select("*").single(),
@@ -27,6 +33,10 @@ export default async function Admin() {
     db.from("video_feedback").select("generation_id, rating, reasons, note, created_at").gte("created_at", week).order("created_at", { ascending: false }).limit(1000),
     // the contact form (founder, 23 Oct 2026): newest 30; reply by email
     db.from("support_messages").select("id, email, topic, message, created_at").order("created_at", { ascending: false }).limit(30),
+    db.from("profiles").select("id, created_at, signup_source").gte("created_at", since7).order("created_at", { ascending: false }),
+    db.from("generations").select("user_id, created_at, status").gte("created_at", since7).limit(10000),   // ponytail: row cap, move to a SQL group-by when a week passes 10k videos
+    db.from("generation_calls").select("started_at, cost_usd").gte("started_at", since7).limit(20000),
+    db.from("admins").select("user_id"),
   ]);
   // Video feedback, last 7 days (VideoFeedback.tsx). A thumbs-down links to the video's public page when it has one.
   const fb = feedback.data ?? [], downs = fb.filter(f => f.rating === -1);
@@ -35,6 +45,13 @@ export default async function Admin() {
   const recent = downs.slice(0, 20);
   const slugs = new Map((recent.length ? (await db.from("shares").select("generation_id, slug").in("generation_id", recent.map(f => f.generation_id))).data ?? [] : [])
     .map(x => [x.generation_id, x.slug]));
+  const wg = wkGens.data ?? [], adminIds = new Set((admins.data ?? []).map(a => a.user_id));
+  const weekRows = days.map(d => {
+    const dg = wg.filter(x => istDay(x.created_at) === d);
+    return { d, signups: (wkUsers.data ?? []).filter(u => istDay(u.created_at) === d).length,
+      made: dg.filter(x => x.status === "succeeded").length, failed: dg.filter(x => x.status === "failed" || x.status === "refunded").length,
+      spend: (wkCalls.data ?? []).filter(c => istDay(c.started_at) === d).reduce((t, c) => t + Number(c.cost_usd ?? 0), 0) };
+  });
   // Each waiting drawing, normalised the way approving it would, shown on the player as "sv id=candidate".
   const waiting = ((drawings.data ?? []) as { id: string; name: string; subject: string | null; created_at: string; lines: Record<string, string> }[]).map(d => {
     try { return { d, problem: null, preview: { q: d.name, els: { p: "sv id=candidate 480 270 460" }, steps: [{ say: "", do: ["draw p", "fill p"] }],
@@ -54,6 +71,23 @@ export default async function Admin() {
         <p>Videos: {g.length} asked · {by("succeeded")} made · {by("failed") + by("refunded")} failed (not charged) · {by("running") + by("reserved")} in progress.</p>
         <p>Plan videos charged: {credits} (≈ {usd(credits * 9.99 / 40)} at the Plus rate; free and admin videos charge 0). Accounts: {users.count ?? 0}.</p>
         <p>Credit ledger check: {(drift.data ?? []).length === 0 ? "balances match the ledger ✓" : <strong className="error">{(drift.data ?? []).length} accounts drift — investigate</strong>}</p>
+      </section>
+      <section className="card stack">
+        <h2>Last 7 days (India time)</h2>
+        <table><thead><tr><th>Day</th><th>Sign-ups</th><th>Videos made</th><th>Failed</th><th>Model spend</th></tr></thead>
+          <tbody>{weekRows.map(w => (
+            <tr key={w.d}><td>{w.d.slice(5)}</td><td>{w.signups}</td><td>{w.made}</td><td>{w.failed}</td><td>{usd(w.spend)}</td></tr>
+          ))}</tbody></table>
+      </section>
+      <section className="card stack">
+        <h2>New accounts, last 7 days ({(wkUsers.data ?? []).length})</h2>
+        <p className="muted">Ones with 0 videos signed up and stopped. No emails here.</p>
+        <table><thead><tr><th>Signed up (IST)</th><th>Source</th><th>Videos asked</th><th>Made</th></tr></thead>
+          <tbody>{(wkUsers.data ?? []).map(u => {
+            const ug = wg.filter(x => x.user_id === u.id);
+            return <tr key={u.id}><td>{istTime(u.created_at)}</td><td>{adminIds.has(u.id) ? "admin" : u.signup_source ?? "—"}</td>
+              <td>{ug.length || <strong className="error">0</strong>}</td><td>{ug.filter(x => x.status === "succeeded").length}</td></tr>;
+          })}</tbody></table>
       </section>
       <div className="grid">
         <SwitchForm k="generation_enabled" label="Making videos" on={s.generation_enabled} />
