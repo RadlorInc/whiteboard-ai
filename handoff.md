@@ -5,6 +5,30 @@
 
 **Before going live: [LAUNCH.md](LAUNCH.md)** — the checklist of what was left for launch (migration + merge order, keep-warm, Stripe, legal).
 
+## Admin week view + real cost per video (23–24 Oct 2026, PR #54, branch `admin-week-view`, not on prod)
+
+- `/admin` gets two sections, read live from Supabase on every load (no cache to clear): **Last 7 days (India
+  time)**, with sign-ups, videos made, failed and model spend per day, and **New accounts, last 7 days**, with
+  sign-up time, source (or "admin") and videos asked/made. A 0 shows in red, and no emails are shown. Only
+  `src/app/admin/page.tsx` changes, merged with main's feedback and contact-form sections. Ships on merge.
+- The PR is cut from `main` because `dutch-launch` holds 7 Dutch-preview commits that are not on main. The
+  `app/` checkout (on `dutch-launch`) still has the same `page.tsx` edit uncommitted. Discard it after #54
+  merges (`git checkout -- src/app/admin/page.tsx`), then remove the `../wt-admin-week` worktree.
+- **Real model cost per video (prod, all calls to 23 Oct): ~$0.12 average, $0.10 median** (Opus 5.5 script only;
+  voice is the browser, servers not counted). That is about 2× the 19 Oct A/B figure ($0.061). Where it goes:
+  - Output, mostly the round-1 script after `find_drawing` (~2.8k tokens): 63%.
+  - 1-hour cache writes: 26%. 14 of 47 paid videos came after more than 1 h of no traffic and rewrote the
+    ~13k-token system prompt, about $0.10 extra each.
+  - Input: 7%. Cache reads: 4%. Extra rounds and repairs are small (~$0.31 in total).
+  - Expect ~$0.09 a video once traffic keeps the cache warm. Use ~$0.12 in pricing until then.
+- Open, not checked: 38 succeeded videos (mostly 13 Oct, launch day) have $0 model cost recorded (mock or saved
+  answers?), and ~$0.50 of calls link to no video (keep-warm pings?). Both pull the all-time average down to
+  $0.067, which is misleading.
+- Settled in the same session: prompts go to Claude as plain text (the JSON is only the API wrapper) and the
+  answer comes back as one JSON object. Neither JSON-formatted prompts nor TOON would help: the input is
+  instructions, not tables, and the system prompt is cached. The model stays Opus 5.5 (19 Oct A/B,
+  `research_notes/model-ab-2026-10-19/`).
+
 ## Free videos: first 20 once + invite a friend (22 Oct 2026, branch `free-20-refer`, Draft PR, not on prod)
 
 - Founder's plan (replaces "10 free every UTC month" and the "set 40" note): first 20 videos free, once; a friend
