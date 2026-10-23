@@ -7,6 +7,7 @@ import { PLANS_ON } from "@/product";
 import { Footer } from "@/components/Footer";
 import { PublicHeader } from "@/components/AppFrame";
 import { Icon } from "@/components/Icon";
+import { PriceCompare } from "@/components/PriceCompare";
 
 // Landing (§5.5), a placeholder until the demo player exists (M4). A valid session goes to /ask from the server,
 // before any HTML (§5.2).
@@ -49,6 +50,14 @@ export default async function Home({ searchParams }: PageProps<"/">) {
           <Link href="/explore" className="small">See videos people made</Link>
         </section>
 
+        {PLANS_ON && (
+          <section className="landing-section" aria-labelledby="price-title">
+            <p className="section-label">Price</p>
+            <h2 id="price-title" className="price-head">Explainer videos for a fraction of the price.</h2>
+            <PriceCompare free={free} />
+          </section>
+        )}
+
         <section className="landing-section">
           <p className="section-label">How it works</p>
           <ol className="steps3">
@@ -57,6 +66,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
             <li className="card"><h3>Replay any time</h3><p className="muted small">Your videos stay in your library. Watching again is free.</p></li>
           </ol>
         </section>
+
 
         <section className="landing-section">
           <p className="section-label">Good to know</p>
