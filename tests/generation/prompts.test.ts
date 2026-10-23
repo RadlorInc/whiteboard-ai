@@ -60,15 +60,18 @@ describe('prompt sha parity', () => {
     chemistry: 'cd8b6b8539f89a37db47183747a0b16b4162a98a284e6187fdeb0ae9591db75c',
     car: '14e4025c4653d974d3b58fe7995108bcdd693d1caa3cf14cc0e8635785eef81e',
     home: '800292c188dfbc18d6602f276cf4209f1dbe6fa088f327ce808845231907f70d',
+    maths: '2ae6a8108f8a96ce65903ccb35d0b4d22b1a6574d3ab67a13ea25c9ce15369ce',   // children's maths, Radlic only (21 Oct 2026)
   } as const;
-  for (const s of ['biology', 'physics', 'chemistry', 'car', 'home'] as const) it(`${s}: its own prompt, sha bound, only its categories listed`, () => {
+  for (const s of ['biology', 'physics', 'chemistry', 'car', 'home', 'maths'] as const) it(`${s}: its own prompt, sha bound, only its categories listed`, () => {
     const t = P.subjects[s].system;
     expect(sha(t)).toBe(SUBJECT_EXPECTED[s]); expect(P.subjects[s].sha256).toBe(SUBJECT_EXPECTED[s]);
     const listed = [...t.split('More recipes, by subject')[1].split('Worked examples')[0].matchAll(/^  ([\w-]+): /gm)].map(m => m[1]);
     expect(listed).toEqual(P.subjects[s].cats);
     expect(t).toContain(`- Teaching ${s}:`);
     // beta feedback, 22 Oct 2026: draw what the voice names; end the story where it ends
-    expect(t).toContain('- Show what you say:'); expect(t).toContain('- Finish the story:');
+    // (not maths: no realistic drawings on its board, and a sum is not a journey)
+    if (s === 'maths') { expect(t).not.toContain('- Show what you say:'); expect(t).not.toContain('- Finish the story:'); }
+    else { expect(t).toContain('- Show what you say:'); expect(t).toContain('- Finish the story:'); }
     // the rules and worked examples are the plain prompt's, word for word
     expect(t.split('Worked examples')[1]).toBe(P.styles.whiteboard.system.split('Worked examples')[1]);
     expect(t.split('- Only these element types exist')[0]).toBe(P.styles.whiteboard.system.split('- Only these element types exist')[0]);

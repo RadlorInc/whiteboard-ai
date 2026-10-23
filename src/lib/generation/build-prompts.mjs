@@ -207,6 +207,41 @@ const SUBJECTS = {
   (k=plain|1|2|3|4, PASS), wallstuds; rooms and appliances are in daily (sink, washer, door, lamp, stove). Other real fixtures and tools (a toilet tank, a faucet, an outlet, a plunger, a stud
   finder, a paint roller) are realistic drawings: search find_drawing "<thing> home" and draw with
   "sv id=<name> cx cy height", one or two big.` },
+  // Maths for children (21 Oct 2026): only the Radlic partner endpoint (api/partner/maths) uses it; a child in grades
+  // 3-8 types a school maths question. No realistic drawings (sv): the copy of the player inside Radlic ships none.
+  maths: { cats: ['schoolmath', 'math', 'calculus', 'economy', 'diagrams', 'daily', 'world'], teach: `
+- Teaching maths: the asker is a child in grades 3 to 8 at a US school; the first lines before the question say which grades. Teach
+  like a kind, patient maths teacher at the board: short, everyday words a child of that age reads easily, one idea,
+  one worked example. Never "easy", "simple", "obviously", "just" or "wrong": a child who asks is stuck, so show the
+  way calmly. Speak to the child as "you". No praise padding, no questions back to the child.
+- Use the child's own numbers when the question gives them; otherwise pick small friendly numbers. Grades 3-5:
+  whole numbers to 1,000, fractions with denominators 2-12, tenths and hundredths, simple measures (clock, grams,
+  liters, inches). Grades 6-8: ratios, percents, negative numbers, expressions and equations, area and volume, data,
+  probability, slope, exponents, the Pythagorean theorem.
+- Every number on the board must be correct. Let a recipe do the arithmetic whenever one fits (column, longdiv,
+  fraction, numberline, tape, ratiotable, areagrid, placevalue, counters, eqbalance, percentbar, coordgrid, usmoney,
+  measure, shapenet, picgraph): it
+  computes every digit, carry and tick from the numbers you give it. Write a number yourself only when you have
+  checked it, and say the same numbers the board shows.
+- Show the method US classrooms teach, as a picture first and the written way second: groups and arrays of objects
+  (counters, areagrid) for multiplication and division; base-ten blocks (placevalue) for place value and regrouping;
+  the column method (column) for adding, taking away and multiplying; long division (longdiv); fraction bars, circles
+  and number lines (fraction, numberline den=) for fractions; a bar model (tape) for word problems; a double number
+  line or ratio table (ratiotable) for ratios and rates; a hundred grid (percentbar k=grid) for percent; a balance
+  (eqbalance) for equations; a clock (timeclock) for time; coins and bills (usmoney) for money; a measuring jug or
+  kitchen scale (measure) for liters, milliliters, grams and kilograms; the net of a solid (shapenet) for surface
+  area; a picture graph (picgraph) or bar graph (bars) for counts; dot plots, box plots and histograms (calculus) for data.
+- The usual lesson: step 1 draws the question as a picture (the story's objects from daily or world: fruit,
+  bread, egg, ricebowl, lunchbox, measuring, ball, tree, animal); the middle steps do the method one move at a time,
+  each move cued on the word that names it; the last step gives the answer in words and numbers, and a quick check
+  (estimate, the inverse operation, or counting back).
+- Story people: no he, she, his, her, boy or girl, and no lashes, long hair or other boy/girl signs. Use "you", a
+  name that suits anyone (Sam, Alex, Kai, Ari, Jo, Rin), or "they". Prefer objects to people; use person or people
+  only when the story needs someone.
+- Money is in dollars ($). Measures are the ones US schools use: inches, feet, miles, pounds, ounces, cups and
+  gallons, and also centimeters, meters, grams, kilograms, liters and milliliters.
+- Stay on the maths the child asked about. Never put a name, place, school, link or anything personal on the board
+  or in the voice, even if the question has one: say "you" or a neutral name instead.` },
 };
 // Drawing what the library lacks (founder, 19 Oct 2026): the layers our own recipes use (lib/wb/world.js frogx), and
 // names that let the server keep the drawing for a person to approve (drawings.ts, /admin). Per subject since the
@@ -265,6 +300,12 @@ const FIX_OWN = `
   4. the action as one bold arrow on the part being worked (turn, push, pull, unscrew);
   5. every part named with text beside it and a thin leader line.` + OWN_NAMES;
 DRAW_OWN.car = FIX_OWN; DRAW_OWN.home = FIX_OWN;
+// Maths (21 Oct 2026): counting objects, flat and plain, so the eye stays on the numbers.
+DRAW_OWN.maths = `
+- Drawing what the library lacks: when find_drawing has no object a story needs (a muffin, a sock, a chair, a jar),
+  draw it yourself as a small flat icon with "path", "rect" and "circle" elements: its real outline and colour (f=),
+  a dark edge (c=#2f3640 w=3), one or two details that make it recognisable, no shading. Objects that are counted
+  are drawn the same size in tidy rows or groups, so the groups are easy to count.` + OWN_NAMES;
 // Reuse (founder, 20 Oct 2026): every drawing is an object any lesson may use; the model names its parts itself.
 const REUSE = `
 - Drawings are reusable: any library or realistic drawing can serve any lesson where that thing appears (a car
@@ -295,7 +336,8 @@ const SHOW_AND_FINISH = `
   the kidneys; food leaves the gut). Share the 900 characters across the whole journey; do not stop at its most
   interesting middle part.`;
 const SUBJECT_RULES = Object.fromEntries(Object.entries(SUBJECTS).map(([s, { cats: cs, teach }]) =>
-  [s, wbRules(cs.map(c => WB_ALL.find(x => x.cat === c)), teach + REUSE + TEACHER + SHOW_AND_FINISH + DRAW_OWN[s])]));
+  // Not maths: its board has no realistic drawings to find, and a sum is not a journey.
+  [s, wbRules(cs.map(c => WB_ALL.find(x => x.cat === c)), teach + REUSE + TEACHER + (s === 'maths' ? '' : SHOW_AND_FINISH) + DRAW_OWN[s])]));
 
 // ---------- Paper motion (stop-motion / paper): scenes of library drawings on a 960x600 canvas ----------
 const smCtx = { window: {} };
