@@ -9,7 +9,7 @@ import { AgeForm } from "@/components/AgeForm";
 import { Footer } from "@/components/Footer";
 import { PublicHeader } from "@/components/AppFrame";
 
-export const metadata: Metadata = { title: "Your age" };
+export const metadata: Metadata = { title: "Your age", robots: { index: false, follow: true } };
 
 // §5.4 (C24). Also the under-13 block page, while the 24 h age_block cookie exists.
 export default async function Age({ searchParams }: PageProps<"/age">) {

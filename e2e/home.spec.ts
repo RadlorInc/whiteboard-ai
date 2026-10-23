@@ -5,5 +5,6 @@ test("the home page renders the product name", async ({ page }) => {
   const response = await page.goto("/");
   expect(response?.status()).toBe(200);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ask anything. Watch it drawn.");
-  await expect(page).toHaveTitle("Ask Radlor");
+  // The landing has its own search title since 23 Oct 2026 (seo-indexing); other pages keep "<page> · Ask Radlor".
+  await expect(page).toHaveTitle("Ask Radlor: ask anything, watch the answer drawn");
 });

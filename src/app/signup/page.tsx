@@ -11,7 +11,7 @@ import { Footer } from "@/components/Footer";
 import { PublicHeader } from "@/components/AppFrame";
 import Link from "next/link";
 
-export const metadata: Metadata = { title: "Sign up" };
+export const metadata: Metadata = { title: "Sign up", robots: { index: false, follow: true } };
 
 // §5.3–5.4: (invite code) → age → methods. The age screen always comes before any email is asked for.
 export default async function SignUp({ searchParams }: PageProps<"/signup">) {
