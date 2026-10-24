@@ -189,21 +189,23 @@ function unclutter(movable, drawings) {
   const boxes = drawings.map(box).filter(area);
   // how crowded a spot is: the area it shares with other words and with library drawings it runs across (or, for a tag, sits on)
   // (a word the model put wholly inside a drawing may stay inside it; one from outside is not pushed into it)
-  const onWords = q => placed.reduce((s, p) => s + cross(p, q), 0);
+  // two tags in exactly the same place are one step's tag each on its own screen (an earlier one faded first): no clash
+  const same = (p, q) => p.tag && q.tag && Math.abs(p.x - q.x) < 1 && Math.abs(p.y - q.y) < 1 && Math.abs(p.w - q.w) < 1 && Math.abs(p.h - q.h) < 1;
+  const onWords = q => placed.reduce((s, p) => s + (same(p, q) ? 0 : cross(p, q)), 0);
   const onDrawings = (q, tag, home) => boxes.reduce((s, d) => s + (cross(d, q) && (tag || !(inside(q, d) && inside(home, d))) ? cross(d, q) : 0), 0);
   const cost = (q, tag, home) => onWords(q) + onDrawings(q, tag, home);
   const off = q => q.x < 0 || q.y < 0 || q.x + q.w > 960 || q.y + q.h > 540;
   const shift = (e, dx, dy) => { if (e.kind !== 'tag') { e.setAttribute('x', +e.getAttribute('x') + dx); e.setAttribute('y', +e.getAttribute('y') + dy); }
     else { for (const c of e.querySelectorAll('rect, text')) c.setAttribute('y', +c.getAttribute('y') + dy); e.center[1] += dy; } };
   for (const e of movable) {
-    const b = box(e); if (!area(b)) continue;
-    const tag = e.kind === 'tag', c0 = cost(b, tag, b);
+    const tag = e.kind === 'tag', b = { ...box(e), tag }; if (!area(b)) continue;
+    const c0 = cost(b, tag, b);
     if (onWords(b) <= .05 * area(b) && !onDrawings(b, tag, b)) { placed.push(b); continue; }   // clear: leave it where the model put it
     const s0 = tag ? 0 : +e.getAttribute('font-size'), size = f => { if (s0) e.setAttribute('font-size', (s0 * f).toFixed(1)); };
     const dys = [0, 1, -1, 2, -2, 3, -3].map(k => k * (b.h + 6)), dxs = tag ? [0] : [0, -40, 40, -80, 80, -140, 140];
     let best = { c: c0, f: 1, dx: 0, dy: 0 };
     for (const f of s0 ? [1, .9, .8, .7] : [1]) {
-      size(f); const s = f === 1 ? b : box(e);
+      size(f); const s = f === 1 ? b : { ...box(e), tag };
       for (const dy of dys) for (const dx of dxs) {
         const q = { ...s, x: s.x + dx, y: s.y + dy }; if ((f === 1 && !dx && !dy) || off(q)) continue;
         // a small price for each change, so the nearest fix wins; a title gives up size more easily than place
@@ -212,7 +214,7 @@ function unclutter(movable, drawings) {
       }
     }
     if (best.c < c0 * .6) { size(best.f); shift(e, best.dx, best.dy); } else size(1);
-    placed.push(box(e));
+    placed.push({ ...box(e), tag });
   }
 }
 
