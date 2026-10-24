@@ -90,7 +90,9 @@ if (mode === 'iso') {
         const x = [...document.querySelectorAll('#scene > g')].find(g => g.iso);
         if (!x) return { error: `${k}: no recipe group on the board` };
         x.querySelectorAll('[data-fx]').forEach(f => f.style.display = 'none');
-        const b = x.getBoundingClientRect(), board = document.querySelector('svg').getBoundingClientRect(), shown = x.style.opacity === '1' && [...x.iso.children].every(p => !p.style.opacity || p.style.opacity === '1');
+        // a recipe that clips its own view (g.box) is measured by that box: a client rect counts what the clip hides
+        const own = x.iso.box && (() => { const [bx, by, bw, bh] = x.iso.box, M = x.iso.parentNode.getScreenCTM(), p = new DOMPoint(bx, by).matrixTransform(M), q = new DOMPoint(bx + bw, by + bh).matrixTransform(M); return { left: p.x, top: p.y, width: q.x - p.x, height: q.y - p.y }; })();
+        const b = own || x.getBoundingClientRect(), board = document.querySelector('svg').getBoundingClientRect(), shown = x.style.opacity === '1' && [...x.iso.children].every(p => !p.style.opacity || p.style.opacity === '1');
         out[k] = { w: Math.round(b.width / board.width * 960), h: Math.round(b.height / board.width * 960), x: Math.round((b.left - board.left) / board.width * 960), y: Math.round((b.top - board.top) / board.width * 960), shown };
       }
       return out;

@@ -109,7 +109,7 @@ function isoBuild(name, n, o, content) {
     let v = 1, b = at(1);
     for (let i = 0; i < 4; i++) { const k = Math.min(fit[2] / b[2], fit[3] / b[3]); v = Math.min(1.8, Math.max(1, .85 / k)); b = at(v); }
     box.style.setProperty('--iso-label', `calc(var(--iso-board, 1) * ${v.toFixed(2)})`);
-    const m = !g.rest?.length && measure();
+    const m = !g.rest?.length && !g.box && measure();   // g.box: the recipe clips its own view (getBBox would not)
     place(m ? [Math.min(b[0], m[0]), Math.min(b[1], m[1]), Math.max(b[0] + b[2], m[0] + m[2]) - Math.min(b[0], m[0]), Math.max(b[1] + b[3], m[1] + m[3]) - Math.min(b[1], m[1])] : b);
   }
   box.iso = g; box.anim = inner;
