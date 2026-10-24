@@ -33,6 +33,8 @@
   .fillable.on { fill-opacity: 1; }
   .pivot { transform-box: fill-box; transform-origin: center; }
   #scene { transform-box: view-box; transform-origin: 0 0; }
+  /* Anatomy recipes (lib/iso): Lite mode on a narrow board hides their minor labels */
+  #scene.lite.narrow .iso-minor { display: none; }
   #caption { min-height: 1.6em; margin: 12px 4px 4px; font-size: 19px; text-align: center; }
   #stats { font-size: 13px; color: #667; text-align: center; }
   .styles { font-size: 14px; color: #445; } .styles a { color: #2f7fd6; }
@@ -69,6 +71,83 @@ let FAST = false, PAUSED = false;      // PAUSED: the embedded player's pause (b
 const wait = ms => FAST ? Promise.resolve() : frames(ms, () => {});
 const BOUNCE = 'cubic-bezier(.34,1.56,.64,1)', SMOOTH = 'cubic-bezier(.65,0,.35,1)';
 let els = {}, marker, camNow = '', runId = 0;
+
+// ---------- Anatomy recipes (lib/iso: loaded on demand by bridge.js needIso; "<name>Iso" element types) ----------
+// A recipe is a built object (its group g has set, update, readout, and maybe parts still to build: g.rest, ISO.later).
+// Lite (weakest phones: data saver, 2G, 2 GB or less; or a board whose first 2 s ran slow): every recipe at its end
+// pose, no frame loop, no WebGL, minor labels hidden on a narrow board. ENDED: the video is over, nothing moves on.
+const NET = navigator.connection || {};
+let LITE = !!NET.saveData || /2g/.test(NET.effectiveType || '') || (navigator.deviceMemory || 8) <= 2, ENDED = false;
+let isoLive = [], isoFrame = 0, isoLast = 0, isoClock = 0, watch = null;
+// WebKit (Safari, and every browser on an iPhone) puts a shader layer's foreignObject in the wrong place under the
+// board's transforms (measured 24 Oct 2026: a flame floating over its burner, steam mid-board): it gets the SVG
+// drawing of each effect instead, as Lite does.
+const UA = navigator.userAgent, WEBKIT = (/AppleWebKit/.test(UA) && !/Chrome\/|Chromium\/|Edg\//.test(UA)) || /CriOS|FxiOS|EdgiOS/.test(UA);
+function isoHooks() {               // bridge.js calls this once the kit and shared.js are loaded
+  ISO.hold = () => FAST || LITE || ENDED; ISO.lite = () => LITE || WEBKIT; ISO.paused = () => PAUSED;
+  ISO.LANG = self.LANG || 'en';      // a Dutch video's labels from its reviewed dictionary (lib/iso/t9n-nl.*.js), else English
+}
+const isoName = type => type.endsWith('Iso') && self.ISO && Object.hasOwn(ISO.all, type.slice(0, -3)) ? type.slice(0, -3) : null;
+// box=x,y,w,h fits the drawing into that box (drawn at its demo size, then scaled and centred), so a script only tiles
+// the board; its labels keep a readable size however much it shrinks. The box is the manifest's (lib/iso/manifest.js).
+function isoBuild(name, n, o, content) {
+  const R = ISO.all[name], fit = /^-?[\d.]+(,-?[\d.]+){3}$/.test(o.box || '') && o.box.split(',').map(Number);
+  const box = mk('g', {}, scene), inner = mk('g', { class: 'pivot' }, box);
+  const g = R.make(fit ? ISO.parse(R.demo.line).n : n, o, content, inner);
+  const place = b => {
+    const [x, y, w, h] = fit, k = Math.min(w / b[2], h / b[3]);
+    box.setAttribute('transform', `translate(${(x + (w - b[2] * k) / 2 - b[0] * k).toFixed(1)} ${(y + (h - b[3] * k) / 2 - b[1] * k).toFixed(1)}) scale(${k.toFixed(4)})`);
+  };
+  const measure = () => { const fx = [...inner.querySelectorAll('[data-fx]')]; fx.forEach(f => f.style.display = 'none');
+    const r = inner.getBBox(); fx.forEach(f => f.style.display = ''); return r.width > 0 && r.height > 0 ? [r.x, r.y, r.width, r.height] : null; };
+  const M = self.ISO_MANIFEST?.recipes[name]?.box;
+  if (fit && M?.length === 8 && M[2] > 0 && M[3] > 0) {
+    // The demo box holds every pose its demo moves through, measured with labels at 1× and 1.8× (lib/iso/manifest.js);
+    // the labels grow as the drawing shrinks, so the scale and the label size are settled together, then the label
+    // size is fixed and a drawing with every part built is also measured as it is now.
+    const at = v => M.slice(0, 4).map((a, i) => a + (M[i + 4] - a) * (v - 1) / .8);
+    let v = 1, b = at(1);
+    for (let i = 0; i < 4; i++) { const k = Math.min(fit[2] / b[2], fit[3] / b[3]); v = Math.min(1.8, Math.max(1, .85 / k)); b = at(v); }
+    box.style.setProperty('--iso-label', `calc(var(--iso-board, 1) * ${v.toFixed(2)})`);
+    const m = !g.rest?.length && measure();
+    place(m ? [Math.min(b[0], m[0]), Math.min(b[1], m[1]), Math.max(b[0] + b[2], m[0] + m[2]) - Math.min(b[0], m[0]), Math.max(b[1] + b[3], m[1] + m[3]) - Math.min(b[1], m[1])] : b);
+  }
+  box.iso = g; box.anim = inner;
+  box.style.opacity = 0;             // hidden until drawn; draw shows its parts one by one (a recipe may rebuild them)
+  isoLive.push(g);
+  return box;
+}
+// The parts a split build left: built one per idle slice in the order the elements were listed, and at once when one
+// is drawn (draw waits for its own), so a step never pays for a build it can avoid.
+function isoWarm(my) {
+  const next = isoLive.find(g => g.rest?.length);
+  if (!next || my !== runId) return;
+  next.rest.shift()();
+  (self.requestIdleCallback || (f => setTimeout(f, 16)))(() => isoWarm(my));
+}
+// The frame loop: every recipe moves toward what set() asked. Its first 2 s are watched: over 30% of frames slower
+// than 34 ms and the board drops to Lite for the session (ARCHITECTURE.md §B).
+function isoTick(now) {
+  isoFrame = 0;
+  if (!isoLive.length || ENDED || LITE) return;
+  const dt = isoLast ? Math.min((now - isoLast) / 1000, 1 / 20) : 1 / 60;
+  if (watch && !PAUSED && !FAST) {
+    if (isoLast) { watch.n++; if (now - isoLast > 34) watch.slow++; }
+    if (now - watch.t0 > 2000) { if (watch.n >= 3 && watch.slow / watch.n > .3) toLite(); watch = null; }   // few frames at all is slow too
+  }
+  isoLast = now;
+  if (!PAUSED) { isoClock += dt; for (const g of isoLive) g.update?.(dt, isoClock); }
+  if (!LITE) isoFrame = requestAnimationFrame(isoTick);
+}
+function isoRun() { if (!isoFrame && isoLive.length && !LITE && !ENDED) { isoLast = 0; isoFrame = requestAnimationFrame(isoTick); } }
+function toLite() { LITE = true; scene.classList.add('lite'); isoLive.forEach(g => g.update?.(1, isoClock)); }
+// the board's width on screen sets how big recipe labels are: never under about 11 CSS px (a 13 px label on a phone)
+function boardScale() {
+  const w = scene.ownerSVGElement?.getBoundingClientRect().width || 960, v = Math.min(1.8, Math.max(1, 11 * 960 / (13 * w)));
+  scene.style.setProperty('--iso-board', v.toFixed(2)); scene.style.setProperty('--iso-label', v.toFixed(2));
+  scene.classList.toggle('narrow', w < 600);
+}
+if (self.ResizeObserver) new ResizeObserver(boardScale).observe(document.querySelector('svg'));
 
 function mk(tag, attrs, parent) {
   const e = document.createElementNS(NS, tag);
@@ -139,6 +218,8 @@ function unclutter(movable, drawings) {
 
 function build(answer) {
   scene.replaceChildren(); els = {};
+  isoLive = []; ENDED = false; watch = null; isoClock = 0; scene.classList.toggle('lite', LITE);
+  if (self.ISO) { ISO.dispose(); ISO.LANG = self.LANG || 'en'; }
   // the order the model wrote (answer.order: saved scripts, whose jsonb lost it); older saved videos: pins last
   const keys = Array.isArray(answer.order) ? [...new Set([...answer.order.filter(k => k in answer.els), ...Object.keys(answer.els)])]
     : Object.keys(answer.els).sort((a, b) => /^\s*pin\b/.test(answer.els[a]) - /^\s*pin\b/.test(answer.els[b]));
@@ -163,7 +244,8 @@ function build(answer) {
       const t = mk('text', { x: cx, y: cy + 9, 'text-anchor': 'middle', class: 'hand fillable', 'font-size': o.s || 28, fill: '#222' }, e);
       richText(t, content);
       e.center = [cx, cy];
-    } else if (RECIPES[type]) {
+    } else if (isoName(type)) e = isoBuild(isoName(type), n, o, content);
+    else if (RECIPES[type]) {
       e = RECIPES[type](n, o, content, scene);
       if (e.tagName === 'g' && !e.anim) { const inner = mk('g', { class: 'pivot' }); inner.append(...e.childNodes); e.append(inner); e.anim = inner; }
       if (e.tagName === 'text') e.classList.add('pivot');
@@ -174,7 +256,10 @@ function build(answer) {
     els[id] = e;
   }
   const words = keys.filter(k => ['text', 'tag', 'title'].includes(els[k].kind)).map(k => els[k]), drawings = keys.filter(k => !PRIMS.has(els[k].kind)).map(k => els[k]);
+  // a recipe's shader layer spans its whole frame: left out of the boxes words are kept off
+  const fx = [...scene.querySelectorAll('[data-fx]')]; fx.forEach(f => f.style.display = 'none');
   unclutter(words, drawings);
+  fx.forEach(f => f.style.display = '');
   // measured again once the hand font has loaded: before it, a fallback font made a long title look short enough
   if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(() => { if (words[0]?.isConnected) unclutter(words, drawings); });
   marker = mk('g', { style: 'opacity:0' }, scene);
@@ -187,6 +272,7 @@ function build(answer) {
   scene.querySelectorAll('[filter]').forEach(e => { const b = e.getBBox(); if (b.width < 1 || b.height < 1) e.removeAttribute('filter'); });
   scene.querySelectorAll('text.hand:not(.fillable)').forEach(e => e.style.clipPath = 'inset(0 100% 0 0)');
   setCam(480, 270, 1, 0);
+  if (isoLive.length) { boardScale(); const my = runId; setTimeout(() => isoWarm(my), 0); watch = { t0: performance.now(), n: 0, slow: 0 }; isoRun(); }
 }
 
 const strokeOf = id => { const e = els[id]; if (!e) throw new Error(`No element "${id}"`); return e.kind === 'tag' ? e.querySelector('rect') : e; };
@@ -228,6 +314,19 @@ function flowify(el) {
 }
 async function draw(id, ms = 800) {
   const el = strokeOf(id);
+  // an Anatomy recipe builds up part by part in its own painter's order, the pen on each part
+  if (el.iso) {
+    el.iso.finish?.();
+    if (FAST) { el.style.opacity = 1; return; }
+    const parts = [...el.iso.children], each = (ms === 800 ? 1400 : ms) / Math.max(1, parts.length);
+    parts.forEach(q => q.style.opacity = 0); el.style.opacity = 1; marker.style.opacity = 1;
+    for (const q of parts) {
+      const b = q.getBBox?.(); if (b && b.width) { const p = new DOMPoint(b.x + b.width / 2, b.y + b.height * .6).matrixTransform(scene.getCTM().inverse().multiply(q.getCTM())); marker.setAttribute('transform', `translate(${p.x} ${p.y})`); }
+      await frames(Math.max(60, each), t => q.style.opacity = ease(t));
+      q.style.opacity = '';
+    }
+    return;
+  }
   // A tag's words show once its box is drawn; "fill" adds the colour. A script that drew a tag but never filled it
   // showed an empty box (seen in 3 of 6 real videos, 19 Oct 2026).
   if (el.tagName !== 'g') { await drawEl(el, ms); flowify(el); if (els[id].kind === 'tag') els[id].querySelector('text')?.classList.add('on'); return; }
@@ -320,9 +419,13 @@ function loop(el, kind) {
 // A teacher's mark (20 Oct 2026): circle, underline or point at something already on the board, in red chalk, on
 // the word that names it (bridge.js cues); it fades after a moment so the board stays clean. A seek skips it.
 async function mark(id, kind = 'circle', ms = 600) {
-  const e = els[id]; if (!e) throw new Error(`No element "${id}"`);
+  // id.part: one named part of an Anatomy recipe (its data-name or data-part)
+  const [eid, part] = id.split('.'), own = els[eid]; if (!own) throw new Error(`No element "${eid}"`);
   if (FAST) return;
+  const e = (part && own.iso && [...own.querySelectorAll('[data-name],[data-part]')].find(q => (q.dataset.name || q.dataset.part) === part)) || own;
+  const fx = [...own.querySelectorAll('[data-fx]')]; fx.forEach(f => f.style.display = 'none');
   const b = e.getBBox(), M = scene.getCTM().inverse().multiply(e.getCTM());
+  fx.forEach(f => f.style.display = '');
   const pts = [[b.x, b.y], [b.x + b.width, b.y], [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]].map(([x, y]) => new DOMPoint(x, y).matrixTransform(M));
   const x0 = Math.min(...pts.map(p => p.x)), x1 = Math.max(...pts.map(p => p.x)), y0 = Math.min(...pts.map(p => p.y)), y1 = Math.max(...pts.map(p => p.y));
   const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
@@ -362,6 +465,10 @@ async function run(cmd) {
   else if (op === 'loop') { loop(els[a[0]], a[1]); p = Promise.resolve(); }
   else if (op === 'travel') p = travel(a[0].split(','), nums[0], a[2] === 'loop');
   else if (op === 'mark') p = mark(a[0], a[1], nums[1]);
+  // set <id> key=value …: an Anatomy recipe's own change (a step, a reading, a switch), shown as it moves
+  else if (op === 'set') { const g = els[a[0]]?.iso; if (!g) throw new Error(`No recipe "${a[0]}"`);
+    g.set(Object.fromEntries(a.slice(1).filter(kv => kv.includes('=')).map(kv => [kv.slice(0, kv.indexOf('=')), kv.slice(kv.indexOf('=') + 1)])));
+    if (LITE || FAST) g.update?.(1, isoClock); else isoRun(); p = Promise.resolve(); }
   else throw new Error(`Unknown command "${op}"`);
   // a looping travel never ends: waiting for it froze the lesson on that step (18 Oct 2026), so it always runs alongside
   if (!bg && !(op === 'travel' && a[2] === 'loop')) await p;
@@ -411,7 +518,7 @@ const current = () => ANSWERS[$('#pick').value];
 $('#pick').onchange = () => { build(current()); stats(current()); $('#caption').textContent = ''; $('#play').textContent = '▶ Play'; };
 $('#play').onclick = () => play(current());
 window.speechSynthesis?.getVoices();
-build(current()); stats(current());
+if (!window.WB_LAZY) { build(current()); stats(current()); }     // lazy: the demo answers' drawings are not loaded
 // #autoN plays answer N; #showN only opens it (the compare page uses this)
 const fromHash = () => { const m = location.hash.match(/#(auto|show)(\d*)/); if (m) { $('#pick').value = m[2] || 0; $('#pick').onchange(); if (m[1] === 'auto') play(current()); } };
 fromHash(); window.onhashchange = fromHash;

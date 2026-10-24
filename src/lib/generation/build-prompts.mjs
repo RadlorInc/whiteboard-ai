@@ -48,7 +48,7 @@ const libIndex = lib => lib.map(c => isSv(c)
 const PRIMITIVES = ['circle', 'ellipse', 'rect', 'line', 'arrow', 'path', 'text', 'tag'];
 const typesOf = lib => new Set([...PRIMITIVES, ...RECIPE_NAMES, ...lib.filter(c => !isSv(c)).flatMap(c => c.lines.map(l => l.name)), ...(lib.some(isSv) ? ['sv'] : [])]);
 const TYPES = typesOf(WB_ALL);                                    // what the checks accept: every loaded drawing
-const COMMANDS = new Set(['draw', 'write', 'fill', 'pop', 'fade', 'go', 'cam', 'wait', 'loop', 'travel', 'mark']);
+const COMMANDS = new Set(['draw', 'write', 'fill', 'pop', 'fade', 'go', 'cam', 'wait', 'loop', 'travel', 'mark', 'set']);   // set: Anatomy recipes only
 const LOOPS = new Set(['beat', 'flow', 'fall', 'rise', 'sway', 'swing']);
 const catalogue = fs.readFileSync(path.join(genDir, 'recipe-catalogue.md'), 'utf8');
 
@@ -376,6 +376,30 @@ Shape: {"q": "<the question>", "move": "fly" | "write", "objects": [<object>, ..
 Worked example (hand-made, approved; match its quality):
 ${MC_EXAMPLES.map(a => JSON.stringify(a)).join('\n')}`;
 
+// ---------- Anatomy recipes (behind the ANATOMY_RECIPES switch; workshop ARCHITECTURE.md §E) ----------
+// iso-catalogue.txt is written by the workshop's export.mjs, with the player's lib/iso files. While the switch is on,
+// every prompt has an iso twin: an Anatomy line replaces the old line of the same name (find_drawing returns it), the
+// rest are listed as their own "iso" category, and the rules below say how to place and drive them. The server then
+// writes each Anatomy element's type as "<name>Iso" (run.ts), so the player draws the new recipe; old videos keep
+// the old one.
+const ISO_LINES = fs.readFileSync(path.join(genDir, 'iso-catalogue.txt'), 'utf8').split('\n').filter(l => l.trim()).map(l => {
+  const p = l.split(' | '); return { name: p[0].split(/\s+/)[0], sig: p[0], example: p.slice(1, -1).join(' | '), desc: p.at(-1) }; });
+const ISO_NAMES = new Set(ISO_LINES.map(l => l.name));
+const ISO_CAT = { cat: 'iso', lines: ISO_LINES };
+const isoLib = lib => [...lib.map(c => isSv(c) ? c : { ...c, lines: c.lines.filter(l => !ISO_NAMES.has(l.name)) }), ISO_CAT];
+const ISO_RULES = `
+- Detailed 3D drawings (the iso category, and any drawing whose signature find_drawing returns with box=): real
+  objects that move. Place one with only its name, box=x,y,w,h and options: the player fits the drawing into that box
+  (e.g. "b": "bunsen box=540,90,380,420 k=yellow"). Boxes never overlap each other, the step tags or your text; one
+  big drawing (about half the board) or two side by side read best. draw <id> builds it up part by part.
+- Drive it with set <id> key=value ... using only the keys its signature lists, cued on the word, e.g. "@air set b
+  air=1"; lit=<part> (or "set b lit=<part>") makes one named part glow, and mark <id>.<part> circle|underline points
+  at one part (the parts are the names after lit=). How-to drawings with step= show each step of the job: set the
+  step in the lesson step that explains it. The drawing writes its own labels (lab=0 hides them).`;
+const ISO_SUBJECT_RULES = Object.fromEntries(Object.entries(SUBJECTS).map(([s, { cats: cs, teach }]) =>
+  [s, wbRules(isoLib(cs.map(c => WB_ALL.find(x => x.cat === c))), teach + REUSE + TEACHER + SHOW_AND_FINISH + ISO_RULES + DRAW_OWN[s])]));
+const ISO_RULES_PLAIN = wbRules(isoLib(WB_LIB), ISO_RULES);
+
 const sha = t => crypto.createHash('sha256').update(t).digest('hex');
 export function buildPrompts() {
   return {
@@ -396,7 +420,12 @@ export function buildPrompts() {
     // (19 Oct 2026 A/B: told sun/title/cloud don't exist, the model drew plain circles instead)
     builtIn: { whiteboard: [...PRIMITIVES, ...RECIPE_NAMES],
       paper: 'glow ground zoom disc box shape line flow flash sun cloud rain vapour plant leaf stem soil pores cells sugar land cycle beams heart ring blood'.split(' ') },
-    types: [...TYPES], commands: [...COMMANDS], loops: [...LOOPS],
+    // the Anatomy twins (ANATOMY_RECIPES): each style/subject prompt's iso version, the catalogue lines, and the
+    // element types the checks accept once run.ts has renamed them
+    iso: { whiteboard: { system: ISO_RULES_PLAIN, sha256: sha(ISO_RULES_PLAIN) },
+      subjects: Object.fromEntries(Object.entries(ISO_SUBJECT_RULES).map(([s, t]) => [s, { system: t, sha256: sha(t) }])),
+      lib: ISO_CAT },
+    types: [...TYPES, ...[...ISO_NAMES].map(n => `${n}Iso`)], commands: [...COMMANDS], loops: [...LOOPS],
     libNames: [...LIB_NAMES], flowItems: [...FLOW_ITEMS], bloodPaths: [...BLOOD_PATHS], textures: [...TEXTURES],
     wbLib: WB_ALL, paperLib: PAPER_LIB, mcLib: MC_LIB,
     examples: { whiteboard: EXAMPLES, paper: SM_EXAMPLES, matchcut: MC_EXAMPLES },

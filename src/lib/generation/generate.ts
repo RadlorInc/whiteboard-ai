@@ -5,7 +5,7 @@ import { POLICY_VERSION } from './checks.mjs';
 import { taughtLevel } from '../videos';
 
 export const HOLD_CREDITS = 1;          // 1 video from a plan (a free or admin video holds 0: reserve_generation)
-import { promptSha, STYLES, type ModelClient, type Style } from './model';
+import { promptSha, STYLES, ANATOMY, type ModelClient, type Style } from './model';
 import type { GenDb, Level, ReserveOutcome, Thread } from './db';
 
 const HEARTBEAT_MS = 10_000;
@@ -89,7 +89,9 @@ export async function handleGenerate(req: Request, d: GenerateDeps): Promise<Res
   const conversationId = body.conversation_id ?? null;
   if (conversationId !== null && !isUuid(conversationId)) return json(400, { code: 'bad_request' });
   // Every new video goes on Explore (founder, 15 Oct 2026); explore: false keeps it off (tests that share by hand).
-  const explore = body.explore !== false;
+  // Not while the Anatomy switch is on (model.ts ANATOMY): preview shares production's database, and the live player
+  // cannot draw a "<name>Iso" element until the Anatomy release reaches production, so such a video stays off Explore.
+  const explore = body.explore !== false && !ANATOMY;
 
   // A retry of an accepted ask gets its id back before any other check (§6.6 step 1).
   const prior = await d.db.findByRequest(d.userId, requestId);

@@ -83,6 +83,28 @@ Talos, Fortinet, Zscaler. Record date and result per vendor here.
 | Vendor | Submitted | Result |
 |---|---|---|
 
+## Anatomy recipes (the switch; workshop `_anatomy-test/workshop`, its ARCHITECTURE.md)
+
+276 detailed 3D drawings that move, as `public/player/lib/iso/` (one hashed file per recipe, `manifest.js`) and the
+prompt lines `src/lib/generation/iso-catalogue.txt`. Both are written by the workshop, never by hand:
+`node build.mjs && node export.mjs <this repo>/public/player/lib/iso`, then `node src/lib/generation/build-prompts.mjs`.
+
+- **Off (default, production):** nothing changes; the player loads the whole old library as before.
+- **On:** set `ANATOMY_RECIPES=1` (server: every whiteboard prompt is its iso twin, run.ts renames each new recipe to
+  `<name>Iso` and cleans its options) and `NEXT_PUBLIC_ANATOMY_RECIPES=1` (page: the player loads only the files a
+  board names, `lazy=1`) in the same Vercel environment, then redeploy. Old videos keep their old drawings either way.
+- ⚠️ **Preview shares production's Supabase.** With the switch on there, new videos are saved in the live database
+  (and charged like any video): they stay off Explore (generate.ts), but the live player cannot draw them until this
+  release is in production, so test with an admin account and do not share those links. Scope the variables to the
+  branch (`vercel env add ANATOMY_RECIPES preview <branch>`) so other previews are not switched on.
+- **Before a release:** `node scripts/player-check.mjs iso` (all 276, ~15 min), `lazy`, `lite`, `attack`, and
+  `iso … --browser webkit`; CI runs a sample of each. Production only with the founder's approval, after a real
+  low-end Android (2–3 GB) and an iPhone.
+- **Lite mode** (data saver, 2G, ≤ 2 GB, or a board slow in its first 2 s): recipes at their end pose, no WebGL.
+  WebKit (Safari, every iPhone browser) never gets the WebGL effects: it misplaces them (24 Oct 2026); SVG instead.
+- **Dutch labels:** the workshop's `t9n/nl.draft.json` is an AI draft; only entries a person sets to `"ok": true`
+  reach the player (export.mjs). The voice for Lite devices is still the founder's decision (ARCHITECTURE.md §F).
+
 ## Local development
 
 - The local stack only (`supabase start`); never link a remote project (README). `scripts/break-check.sh` may run

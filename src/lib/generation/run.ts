@@ -2,11 +2,11 @@
 // ask() + answer(), plus streaming, per-step emission, the pinned repair, budgets and cost rows.
 // Money rule: every path ends in exactly one db.finish (charge) or db.fail (release) — settle() is the only caller.
 import { AuthenticationError, PermissionDeniedError, NotFoundError, APIError, APIUserAbortError } from '@anthropic-ai/sdk';
-import { STYLE_CHECK, checkEls, checkStep, checkPaperStep, checkPolicy, checkSafety, findDrawing, guardFindInput, parse, BUILT_IN, WB_LIB, PAPER_LIB } from './checks.mjs';
+import { STYLE_CHECK, checkEls, checkStep, checkPaperStep, checkPolicy, checkSafety, findDrawing, guardFindInput, parse, BUILT_IN, WB_LIB, PAPER_LIB, isoEls, isoStep, isoLibOf } from './checks.mjs';
 import { createScanner } from './scan.mjs';
 import { candidateGroups, savedCat, SAVED_CAT } from './drawings.mjs';
 import P from './prompts.json' with { type: 'json' };
-import { prefix, cost, promptSha, type ModelClient, type FinalMessage, type Style, type Subject, type Block } from './model';
+import { prefix, cost, promptSha, ANATOMY, type ModelClient, type FinalMessage, type Style, type Subject, type Block } from './model';
 import type { GenDb, FailCode, Metrics } from './db';
 
 export const LIMITS = { deadlineMs: 240_000, maxTokens: 16_000, toolRounds: 5, outputBudget: 40_000 };
@@ -37,13 +37,15 @@ export async function runGeneration(o: {
   id: string; style: Style; question: string; context?: string[]; subject?: Subject | null; client: ModelClient; db: GenDb; send: Send;
   deadlineMs?: number; retryWaitMs?: (n: number) => number;
   explore?: () => Promise<string>;      // after a video is saved: put it on Explore (the outcome goes in 'done')
+  iso?: boolean;                         // the Anatomy switch (model.ts ANATOMY); tests set it
 }) {
   const { id, style, question, client, db, send } = o;
   const t0 = Date.now(), at = () => Date.now() - t0;
   const timings: Record<string, number> = { accept: 0 };
   // A subject's find_drawing searches only the categories its prompt lists.
   const cats: string[] = o.subject ? P.subjects[o.subject].cats : P.wbCats;
-  const misses: string[] = [], lib = (style === 'whiteboard' ? (WB_LIB as Lib).filter(c => cats.includes(c.cat)) : PAPER_LIB) as Lib;
+  const iso = (o.iso ?? ANATOMY) && style === 'whiteboard';         // Anatomy recipes: their lines, renamed and cleaned (checks.mjs)
+  const misses: string[] = [], lib = (style === 'whiteboard' ? (iso ? isoLibOf : (l: Lib) => l)((WB_LIB as Lib).filter(c => cats.includes(c.cat))) : PAPER_LIB) as Lib;
   // Approved model-made drawings (library_drawings): searchable like the realistic ones; their data rides with the
   // script (drawings), because the sandboxed player cannot fetch them. A failed read just leaves them out.
   const approved = style === 'whiteboard' ? await (db.approvedDrawings?.() ?? Promise.resolve([])).catch(() => []) : [];
@@ -79,7 +81,7 @@ export async function runGeneration(o: {
   let pinned = 0;                        // steps 1..pinned must come back unchanged (pinned repair)
   const onEmit = (ev: { type: string; els?: Json; i?: number; step?: Step }) => {
     if (ev.type === 'els') {
-      const els = ev.els as Json;
+      const els = (iso ? isoEls(ev.els as Json) : ev.els) as Json;
       if (sentEls && pinned > 0) {       // pinned repair: every sent entry unchanged; new ids go out as els_add
         if (Object.keys(sentEls).some(k => !same(els[k], (sentEls as Json)[k]))) { halted = true; return; }
         const add = Object.fromEntries(Object.entries(els).filter(([k]) => !(k in (sentEls as Json))));
@@ -95,7 +97,7 @@ export async function runGeneration(o: {
       send('need', { cats: catsOf(lib, Object.values(els).map(s => String(s).split('|')[0].trim().split(/\s+/)[0])) });
       return;
     }
-    const i = ev.i as number, step = ev.step as Step;
+    const i = ev.i as number, step = (iso ? isoStep(ev.step as Step, sentEls as Json) : ev.step) as Step;
     if (i < pinned) { if (!same(step, sent[i])) halted = true; return; }
     if (halted || i !== sent.length || (style === 'whiteboard' && !sentEls)) return;
     if (stepErrs(step, i).length) { halted = true; return; }
@@ -186,6 +188,7 @@ export async function runGeneration(o: {
       let a: Json | null = null, errs: string[];
       try {
         a = parse(textOf(msg)) as Json;
+        if (iso && a && typeof a.els === 'object' && a.els && Array.isArray(a.steps)) { a.els = isoEls(a.els as Json); a.steps = (a.steps as Step[]).map(s => isoStep(s, a!.els as Json)); }
         errs = [...STYLE_CHECK[style](a, savedSv), ...checkPolicy(a, style), ...checkSafety(a, style)];
         if (pinned > 0) {
           const steps = (a.steps ?? []) as Step[];

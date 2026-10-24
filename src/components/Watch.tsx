@@ -7,7 +7,7 @@ import { VoiceProgress } from "./Voice";
 import { exploreRefusal } from "./VideoView";
 import { Icon } from "./Icon";
 import { resetDay } from "@/lib/videos";
-import { PLANS_ON } from "@/product";
+import { PLANS_ON, boardPage } from "@/product";
 import { ShareButton } from "./ShareButton";
 import { VideoFeedback } from "./VideoFeedback";
 
@@ -31,7 +31,7 @@ const PAGE: Record<Style, string> = {
   matchcut: "/player/matchcut.html",
 };
 // The chat subject tells the whiteboard player which subject-only drawing files to load (lib/wb-load.js); none = all.
-const pageOf = (style: Style, subject?: string | null) => (style === "whiteboard" && subject ? `${PAGE.whiteboard}?subject=${encodeURIComponent(subject)}` : PAGE[style]);
+const pageOf = (style: Style, subject?: string | null) => (style === "whiteboard" ? boardPage(subject) : PAGE[style]);
 const STAGE: Record<string, string> = {
   reading: "Reading your question…", drawings: "Picking drawings…", writing: "Writing the lesson…", fixing: "Fixing a step…",
 };

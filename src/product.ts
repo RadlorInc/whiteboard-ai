@@ -19,5 +19,14 @@ export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@e
 // price ids and webhook are set (preview first, then production). The free count is /admin's setting.
 export const PLANS_ON = process.env.NEXT_PUBLIC_PLANS_ON === "1";
 
+// The Anatomy recipes switch, page side (the server's is ANATOMY_RECIPES): the whiteboard player loads only the drawing
+// files each board names (lib/wb-load.js lazy=1). Set both per Vercel environment: staging first.
+export const ANATOMY_ON = process.env.NEXT_PUBLIC_ANATOMY_RECIPES === "1";
+// The whiteboard player's address for a chat subject (it loads that subject's drawing files; none = all of them).
+export const boardPage = (subject?: string | null) => {
+  const q = [subject ? `subject=${encodeURIComponent(subject)}` : "", ANATOMY_ON ? "lazy=1" : ""].filter(Boolean).join("&");
+  return `/player/index.html${q ? `?${q}` : ""}`;
+};
+
 // Digits in the email sign-in code. Must equal Supabase Auth → Email → "Email OTP Length" (hosted default: 8).
 export const OTP_LENGTH = Math.min(10, Math.max(6, Number(process.env.NEXT_PUBLIC_OTP_LENGTH) || 6));

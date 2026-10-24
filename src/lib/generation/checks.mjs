@@ -10,6 +10,109 @@ const TEXTURES = new Set(P.textures), PARTS = P.parts ?? {}, SV_IDS = new Set(P.
 export const BUILT_IN = { whiteboard: new Set(P.builtIn.whiteboard), paper: new Set(P.builtIn.paper) };
 export const MC_LIB = P.mcLib, WB_LIB = P.wbLib, PAPER_LIB = P.paperLib, EXAMPLES = P.examples;
 
+// ---------- Anatomy recipes (ANATOMY_RECIPES switch; build-prompts.mjs ISO_RULES) ----------
+// While the switch is on, an Anatomy element's type is written "<name>Iso" (the player draws the new recipe; old
+// videos keep the old one) and its options are cleaned by its own catalogue line, the same rules as the player's
+// ISO.cleaner (workshop shared.js): numbers stay finite, ranges clamp, a list keeps its words, unknown keys go (box
+// stays). Fixed, not sent back: a repair costs a whole model call. What only the writer can fix is an error (checkEls,
+// checkStep): boxes on top of each other or off the board, a part that does not exist, set on a plain drawing.
+const ISO_LINE = new Map((P.iso?.lib.lines ?? []).map(l => [l.name, l.sig]));
+export const ISO_NAMES = new Set(ISO_LINE.keys());
+export const isoLibOf = lib => [...lib.map(c => c.cat.startsWith('servier') ? c : { ...c, lines: c.lines.filter(l => !ISO_NAMES.has(l.name)) }), P.iso.lib];
+export function isoCleaner(line) {
+  const rules = {};
+  for (const [, k, spec] of line.matchAll(/\b([a-z][a-z0-9]*)=(\S*)/g)) {
+    if (spec.includes('…') && spec !== '…') continue;
+    const range = spec.match(/^(-?\d*\.?\d+)(?:-|\.\.|–)(-?\d*\.?\d+)$/);
+    const opts = spec.split('|').flatMap(x => { const r = x.match(/^(\d+)-(\d+)$/); return r ? Array.from({ length: +r[2] - +r[1] + 1 }, (_, i) => String(+r[1] + i)) : [x]; });
+    const open = spec.match(/^(-?\d*\.?\d+)\.\.$/);
+    if (range) rules[k] = { lo: Math.min(+range[1], +range[2]), hi: Math.max(+range[1], +range[2]) };
+    else if (open) rules[k] = { lo: +open[1], hi: Infinity };
+    else if (/^[a-zμ°]+\/[a-z]+$/i.test(spec)) rules[k] = { num: true };
+    else if (/^-?\d*\.?\d+$/.test(spec) || /^(deg|cm|mm|m|N|kg|g|s|ms|x|n|°|…|\.\.\.)$/.test(spec)) rules[k] = { num: true };
+    else if (opts.length > 1 && opts.every(x => /^-?\d*\.?\d+$/.test(x))) rules[k] = { lo: Math.min(...opts.map(Number)), hi: Math.max(...opts.map(Number)) };
+    else if (opts.length > 1 && k !== 'lit' && k !== 'c' && opts.every(x => /^[a-z0-9][a-z0-9.-]*$/i.test(x))) rules[k] = { one: new Set(opts) };
+  }
+  return p => {
+    const out = {};
+    for (const [k, v] of Object.entries(p)) {
+      const rule = rules[k];
+      if (!rule) { out[k] = v; continue; }
+      if (rule.one) { if (rule.one.has(String(v))) out[k] = v; continue; }
+      const x = typeof v === 'number' ? v : v === '' || v == null ? NaN : +v;
+      if (!Number.isFinite(x)) continue;
+      out[k] = rule.lo !== undefined ? String(Math.min(rule.hi, Math.max(rule.lo, x))) : String(x);
+    }
+    return out;
+  };
+}
+const isoBase = type => ISO_NAMES.has(type) ? type : type.endsWith('Iso') && ISO_NAMES.has(type.slice(0, -3)) ? type.slice(0, -3) : null;
+const isoKeys = name => new Set([...ISO_LINE.get(name).matchAll(/\b([a-z][a-z0-9]*)=/g)].map(m => m[1]));
+const cleaners = new Map();
+// k=v tokens through a recipe's rules: unknown keys dropped (keep: also allowed), bad values dropped or clamped
+function cleanOpts(name, toks, keep = []) {
+  if (!cleaners.has(name)) cleaners.set(name, isoCleaner(ISO_LINE.get(name)));
+  const keys = isoKeys(name);
+  return toks.flatMap(t => {
+    const eq = t.indexOf('='); if (eq < 1) return [t];
+    const k = t.slice(0, eq), v = t.slice(eq + 1);
+    if (!/^[\w.,#|°%+-]{1,60}$/.test(v)) return [];   // a value is a word, number or list: never markup or quotes
+    if (keep.includes(k)) return [t];
+    if (!keys.has(k)) return [];
+    const c = cleaners.get(name)({ [k]: v });
+    return k in c ? [`${k}=${c[k]}`] : [];
+  });
+}
+// One element line: an Anatomy one renamed "<name>Iso" and cleaned; anything else as it is.
+function isoLine(spec) {
+  const s = String(spec), bar = s.indexOf('|'), head = bar < 0 ? s : s.slice(0, bar), [type, ...toks] = head.trim().split(/\s+/), name = isoBase(type);
+  if (!name) return spec;
+  return [`${name}Iso`, ...cleanOpts(name, toks, ['box'])].join(' ') + (bar < 0 ? '' : ' ' + s.slice(bar));
+}
+export const isoEls = els => Object.fromEntries(Object.entries(els).map(([id, v]) => [id, isoLine(v)]));
+// set <id> k=v …: cleaned by that element's recipe (the cue and & before it kept)
+export function isoStep(step, els) {
+  if (!step || !Array.isArray(step.do)) return step;
+  return { ...step, do: step.do.map(cmd => {
+    const t = String(cmd).trim(), b = bare(t), [op, id, ...kv] = b.split(/\s+/);
+    const name = op === 'set' && id in els ? isoBase(String(els[id]).trim().split(/\s+/)[0]) : null;
+    return name ? `${t.slice(0, t.length - b.length)}${['set', id, ...cleanOpts(name, kv)].join(' ')}` : cmd;
+  }) };
+}
+const boxOf = spec => { const m = /\bbox=(-?[\d.]+),(-?[\d.]+),(-?[\d.]+),(-?[\d.]+)/.exec(String(spec)); return m ? m.slice(1).map(Number) : null; };
+const overlap = (a, b) => Math.max(0, Math.min(a[0] + a[2], b[0] + b[2]) - Math.max(a[0], b[0])) * Math.max(0, Math.min(a[1] + a[3], b[1] + b[3]) - Math.max(a[1], b[1]));
+function isoPlaceErrs(els) {
+  const errs = [], boxes = [], tags = [];
+  for (const [id, spec] of Object.entries(els)) {
+    const [type, ...n] = String(spec).split('|')[0].trim().split(/\s+/);
+    if (type === 'tag' && n.length >= 4) { const [cx, cy, w, h] = n.map(Number); tags.push([id, [cx - w / 2, cy - h / 2, w, h]]); }
+    if (!isoBase(type)) continue;
+    const b = boxOf(spec); if (!b) continue;
+    if (!(b[2] > 20 && b[3] > 20)) errs.push(`els.${id}: box=x,y,w,h needs a width and height over 20`);
+    else if (b[0] < -4 || b[1] < -4 || b[0] + b[2] > 964 || b[1] + b[3] > 544) errs.push(`els.${id}: box ${b.join(',')} runs off the 960x540 board`);
+    boxes.push([id, b]);
+  }
+  // a phone builds and moves every one (and each may hold a shader layer): a lesson needs one or two
+  const n = Object.values(els).filter(v => isoBase(String(v).trim().split(/\s+/)[0])).length;
+  if (n > 4) errs.push(`els: ${n} detailed 3D drawings, at most 4 on one board`);
+  boxes.forEach(([id, b], i) => {
+    for (const [o, c] of boxes.slice(i + 1)) if (overlap(b, c) > .1 * Math.min(b[2] * b[3], c[2] * c[3])) errs.push(`els.${id} and els.${o}: their boxes overlap; give each drawing its own part of the board`);
+    for (const [t, c] of tags) if (overlap(b, c) > .1 * c[2] * c[3]) errs.push(`els.${t}: the tag sits on drawing ${id}; move it clear of box ${b.join(',')}`);
+  });
+  return errs;
+}
+// mark <id>.<part>: a part the recipe names (its lit= list); set: an Anatomy drawing
+function isoCmdErrs(op, arg, i, els) {
+  const [id, part] = String(arg[0] ?? '').split('.'), name = id in els ? isoBase(String(els[id]).trim().split(/\s+/)[0]) : null;
+  if (op === 'set' && id in els && !name) return [`steps[${i}]: set ${id}: only a detailed 3D drawing (the iso category) takes set`];
+  if (op === 'mark' && part !== undefined) {
+    if (!name) return [`steps[${i}]: mark ${arg[0]}: only a detailed 3D drawing has named parts`];
+    const parts = /\blit=(\S+)/.exec(ISO_LINE.get(name))?.[1].split('|') ?? [];
+    if (!parts.includes(part)) return [`steps[${i}]: mark ${arg[0]}: ${name} has no part "${part}" (parts: ${parts.join(' ')})`];
+  }
+  return [];
+}
+
 // ---------- whiteboard: check(a) = shape + checkEls + every checkStep (prototype `check`, split) ----------
 // extraSv: the approved library drawings' slugs (library_drawings), which a script may also use as sv ids.
 export function checkEls(els, extraSv) {
@@ -26,7 +129,7 @@ export function checkEls(els, extraSv) {
       else if (!list.includes(part)) errs.push(`els.${id}: ${what} has no part "${part}" (parts: ${list.join(' ')})`);
     }
   }
-  return errs;
+  return [...errs, ...isoPlaceErrs(els)];
 }
 // A command may start with a word cue, "@nucleus draw n1" (the player draws it when the voice says that word):
 // bare() drops the & and the cue (either order: the model writes "@word &fade x" too), cueOf() gives the cue's word.
@@ -50,9 +153,10 @@ export function checkStep(s, i, els) {
     const [op, ...arg] = bare(cmd).split(/\s+/);
     if (!COMMANDS.has(op)) { errs.push(`steps[${i}]: unknown command "${op}"`); continue; }
     if (op === 'mark' && !MARKS.has(arg[1])) errs.push(`steps[${i}]: unknown mark "${arg[1]}" (circle, underline or point)`);
-    const ids = op === 'travel' ? arg[0]?.split(',') : op === 'fill' ? arg : ['cam', 'wait'].includes(op) ? [] : [arg[0]];
+    const ids = op === 'travel' ? arg[0]?.split(',') : op === 'fill' ? arg : ['cam', 'wait'].includes(op) ? [] : [op === 'mark' ? arg[0]?.split('.')[0] : arg[0]];
     for (const id of ids ?? []) if (!(id in els)) errs.push(`steps[${i}]: "${cmd}" uses missing id "${id}"`);
     if (op === 'loop' && !LOOPS.has(arg[1])) errs.push(`steps[${i}]: unknown loop "${arg[1]}"`);
+    errs.push(...isoCmdErrs(op, arg, i, els));
   }
   return errs;
 }

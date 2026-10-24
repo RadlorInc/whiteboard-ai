@@ -17,7 +17,15 @@ export type VoiceStatus = {
 };
 
 const ON = process.env.NEXT_PUBLIC_VOICE !== "browser";
-export const voiceOn = () => ON && typeof Worker !== "undefined";
+// With the Anatomy switch on, a device the player puts in Lite (data saver, 2G, 2 GB or less) never starts the model's
+// download (~166 MB): the browser's voice speaks instead (workshop ARCHITECTURE.md §F; the Lite voice is still the
+// founder's choice: this only keeps the download off such a phone).
+const weak = () => {
+  if (process.env.NEXT_PUBLIC_ANATOMY_RECIPES !== "1" || typeof navigator === "undefined") return false;
+  const n = navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string }; deviceMemory?: number };
+  return !!n.connection?.saveData || /2g/.test(n.connection?.effectiveType ?? "") || (n.deviceMemory ?? 8) <= 2;
+};
+export const voiceOn = () => ON && typeof Worker !== "undefined" && !weak();
 
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((f) => f());
