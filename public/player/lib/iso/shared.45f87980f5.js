@@ -54,6 +54,7 @@
       const out = {};
       for (const [k, v] of Object.entries(p)) {
         const rule = rules[k];
+        if (/^[+-]?(nan|infinity)$/i.test(String(v))) continue;   // never a value, wherever it would land (a label: "NaN solution")
         if (!rule) { out[k] = v; continue; }
         if (rule.one) { if (rule.one.has(String(v))) out[k] = v; continue; }
         const x = typeof v === "number" ? v : v === "" || v == null ? NaN : +v;
@@ -479,6 +480,21 @@ vec4 steamInk(vec2 vb,vec3 O,vec3 D,float len,float r0,float amount,float t){
     return fx && { flame: (air, lv = 1) => fx.set({ uAir: air, uLv: lv }, lv > 0.002) };
   };
   // Frame the drawing on the board: a box W × H centred on (cx, cy), fitted to the given world points.
+  // ── parts (PARTS.md): small objects that share one camera and one scale, so several placed on one board read as
+  // one room. A part's world point [0, 0, 0] (where it stands on the floor, sits on the wall, or a tool's working tip)
+  // lands on the board at (cx, cy); k is board px per cm, the same for every part of a scene. World: 1 = 1 cm, x along
+  // the wall, y out of the wall into the room (the wall's face is y = 0), z up. flip=1 mirrors it left to right.
+  ISO.PART_CAM = { azimuth: 62, elevation: 22 };
+  ISO.part = (cx, cy, k = 3, parent, flip = false) => {
+    const P = K.fitProjection([[0, 0, 0], [1, 1, 1]], 100, 100, { pad: 0, ...ISO.PART_CAM });
+    P.scale = Math.max(0.2, Math.min(60, k)) / K.cameraOf({ scale: 1 }).k; P.origin = [0, 0];
+    const o = K.iso([0, 0, 0], P); P.origin = [cx - o[0], cy - o[1]];
+    const g = mk("g", { class: "iso", "data-theme": "light", ...(flip && { transform: `translate(${2 * cx} 0) scale(-1 1)` }) }, parent);
+    // what other parts attach to: the camera, the scale, and named world points (a joint, a socket, a shelf's top);
+    // the player places "at=<id>.<anchor>" (and ax= ay= az= cm offsets) there, in this part's own k
+    g.P = P; g.k = k; g.anchors = {}; g.flip = flip;
+    return { P, g };
+  };
   ISO.frame = (points, cx, cy, W, H, { azimuth = 45, elevation = 30, pad = 0 } = {}, parent) => {
     const P = K.fitProjection(points, W, H, { pad, azimuth, elevation });
     const g = mk("g", { class: "iso", "data-theme": "light", transform: `translate(${cx - W / 2} ${cy - H / 2})` }, parent);

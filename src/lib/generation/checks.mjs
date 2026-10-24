@@ -17,6 +17,9 @@ export const MC_LIB = P.mcLib, WB_LIB = P.wbLib, PAPER_LIB = P.paperLib, EXAMPLE
 // stays). Fixed, not sent back: a repair costs a whole model call. What only the writer can fix is an error (checkEls,
 // checkStep): boxes on top of each other or off the board, a part that does not exist, set on a plain drawing.
 const ISO_LINE = new Map((P.iso?.lib.lines ?? []).map(l => [l.name, l.sig]));
+// a part (workshop PARTS.md: "name cx cy k …") composes with others; its anchors are listed at the end of its line
+const ISO_ANCHORS = new Map((P.iso?.lib.lines ?? []).map(l => [l.name, /anchors: ([a-z0-9 ]+)\s*$/.exec(l.desc)?.[1].trim().split(/\s+/) ?? []]));
+const isPart = name => ISO_LINE.get(name)?.startsWith(`${name} cx cy k`);
 export const ISO_NAMES = new Set(ISO_LINE.keys());
 export const isoLibOf = lib => [...lib.map(c => c.cat.startsWith('servier') ? c : { ...c, lines: c.lines.filter(l => !ISO_NAMES.has(l.name)) }), P.iso.lib];
 export function isoCleaner(line) {
@@ -37,6 +40,7 @@ export function isoCleaner(line) {
     const out = {};
     for (const [k, v] of Object.entries(p)) {
       const rule = rules[k];
+      if (/^[+-]?(nan|infinity)$/i.test(String(v))) continue;   // never a value (the player's ISO.cleaner does the same)
       if (!rule) { out[k] = v; continue; }
       if (rule.one) { if (rule.one.has(String(v))) out[k] = v; continue; }
       const x = typeof v === 'number' ? v : v === '' || v == null ? NaN : +v;
@@ -67,7 +71,7 @@ function cleanOpts(name, toks, keep = []) {
 function isoLine(spec) {
   const s = String(spec), bar = s.indexOf('|'), head = bar < 0 ? s : s.slice(0, bar), [type, ...toks] = head.trim().split(/\s+/), name = isoBase(type);
   if (!name) return spec;
-  return [`${name}Iso`, ...cleanOpts(name, toks, ['box'])].join(' ') + (bar < 0 ? '' : ' ' + s.slice(bar));
+  return [`${name}Iso`, ...cleanOpts(name, toks, ['box', 'at', 'ax', 'ay', 'az', 'flip'])].join(' ') + (bar < 0 ? '' : ' ' + s.slice(bar));
 }
 export const isoEls = els => Object.fromEntries(Object.entries(els).map(([id, v]) => [id, isoLine(v)]));
 // set <id> k=v …: cleaned by that element's recipe (the cue and & before it kept)
@@ -92,9 +96,28 @@ function isoPlaceErrs(els) {
     else if (b[0] < -4 || b[1] < -4 || b[0] + b[2] > 964 || b[1] + b[3] > 544) errs.push(`els.${id}: box ${b.join(',')} runs off the 960x540 board`);
     boxes.push([id, b]);
   }
-  // a phone builds and moves every one (and each may hold a shader layer): a lesson needs one or two
-  const n = Object.values(els).filter(v => isoBase(String(v).trim().split(/\s+/)[0])).length;
-  if (n > 4) errs.push(`els: ${n} detailed 3D drawings, at most 4 on one board`);
+  // a phone builds and moves every one (and each may hold a shader layer): a lesson needs one or two big drawings;
+  // parts are small, and a scene of them may have more (up to 16 in all)
+  const names = Object.values(els).map(v => isoBase(String(v).trim().split(/\s+/)[0])).filter(Boolean);
+  const big = names.filter(nm => !isPart(nm)).length;
+  if (big > 4) errs.push(`els: ${big} detailed 3D drawings, at most 4 on one board`);
+  if (names.length > 16) errs.push(`els: ${names.length} detailed 3D drawings and parts, at most 16 on one board`);
+  // a part placed by cx cy k: its point on the board, its scale a real one (px per cm)
+  for (const [id, spec] of Object.entries(els)) {
+    const [type, ...toks] = String(spec).split('|')[0].trim().split(/\s+/), nm = isoBase(type);
+    if (!nm || !isPart(nm) || /\bat=/.test(spec)) continue;
+    const [cx, cy, k] = toks.filter(t => !t.includes('=')).map(Number);
+    if (!(cx >= -10 && cx <= 970 && cy >= -10 && cy <= 550)) errs.push(`els.${id}: ${nm} at ${cx},${cy} is off the 960x540 board`);
+    if (k !== undefined && !(k >= 0.5 && k <= 15)) errs.push(`els.${id}: k=${k} px per cm is not a real scale (0.5-15; one scene shares one k)`);
+  }
+  // at=<id>[.<anchor>]: on a part listed before it, at an anchor that part has
+  const order = Object.keys(els);
+  for (const [id, spec] of Object.entries(els)) {
+    const at = /\bat=(\S+)/.exec(String(spec))?.[1]; if (!at || !isoBase(String(spec).trim().split(/\s+/)[0])) continue;
+    const [tid, an] = at.split('.'), tname = tid in els ? isoBase(String(els[tid]).trim().split(/\s+/)[0]) : null;
+    if (!tname || !isPart(tname) || order.indexOf(tid) > order.indexOf(id)) errs.push(`els.${id}: at=${at} needs a part listed before it`);
+    else if (an && !ISO_ANCHORS.get(tname).includes(an)) errs.push(`els.${id}: ${tname} has no anchor "${an}" (anchors: ${ISO_ANCHORS.get(tname).join(' ') || 'none'})`);
+  }
   boxes.forEach(([id, b], i) => {
     for (const [o, c] of boxes.slice(i + 1)) if (overlap(b, c) > .1 * Math.min(b[2] * b[3], c[2] * c[3])) errs.push(`els.${id} and els.${o}: their boxes overlap; give each drawing its own part of the board`);
     for (const [t, c] of tags) if (overlap(b, c) > .1 * c[2] * c[3]) errs.push(`els.${t}: the tag sits on drawing ${id}; move it clear of box ${b.join(',')}`);
@@ -311,7 +334,7 @@ function lineErrs(where, line, { coordMin = -200, coordMax = 2000, textMax = 200
     const eq = tok.indexOf('=');
     if (eq > 0) {
       const k = tok.slice(0, eq), v = tok.slice(eq + 1);
-      if (!OPT_KEY.test(k) || /^on/i.test(k) || BAD_KEYS.has(k)) errs.push(`${where}: option "${k}" not allowed`);
+      if (!OPT_KEY.test(k) || /^on./i.test(k) || BAD_KEYS.has(k)) errs.push(`${where}: option "${k}" not allowed`);
       if ((k === 'c' || (k === 'f' && PRIMITIVES.has(type))) && v && !COLOUR.test(v)) errs.push(`${where}: colour "${v}" not allowed`);
       if (NUM.test(v) && !Number.isFinite(+v)) errs.push(`${where}: "${tok}" is not a finite number`);
     } else if (NUM.test(tok) && !(+tok >= coordMin && +tok <= coordMax)) errs.push(`${where}: number ${tok} out of range`);

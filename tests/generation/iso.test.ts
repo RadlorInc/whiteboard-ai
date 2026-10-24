@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import P from '../../src/lib/generation/prompts.json' with { type: 'json' };
-import { check, findDrawing, isoCleaner, isoEls, isoLibOf, isoStep, ISO_NAMES, WB_LIB } from '../../src/lib/generation/checks.mjs';
+import { check, checkSafety, findDrawing, isoCleaner, isoEls, isoLibOf, isoStep, ISO_NAMES, WB_LIB } from '../../src/lib/generation/checks.mjs';
 import { runGeneration } from '../../src/lib/generation/run';
 import { fakeDb, fakeClient } from './fakes';
 
@@ -89,6 +89,30 @@ describe('label translations (ISO.say)', () => {
   });
   it('the player gets only reviewed labels: none are reviewed yet, so no language file ships', () => {
     expect(manifest().t9n).toEqual({});
+  });
+});
+
+describe('parts compose (workshop PARTS.md)', () => {
+  const room = (more: Record<string, string> = {}) => isoEls({ w: 'wallpanel 440 505 2.6 w=250 h=165', b1: 'shelfbracket at=w ax=-40.6 az=140', ...more });
+  it('at= on an earlier part and one of its anchors passes; placement options survive the cleaner', () => {
+    const els = room({ s1: 'woodscrew at=b1.hole1 aim=wall in=0' });
+    expect(els.s1).toBe('woodscrewIso at=b1.hole1 aim=wall in=0');
+    expect(check({ els, steps: [] })).toEqual([]);
+  });
+  it('a missing anchor, a later part or a plain drawing as the target is an error', () => {
+    expect(check({ els: room({ s1: 'woodscrew at=b1.nope aim=wall' }), steps: [] }).join()).toMatch(/has no anchor "nope" \(anchors: top hole1 hole2\)/);
+    expect(check({ els: isoEls({ s1: 'woodscrew at=b1.hole1', b1: 'shelfbracket 400 300 3' }), steps: [] }).join()).toMatch(/needs a part listed before it/);
+    expect(check({ els: isoEls({ c: 'circle 1 2 3', s1: 'woodscrew at=c' }), steps: [] }).join()).toMatch(/needs a part listed before it/);
+  });
+  it('a part off the board or at an unreal scale is an error; a scene of parts may hold up to 16', () => {
+    expect(check({ els: isoEls({ w: 'wallpanel 1400 505 2.6' }), steps: [] }).join()).toMatch(/off the 960x540 board/);
+    expect(check({ els: isoEls({ w: 'wallpanel 440 505 40' }), steps: [] }).join()).toMatch(/not a real scale/);
+    const many = Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`s${i}`, `woodscrew ${100 + i * 60} 300 3`]));
+    expect(check({ els: isoEls(many), steps: [] })).toEqual([]);
+  });
+  it('a plain on= option is allowed (a switch, a lamp), an on… handler name is not', () => {
+    expect(checkSafety({ els: isoEls({ sw: 'wallswitch 300 200 3 on=1' }), steps: [] }, 'whiteboard')).toEqual([]);
+    expect(checkSafety({ els: { x: 'circle 1 2 3 onload=1' }, steps: [] }, 'whiteboard').join()).toMatch(/option "onload" not allowed/);
   });
 });
 

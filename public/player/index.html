@@ -93,7 +93,17 @@ const isoName = type => type.endsWith('Iso') && self.ISO && Object.hasOwn(ISO.al
 function isoBuild(name, n, o, content) {
   const R = ISO.all[name], fit = /^-?[\d.]+(,-?[\d.]+){3}$/.test(o.box || '') && o.box.split(',').map(Number);
   const box = mk('g', {}, scene), inner = mk('g', { class: 'pivot' }, box);
-  const g = R.make(fit ? ISO.parse(R.demo.line).n : n, o, content, inner);
+  // at=<id>[.<anchor>] ax= ay= az=: a part placed on another part's point (cm offsets in that part's own frame), at
+  // its scale k, so a screwdriver's tip lands on the chair's screw and a bulb in the lamp's socket wherever they are
+  let args = fit ? ISO.parse(R.demo.line).n : n;
+  const [tid, an] = String(o.at || '').split('.'), t = o.at && Object.hasOwn(els, tid) ? els[tid].iso : null;
+  if (t?.P && (!an || Object.hasOwn(t.anchors || {}, an))) {
+    const a0 = an ? t.anchors[an] : [0, 0, 0], off = ['ax', 'ay', 'az'].map(k => ISO.clamp(Number(o[k]) || 0, -500, 500));
+    const q = K.iso(a0.map((v, i) => v + off[i]), t.P), M = scene.getCTM().inverse().multiply(t.getCTM());
+    const p = new DOMPoint(q[0], q[1]).matrixTransform(M);
+    args = [p.x, p.y, t.k];
+  }
+  const g = R.make(args, o, content, inner);
   const place = b => {
     const [x, y, w, h] = fit, k = Math.min(w / b[2], h / b[3]);
     box.setAttribute('transform', `translate(${(x + (w - b[2] * k) / 2 - b[0] * k).toFixed(1)} ${(y + (h - b[3] * k) / 2 - b[1] * k).toFixed(1)}) scale(${k.toFixed(4)})`);
