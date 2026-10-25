@@ -104,6 +104,17 @@ describe('parts compose (workshop PARTS.md)', () => {
     expect(check({ els: isoEls({ s1: 'woodscrew at=b1.hole1', b1: 'shelfbracket 400 300 3' }), steps: [] }).join()).toMatch(/needs a part listed before it/);
     expect(check({ els: isoEls({ c: 'circle 1 2 3', s1: 'woodscrew at=c' }), steps: [] }).join()).toMatch(/needs a part listed before it/);
   });
+  it('to= (a lead\'s other end) follows the at= rules: an earlier part and an anchor it has', () => {
+    expect(room({ s1: 'woodscrew at=b1.hole1 to=b1.hole2' }).s1).toBe('woodscrewIso at=b1.hole1 to=b1.hole2');
+    expect(check({ els: room({ s1: 'woodscrew at=b1.hole1 to=b1.nope' }), steps: [] }).join()).toMatch(/has no anchor "nope"/);
+    expect(check({ els: isoEls({ s1: 'woodscrew 300 200 3 to=b1.top', b1: 'shelfbracket 400 300 3' }), steps: [] }).join()).toMatch(/to=b1.top needs a part listed before it/);
+    expect(check({ els: isoEls({ w: 'wirelead 100 100 5 to=w' }), steps: [] }).join()).toMatch(/to=w needs a part listed before it/);
+    expect(isoEls({ w: 'wirelead 100 100 5 tox=1e9 toy=2 to=<img/onerror=alert(1)>' }).w).toBe('wireleadIso 100 100 5');
+  });
+  it('only= keeps the recipe\'s own part names and drops the rest (and drops itself when none are left)', () => {
+    expect(isoEls({ d: 'distill box=60,200,260,300 only=burner,nope,flask' }).d).toBe('distillIso box=60,200,260,300 only=burner,flask');
+    expect(isoEls({ d: 'distill box=60,200,260,300 only=nope' }).d).toBe('distillIso box=60,200,260,300');
+  });
   it('a part off the board or at an unreal scale is an error; a scene of parts may hold up to 16', () => {
     expect(check({ els: isoEls({ w: 'wallpanel 1400 505 2.6' }), steps: [] }).join()).toMatch(/off the 960x540 board/);
     expect(check({ els: isoEls({ w: 'wallpanel 440 505 40' }), steps: [] }).join()).toMatch(/not a real scale/);

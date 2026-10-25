@@ -402,7 +402,9 @@ const ISO_RULES = `
   bigger k = closer). Put one on another with at=<id>.<anchor> and ax= ay= az= offsets in cm (anchors are listed in
   its find_drawing line; x along the wall, y out of the wall, z up), and then leave out cx cy k:
   "sd": "screwdriver at=ch.joint aim=up", "b1": "shelfbracket at=wall ax=-30 az=140". List parts back to front:
-  the wall and floor first, then furniture, then what sits on it, tools last.`;
+  the wall and floor first, then furniture, then what sits on it, tools last. A lead joins two parts with at= and
+  to=: "w1": "wirelead at=cell.plus to=bulb.a c=red". A big drawing shows only some of its parts with only=<part>,<part>
+  (its lit= names), e.g. "bu": "distill box=60,200,260,300 only=burner,flask".`;
 const ISO_SUBJECT_RULES = Object.fromEntries(Object.entries(SUBJECTS).map(([s, { cats: cs, teach }]) =>
   [s, wbRules(isoLib(cs.map(c => WB_ALL.find(x => x.cat === c))), teach + REUSE + TEACHER + SHOW_AND_FINISH + ISO_RULES + DRAW_OWN[s])]));
 const ISO_RULES_PLAIN = wbRules(isoLib(WB_LIB), ISO_RULES);

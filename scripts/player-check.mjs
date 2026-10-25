@@ -99,7 +99,8 @@ if (mode === 'iso') {
     }, name).catch(e => ({ error: String(e.message).slice(0, 160) }));
     // circular's demo cuts the line (cut=1): the bung flies off along the circle, out of any box, on purpose
     const inBox = name === 'circular' || (r.box && r.box.x >= 515 && r.box.y >= 35 && r.box.x + r.box.w <= 925 && r.box.y + r.box.h <= 345);
-    const bad = r.error || errs.length || !r.line?.shown || !r.box?.shown || !(r.line.w > 20 && r.line.h > 20) || !inBox;
+    // drawn and not blank: a thin thing (a thermometer) is tall, not wide
+    const bad = r.error || errs.length || !r.line?.shown || !r.box?.shown || !(Math.max(r.line.w, r.line.h) > 20 && Math.min(r.line.w, r.line.h) > 3) || !inBox;
     if (bad) fails.push(`${name}: ${r.error || ''} ${errs.slice(0, 2).join(' · ')} ${JSON.stringify(r)}`);
     console.log(`${bad ? 'FAIL' : 'ok  '} ${name.padEnd(14)} ${r.error || `line ${r.line.w}×${r.line.h} · box ${r.box.w}×${r.box.h} at ${r.box.x},${r.box.y}`}${errs.length ? ' · ' + errs[0] : ''}`);
   }

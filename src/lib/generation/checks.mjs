@@ -71,7 +71,10 @@ function cleanOpts(name, toks, keep = []) {
 function isoLine(spec) {
   const s = String(spec), bar = s.indexOf('|'), head = bar < 0 ? s : s.slice(0, bar), [type, ...toks] = head.trim().split(/\s+/), name = isoBase(type);
   if (!name) return spec;
-  return [`${name}Iso`, ...cleanOpts(name, toks, ['box', 'at', 'ax', 'ay', 'az', 'flip'])].join(' ') + (bar < 0 ? '' : ' ' + s.slice(bar));
+  // only=a,b: just those named parts (its lit= names); names it does not have are dropped
+  const parts = /\blit=(\S+)/.exec(ISO_LINE.get(name))?.[1].split('|') ?? [];
+  const only = t => { if (!t.startsWith('only=')) return [t]; const ok = t.slice(5).split(/[|,]/).filter(p => parts.includes(p)); return ok.length ? [`only=${ok.join(',')}`] : []; };
+  return [`${name}Iso`, ...cleanOpts(name, toks, ['box', 'at', 'to', 'ax', 'ay', 'az', 'flip', 'only']).flatMap(only)].join(' ') + (bar < 0 ? '' : ' ' + s.slice(bar));
 }
 export const isoEls = els => Object.fromEntries(Object.entries(els).map(([id, v]) => [id, isoLine(v)]));
 // set <id> k=v …: cleaned by that element's recipe (the cue and & before it kept)
@@ -112,10 +115,11 @@ function isoPlaceErrs(els) {
   }
   // at=<id>[.<anchor>]: on a part listed before it, at an anchor that part has
   const order = Object.keys(els);
-  for (const [id, spec] of Object.entries(els)) {
-    const at = /\bat=(\S+)/.exec(String(spec))?.[1]; if (!at || !isoBase(String(spec).trim().split(/\s+/)[0])) continue;
+  // to=<id>[.<anchor>] (a wire's other end): the same rule
+  for (const [id, spec] of Object.entries(els)) for (const key of ['at', 'to']) {
+    const at = new RegExp(`\\b${key}=(\\S+)`).exec(String(spec))?.[1]; if (!at || !isoBase(String(spec).trim().split(/\s+/)[0])) continue;
     const [tid, an] = at.split('.'), tname = tid in els ? isoBase(String(els[tid]).trim().split(/\s+/)[0]) : null;
-    if (!tname || !isPart(tname) || order.indexOf(tid) > order.indexOf(id)) errs.push(`els.${id}: at=${at} needs a part listed before it`);
+    if (!tname || !isPart(tname) || order.indexOf(tid) >= order.indexOf(id)) errs.push(`els.${id}: ${key}=${at} needs a part listed before it`);
     else if (an && !ISO_ANCHORS.get(tname).includes(an)) errs.push(`els.${id}: ${tname} has no anchor "${an}" (anchors: ${ISO_ANCHORS.get(tname).join(' ') || 'none'})`);
   }
   boxes.forEach(([id, b], i) => {
