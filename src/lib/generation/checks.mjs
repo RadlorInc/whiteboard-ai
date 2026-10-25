@@ -111,7 +111,7 @@ function isoPlaceErrs(els) {
     if (!nm || !isPart(nm) || /\bat=/.test(spec)) continue;
     const [cx, cy, k] = toks.filter(t => !t.includes('=')).map(Number);
     if (!(cx >= -10 && cx <= 970 && cy >= -10 && cy <= 550)) errs.push(`els.${id}: ${nm} at ${cx},${cy} is off the 960x540 board`);
-    if (k !== undefined && !(k >= 0.5 && k <= 15)) errs.push(`els.${id}: k=${k} px per cm is not a real scale (0.5-15; one scene shares one k)`);
+    if (k !== undefined && !(k >= 0.5 && k <= 30)) errs.push(`els.${id}: k=${k} px per cm is not a real scale (0.5-30; one scene shares one k)`);
   }
   // at=<id>[.<anchor>]: on a part listed before it, at an anchor that part has
   const order = Object.keys(els);

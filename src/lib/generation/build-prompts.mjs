@@ -398,8 +398,8 @@ const ISO_RULES = `
   step in the lesson step that explains it. The drawing writes its own labels (lab=0 hides them).
 - Parts (signature "<name> cx cy k ..."): small real objects drawn with one camera and one scale, to build your
   own scene from them (a wall, a shelf, a drill, a screw, a chair). cx cy is where the part stands on the floor, sits
-  on the wall, or, for a tool, where its tip works; k is board px per cm, the SAME for every part of one scene (2-6;
-  bigger k = closer). Put one on another with at=<id>.<anchor> and ax= ay= az= offsets in cm (anchors are listed in
+  on the wall, or, for a tool, where its tip works; k is board px per cm, the SAME for every part of one scene (2-6 for a
+  room, 6-12 for a lab bench, up to 30 for small things like a compass; bigger k = closer). Put one on another with at=<id>.<anchor> and ax= ay= az= offsets in cm (anchors are listed in
   its find_drawing line; x along the wall, y out of the wall, z up), and then leave out cx cy k:
   "sd": "screwdriver at=ch.joint aim=up", "b1": "shelfbracket at=wall ax=-30 az=140". List parts back to front:
   the wall and floor first, then furniture, then what sits on it, tools last. A lead joins two parts with at= and
