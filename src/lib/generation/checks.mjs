@@ -216,7 +216,18 @@ export function checkStep(s, i, els) {
 }
 export function check(a, extraSv) {
   if (!a || typeof a !== 'object' || !a.els || !Array.isArray(a.steps)) return ['not {q, els, steps}'];
-  return [...checkEls(a.els, extraSv), ...a.steps.flatMap((s, i) => checkStep(s, i, a.els))];
+  return [...checkEls(a.els, extraSv), ...a.steps.flatMap((s, i) => checkStep(s, i, a.els)), ...nextErrs(a)];
+}
+// Long answers in parts (founder, 26 Oct 2026): a lesson that is Part 1 of a longer answer names the next part,
+// "next": "Part 2: …", and the chat offers it as a button (a new video, asked as a follow-up). Only a full lesson
+// may be split (6-7 steps): a short answer is never cut to make the viewer pay for a second video.
+export function nextErrs(a) {
+  if (a?.next === undefined) return [];
+  const t = a.next;
+  if (typeof t !== 'string' || !/^Part [2-4]: \S/.test(t)) return ['next: must be "Part 2: <what the next part answers>"'];
+  if ([...t].length > 100) return [`next: ${[...t].length} characters, at most 100`];
+  if (!Array.isArray(a.steps) || a.steps.length < 6) return [`next: only a full lesson (6-7 steps) is split into parts; teach this one in one video`];
+  return [];
 }
 
 // ---------- paper: checkPaper(a) = shape + every checkPaperStep ----------
@@ -398,6 +409,7 @@ export function checkSafety(a, style) {
   let size = 0; try { size = new TextEncoder().encode(JSON.stringify(a)).length; } catch { return ['safety: not JSON']; }
   if (size > 65536) errs.push(`safety: ${size} bytes of JSON, at most 65536`);
   errs.push(...textErrs('q', a.q, 500));
+  if (typeof a.next === 'string') errs.push(...textErrs('next', a.next, 100), ...leakErrs('next', a.next));
   const items = style === 'matchcut' ? a.objects : a.steps;
   (Array.isArray(items) ? items : []).forEach((s, i) => {
     errs.push(...textErrs(`${style === 'matchcut' ? 'objects' : 'steps'}[${i}].say`, s?.say, 0));

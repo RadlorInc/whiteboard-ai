@@ -238,7 +238,7 @@ export async function runGeneration(o: {
         if (groups.length && db.saveDrawings) await db.saveDrawings(id, o.subject ?? null, groups).catch(() => {});
         // A video that cannot go on Explore (a refusal, or the call failing) still counts as done.
         const explore = o.explore ? await o.explore().catch(() => 'error') : null;
-        send('done', { id, creditsCharged: r.credits_charged, narrationChars: chars, available: r.available, explore });
+        send('done', { id, creditsCharged: r.credits_charged, narrationChars: chars, available: r.available, explore, ...(typeof a.next === 'string' && { next: a.next }) });
       }
       else send('failed', { code: r.outcome === 'too_late' ? 'timeout' : chars < 1 ? 'empty' : r.outcome === 'rejected' ? 'too_long' : 'stale', refunded: true, available: r.available });
     });

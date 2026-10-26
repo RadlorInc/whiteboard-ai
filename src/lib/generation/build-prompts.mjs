@@ -101,6 +101,10 @@ const CAM_RULES = `- Motion is the product: something pops when it appears, loop
   step's key fact, formula or number in at most 32 characters, numbered like the step. Notes stay to the end, so the
   last board is the summary; they replace the numbered step tags (no step tags on the diagram).
 - Numbered steps: every step's "say" begins "Step 1:", "Step 2:" and so on.
+- Long answers in parts: when the question truly cannot be taught well in 7 steps (a long derivation, balancing and
+  then using an equation, a process with many stages), teach Part 1 fully in 6-7 steps, end its last step by saying
+  what Part 2 will show, and add "next": "Part 2: <what it answers, at most 90 characters>" to the JSON. The viewer
+  gets a button for it; Part 2 is asked as a follow-up and builds on this one. Never split what fits in one lesson.
   The worked examples below were made before these rules: follow the rules, not them, on the camera and notes.
 `;
 const RULES = wbRules(WB_LIB);

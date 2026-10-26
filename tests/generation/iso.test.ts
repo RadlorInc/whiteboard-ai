@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import P from '../../src/lib/generation/prompts.json' with { type: 'json' };
-import { check, checkPolicy, checkSafety, findDrawing, isoCleaner, isoEls, isoLibOf, isoStep, ISO_NAMES, WB_LIB } from '../../src/lib/generation/checks.mjs';
+import { check, checkPolicy, checkSafety, nextErrs, findDrawing, isoCleaner, isoEls, isoLibOf, isoStep, ISO_NAMES, WB_LIB } from '../../src/lib/generation/checks.mjs';
 import { runGeneration } from '../../src/lib/generation/run';
 import { fakeDb, fakeClient } from './fakes';
 
@@ -234,5 +234,30 @@ describe('a run with the switch on', () => {
   it('with the switch off nothing is renamed', async () => {
     const { events } = await go(false);
     expect(events.find(e => e.event === 'els').data.els.b).toBe(script.els.b);
+  });
+});
+
+describe('long answers in parts (founder, 26 Oct 2026)', () => {
+  const steps = (n: number) => Array.from({ length: n }, (_, i) => ({ say: `Step ${i + 1}: x`, do: [] }));
+  it('a full lesson may name its next part; a short one, a wrong shape or a long name may not', () => {
+    expect(nextErrs({ steps: steps(6), next: 'Part 2: using the balanced equation to find the mass' })).toEqual([]);
+    expect(nextErrs({ steps: steps(7) })).toEqual([]);
+    expect(nextErrs({ steps: steps(3), next: 'Part 2: more' }).join()).toMatch(/only a full lesson/);
+    expect(nextErrs({ steps: steps(6), next: 'see part two' }).join()).toMatch(/must be "Part 2/);
+    expect(nextErrs({ steps: steps(6), next: { a: 1 } }).join()).toMatch(/must be "Part 2/);
+    expect(nextErrs({ steps: steps(6), next: `Part 2: ${'x'.repeat(100)}` }).join()).toMatch(/at most 100/);
+  });
+  it('next is public text: no links, and no prompt leaks', () => {
+    expect(checkSafety({ q: 'x', els: {}, steps: [], next: 'Part 2: see www.example.com' }, 'whiteboard').join()).toMatch(/no links/);
+    expect(checkSafety({ q: 'x', els: {}, steps: [], next: 'Part 2: how find_drawing picks pictures' }, 'whiteboard').join()).toMatch(/how the lesson is made/);
+  });
+  it('a run sends next with done, and saves it with the script', async () => {
+    const say = (i: number) => `Step ${i + 1}: The flame changes as the air hole opens a little more each time.`;
+    const script = { q: 'q', els: { b: 'bunsen box=40,100,420,420' }, next: 'Part 2: why the blue flame is hotter',
+      steps: Array.from({ length: 6 }, (_, i) => ({ say: say(i), do: i ? [] : ['draw b'] })) };
+    const { db, log } = fakeDb(), f = fakeClient([{ text: JSON.stringify(script) }]), events: Any[] = [];
+    await runGeneration({ id: '00000000-0000-4000-8000-000000000010', style: 'whiteboard', question: 'q', client: f.client, db, send: (event, data) => events.push({ event, data }), retryWaitMs: () => 0, iso: true });
+    expect(events.at(-1)).toMatchObject({ event: 'done', data: { next: 'Part 2: why the blue flame is hotter' } });
+    expect((log.finish[0].script as Any).next).toBe('Part 2: why the blue flame is hotter');
   });
 });

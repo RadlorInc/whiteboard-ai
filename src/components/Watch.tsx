@@ -274,15 +274,26 @@ function MakingCover({ making }: { making: Making }) {
   );
 }
 
-export function Watch({ question, style, subject, explore = false, conversationId, onDone, onExit }: {
+// The next part of a lesson in parts (founder, 26 Oct 2026): a new video, asked as a follow-up so it builds on this one.
+export function NextPart({ next, onNext }: { next: string; onNext: (question: string) => void }) {
+  return (
+    <div className="answer-meta">
+      <button className="btn" type="button" onClick={() => onNext(next)}><Icon name="play" size={16} /> {next}</button>
+      <span className="muted">Uses 1 video</span>
+    </div>
+  );
+}
+
+export function Watch({ question, style, subject, explore = false, conversationId, onDone, onExit, onNext }: {
   question: string; style: Style; subject?: string | null; explore?: boolean; conversationId?: string;
   onDone?: (available: number | null, id?: string) => void; onExit?: () => void;
+  onNext?: (question: string) => void;     // a lesson in parts: ask its next part in the same chat
 }) {
   const [exploreNote, setExploreNote] = useState<string | null>(null);
   const [stage, setStage] = useState("Starting…");
   const [error, setError] = useState<string | null>(null);
   const [owned, setOwned] = useState<string | null>(null);
-  const [result, setResult] = useState<{ id: string; charged: number } | null>(null);
+  const [result, setResult] = useState<{ id: string; charged: number; next?: string } | null>(null);
   const [steps, setSteps] = useState<string[]>([]);
   const [making, setMaking] = useState<Making>({ at: 0 });      // what the progress cover shows
   const [playing, setPlaying] = useState(false);                // the first step is on the board: the cover goes
@@ -354,7 +365,7 @@ export function Watch({ question, style, subject, explore = false, conversationI
         }
         else if (ev === "script") { setPlaying(true); sendWhole(d.script); setSteps(d.script.objects.map((o: { say: string }) => o.say)); }
         else if (ev === "done") {
-          finished = true; setResult({ id: d.id, charged: d.creditsCharged }); setStage("");
+          finished = true; setResult({ id: d.id, charged: d.creditsCharged, ...(typeof d.next === "string" && { next: d.next }) }); setStage("");
           // The server put it on Explore as it saved it (or says why it couldn't).
           if (d.explore) setExploreNote(d.explore === "shown" ? "Shown in Explore." : exploreRefusal(d.explore));
           if (style === "whiteboard") send({ type: "done" });
@@ -396,6 +407,7 @@ export function Watch({ question, style, subject, explore = false, conversationI
           <VideoFeedback id={result.id} />
         </div>
       )}
+      {result?.next && onNext && <NextPart next={result.next} onNext={onNext} />}
       {exploreNote && <p className="answer-meta" role="status">{exploreNote}</p>}
       {steps.length > 0 && (
         <details className="transcript"><summary>Transcript</summary><ol>{steps.map((s, i) => <li key={i}>{s}</li>)}</ol></details>
