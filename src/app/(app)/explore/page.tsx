@@ -4,7 +4,7 @@ import { getAccount } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { ExploreGrid, type ExploreItem } from "@/components/ExploreGrid";
 import { Icon } from "@/components/Icon";
-import { SUBJECT_NAME, type Subject } from "@/components/Chats";
+import { SUBJECT_GROUPS, SUBJECT_NAME, type Subject } from "@/components/Chats";
 
 // Explore (founder, 13 + 18 Oct 2026): everyone's videos, open without signing in, one card per chat. Search looks in
 // the questions and the narration (explore_feed); never the maker. Not indexed for now: user questions.
@@ -44,7 +44,7 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
         </form>
         <nav className="x-chips" aria-label="Subject">
           <Link href={href({ subject: null })} className={`chip${subject ? "" : " on"}`} aria-current={subject ? undefined : "page"}>All</Link>
-          {(Object.keys(SUBJECT_NAME) as Subject[]).map((s) => (
+          {SUBJECT_GROUPS[0][1].map((s) => (   /* the study subjects offered now */
             <Link key={s} href={href({ subject: s })} className={`chip${subject === s ? " on" : ""}`} aria-current={subject === s ? "page" : undefined}>
               {SUBJECT_NAME[s]}
             </Link>

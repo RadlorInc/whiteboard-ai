@@ -10,7 +10,7 @@ import { NextPart, Player, Watch, type Style } from "./Watch";
 import { deleteChat, startConversation } from "@/app/(app)/c/actions";
 import { ShareButton } from "./ShareButton";
 import { VideoFeedback } from "./VideoFeedback";
-import { SUBJECT_NAME, type Subject } from "./Chats";
+import { SUBJECT_GROUPS, SUBJECT_NAME, type Subject } from "./Chats";
 import { LEVEL_NAME, type Allowance, type Level } from "@/lib/videos";
 import { Icon } from "./Icon";
 import { BoardPreview } from "./BoardPreview";
@@ -52,7 +52,7 @@ export function Chat({ conversationId, subject: initialSubject, subjects, level:
 }) {
   const router = useRouter();
   const [conv, setConv] = useState(conversationId);
-  const [subject, setSubject] = useState<Subject>(initialSubject ?? subjects?.[0] ?? "biology");
+  const [subject, setSubject] = useState<Subject>(initialSubject ?? subjects?.find(s => SUBJECT_GROUPS[0][1].includes(s)) ?? "biology");   // a new chat: a subject still offered
   const level: Level = subject === "home" || subject === "car" ? "school" : initialLevel ?? "school";   // fixes have one length
   const [live, setLive] = useState<Live[]>([]);
   const [busy, setBusy] = useState(false);

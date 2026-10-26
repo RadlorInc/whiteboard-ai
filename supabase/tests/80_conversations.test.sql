@@ -3,7 +3,7 @@
 begin;
 set local search_path = public, extensions;
 \ir helpers.psql
-select plan(12);
+select plan(15);
 
 select pg_temp.give(pg_temp.ua(), 0, 100) is null as f \gset
 select pg_temp.give(pg_temp.ub(), 0, 100) is null as f \gset
@@ -18,7 +18,9 @@ create function pg_temp.attach(p_g uuid, p_c uuid, p_u uuid) returns text langua
 
 select isnt(pg_temp.k('ca'), null, 'A starts a biology conversation');
 select is((select subject from public.conversations where id = pg_temp.k('ca')), 'biology', '... with its subject');
-select matches(pg_temp.as_user(pg_temp.ua(), $$select public.create_conversation('history')$$), '^ERROR 23514', 'an unknown subject is refused');
+select matches(pg_temp.as_user(pg_temp.ua(), $$select public.create_conversation('history')$$), '^ERROR 22023', 'an unknown subject is refused');
+select matches(pg_temp.as_user(pg_temp.ua(), $$select public.create_conversation('home')$$), '^ERROR 22023', 'a new home chat is refused (26 Oct 2026)');
+select matches(pg_temp.as_user(pg_temp.ua(), $$select public.create_conversation('car')$$), '^ERROR 22023', 'a new car chat is refused');
 select matches(pg_temp.anon($$select public.create_conversation('biology')$$), '^ERROR 42501', 'anon cannot start one');
 
 select is(pg_temp.as_user(pg_temp.ua(), 'select count(*)::text from public.conversations'), '1', 'A sees only A''s conversation');
@@ -33,5 +35,7 @@ select is(pg_temp.attach(pg_temp.k('ga'), pg_temp.k('ca'), pg_temp.ua()), 'false
 select matches(pg_temp.as_user(pg_temp.ua(), format('select public.attach_to_conversation(%L, %L, %L)::text', pg_temp.k('ga'), pg_temp.k('ca'), pg_temp.ua())),
   '^ERROR 42501', 'a signed-in user cannot call the filing function');
 
+-- last: it adds a conversation to A's, which the counts above would see
+select isnt(pg_temp.as_user(pg_temp.ua(), $$select public.create_conversation('cs')$$), null, 'a computer science chat starts');
 select * from finish();
 rollback;

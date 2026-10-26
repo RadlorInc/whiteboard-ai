@@ -199,6 +199,25 @@ const SUBJECTS = {
   an amino acid) is a drawn structure: search "<name> structure" and draw it with sv.` },
   // Everyday fixes (founder, 20 Oct 2026): any real-life "how to", not only school. Two subjects, so a home question
   // never loads car drawings and the other way round.
+  // Computer science and Finance (founder, 26 Oct 2026): two more study subjects, in place of the everyday fixes.
+  cs: { cats: ['anatomy', 'computing', 'tech', 'engineering', 'math', 'objects', 'daily', 'diagrams'], teach: `
+- Teaching computer science: show the idea working, step by step, on real small data: an array being sorted (sortbars,
+  arraybox), a list or tree being walked (linkedlist, bintree, bstpath, nodegraph), a stack or queue taking and giving
+  values, bits and bytes (binarynum, bitrow, logicgate, truthtable), the CPU fetching and running (cpubus, fdecycle),
+  data crossing a network (clientserver, packetroute, dnslookup, firewall), encryption (encrypt, keypair). Each step
+  moves one thing the voice names.
+- Hardware is a detailed 3D drawing of the real part (a motherboard, a CPU in its socket, RAM, a hard drive, an SSD, a
+  router, a server rack, a phone's insides): search find_drawing for it; zoom on the part the voice names.
+- Code on the board is short (codewin, 2-6 lines) and plain; no brand or product names, no real company logos.` },
+  finance: { cats: ['anatomy', 'economy', 'math', 'daily', 'objects', 'world', 'diagrams'], teach: `
+- Teaching finance and money: start from a real, everyday situation (a shop, a stall, a wallet, a salary, a savings
+  jar, a small business) drawn with its objects (notes, coins, a till, a receipt, a price tag, a cash machine), then
+  show the numbers on the board and work them out step by step; the totals must add up.
+- Money is generic: plain numbers on notes, coins and screens, the currency said in words only when the question names
+  one. No real banks, brands or logos.
+- Never present earning or paying interest as a good choice, and never show gambling, betting, lotteries or a piggy
+  bank (or any pig): saving is a jar, a wallet or a safe. When a question asks about interest or loans, explain what
+  they are and what they cost, plainly, and show saving, budgeting, trade and profit-sharing as the ways to grow money.` },
   car: { cats: ['anatomy', 'carfix', 'servier-car', 'servier-home', 'servier-phys', 'servier', 'servier-chem', 'objects', 'engineering', 'tech', 'daily', 'diagrams'], teach: `
 - Teaching car: (car care and fixes, for any driver, not mechanics) show the job as the steps a person really does,
   in order: what you need first (tools and parts, drawn), where it is on the car, then each action on the part it
@@ -264,6 +283,14 @@ const DRAW_OWN = {
   4. motion as short arrows on the moving parts; heat or energy as thick arrows, red for hot, blue for cold;
   5. every part named with text beside it and a thin leader line, as a textbook figure is.
   Use real geometry: circles for wheels, straight walls, parts in proportion. Put formulas below the drawing.` + OWN_NAMES,
+  cs: `
+- Drawing what the library lacks: draw a device as a clean textbook figure with "rect", "path" and "circle": a case in
+  light grey with a dark edge, its parts in their real places and proportions (chips, slots, connectors, fans), data
+  as small coloured squares moving along arrows; every part named with text and a thin leader line.` + OWN_NAMES,
+  finance: `
+- Drawing what the library lacks: draw everyday objects as simple flat shapes with real proportions (a stall, a shelf,
+  a box of goods, a ledger page), and numbers as written sums laid out in columns so each step is easy to follow; every
+  amount the voice says is written on the board.` + OWN_NAMES,
   chemistry: `
 - Drawing what the library lacks: a named molecule is first searched as "<name> structure". When nothing fits, draw
   it yourself with real geometry, computed, not guessed:

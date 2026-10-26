@@ -6,7 +6,7 @@ window.WB_EXTRA = ["biology", "anatomy", "life", "phys", "physuni", "physadv", "
 const _extra = null;
 // Subject-only categories per chat subject (each subject's WB_EXTRA cats in build-prompts.mjs SUBJECTS; a test keeps them
 // in step). The page is given ?subject=; an unknown or missing subject (old videos, Explore, shares) loads all of WB_EXTRA.
-window.WB_SUBJECT = { biology: ["biology", "anatomy", "life", "biouni", "biogr", "objects"], physics: ["anatomy", "phys", "physuni", "physadv", "physgr", "objects"], chemistry: ["anatomy", "chemuni", "chemgr", "objects"], car: ["anatomy", "carfix", "objects"], home: ["anatomy", "homefix", "objects"] };
+window.WB_SUBJECT = { biology: ["biology", "anatomy", "life", "biouni", "biogr", "objects"], physics: ["anatomy", "phys", "physuni", "physadv", "physgr", "objects"], chemistry: ["anatomy", "chemuni", "chemgr", "objects"], cs: ["anatomy", "objects"], finance: ["anatomy", "objects"], car: ["anatomy", "carfix", "objects"], home: ["anatomy", "homefix", "objects"] };
 const _s = new URLSearchParams(location.search).get('subject');
 const _sub = Object.hasOwn(window.WB_SUBJECT, _s ?? '') ? window.WB_SUBJECT[_s] : window.WB_EXTRA;   // only listed names reach document.write
 // lazy=1 (the page sets it while the Anatomy switch is on, ARCHITECTURE.md §A): only the index and anatomy (realistic

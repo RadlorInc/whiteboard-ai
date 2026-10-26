@@ -50,7 +50,7 @@ const existing = (g: { id: string; status: string }) =>
 
 // What a follow-up's model call is told before the question: the subject and the conversation so far (questions and
 // their spoken lines; no drawings). It goes in the user turn, so the cached system prompt stays byte-identical.
-const SUBJECT = { biology: 'Biology', physics: 'Physics', chemistry: 'Chemistry', home: 'Home fixes', car: 'Car fixes' } as const;
+const SUBJECT = { biology: 'Biology', physics: 'Physics', chemistry: 'Chemistry', cs: 'Computer science', finance: 'Finance', home: 'Home fixes', car: 'Car fixes' } as const;
 // One text block per earlier turn, each byte-identical on every later follow-up, so the conversation so far is a
 // cached prefix (run.ts marks the last block): a follow-up pays full price only for its newest turn (18 Oct 2026).
 // The level (founder, 20 Oct 2026) changes what is taught, never how long: every video keeps the prompt's length rule.

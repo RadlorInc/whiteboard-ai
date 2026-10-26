@@ -6,8 +6,8 @@ import { redirect } from "next/navigation";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { LEVELS, type Level } from "@/lib/videos";
 
-export type Subject = "biology" | "physics" | "chemistry" | "home" | "car";
-const SUBJECTS: Subject[] = ["biology", "physics", "chemistry", "home", "car"];
+export type Subject = "biology" | "physics" | "chemistry" | "cs" | "finance" | "home" | "car";
+const SUBJECTS: Subject[] = ["biology", "physics", "chemistry", "cs", "finance"];   // a new chat: study subjects only (26 Oct 2026)
 
 export async function startConversation(subject: Subject, level: Level = "school"): Promise<{ id?: string; error?: string }> {
   if (!SUBJECTS.includes(subject) || !LEVELS.includes(level)) return { error: "bad_request" };
