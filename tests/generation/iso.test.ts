@@ -29,7 +29,7 @@ describe('iso prompts and library', () => {
   });
   it('find_drawing returns the Anatomy line for a name both libraries have, and keeps sv drawings', () => {
     const lib = isoLibOf(WB_LIB as Any);
-    const got = findDrawing(lib, { names: ['lever', 'tyrechange'], query: '' });
+    const got = findDrawing(lib, { names: ['lever', 'tyrechange'], query: '' } as Any);
     expect(got).toContain(P.iso.lib.lines.find((l: Any) => l.name === 'lever')!.sig);
     expect(got).toContain('tyrechange cx cy');
     expect(lib.filter((c: Any) => c.cat !== 'iso').flatMap((c: Any) => c.lines).some((l: Any) => l.name === 'lever' && !l.sig.startsWith('sv '))).toBe(false);
@@ -174,7 +174,7 @@ describe('camera and notes (Anatomy prompts, founder 26 Oct 2026)', () => {
     expect(checkPolicy({ steps: [{ say: 'Step 1: x', do: ['cam 1 2 3'] }] }, 'whiteboard').join()).toMatch(/no cam/);
   });
   it('only the Anatomy prompts teach the camera and notes; the production prompts do not', () => {
-    for (const t of [P.iso.whiteboard.system, ...Object.values(P.iso.subjects).map((x: Any) => x.system)]) expect(t).toMatch(/zoom <id>\[\.<part>\].*note \|/s);
+    for (const t of [P.iso.whiteboard.system, ...Object.values(P.iso.subjects).map((x: Any) => x.system)]) expect(t).toMatch(/zoom <id>\[\.<part>\][\s\S]*note \|/);
     for (const t of [P.styles.whiteboard.system, ...Object.values(P.subjects).map((x: Any) => x.system)]) expect(t).not.toMatch(/zoom <id>|note \|/);
   });
 });
@@ -190,7 +190,7 @@ describe('prompt leaks (26 Oct 2026): narration and board text never read our in
   });
   it('every approved worked example passes (no false alarm on real teaching)', () => {
     for (const [st, list] of Object.entries(P.examples) as [string, Any[]][]) for (const a of list)
-      expect(checkSafety(a, st).filter(e => /instructions|how the lesson is made/.test(e)), a.q).toEqual([]);
+      expect(checkSafety(a, st).filter((e: string) => /instructions|how the lesson is made/.test(e)), a.q).toEqual([]);
   });
 });
 
