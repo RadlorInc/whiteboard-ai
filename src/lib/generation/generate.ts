@@ -13,7 +13,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (s: unknown): s is string => typeof s === 'string' && UUID.test(s);
 
 // §7.12: NFC, control characters removed (newline kept), runs of spaces collapsed, trimmed; 1–500 code points.
-function cleanQuestion(q: unknown): string | null {
+export function cleanQuestion(q: unknown): string | null {
   if (typeof q !== 'string') return null;
   const s = q.normalize('NFC').replace(/[\u0000-\u0009\u000b-\u001f\u007f-\u009f]/g, '').replace(/[^\S\n]+/g, ' ')
     .replace(/ *\n */g, '\n').trim();
@@ -50,7 +50,7 @@ const existing = (g: { id: string; status: string }) =>
 
 // What a follow-up's model call is told before the question: the subject and the conversation so far (questions and
 // their spoken lines; no drawings). It goes in the user turn, so the cached system prompt stays byte-identical.
-const SUBJECT = { biology: 'Biology', physics: 'Physics', chemistry: 'Chemistry', home: 'Home fixes', car: 'Car fixes' } as const;
+const SUBJECT = { biology: 'Biology', physics: 'Physics', chemistry: 'Chemistry', home: 'Home fixes', car: 'Car fixes', maths: 'Maths' } as const;
 // One text block per earlier turn, each byte-identical on every later follow-up, so the conversation so far is a
 // cached prefix (run.ts marks the last block): a follow-up pays full price only for its newest turn (18 Oct 2026).
 // The level (founder, 20 Oct 2026) changes what is taught, never how long: every video keeps the prompt's length rule.

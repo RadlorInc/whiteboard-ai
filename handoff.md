@@ -5,6 +5,29 @@
 
 **Before going live: [LAUNCH.md](LAUNCH.md)** — the checklist of what was left for launch (migration + merge order, keep-warm, Stripe, legal).
 
+## Children's maths for Radlic (21 Oct 2026, branch `kids-maths`, not merged)
+
+Radlic (grades 3-8) gets "Ask maths": its server calls **`POST /api/partner/maths`** (Bearer `RADLIC_PARTNER_SECRET`,
+body `{question ≤300, band: '3-5'|'6-8'}`) and plays the lesson in its own copy of `public/player`. Code:
+`src/lib/generation/partner.ts` (+ `partner-db.ts`, the route), tests `tests/generation/partner.test.ts`.
+- **Nothing about the child is kept here**: no user, no generations row, no conversation, no Explore, no saved
+  drawings; cost rows have `generation_id` and `raw_text` null. Kill switch, provider block and spend cap still apply.
+- A screen call first (Opus 5.5, effort low, JSON verdict): `not_maths` / `personal` / `unsafe` → 422, nothing drawn.
+- New subject **`maths`** (prompt sha `2ae6a8…`, kids' teaching rules, gender-neutral people) and a new subject-only
+  category **`schoolmath`**: timeclock, tape (bar model), column (+ − × with carries/borrows, decimals), longdiv,
+  ratiotable, usmoney (coins and bills), measure (jug, kitchen scale), shapenet (nets), picgraph. Maths may not use sv/pin (run.ts refuses; Radlic's copy ships no realistic drawings). The plain
+  prompt's sha is unchanged; keep-warm now also pings the maths prompt when it is used.
+- `GENERATION_MOCK=1` has a hand-made maths demo lesson: any question containing "coins" gets it (usmoney, a column
+  sum, $0.84). Every other question still gets the rainbow.
+- **State (22 Oct):** `kids-maths` merged with main and pushed as a Draft PR. main's "Show what you say / Finish the
+  story" rule is kept out of the maths prompt (no realistic drawings there; a sum is not a journey), so its sha is
+  unchanged. Tried end to end locally with Radlic (mock model): 401 without the secret, `not_maths` / `personal` refused,
+  lessons streamed, nothing kept here (checked `generations` and `generation_calls`).
+- Not done: a real-model run of the maths prompt (no live calls from agents; about $0.12 a question);
+  set `RADLIC_PARTNER_SECRET` in Vercel (and the same value in Radlic) before Radlic turns the feature on. No migration.
+- Claude's in-app browser pane blocks every sandboxed iframe (ERR_BLOCKED_BY_CLIENT, our /player too): look at boards in
+  real Chrome.
+
 ## Free videos: first 20 once + invite a friend (22 Oct 2026, branch `free-20-refer`, Draft PR, not on prod)
 
 - Founder's plan (replaces "10 free every UTC month" and the "set 40" note): first 20 videos free, once; a friend

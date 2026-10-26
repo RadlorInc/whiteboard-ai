@@ -573,6 +573,58 @@
      ]
     }
    ]
+  },
+  {
+   "q": "coins",
+   "els": {
+    "title": "text 230 52 s=38 f=#2b6cc4 | How much money is this?",
+    "m": "usmoney 70 80 72 items=q:2,d:3,p:4",
+    "q1": "text 70 250 s=30 f=#2b6cc4 | 2 quarters: 2 × 25¢ = 50¢",
+    "d1": "text 70 300 s=30 f=#2c6a22 | 3 dimes: 3 × 10¢ = 30¢",
+    "p1": "text 70 350 s=30 f=#c97a10 | 4 pennies: 4 × 1¢ = 4¢",
+    "col": "column 620 200 48 a=50 b=34 op=+ lab=0",
+    "ans": "text 600 470 s=44 f=#c0392b | = $0.84",
+    "t1": "tag 120 505 180 40 s=18 | 1. The coins",
+    "t2": "tag 310 505 180 40 s=18 | 2. Each kind",
+    "t3": "tag 500 505 160 40 s=18 | 3. Add up",
+    "t4": "tag 690 505 180 40 s=18 | 4. In dollars"
+   },
+   "steps": [
+    {
+     "say": "Step 1: Here are your coins: two quarters, three dimes and four pennies.",
+     "do": [
+      "write title",
+      "@coins draw m",
+      "fill m",
+      "pop t1"
+     ]
+    },
+    {
+     "say": "Step 2: Count each kind. Two quarters are fifty cents, three dimes are thirty cents, and four pennies are four cents.",
+     "do": [
+      "@quarters write q1",
+      "@dimes write d1",
+      "@pennies write p1",
+      "pop t2",
+      "mark q1 underline"
+     ]
+    },
+    {
+     "say": "Step 3: Now add them in columns. Fifty and thirty make eighty, and four more makes eighty-four cents.",
+     "do": [
+      "@columns draw col",
+      "pop t3"
+     ]
+    },
+    {
+     "say": "Step 4: Eighty-four cents is eighty-four hundredths of a dollar, so you have eighty-four cents, or zero point eight four dollars.",
+     "do": [
+      "@dollar pop ans",
+      "pop t4",
+      "mark ans circle"
+     ]
+    }
+   ]
   }
  ],
  "paper": [

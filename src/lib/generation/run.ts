@@ -49,6 +49,9 @@ export async function runGeneration(o: {
   const approved = style === 'whiteboard' ? await (db.approvedDrawings?.() ?? Promise.resolve([])).catch(() => []) : [];
   if (approved.length) lib.push(savedCat(approved));
   const savedSv = new Set(approved.map(r => r.slug)), savedData = new Map(approved.map(r => [r.slug, r.data]));
+  // A subject without realistic drawings (maths: Radlic's copy of the player ships none) may not use sv or pin.
+  const noSv = style === 'whiteboard' && !!o.subject && !approved.length && !lib.some(c => c.cat.startsWith('servier'));
+  const svErrs = (els: Json) => noSv ? Object.entries(els).filter(([, v]) => /^\s*(sv|pin)\b/.test(String(v))).map(([k]) => `els.${k}: this subject has no realistic drawings (no sv or pin); use a recipe or draw it`) : [];
   const drawingsFor = (els: Json) => { const out: Json = {};
     for (const v of Object.values(els)) { const sv = /^\s*sv\b.*\bid=([a-z0-9-]+)/.exec(String(v))?.[1]; if (sv && savedData.has(sv)) out[sv] = savedData.get(sv); }
     return Object.keys(out).length ? out : undefined; };
@@ -84,12 +87,12 @@ export async function runGeneration(o: {
         if (Object.keys(sentEls).some(k => !same(els[k], (sentEls as Json)[k]))) { halted = true; return; }
         const add = Object.fromEntries(Object.entries(els).filter(([k]) => !(k in (sentEls as Json))));
         if (Object.keys(add).length) {
-          if (checkEls(add, savedSv).length || checkSafety({ els: { ...sentEls, ...add }, steps: [] }, style).length) { halted = true; return; }
+          if (checkEls(add, savedSv).length || svErrs(add).length || checkSafety({ els: { ...sentEls, ...add }, steps: [] }, style).length) { halted = true; return; }
           sentEls = { ...sentEls, ...add }; send('els_add', { els: add, drawings: drawingsFor(add) });
         }
         return;
       }
-      if (checkEls(els, savedSv).length || checkSafety({ els, steps: [] }, style).length) { halted = true; return; }
+      if (checkEls(els, savedSv).length || svErrs(els).length || checkSafety({ els, steps: [] }, style).length) { halted = true; return; }
       sentEls = els; timings.els ??= at();
       send('els', { els, drawings: drawingsFor(els) });
       send('need', { cats: catsOf(lib, Object.values(els).map(s => String(s).split('|')[0].trim().split(/\s+/)[0])) });
@@ -186,7 +189,7 @@ export async function runGeneration(o: {
       let a: Json | null = null, errs: string[];
       try {
         a = parse(textOf(msg)) as Json;
-        errs = [...STYLE_CHECK[style](a, savedSv), ...checkPolicy(a, style), ...checkSafety(a, style)];
+        errs = [...STYLE_CHECK[style](a, savedSv), ...svErrs((a.els ?? {}) as Json), ...checkPolicy(a, style), ...checkSafety(a, style)];
         if (pinned > 0) {
           const steps = (a.steps ?? []) as Step[];
           if (!sent.every((s, i) => same(steps[i], s))) errs.push(`steps 1 to ${pinned} changed after they were shown`);

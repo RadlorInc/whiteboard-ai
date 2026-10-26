@@ -23,7 +23,7 @@ export type GenerationRow = {
   stage: string | null; script: unknown; error_code: string | null; credits_charged: number; narration_chars: number;
   created_at: string; question: string | null;
 };
-export type Subject = 'biology' | 'physics' | 'chemistry' | 'home' | 'car';
+export type Subject = 'biology' | 'physics' | 'chemistry' | 'home' | 'car' | 'maths';   // maths: Radlic's partner endpoint only, never a chat
 // A conversation's subject and its earlier answered questions, oldest first, each with its spoken lines.
 export type Level = 'school' | 'undergrad' | 'grad';
 export type Thread = { subject: Subject; level: Level; turns: { question: string; says: string[] }[] };

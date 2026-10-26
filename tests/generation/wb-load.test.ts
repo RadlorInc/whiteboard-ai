@@ -34,7 +34,9 @@ describe('wb-load subject files', () => {
     });
   }
   it('every subject loads anatomy.js, which holds the realistic drawings (sv) and pins: without it a chat cannot draw one (20 Oct 2026)', () => {
-    for (const s of Object.keys(P.subjects)) expect(load(`?subject=${s}`).cats, s).toContain('anatomy');
+    // maths is the exception: children's maths in Radlic draws no realistic drawings (run.ts refuses sv/pin there)
+    for (const s of Object.keys(P.subjects).filter(s => s !== 'maths')) expect(load(`?subject=${s}`).cats, s).toContain('anatomy');
+    expect(load('?subject=maths').cats).not.toContain('anatomy');
   });
   it('biology fetches no physics or chemistry files', () => {
     const bio = load('?subject=biology').cats;

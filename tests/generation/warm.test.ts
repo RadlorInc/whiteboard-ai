@@ -48,7 +48,7 @@ describe('keep-warm window: 45 ≤ idle < 58 minutes, and a real ask within 24 h
     const out = await keepWarm(db, ping.client, NOW);
     expect(out.map(o => [o.style, o.subject, o.pinged])).toEqual([['whiteboard', null, true],
       ['whiteboard', 'biology', true], ['whiteboard', 'physics', false], ['whiteboard', 'chemistry', false],
-      ['whiteboard', 'car', false], ['whiteboard', 'home', false]]);
+      ['whiteboard', 'car', false], ['whiteboard', 'home', false], ['whiteboard', 'maths', false]]);
     expect(ping.seen.length).toBe(2);
     expect(log.calls.map(c => [c.kind, c.style, c.generation_id, c.prompt_sha])).toEqual([['ping', 'whiteboard', null, PROMPT_SHA.whiteboard],
       ['ping', 'whiteboard', null, promptSha('whiteboard', 'biology')]]);
