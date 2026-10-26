@@ -36,3 +36,19 @@ export function totp(secret: string, at = Date.now()) {
   const h = createHmac("sha1", key).update(msg).digest(), o = h[19] & 15;
   return String((h.readUInt32BE(o) & 0x7fffffff) % 1_000_000).padStart(6, "0");
 }
+
+// A user of its own for one run (parts, queue: 26 Oct 2026): a seed user shared by parallel specs collided (one open
+// video per user, and a new sign-in code cancels the last). 18+, terms done, and let in (invite mode), in the LOCAL db.
+import { execFileSync } from "node:child_process";
+export async function freshUser(tag: string) {
+  const email = `${tag}-${crypto.randomUUID().slice(0, 8)}@example.test`;
+  const { data, error } = await admin.auth.admin.createUser({ email, email_confirm: true });
+  if (error) throw error;
+  const { data: terms } = await admin.rpc("current_terms_version");
+  const { data: done, error: e2 } = await admin.rpc("complete_signup", { p_user_id: data.user.id, p_birth_year: 1990,
+    p_birth_month: 1, p_gate_version: "v1", p_terms_version: terms, p_source: null });
+  if (e2 || done !== "ok") throw new Error(`complete_signup: ${e2?.message ?? done}`);
+  execFileSync("docker", ["exec", "-i", "supabase_db_whiteboard-ai", "psql", "-U", "postgres", "-d", "postgres", "-qAt",
+    "-c", `update public.profiles set access_granted_at = now() where id = '${data.user.id}'`]);
+  return email;
+}

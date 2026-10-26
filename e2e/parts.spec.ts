@@ -2,12 +2,12 @@
 // in the same chat, and then only the newest answer offers a next part. GENERATION_MOCK=1: the mock answers
 // "A lesson in two parts (test)" with next = "Part 2: the second part of the test lesson" (no model call).
 import { test, expect } from "@playwright/test";
-import { signIn } from "./helpers";
+import { freshUser, signIn } from "./helpers";
 
 test("Part 1 offers Part 2; the button asks it as a follow-up in the same chat", async ({ page }, info) => {
   test.skip(info.project.name !== "chromium-desktop" && info.project.name !== "webkit", "one open video per user");
   test.setTimeout(240_000);
-  await signIn(page, "b@example.test");   // a@ makes the most videos in the other specs (30 a day)
+  await signIn(page, await freshUser(`parts-${info.project.name}`));
   await page.addInitScript(() => localStorage.setItem("wb.explore", "off"));
   await page.goto("/ask");
   const question = `A lesson in two parts (test) ${Date.now()}`;

@@ -1,12 +1,12 @@
 // At capacity (a launch, 26 Oct 2026): the video waits in line behind the making cover and starts by itself when a
 // place frees up, instead of an error. The first ask is answered 503 at_capacity here; the next one goes through.
 import { test, expect } from "@playwright/test";
-import { signIn } from "./helpers";
+import { freshUser, signIn } from "./helpers";
 
 test("at capacity the video waits in line, then is made", async ({ page }, info) => {
   test.skip(info.project.name !== "chromium-desktop", "one open video per user");
   test.setTimeout(180_000);
-  await signIn(page, "b@example.test");
+  await signIn(page, await freshUser(`queue-${info.project.name}`));
   await page.addInitScript(() => localStorage.setItem("wb.explore", "off"));
   let asks = 0;
   await page.route("**/api/generate", route => (++asks === 1
