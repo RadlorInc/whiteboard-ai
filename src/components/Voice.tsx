@@ -1,7 +1,7 @@
 "use client";
 // The narration voice in the UI: the first-visit load as a real progress bar, and the voice picker on /settings.
 import { useEffect, useState } from "react";
-import { VOICES, playSound, setVoice, speakLine, startVoice, stopSound, tapForSound, useSoundBlocked, useVoiceChoice, useVoiceStatus } from "@/lib/voice";
+import { VOICES, playSound, setVoice, skipVoiceDownload, speakLine, startVoice, stopSound, tapForSound, useSoundBlocked, useVoiceChoice, useVoiceStatus } from "@/lib/voice";
 
 const MB = (b: number) => Math.round(b / 1e6);
 
@@ -20,10 +20,17 @@ export function VoiceProgress() {
     : s.stage === "check" ? "Checking the download…"
     : s.stage === "prepare" ? "Getting the voice ready…"
     : "Loading the voice…";
+  // The first visit's download (founder, 26 Oct 2026): advise Wi-Fi, never block — the browser's voice is one tap away.
   return (
     <div className="voice-progress" role="status">
       <span>{label}</span>
       <progress aria-label="Voice loading" {...(s.stage === "download" ? { value: s.loaded, max: s.total } : {})} />
+      {s.stage === "download" && (
+        <div className="voice-skip">
+          <span>On mobile data? Use Wi-Fi for this one-time download, or try it now with your browser&apos;s voice.</span>
+          <button type="button" className="btn ghost sm" onClick={skipVoiceDownload}>Use the browser voice now</button>
+        </div>
+      )}
     </div>
   );
 }

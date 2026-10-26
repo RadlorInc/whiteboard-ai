@@ -2,7 +2,7 @@
 // in the same chat, and then only the newest answer offers a next part. GENERATION_MOCK=1: the mock answers
 // "A lesson in two parts (test)" with next = "Part 2: the second part of the test lesson" (no model call).
 import { test, expect } from "@playwright/test";
-import { freshUser, signIn } from "./helpers";
+import { ask, freshUser, signIn } from "./helpers";
 
 test("Part 1 offers Part 2; the button asks it as a follow-up in the same chat", async ({ page }, info) => {
   test.skip(info.project.name !== "chromium-desktop" && info.project.name !== "webkit", "one open video per user");
@@ -11,8 +11,7 @@ test("Part 1 offers Part 2; the button asks it as a follow-up in the same chat",
   await page.addInitScript(() => localStorage.setItem("wb.explore", "off"));
   await page.goto("/ask");
   const question = `A lesson in two parts (test) ${Date.now()}`;
-  await page.locator("textarea").fill(question);
-  await page.getByRole("button", { name: "Ask", exact: true }).click();
+  await ask(page, question);
   const part2 = page.getByRole("button", { name: "Part 2: the second part of the test lesson" });
   // it waits for the video to play to its end (the step counter says "End")
   await expect(page.locator("[data-charged]")).toBeVisible({ timeout: 120_000 });

@@ -56,3 +56,14 @@ export async function freshUser(tag: string) {
     "-c", `update public.profiles set access_granted_at = now() where id = '${data.user.id}'`]);
   return email;
 }
+
+// Type a question and ask. On a cold dev server WebKit can fill the box before React hydrates, which leaves the Ask
+// button disabled (CI 26 Oct): fill again until it is enabled.
+export async function ask(page: Page, question: string) {
+  const btn = page.getByRole("button", { name: "Ask", exact: true });
+  await expect(async () => {
+    await page.locator("textarea").fill(question);
+    await expect(btn).toBeEnabled({ timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
+  await btn.click();
+}
