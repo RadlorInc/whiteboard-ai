@@ -70,7 +70,7 @@ const wait = ms => FAST ? Promise.resolve() : frames(ms, () => {});
 const BOUNCE = 'cubic-bezier(.34,1.56,.64,1)', SMOOTH = 'cubic-bezier(.65,0,.35,1)';
 let els = {}, marker, camNow = '', runId = 0;
 // the camera (zoom): camS = its scale; with notes on the board the diagram is x 0..NOTE_X and the camera moves only it
-let camS = 1, hasNotes = false;
+let camS = 1, hasNotes = false, shown = new Set();   // shown: ids drawn or written so far
 const NOTE_X = 652, REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // ---------- Anatomy recipes (lib/iso: loaded on demand by bridge.js needIso; "<name>Iso" element types) ----------
@@ -241,7 +241,7 @@ function unclutter(movable, drawings) {
 }
 
 function build(answer) {
-  scene.replaceChildren(); els = {}; notes.replaceChildren(); notes.classList.remove('zoomed'); hasNotes = false; let noteN = 0;
+  scene.replaceChildren(); els = {}; shown = new Set(); notes.replaceChildren(); notes.classList.remove('zoomed'); hasNotes = false; let noteN = 0;
   isoLive = []; ENDED = false; watch = null; isoClock = 0; scene.classList.toggle('lite', LITE);
   if (self.ISO) { ISO.dispose(); ISO.LANG = self.LANG || 'en'; }
   // the order the model wrote (answer.order: saved scripts, whose jsonb lost it); older saved videos: pins last
@@ -346,7 +346,7 @@ function flowify(el) {
   el.after(el.shimmer);
 }
 async function draw(id, ms = 800) {
-  const el = strokeOf(id);
+  const el = strokeOf(id); shown.add(id);
   // an Anatomy recipe builds up part by part in its own painter's order, the pen on each part
   if (el.iso) {
     el.iso.finish?.();
@@ -374,6 +374,7 @@ async function draw(id, ms = 800) {
   for (const t of el.querySelectorAll('.lbl')) await write(t, 500);
 }
 async function write(id, ms = 900) {
+  if (typeof id === 'string') shown.add(id);
   const el = typeof id === 'string' ? els[id] : id;
   // a recipe (label, tag…) is a group: write the hidden text inside it, not the group itself
   if (el.tagName === 'g') { const ts = [...el.querySelectorAll('text.hand:not(.fillable)')]; for (const t of ts) await write(t, ms / ts.length); return; }
@@ -505,6 +506,8 @@ async function run(cmd) {
   const bg = /^(@\S+\s+)?&/.test(cmd.trim()); const [op, ...a] = bare(cmd).split(/\s+/);
   const nums = a.slice(1).map(Number);
   if ((op === 'go' || op === 'travel') && camS > 1.01) await zoomOut(600);    // a movement shows where it goes: whole board
+  // a pop or go on something never drawn moved an invisible thing (a real video, 26 Oct 2026): show it first
+  if ((op === 'pop' || op === 'go') && Object.hasOwn(els, a[0]) && !shown.has(a[0])) await (['text', 'title', 'label', 'note'].includes(els[a[0]].kind) ? write(a[0], 300) : draw(a[0], 300));
   let p;
   if (op === 'draw') p = draw(a[0], nums[0]);
   else if (op === 'write') p = write(a[0], nums[0]);
