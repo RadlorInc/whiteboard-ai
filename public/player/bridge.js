@@ -88,6 +88,9 @@
   // (21 Oct 2026: "Preparing the voice for step 6…" stayed up over "End" on a 5-step video).
   const where = () => tell({ type: 'at', i: at, n: A.steps.length, done, paused: PAUSED,
     waiting: !!A.voice && !(done && at >= A.steps.length) && A.steps[at]?.wav === undefined });
+  // A video plays on past one command that fails (26 Oct 2026: a "go" on an ion stopped a video at step 4 for good);
+  // the poster (an Explore card) still reports the error, and the checks rely on that.
+  const runOrSkip = c => run(c).catch(e => console.warn('player: skipped', c, String(e.message || e)));
   async function streamPlay(my, i = 0) {
     try {
       while (my === gen) {
@@ -125,7 +128,7 @@
                 if (my !== gen) return;
                 const cue = /^&?\s*@(\S+)/.exec(c)?.[1], i = cue ? wordAt(s.say, cue, from) : -1;
                 if (i >= 0) { from = i; await untilWord(i, my); if (my !== gen) return; }
-                await run(c);
+                await runOrSkip(c);
               }
               await penUp();
             })()]);
@@ -171,7 +174,7 @@
     const my = ++gen; runId++; hush(); document.getAnimations().forEach(a => a.cancel());
     FAST = true; fastBy = my;
     // a board that cannot be built (a drawing that throws) says so, instead of a blank board that waits forever
-    try { build(A); for (const s of A.steps.slice(0, k)) for (const c of s.do) { if (my !== gen) return; await run(c); } }
+    try { build(A); for (const s of A.steps.slice(0, k)) for (const c of s.do) { if (my !== gen) return; await runOrSkip(c); } }
     catch (e) { tell({ type: 'error', message: String(e.message || e) }); }
     finally { if (fastBy === my) FAST = false; }        // unless a newer seek took over
     if (my !== gen || !marker?.isConnected) return;     // the board was not built: the error is already told

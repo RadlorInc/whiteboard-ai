@@ -414,7 +414,10 @@ function zoomTo(id, s, ms = 900) {
 }
 const zoomOut = (ms = 900) => camS > 1.01 ? setCam(win()[0] / 2, 270, 1, ms) : Promise.resolve();
 function go(id, ms, pts) {             // tag ko waypoints se le jao (centre coordinates)
-  const el = els[id], [cx, cy] = el.center, kf = [{ transform: `translate(${el.off[0]}px, ${el.off[1]}px)` }];
+  const el = els[id]; if (!el) throw new Error(`No element "${id}"`);
+  // any drawing can move (an ion, a molecule): one without a tag's centre takes its box's (a real video, 26 Oct 2026)
+  if (!el.center) { const b = boxOf(id); el.center = [(b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2]; }
+  const [cx, cy] = el.center, kf = [{ transform: `translate(${el.off[0]}px, ${el.off[1]}px)` }];
   for (let i = 0; i < pts.length; i += 2) kf.push({ transform: `translate(${pts[i] - cx}px, ${pts[i + 1] - cy}px)` });
   el.off = [pts.at(-2) - cx, pts.at(-1) - cy];
   return anim(el, kf, { duration: ms, easing: 'ease-in-out' });
