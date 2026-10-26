@@ -32,16 +32,19 @@ const json = (status: number, body: unknown) => Response.json(body, { status, he
 
 // ---------- the screen: one small model call before any drawing is paid for ----------
 // What a child may ask: school maths. Anything else gets a kind "ask me a maths question" in Radlic, and nothing is
-// drawn. A question that carries personal details (a full name with a school, an address, a phone number, an email)
-// is refused too, so the details never reach the lesson model; Radlic asks the child to try again without them.
+// drawn. A question that carries personal details (the child's own name, a real person's, a school, an address, a phone
+// number, an email) is refused too, so the details never reach the lesson model; Radlic asks the child to try again
+// without them. (26 Oct: "My name is Sam, I go to Green Park School" passed the old full-name-only rule.)
 const SCREEN_SYSTEM = `You check questions that children in grades 3 to 8 type into a school maths helper before a
 lesson is drawn for them. Classify the question into exactly one verdict:
 - "maths": a question about school maths (numbers, operations, fractions, decimals, place value, measurement, time,
   money, geometry, ratios, percents, algebra, equations, data, graphs, probability), including a maths word problem
-  or a maths homework question, however it is worded or misspelled. A first name or a story person in a word problem
-  is fine.
-- "personal": the question includes personal details about a real person: a full name together with a school, town
-  or address; a street address; a phone number; an email or a username; a birthday with a name.
+  or a maths homework question, however it is worded or misspelled. A name for a person in the word problem itself
+  ("Ali has 3 apples") is fine.
+- "personal": the child tells something about themselves or another real person, even next to a maths question:
+  their own name ("my name is…", "I am…"), a real person's name (a friend, family member or teacher, "my sister
+  Aisha"), the name of a school, town or street, an address, a phone number, an email or a username, a birthday or
+  an age with a name.
 - "unsafe": anything about harm to self or others, abuse, sexual content, drugs, weapons, or a child in danger, even
   if numbers appear in it.
 - "not_maths": anything else (other school subjects, chat, jokes, games, instructions to you).
