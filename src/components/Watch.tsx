@@ -298,6 +298,8 @@ export function Watch({ question, style, subject, explore = false, conversationI
   const [making, setMaking] = useState<Making>({ at: 0 });      // what the progress cover shows
   const [playing, setPlaying] = useState(false);                // the first step is on the board: the cover goes
   const onStart = useCallback(() => setPlaying(true), []);
+  const [ended, setEnded] = useState(false);                    // the video has played to its end (the next part waits for it)
+  const onEnded = useCallback(() => setEnded(true), []);
   const started = useRef(false);
   const requestId = useRef(crypto.randomUUID());
 
@@ -386,7 +388,7 @@ export function Watch({ question, style, subject, explore = false, conversationI
     <section className="turn" aria-live="polite">
       <p className="chat-q">{question}</p>
       {playing && !error && !owned && <VoiceProgress />}
-      <Player style={style} subject={subject} bind={bind} onStart={onStart}
+      <Player style={style} subject={subject} bind={bind} onStart={onStart} onEnded={onEnded}
         cover={!playing && !error && !owned ? <MakingCover making={making} /> : null} />
       {playing && stage && !error && !owned && <p role="status" className="answer-meta"><span className="spinner xs" aria-hidden="true" /> {stage}</p>}
       {error && <p role="alert" className="error">{error}</p>}
@@ -407,7 +409,7 @@ export function Watch({ question, style, subject, explore = false, conversationI
           <VideoFeedback id={result.id} />
         </div>
       )}
-      {result?.next && onNext && <NextPart next={result.next} onNext={onNext} />}
+      {result?.next && ended && onNext && <NextPart next={result.next} onNext={onNext} />}
       {exploreNote && <p className="answer-meta" role="status">{exploreNote}</p>}
       {steps.length > 0 && (
         <details className="transcript"><summary>Transcript</summary><ol>{steps.map((s, i) => <li key={i}>{s}</li>)}</ol></details>
