@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AskComposer } from "./AskComposer";
-import { Player, Watch, type Style } from "./Watch";
+import { NextPart, Player, Watch, type Style } from "./Watch";
 import { deleteChat, startConversation } from "@/app/(app)/c/actions";
 import { ShareButton } from "./ShareButton";
 import { VideoFeedback } from "./VideoFeedback";
@@ -20,7 +20,7 @@ export type Turn = { id: string; question: string; style: Style; status: string;
 type Live = { n: number; question: string; explore: boolean; conv: string; id?: string };
 
 // An earlier answer: it plays only when asked, so opening a chat does not start every video at once.
-function PastTurn({ t, subject }: { t: Turn; subject: Subject }) {
+function PastTurn({ t, subject, onNext }: { t: Turn; subject: Subject; onNext?: (question: string) => void }) {
   const [play, setPlay] = useState(false);
   const ok = (t.status === "succeeded" || t.status === "refunded") && t.script;
   return (
@@ -38,6 +38,7 @@ function PastTurn({ t, subject }: { t: Turn; subject: Subject }) {
               <Link href={`/videos/${t.id}`} className="btn ghost sm"><Icon name="external" size={16} /> Open</Link>
               <VideoFeedback id={t.id} />
             </div>
+            {onNext && typeof t.script?.next === "string" && <NextPart next={t.script.next} onNext={onNext} />}
           </>}
     </section>
   );
@@ -124,10 +125,12 @@ export function Chat({ conversationId, subject: initialSubject, subjects, level:
         )}
         {!empty && (
           <div className="thread">
-            {past.map(t => <PastTurn key={t.id} t={t} subject={subject} />)}
+            {/* only the latest answer offers its next part, and not while a video is being made */}
+            {past.map((t, i) => <PastTurn key={t.id} t={t} subject={subject} onNext={!busy && !live.length && i === past.length - 1 ? q => ask(q, false) : undefined} />)}
             {live.map((l, i) => (
               <div key={l.n} ref={i === live.length - 1 ? lastLive : undefined} className="turn-live">
-                <Watch question={l.question} style="whiteboard" subject={subject} explore={l.explore} conversationId={l.conv} onDone={done(l.n)} />
+                <Watch question={l.question} style="whiteboard" subject={subject} explore={l.explore} conversationId={l.conv} onDone={done(l.n)}
+                  onNext={!busy && i === live.length - 1 ? q => ask(q, false) : undefined} />
               </div>
             ))}
             <div ref={end} aria-hidden="true" />

@@ -89,6 +89,7 @@ export async function handleGenerate(req: Request, d: GenerateDeps): Promise<Res
   const conversationId = body.conversation_id ?? null;
   if (conversationId !== null && !isUuid(conversationId)) return json(400, { code: 'bad_request' });
   // Every new video goes on Explore (founder, 15 Oct 2026); explore: false keeps it off (tests that share by hand).
+  // (26 Oct 2026: the Anatomy release goes to production with its switch, so its videos go on Explore like any other.)
   const explore = body.explore !== false;
 
   // A retry of an accepted ask gets its id back before any other check (§6.6 step 1).

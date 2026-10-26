@@ -7,7 +7,7 @@ import { VoiceProgress } from "./Voice";
 import { exploreRefusal } from "./VideoView";
 import { Icon } from "./Icon";
 import { resetDay } from "@/lib/videos";
-import { PLANS_ON } from "@/product";
+import { PLANS_ON, boardPage } from "@/product";
 import { ShareButton } from "./ShareButton";
 import { VideoFeedback } from "./VideoFeedback";
 
@@ -31,8 +31,9 @@ const PAGE: Record<Style, string> = {
   matchcut: "/player/matchcut.html",
 };
 // The chat subject tells the whiteboard player which subject-only drawing files to load (lib/wb-load.js); none = all.
-const pageOf = (style: Style, subject?: string | null) => (style === "whiteboard" && subject ? `${PAGE.whiteboard}?subject=${encodeURIComponent(subject)}` : PAGE[style]);
+const pageOf = (style: Style, subject?: string | null) => (style === "whiteboard" ? boardPage(subject) : PAGE[style]);
 const STAGE: Record<string, string> = {
+  queue: "Lots of people are asking right now. Your video starts in a moment…",
   reading: "Reading your question…", drawings: "Picking drawings…", writing: "Writing the lesson…", fixing: "Fixing a step…",
 };
 const FAILED: Record<string, string> = {
@@ -41,6 +42,8 @@ const FAILED: Record<string, string> = {
   rate_limited: "You've reached today's limit. Try again tomorrow.",
   paused: "Making videos is paused right now. Try again soon.",
   at_capacity: "We're very busy. Try again in a minute.",
+  spend_cap: "So many videos were made today that new ones are paused for now. Try again in a few hours.",
+  access_required: "This is invite-only right now. Enter an invite code to start.",
   refusal: "This question can't be answered here.",
   check_failed: "The video didn't come out right, so nothing was charged. Try asking again.",
   timeout: "This took too long, so nothing was charged. Try again.",
@@ -229,7 +232,7 @@ export function Player({ style, subject, script, onEnded, bind, onStart, cover }
   );
 }
 
-type Making = { at: 0 | 1 | 2 | 3; names?: string[]; fixing?: boolean };
+type Making = { at: 0 | 1 | 2 | 3; names?: string[]; fixing?: boolean; queued?: boolean };   // queued: waiting in line (at capacity)
 
 // Over the empty board while a video is made: a spinner, how long it has taken, and the real stages from the
 // server's stream (reading → drawings → writing) and then this browser making the first spoken line. Nothing here
@@ -243,7 +246,7 @@ function MakingCover({ making }: { making: Making }) {
     ? voice.stage === "download" && voice.total ? `Getting the voice ready (${Math.round(voice.loaded / 1e6)} of ${Math.round(voice.total / 1e6)} MB, first time only)` : "Getting the voice ready"
     : "Making the voice";
   const rows = [
-    "Reading your question",
+    making.queued ? "Lots of people are asking right now. Your video starts in a moment" : "Reading your question",
     names ? `Choosing drawings: ${names}` : "Choosing drawings",
     making.fixing ? "Writing the lesson (fixing a step)" : "Writing the lesson",
     voiceLine,
@@ -274,19 +277,32 @@ function MakingCover({ making }: { making: Making }) {
   );
 }
 
-export function Watch({ question, style, subject, explore = false, conversationId, onDone, onExit }: {
+// The next part of a lesson in parts (founder, 26 Oct 2026): a new video, asked as a follow-up so it builds on this one.
+export function NextPart({ next, onNext }: { next: string; onNext: (question: string) => void }) {
+  return (
+    <div className="answer-meta">
+      <button className="btn" type="button" onClick={() => onNext(next)}><Icon name="play" size={16} /> {next}</button>
+      <span className="muted">Uses 1 video</span>
+    </div>
+  );
+}
+
+export function Watch({ question, style, subject, explore = false, conversationId, onDone, onExit, onNext }: {
   question: string; style: Style; subject?: string | null; explore?: boolean; conversationId?: string;
   onDone?: (available: number | null, id?: string) => void; onExit?: () => void;
+  onNext?: (question: string) => void;     // a lesson in parts: ask its next part in the same chat
 }) {
   const [exploreNote, setExploreNote] = useState<string | null>(null);
   const [stage, setStage] = useState("Starting…");
   const [error, setError] = useState<string | null>(null);
   const [owned, setOwned] = useState<string | null>(null);
-  const [result, setResult] = useState<{ id: string; charged: number } | null>(null);
+  const [result, setResult] = useState<{ id: string; charged: number; next?: string } | null>(null);
   const [steps, setSteps] = useState<string[]>([]);
   const [making, setMaking] = useState<Making>({ at: 0 });      // what the progress cover shows
   const [playing, setPlaying] = useState(false);                // the first step is on the board: the cover goes
   const onStart = useCallback(() => setPlaying(true), []);
+  const [ended, setEnded] = useState(false);                    // the video has played to its end (the next part waits for it)
+  const onEnded = useCallback(() => setEnded(true), []);
   const started = useRef(false);
   const requestId = useRef(crypto.randomUUID());
 
@@ -304,7 +320,7 @@ export function Watch({ question, style, subject, explore = false, conversationI
     const sendWhole = (script: Script) => { sendScript(post, style, script); };
     setError(null); setOwned(null);
     let res: Response;
-    for (;;) {
+    for (let full = 0; ; ) {
       try {
         res = await fetch("/api/generate", {
           method: "POST", headers: { "content-type": "application/json" },
@@ -312,6 +328,15 @@ export function Watch({ question, style, subject, explore = false, conversationI
             ...(conversationId && { conversation_id: conversationId }) }),
         });
       } catch { setError("You're offline. Check your connection and try again."); onDone?.(null); return; }
+      // Everyone's videos at once (a launch, 26 Oct 2026): wait in line behind the making cover, up to ~3 minutes.
+      if (res.status === 503 && full < 6) {
+        const j = await res.clone().json().catch(() => ({}));
+        if (j.code === "at_capacity") {
+          full++; setStage(STAGE.queue); setMaking(m => ({ ...m, queued: true }));
+          await new Promise(r => setTimeout(r, 20e3 + Math.random() * 15e3));    // spread out, so the line does not return at once
+          continue;
+        }
+      }
       if (res.status === 429) {
         // Fair-use slow-down (≤ 60 s): wait behind the making cover and ask again, never shown as an error.
         const j = await res.clone().json().catch(() => ({}));
@@ -324,6 +349,7 @@ export function Watch({ question, style, subject, explore = false, conversationI
       }
       break;
     }
+    setMaking(m => ({ ...m, queued: false }));
     if (res.status === 409) { const j = await res.json(); if (j.code === "already_owned") { setOwned(j.id); setStage(""); return; } setError(msg(j.code ?? "provider_error")); onDone?.(null); return; }
     if (!res.ok || !res.body) { const j = await res.json().catch(() => ({})); setError(msg(j.code ?? "provider_error", j.retry_at)); onDone?.(null); return; }
     post({ type: "reset" });
@@ -354,7 +380,7 @@ export function Watch({ question, style, subject, explore = false, conversationI
         }
         else if (ev === "script") { setPlaying(true); sendWhole(d.script); setSteps(d.script.objects.map((o: { say: string }) => o.say)); }
         else if (ev === "done") {
-          finished = true; setResult({ id: d.id, charged: d.creditsCharged }); setStage("");
+          finished = true; setResult({ id: d.id, charged: d.creditsCharged, ...(typeof d.next === "string" && { next: d.next }) }); setStage("");
           // The server put it on Explore as it saved it (or says why it couldn't).
           if (d.explore) setExploreNote(d.explore === "shown" ? "Shown in Explore." : exploreRefusal(d.explore));
           if (style === "whiteboard") send({ type: "done" });
@@ -375,7 +401,7 @@ export function Watch({ question, style, subject, explore = false, conversationI
     <section className="turn" aria-live="polite">
       <p className="chat-q">{question}</p>
       {playing && !error && !owned && <VoiceProgress />}
-      <Player style={style} subject={subject} bind={bind} onStart={onStart}
+      <Player style={style} subject={subject} bind={bind} onStart={onStart} onEnded={onEnded}
         cover={!playing && !error && !owned ? <MakingCover making={making} /> : null} />
       {playing && stage && !error && !owned && <p role="status" className="answer-meta"><span className="spinner xs" aria-hidden="true" /> {stage}</p>}
       {error && <p role="alert" className="error">{error}</p>}
@@ -396,6 +422,7 @@ export function Watch({ question, style, subject, explore = false, conversationI
           <VideoFeedback id={result.id} />
         </div>
       )}
+      {result?.next && ended && onNext && <NextPart next={result.next} onNext={onNext} />}
       {exploreNote && <p className="answer-meta" role="status">{exploreNote}</p>}
       {steps.length > 0 && (
         <details className="transcript"><summary>Transcript</summary><ol>{steps.map((s, i) => <li key={i}>{s}</li>)}</ol></details>

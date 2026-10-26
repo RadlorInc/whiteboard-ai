@@ -73,7 +73,7 @@
   // The prototype pages draw a demo answer on load; an embedded player starts blank and silent.
   const blank = () => {
     hush(); document.getAnimations().forEach(a => a.cancel());
-    if (style === 'whiteboard') scene.replaceChildren();
+    if (style === 'whiteboard') { scene.replaceChildren(); self.ISO?.dispose(); }
     else { const c = document.getElementById('cv'); c.getContext('2d').clearRect(0, 0, c.width, c.height); if (typeof player !== 'undefined') player?.stop?.(); }
     document.getElementById('caption').textContent = '';
   };
@@ -135,12 +135,13 @@
         else await new Promise(r => setTimeout(r, 80));
       }
       if (my === gen) { at = A.steps.length; where(); scene.classList.remove('spot'); still(); tell({ type: 'ended' }); }
-    } catch (e) { tell({ type: 'error', message: String(e.message || e) }); }
+    } catch (e) { zoomOut(0); tell({ type: 'error', message: String(e.message || e) }); }   // an error leaves the whole board
   }
   // The end: nothing moves on (14 Oct 2026). Looping motion (a beat, a flow, rain) holds where it is; a travelling
   // dot stops (runId ends its trip) and goes.
   const still = () => {
-    runId++;
+    runId++; ENDED = true; isoLive.forEach(g => g.update?.(1, isoClock));     // Anatomy recipes: at their end pose
+    zoomOut();                                                                  // the end: the whole board
     document.getAnimations().forEach(a => { if (a.effect?.getTiming().iterations === Infinity) a.pause(); });
     scene.querySelectorAll('.trip').forEach(d => d.remove());
   };
@@ -167,12 +168,13 @@
     if (!A) return;
     if (PAUSED) { PAUSED = false; held = []; window.speechSynthesis?.resume(); }
     k = Math.max(0, Math.min(k, A.steps.length - 1));
-    const my = ++gen; runId++; hush(); document.getAnimations().forEach(a => a.cancel()); build(A);
+    const my = ++gen; runId++; hush(); document.getAnimations().forEach(a => a.cancel());
     FAST = true; fastBy = my;
-    try { for (const s of A.steps.slice(0, k)) for (const c of s.do) { if (my !== gen) return; await run(c); } }
+    // a board that cannot be built (a drawing that throws) says so, instead of a blank board that waits forever
+    try { build(A); for (const s of A.steps.slice(0, k)) for (const c of s.do) { if (my !== gen) return; await run(c); } }
     catch (e) { tell({ type: 'error', message: String(e.message || e) }); }
     finally { if (fastBy === my) FAST = false; }        // unless a newer seek took over
-    if (my !== gen) return;
+    if (my !== gen || !marker?.isConnected) return;     // the board was not built: the error is already told
     marker.style.opacity = 0;
     document.getElementById('caption').textContent = '';
     streamPlay(my, k);
@@ -185,11 +187,42 @@
       && (s[1] === 'none' || COLOUR.test(s[1])) && (s[3] === null || COLOUR.test(s[3])));
   // Realistic drawings ("sv id=...") load on demand before the board is built (SV, lib/wb/anatomy.js).
   const needSv = els => self.SV ? SV.need(Object.values(els || {}).map(v => /^\s*sv\b.*\bid=([a-z0-9-]+)/.exec(String(v))?.[1]).filter(Boolean)) : Promise.resolve();
+  // Scripts added in order with async=false run in that order; each resolves on load or error (a missing file is the
+  // caller's to handle). Only names from our own lists reach a src.
+  const loadInOrder = srcs => Promise.all(srcs.map(src => new Promise(done => {
+    const s = document.createElement('script'); s.src = src; s.async = false; s.onload = s.onerror = () => done(); document.head.append(s);
+  })));
+  const typesOf = els => [...new Set(Object.values(els || {}).map(v => String(v).split('|')[0].trim().split(/\s+/)[0]))];
+  // The old library on demand (lazy=1 in the page's address, lib/wb-load.js): the categories this board's element
+  // types come from (lib/wb-index.js), before it is built.
+  const libWanted = new Set();
+  const needLib = els => {
+    if (!self.WB_LAZY) return Promise.resolve();
+    const cats = [], add = c => { if (!c || libWanted.has(c)) return; libWanted.add(c); (WB_DEPS[c] || []).forEach(add); cats.push(c); };   // its deps first
+    typesOf(els).filter(t => !RECIPES[t] && Object.hasOwn(WB_INDEX, t)).forEach(t => add(WB_INDEX[t]));   // own keys only ("constructor")
+    return loadInOrder(cats.map(c => `lib/wb/${c}.js`));
+  };
+  // Anatomy recipes ("<name>Iso", lib/iso/manifest.js): the kit and shared.js once, then each recipe's files. One that
+  // has not loaded in 3 s draws as the old recipe of its name, or as nothing (ARCHITECTURE.md §A).
+  const isoFiles = new Set();
+  const needIso = async els => {
+    const names = typesOf(els).map(t => /^([a-z0-9]+)Iso$/.exec(t)?.[1]).filter(n => n && !RECIPES[`${n}Iso`]);
+    if (!names.length && !self.ISO) return;            // a board with no Anatomy recipe, before any was loaded
+    if (!self.ISO_MANIFEST) await loadInOrder(['lib/iso/manifest.js']);
+    // a video in another language (self.LANG, set from its message) also loads that language's reviewed labels
+    const M_ = self.ISO_MANIFEST, lang = self.LANG && self.LANG !== 'en' && M_ && Object.hasOwn(M_.t9n, self.LANG) && M_.t9n[self.LANG];
+    const files = M_ ? [...M_.base, ...(lang ? [lang] : []), ...names.flatMap(n => Object.hasOwn(M_.recipes, n) ? M_.recipes[n].files : [])].filter(f => !isoFiles.has(f)) : [];
+    files.forEach(f => isoFiles.add(f));
+    await Promise.race([loadInOrder(files.map(f => `lib/iso/${f}`)), new Promise(r => setTimeout(r, 3000))]);
+    if (self.ISO) isoHooks();
+    for (const n of names) if (!RECIPES[`${n}Iso`]) RECIPES[`${n}Iso`] = RECIPES[n] || ((nn, o, t, parent) => mk('g', {}, parent));
+  };
+  const needAll = els => needLib(els).then(() => Promise.all([needSv(els), needIso(els)]));
   async function playScript(script, voice) {
     gen++; hush();
     self.VOICE_WAVS = Number.isInteger(voice) && voice > 0 ? new Array(voice).fill(undefined) : null; waiters = [];
     try {
-      if (style === 'whiteboard') { const my = ++gen; A = { ...script, steps: [...script.steps] }; done = true; await needSv(A.els); if (my === gen) restart(); return; }
+      if (style === 'whiteboard') { const my = ++gen; A = { ...script, steps: [...script.steps] }; done = true; await needAll(A.els); if (my === gen) restart(); return; }
       if (style === 'paper') { TOPICS.embed = fromRecipe(script); current = 'embed'; play('embed'); }
       else { ANS.length = 0; ANS.push(script); show(0); }
     } catch (e) { tell({ type: 'error', message: String(e.message || e) }); }
@@ -216,20 +249,20 @@
     // A still of the finished board for an Explore card (18 Oct 2026): every step drawn at once, silent, nothing moving.
     else if (m.type === 'poster' && m.script && typeof m.script === 'object') {
       const my = ++gen, a = A = { ...m.script, steps: [...(m.script.steps || [])] }; done = true; hush();
-      needSv(a.els).then(async () => {
+      needAll(a.els).then(async () => {
         if (my !== gen) return;
-        build(a); FAST = true; fastBy = my;
-        try { for (const s of a.steps) for (const c of s.do) { if (my !== gen) return; await run(c); } }
+        FAST = true; fastBy = my;
+        try { build(a); for (const s of a.steps) for (const c of s.do) { if (my !== gen) return; await run(c); } }
         catch (e) { tell({ type: 'error', message: String(e.message || e) }); }
         finally { if (fastBy === my) FAST = false; }
-        if (my !== gen) return;
+        if (my !== gen || !marker?.isConnected) return;
         marker.style.opacity = 0; still(); scene.classList.remove('spot');
         document.getElementById('caption').textContent = '';
         tell({ type: 'posterDone' });
       });
     }
-    else if (m.type === 'els') { const my = gen, a = A = { els: { ...m.els }, steps: [], voice: m.voice === true }; done = false; wavWait = {}; needSv(a.els).then(() => { if (my === gen && A === a) restart(); }); }
-    else if (m.type === 'els_add' && A) { const a = A; Object.assign(a.els, m.els); needSv(m.els).then(() => { if (A === a) seek(at); }); }   // rare: redraw with the new drawings, same step
+    else if (m.type === 'els') { const my = gen, a = A = { els: { ...m.els }, steps: [], voice: m.voice === true }; done = false; wavWait = {}; needAll(a.els).then(() => { if (my === gen && A === a) restart(); }); }
+    else if (m.type === 'els_add' && A) { const a = A; Object.assign(a.els, m.els); needAll(m.els).then(() => { if (A === a) seek(at); }); }   // rare: redraw with the new drawings, same step
     else if (m.type === 'step' && A) A.steps.push(m.wav instanceof ArrayBuffer ? { ...m.step, wav: m.wav } : m.step);
     else if (m.type === 'stepWav' && A && Number.isInteger(m.i) && A.steps[m.i]) {
       A.steps[m.i].wav = m.wav instanceof ArrayBuffer ? m.wav : null;      // null: the voice failed, the browser speaks it

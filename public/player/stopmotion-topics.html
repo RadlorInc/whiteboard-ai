@@ -18,11 +18,6 @@
 </head>
 <body>
 <div class="wrap">
-  <form class="bar" id="askbar" style="display:none" aria-label="Ask a question">
-    <input id="q" placeholder="Ask anything, e.g. Why is the sky blue?" aria-label="Your question" maxlength="500"
-      style="flex:1;min-width:0;font-size:16px;padding:8px 14px;border-radius:999px;border:1px solid #2f7fd6;background:#1b1b1b;color:#eee">
-    <button id="ask" class="on">Ask</button>
-  </form>
   <div class="bar" id="topics"></div>
   <div class="bar" id="modes"></div>
   <div class="bar"><label><input type="checkbox" id="voice" checked> Voice</label>
@@ -350,25 +345,6 @@ still(current, q.has('t') ? +q.get('t') : 1.5);
 if (q.has('saved')) fetch('saved-answers.jsonl').then(r => r.text()).then(t => t.trim().split('\n').filter(Boolean).map(JSON.parse)).then(all => all.filter(s => s.style === 'paper').forEach((s, i) => {
   TOPICS['saved' + i] = fromRecipe(s.answer); addTopic('saved' + i).textContent = '▶ ★ ' + s.answer.q; }));
 
-// Ask anything: only when served by server.mjs (python http.server has no /api)
-if (self === top) fetch('api/health').then(r => r.ok && r.json()).then(h => { if (h) document.getElementById('askbar').style.display = 'flex'; }).catch(() => {});
-document.getElementById('askbar').onsubmit = async e => {
-  e.preventDefault();
-  const qEl = document.getElementById('q'), ask = document.getElementById('ask'), question = qEl.value.trim(); if (!question) return;
-  ask.disabled = true; const t0 = Date.now();
-  const tick = setInterval(() => caption.textContent = `Making your lesson… ${Math.round((Date.now() - t0) / 1000)} s`, 500);
-  try {
-    const r = await fetch('api/answer', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question, style: 'paper' }) });
-    const out = await r.json();
-    if (!r.ok) throw new Error(out.error);
-    const key = 'ask' + Object.keys(TOPICS).length;
-    TOPICS[key] = fromRecipe({ ...out.answer, q: out.answer.q || question });
-    clearInterval(tick); current = key; const b = addTopic(key); b.click();
-    document.getElementById('stats').textContent += out.usage[0]?.mock ? ' · MOCK: a hand-made answer, no API call'
-      : ` · made in ${(out.ms / 1000).toFixed(1)} s, ${out.attempts} attempt(s), cost $${out.cost.toFixed(4)}`;
-  } catch (err) { clearInterval(tick); caption.textContent = '⚠️ ' + err.message; }
-  ask.disabled = false;
-};
 </script>
 <script src="lib/paper-load.js"></script>
 <script>
@@ -390,6 +366,6 @@ document.getElementById('askbar').onsubmit = async e => {
   document.body.dataset.done = '1';
 })();
 </script>
-<style>:root.embed{color-scheme:dark}.embed body{margin:0;background:transparent;min-height:0;display:block;place-items:normal}.embed .wrap{width:auto;max-width:none;margin:0;padding:0}.embed .bar,.embed #askbar,.embed #stats,.embed a{display:none!important}.embed svg,.embed canvas{display:block;width:100%;height:auto}.embed #caption{min-height:0;margin:10px 12px 4px;font-size:clamp(14px,3.6vw,19px);color:#e4e4e7}</style><script src="bridge.js"></script>
+<style>:root.embed{color-scheme:dark}.embed body{margin:0;background:transparent;min-height:0;display:block;place-items:normal}.embed .wrap{width:auto;max-width:none;margin:0;padding:0}.embed .bar,.embed #stats,.embed a{display:none!important}.embed svg,.embed canvas{display:block;width:100%;height:auto}.embed #caption{min-height:0;margin:10px 12px 4px;font-size:clamp(14px,3.6vw,19px);color:#e4e4e7}</style><script src="bridge.js"></script>
 </body>
 </html>

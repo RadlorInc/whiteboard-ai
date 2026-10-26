@@ -573,6 +573,168 @@
      ]
     }
    ]
+  },
+  {
+   "q": "A lesson in two parts (test)",
+   "els": {
+    "sun": "circle 110 110 45 f=#ffd23f c=#e09f00",
+    "cloud": "path f=#e3eaf2 c=#7a8899 | M260 110 C238 110 236 80 262 76 C268 50 306 46 318 66 C332 46 372 52 372 76 C398 76 402 110 380 110 Z",
+    "d1": "path f=#8fd0ff c=#2f7fd6 w=3 | M290 128 C296 138 299 143 299 148 A9 9 0 0 1 281 148 C281 143 284 138 290 128 Z",
+    "d2": "path f=#8fd0ff c=#2f7fd6 w=3 | M330 142 C336 152 339 157 339 162 A9 9 0 0 1 321 162 C321 157 324 152 330 142 Z",
+    "d3": "path f=#8fd0ff c=#2f7fd6 w=3 | M370 130 C376 140 379 145 379 150 A9 9 0 0 1 361 150 C361 145 364 140 370 130 Z",
+    "a1": "path c=#e53935 w=14 | M60 520 A200 200 0 0 1 460 520",
+    "a2": "path c=#fb8c00 w=14 | M75 520 A185 185 0 0 1 445 520",
+    "a3": "path c=#fdd835 w=14 | M90 520 A170 170 0 0 1 430 520",
+    "a4": "path c=#43a047 w=14 | M105 520 A155 155 0 0 1 415 520",
+    "a5": "path c=#1e88e5 w=14 | M120 520 A140 140 0 0 1 400 520",
+    "a6": "path c=#3949ab w=14 | M135 520 A125 125 0 0 1 385 520",
+    "a7": "path c=#8e24aa w=14 | M150 520 A110 110 0 0 1 370 520",
+    "drop": "path f=#e8f5ff c=#2f7fd6 | M700 140 C760 230 830 280 830 330 A130 130 0 0 1 570 330 C570 280 640 230 700 140 Z",
+    "ray": "arrow 470 250 576 290 c=#f5b700 w=6",
+    "t_white": "text 440 232 s=28 | white light",
+    "r1": "line 578 292 816 385 c=#e53935 w=4",
+    "g1": "line 578 292 808 400 c=#43a047 w=4",
+    "v1": "line 578 292 797 415 c=#8e24aa w=4",
+    "r2": "line 816 385 632 440 c=#e53935 w=4",
+    "g2": "line 808 400 641 446 c=#43a047 w=4",
+    "v2": "line 797 415 655 452 c=#8e24aa w=4",
+    "r3": "arrow 632 440 530 495 c=#e53935 w=4",
+    "g3": "arrow 641 446 540 510 c=#43a047 w=4",
+    "v3": "arrow 655 452 552 522 c=#8e24aa w=4",
+    "t_bend": "text 735 200 s=28 | 1. bends",
+    "t_bounce": "text 836 405 s=28 | 2. bounces",
+    "t_out": "text 690 510 s=28 | 3. comes out as colours",
+    "t_final": "text 250 42 s=32 | sun behind you + rain in front = rainbow!"
+   },
+   "steps": [
+    {
+     "say": "Step 1: A rainbow needs two things: sunlight, and raindrops in the air.",
+     "do": [
+      "draw sun 900",
+      "fill sun",
+      "pop sun",
+      "draw cloud 1000",
+      "fill cloud",
+      "draw d1 250",
+      "draw d2 250",
+      "draw d3 250",
+      "fill d1 d2 d3"
+     ]
+    },
+    {
+     "say": "Step 2: Sunlight looks white, but it is really a mix of every colour.",
+     "do": [
+      "draw drop 1200",
+      "fill drop",
+      "draw ray 700",
+      "write t_white 900"
+     ]
+    },
+    {
+     "say": "Step 3: When light enters a raindrop, it bends, and each colour bends a little differently.",
+     "do": [
+      "draw r1 500",
+      "draw g1 500",
+      "draw v1 500",
+      "write t_bend 600"
+     ]
+    },
+    {
+     "say": "Step 4: Then it bounces off the back of the drop.",
+     "do": [
+      "draw r2 500",
+      "draw g2 500",
+      "draw v2 500",
+      "write t_bounce 700"
+     ]
+    },
+    {
+     "say": "Step 5: And it comes out spread into a fan of colours.",
+     "do": [
+      "draw r3 500",
+      "draw g3 500",
+      "draw v3 500",
+      "write t_out 1000"
+     ]
+    },
+    {
+     "say": "Step 6: Millions of drops do this at the same time, so we see a giant arc of colour.",
+     "do": [
+      "draw a1 450",
+      "draw a2 450",
+      "draw a3 450",
+      "draw a4 450",
+      "draw a5 450",
+      "draw a6 450",
+      "draw a7 450"
+     ]
+    },
+    {
+     "say": "Step 7: That is why a rainbow appears when the sun is behind you and the rain is in front of you.",
+     "do": [
+      "write t_final 1600",
+      "pop t_final 1.08"
+     ]
+    }
+   ],
+   "next": "Part 2: the second part of the test lesson"
+  },
+  {
+   "q": "Part 2: the second part of the test lesson",
+   "els": {
+    "title": "title | The heart: a double pump",
+    "heart": "heart 480 330 300",
+    "bodyIn": "flow 90 300 318 300 c=blue n=2 | From the body",
+    "toLungs": "flow 408 150 230 182 c=blue at=end | To the lungs",
+    "fromLungs": "flow 870 300 642 300 c=red n=2 | From the lungs",
+    "toBody": "flow 600 172 800 110 c=red at=end | To the body",
+    "lbl1": "label 120 505 c=blue s=24 | Its right side → lungs",
+    "lbl2": "label 610 505 c=red s=24 | Its left side → body"
+   },
+   "steps": [
+    {
+     "say": "Step 1: Your heart is a pump about the size of your fist, and it never stops.",
+     "do": [
+      "write title 1200",
+      "draw heart 2600",
+      "fill heart",
+      "pop heart 1.1",
+      "loop heart beat"
+     ]
+    },
+    {
+     "say": "Step 2: Used blood, low on oxygen, comes back from the body into its right side.",
+     "do": [
+      "draw bodyIn 1100",
+      "loop bodyIn flow"
+     ]
+    },
+    {
+     "say": "Step 3: The right side pumps it to the lungs, where it picks up fresh oxygen.",
+     "do": [
+      "draw toLungs 1000",
+      "loop toLungs flow"
+     ]
+    },
+    {
+     "say": "Step 4: Fresh blood comes back from the lungs into the left side.",
+     "do": [
+      "draw fromLungs 1100",
+      "loop fromLungs flow"
+     ]
+    },
+    {
+     "say": "Step 5: And the strong left side pumps it out to the whole body. Two pumps beating together, about seventy times a minute.",
+     "do": [
+      "draw toBody 1000",
+      "loop toBody flow",
+      "&travel bodyIn,toLungs,fromLungs,toBody 6000 loop",
+      "draw lbl1 700",
+      "draw lbl2 700",
+      "wait 4000"
+     ]
+    }
+   ]
   }
  ],
  "paper": [

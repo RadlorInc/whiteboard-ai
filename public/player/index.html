@@ -33,25 +33,25 @@
   .fillable.on { fill-opacity: 1; }
   .pivot { transform-box: fill-box; transform-origin: center; }
   #scene { transform-box: view-box; transform-origin: 0 0; }
+  /* notes column (note elements): the camera never moves it; while zoomed it hides the diagram behind it */
+  #notes { pointer-events: none; }
+  #notes .npanel, #notes .nsplit { opacity: 0; transition: opacity .5s; } #notes.zoomed .npanel, #notes.zoomed .nsplit { opacity: 1; }
+  /* Anatomy recipes (lib/iso): Lite mode on a narrow board hides their minor labels */
+  #scene.lite.narrow .iso-minor { display: none; }
   #caption { min-height: 1.6em; margin: 12px 4px 4px; font-size: 19px; text-align: center; }
   #stats { font-size: 13px; color: #667; text-align: center; }
   .styles { font-size: 14px; color: #445; } .styles a { color: #2f7fd6; }
-  #askbar { display: none; gap: 10px; margin-bottom: 12px; }
   #q { flex: 1; min-width: 0; font-size: 17px; padding: 9px 16px; border-radius: 999px; border: 1px solid #b9c0c7; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <form id="askbar" aria-label="Ask a question">
-    <input id="q" placeholder="Ask anything, e.g. Why is the sky blue?" aria-label="Your question" maxlength="500">
-    <button id="ask">Ask</button>
-  </form>
   <div class="bar">
     <select id="pick" aria-label="Question"></select>
     <button id="play">▶ Play</button>
     <span class="styles">Choose your style: <b>Whiteboard</b> · <a href="explain-stopmotion.html">Stop-motion</a> · <a href="matchcut.html">Match-cut</a> · <a href="styles-demo.html">(the two Instagram style copies)</a> · <a href="compare.html"><b>Compare all</b></a></span>
   </div>
-  <svg viewBox="0 0 960 540" aria-label="Whiteboard answer"><g id="scene"></g></svg>
+  <svg viewBox="0 0 960 540" aria-label="Whiteboard answer"><g id="scene"></g><g id="notes"></g></svg>
   <div id="caption"></div>
   <div id="stats"></div>
 </div>
@@ -63,12 +63,113 @@
 // ---------- Player: ek scene script (JSON) ko whiteboard animation mein chalata hai ----------
 const NS = 'http://www.w3.org/2000/svg';
 const $ = s => document.querySelector(s);
-const scene = $('#scene');
+const scene = $('#scene'), notes = $('#notes');
 // FAST: a seek draws the steps before the one it jumps to at once (bridge.js seek), with no motion and no voice.
 let FAST = false, PAUSED = false;      // PAUSED: the embedded player's pause (bridge.js); timed drawing and waits hold
 const wait = ms => FAST ? Promise.resolve() : frames(ms, () => {});
 const BOUNCE = 'cubic-bezier(.34,1.56,.64,1)', SMOOTH = 'cubic-bezier(.65,0,.35,1)';
 let els = {}, marker, camNow = '', runId = 0;
+// the camera (zoom): camS = its scale; with notes on the board the diagram is x 0..NOTE_X and the camera moves only it
+let camS = 1, hasNotes = false, shown = new Set();   // shown: ids drawn or written so far
+const NOTE_X = 652, REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- Anatomy recipes (lib/iso: loaded on demand by bridge.js needIso; "<name>Iso" element types) ----------
+// A recipe is a built object (its group g has set, update, readout, and maybe parts still to build: g.rest, ISO.later).
+// Lite (weakest phones: data saver, 2G, 2 GB or less; or a board whose first 2 s ran slow): every recipe at its end
+// pose, no frame loop, no WebGL, minor labels hidden on a narrow board. ENDED: the video is over, nothing moves on.
+const NET = navigator.connection || {};
+let LITE = !!NET.saveData || /2g/.test(NET.effectiveType || '') || (navigator.deviceMemory || 8) <= 2, ENDED = false;
+let isoLive = [], isoFrame = 0, isoLast = 0, isoClock = 0, watch = null;
+// WebKit (Safari, and every browser on an iPhone) puts a shader layer's foreignObject in the wrong place under the
+// board's transforms (measured 24 Oct 2026: a flame floating over its burner, steam mid-board): it gets the SVG
+// drawing of each effect instead, as Lite does.
+const UA = navigator.userAgent, WEBKIT = (/AppleWebKit/.test(UA) && !/Chrome\/|Chromium\/|Edg\//.test(UA)) || /CriOS|FxiOS|EdgiOS/.test(UA);
+function isoHooks() {               // bridge.js calls this once the kit and shared.js are loaded
+  ISO.hold = () => FAST || LITE || ENDED; ISO.lite = () => LITE || WEBKIT; ISO.paused = () => PAUSED;
+  ISO.LANG = self.LANG || 'en';      // a Dutch video's labels from its reviewed dictionary (lib/iso/t9n-nl.*.js), else English
+}
+const isoName = type => type.endsWith('Iso') && self.ISO && Object.hasOwn(ISO.all, type.slice(0, -3)) ? type.slice(0, -3) : null;
+// box=x,y,w,h fits the drawing into that box (drawn at its demo size, then scaled and centred), so a script only tiles
+// the board; its labels keep a readable size however much it shrinks. The box is the manifest's (lib/iso/manifest.js).
+function isoBuild(name, n, o, content) {
+  const R = ISO.all[name], fit = /^-?[\d.]+(,-?[\d.]+){3}$/.test(o.box || '') && o.box.split(',').map(Number);
+  const box = mk('g', {}, scene), inner = mk('g', { class: 'pivot' }, box);
+  // at=<id>[.<anchor>] ax= ay= az=: a part placed on another part's point (cm offsets in that part's own frame), at
+  // its scale k, so a screwdriver's tip lands on the chair's screw and a bulb in the lamp's socket wherever they are
+  let args = fit ? ISO.parse(R.demo.line).n : n;
+  const [tid, an] = String(o.at || '').split('.'), t = o.at && Object.hasOwn(els, tid) ? els[tid].iso : null;
+  if (t?.P && (!an || Object.hasOwn(t.anchors || {}, an))) {
+    const a0 = an ? t.anchors[an] : [0, 0, 0], off = ['ax', 'ay', 'az'].map(k => ISO.clamp(Number(o[k]) || 0, -500, 500));
+    const q = K.iso(a0.map((v, i) => v + off[i]), t.P), M = scene.getCTM().inverse().multiply(t.getCTM());
+    const p = new DOMPoint(q[0], q[1]).matrixTransform(M);
+    args = [p.x, p.y, t.k];
+  }
+  // to=<id>[.<anchor>]: a wire's other end, passed as its board point (tox, toy) in the scene's frame
+  const [eid, ean] = String(o.to || '').split('.'), e = o.to && Object.hasOwn(els, eid) ? els[eid].iso : null;
+  if (e?.P && (!ean || Object.hasOwn(e.anchors || {}, ean))) {
+    const q = K.iso(ean ? e.anchors[ean] : [0, 0, 0], e.P), p = new DOMPoint(q[0], q[1]).matrixTransform(scene.getCTM().inverse().multiply(e.getCTM()));
+    o = { ...o, tox: p.x.toFixed(1), toy: p.y.toFixed(1) };
+    // the end's height over the start's, both parts standing on one surface (their origins), unless the script says dz=
+    if (o.dz === undefined) o.dz = ((ean ? e.anchors[ean][2] : 0) - (t?.P && an ? t.anchors[an][2] : 0) - (Number(o.az) || 0)).toFixed(2);
+  }
+  const g = R.make(args, o, content, inner);
+  const place = b => {
+    const [x, y, w, h] = fit, k = Math.min(w / b[2], h / b[3]);
+    box.setAttribute('transform', `translate(${(x + (w - b[2] * k) / 2 - b[0] * k).toFixed(1)} ${(y + (h - b[3] * k) / 2 - b[1] * k).toFixed(1)}) scale(${k.toFixed(4)})`);
+  };
+  const measure = () => { const fx = [...inner.querySelectorAll('[data-fx]')]; fx.forEach(f => f.style.display = 'none');
+    const r = inner.getBBox(); fx.forEach(f => f.style.display = ''); return r.width > 0 && r.height > 0 ? [r.x, r.y, r.width, r.height] : null; };
+  const M = self.ISO_MANIFEST?.recipes[name]?.box;
+  if (fit && M?.length === 8 && M[2] > 0 && M[3] > 0) {
+    // The demo box holds every pose its demo moves through, measured with labels at 1× and 1.8× (lib/iso/manifest.js);
+    // the labels grow as the drawing shrinks, so the scale and the label size are settled together, then the label
+    // size is fixed and a drawing with every part built is also measured as it is now.
+    const at = v => M.slice(0, 4).map((a, i) => a + (M[i + 4] - a) * (v - 1) / .8);
+    let v = 1, b = at(1);
+    for (let i = 0; i < 4; i++) { const k = Math.min(fit[2] / b[2], fit[3] / b[3]); v = Math.min(1.8, Math.max(1, .85 / k)); b = at(v); }
+    box.style.setProperty('--iso-label', `calc(var(--iso-board, 1) * ${v.toFixed(2)})`);
+    // g.box: the recipe clips its own view (getBBox would not); only=: fit just the parts shown
+    const m = g.only ? (g.finish?.(), measure()) : !g.rest?.length && !g.box && measure();
+    if (g.only && m) place(m);
+    else place(m ?[Math.min(b[0], m[0]), Math.min(b[1], m[1]), Math.max(b[0] + b[2], m[0] + m[2]) - Math.min(b[0], m[0]), Math.max(b[1] + b[3], m[1] + m[3]) - Math.min(b[1], m[1])] : b);
+  }
+  box.iso = g; box.anim = inner;
+  box.style.opacity = 0;             // hidden until drawn; draw shows its parts one by one (a recipe may rebuild them)
+  isoLive.push(g);
+  return box;
+}
+// The parts a split build left: built one per idle slice in the order the elements were listed, and at once when one
+// is drawn (draw waits for its own), so a step never pays for a build it can avoid.
+function isoWarm(my) {
+  const next = isoLive.find(g => g.rest?.length);
+  if (!next || my !== runId) return;
+  next.rest.shift()();
+  (self.requestIdleCallback || (f => setTimeout(f, 16)))(() => isoWarm(my));
+}
+// The frame loop: every recipe moves toward what set() asked. Its first 2 s are watched: over 30% of frames slower
+// than 34 ms and the board drops to Lite for the session (ARCHITECTURE.md §B).
+function isoTick(now) {
+  isoFrame = 0;
+  if (!isoLive.length || ENDED || LITE) return;
+  const dt = isoLast ? Math.min((now - isoLast) / 1000, 1 / 20) : 1 / 60;
+  if (watch && !PAUSED && !FAST) {
+    if (isoLast) { watch.n++; if (now - isoLast > 34) watch.slow++; }
+    if (now - watch.t0 > 2000) { if (watch.n >= 3 && watch.slow / watch.n > .3) toLite(); watch = null; }   // few frames at all is slow too
+  }
+  isoLast = now;
+  // a drawing that throws while it moves stops moving; the others carry on
+  if (!PAUSED) { isoClock += dt; for (const g of isoLive) try { g.update?.(dt, isoClock); } catch (e) { console.error(e); isoLive = isoLive.filter(x => x !== g); } }
+  if (!LITE) isoFrame = requestAnimationFrame(isoTick);
+}
+function isoRun() { if (!isoFrame && isoLive.length && !LITE && !ENDED) { isoLast = 0; isoFrame = requestAnimationFrame(isoTick); } }
+function toLite() { LITE = true; scene.classList.add('lite'); isoLive.forEach(g => g.update?.(1, isoClock)); }
+// the board's width on screen sets how big recipe labels are: never under about 11 CSS px (a 13 px label on a phone)
+function boardScale() {
+  const w = scene.ownerSVGElement?.getBoundingClientRect().width || 960, v = Math.min(1.8, Math.max(1, 11 * 960 / (13 * w)));
+  scene.style.setProperty('--iso-board', v.toFixed(2)); scene.style.setProperty('--iso-label', v.toFixed(2));
+  scene.classList.toggle('narrow', w < 600);
+}
+if (self.ResizeObserver) new ResizeObserver(boardScale).observe(document.querySelector('svg'));
 
 function mk(tag, attrs, parent) {
   const e = document.createElementNS(NS, tag);
@@ -110,21 +211,23 @@ function unclutter(movable, drawings) {
   const boxes = drawings.map(box).filter(area);
   // how crowded a spot is: the area it shares with other words and with library drawings it runs across (or, for a tag, sits on)
   // (a word the model put wholly inside a drawing may stay inside it; one from outside is not pushed into it)
-  const onWords = q => placed.reduce((s, p) => s + cross(p, q), 0);
+  // two tags in exactly the same place are one step's tag each on its own screen (an earlier one faded first): no clash
+  const same = (p, q) => p.tag && q.tag && Math.abs(p.x - q.x) < 1 && Math.abs(p.y - q.y) < 1 && Math.abs(p.w - q.w) < 1 && Math.abs(p.h - q.h) < 1;
+  const onWords = q => placed.reduce((s, p) => s + (same(p, q) ? 0 : cross(p, q)), 0);
   const onDrawings = (q, tag, home) => boxes.reduce((s, d) => s + (cross(d, q) && (tag || !(inside(q, d) && inside(home, d))) ? cross(d, q) : 0), 0);
   const cost = (q, tag, home) => onWords(q) + onDrawings(q, tag, home);
   const off = q => q.x < 0 || q.y < 0 || q.x + q.w > 960 || q.y + q.h > 540;
   const shift = (e, dx, dy) => { if (e.kind !== 'tag') { e.setAttribute('x', +e.getAttribute('x') + dx); e.setAttribute('y', +e.getAttribute('y') + dy); }
     else { for (const c of e.querySelectorAll('rect, text')) c.setAttribute('y', +c.getAttribute('y') + dy); e.center[1] += dy; } };
   for (const e of movable) {
-    const b = box(e); if (!area(b)) continue;
-    const tag = e.kind === 'tag', c0 = cost(b, tag, b);
+    const tag = e.kind === 'tag', b = { ...box(e), tag }; if (!area(b)) continue;
+    const c0 = cost(b, tag, b);
     if (onWords(b) <= .05 * area(b) && !onDrawings(b, tag, b)) { placed.push(b); continue; }   // clear: leave it where the model put it
     const s0 = tag ? 0 : +e.getAttribute('font-size'), size = f => { if (s0) e.setAttribute('font-size', (s0 * f).toFixed(1)); };
     const dys = [0, 1, -1, 2, -2, 3, -3].map(k => k * (b.h + 6)), dxs = tag ? [0] : [0, -40, 40, -80, 80, -140, 140];
     let best = { c: c0, f: 1, dx: 0, dy: 0 };
     for (const f of s0 ? [1, .9, .8, .7] : [1]) {
-      size(f); const s = f === 1 ? b : box(e);
+      size(f); const s = f === 1 ? b : { ...box(e), tag };
       for (const dy of dys) for (const dx of dxs) {
         const q = { ...s, x: s.x + dx, y: s.y + dy }; if ((f === 1 && !dx && !dy) || off(q)) continue;
         // a small price for each change, so the nearest fix wins; a title gives up size more easily than place
@@ -133,12 +236,14 @@ function unclutter(movable, drawings) {
       }
     }
     if (best.c < c0 * .6) { size(best.f); shift(e, best.dx, best.dy); } else size(1);
-    placed.push(box(e));
+    placed.push({ ...box(e), tag });
   }
 }
 
 function build(answer) {
-  scene.replaceChildren(); els = {};
+  scene.replaceChildren(); els = {}; shown = new Set(); notes.replaceChildren(); notes.classList.remove('zoomed'); hasNotes = false; let noteN = 0;
+  isoLive = []; ENDED = false; watch = null; isoClock = 0; scene.classList.toggle('lite', LITE);
+  if (self.ISO) { ISO.dispose(); ISO.LANG = self.LANG || 'en'; }
   // the order the model wrote (answer.order: saved scripts, whose jsonb lost it); older saved videos: pins last
   const keys = Array.isArray(answer.order) ? [...new Set([...answer.order.filter(k => k in answer.els), ...Object.keys(answer.els)])]
     : Object.keys(answer.els).sort((a, b) => /^\s*pin\b/.test(answer.els[a]) - /^\s*pin\b/.test(answer.els[b]));
@@ -163,7 +268,14 @@ function build(answer) {
       const t = mk('text', { x: cx, y: cy + 9, 'text-anchor': 'middle', class: 'hand fillable', 'font-size': o.s || 28, fill: '#222' }, e);
       richText(t, content);
       e.center = [cx, cy];
-    } else if (RECIPES[type]) {
+    } else if (type === 'note') {                  // notes column: one line each, top to bottom in the order listed
+      if (!hasNotes) { hasNotes = true;
+        mk('rect', { x: NOTE_X, y: 0, width: 960 - NOTE_X, height: 540, class: 'npanel', style: 'fill: var(--board, #fff)' }, notes);
+        mk('path', { d: `M${NOTE_X} 12 V528`, class: 'nsplit', stroke: '#b9c0c7', 'stroke-width': 2, 'stroke-dasharray': '6 8' }, notes); }
+      e = mk('text', { x: NOTE_X + 18, y: 64 + 46 * noteN++, class: 'hand note', 'font-size': 24, fill: '#222' }, notes);
+      richText(e, content);
+    } else if (isoName(type)) e = isoBuild(isoName(type), n, o, content);
+    else if (RECIPES[type]) {
       e = RECIPES[type](n, o, content, scene);
       if (e.tagName === 'g' && !e.anim) { const inner = mk('g', { class: 'pivot' }); inner.append(...e.childNodes); e.append(inner); e.anim = inner; }
       if (e.tagName === 'text') e.classList.add('pivot');
@@ -174,9 +286,15 @@ function build(answer) {
     els[id] = e;
   }
   const words = keys.filter(k => ['text', 'tag', 'title'].includes(els[k].kind)).map(k => els[k]), drawings = keys.filter(k => !PRIMS.has(els[k].kind)).map(k => els[k]);
+  // a recipe's shader layer spans its whole frame: left out of the boxes words are kept off
+  const fx = [...scene.querySelectorAll('[data-fx]')]; fx.forEach(f => f.style.display = 'none');
   unclutter(words, drawings);
+  fx.forEach(f => f.style.display = '');
   // measured again once the hand font has loaded: before it, a fallback font made a long title look short enough
   if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(() => { if (words[0]?.isConnected) unclutter(words, drawings); });
+  // a long note gets a smaller font so it fits its column (measured again once the hand font is in)
+  const fitNotes = () => notes.querySelectorAll('text.note').forEach(t => { t.setAttribute('font-size', 24); const w = t.getComputedTextLength?.() || 0; if (w > 960 - NOTE_X - 30) t.setAttribute('font-size', Math.max(13, 24 * (960 - NOTE_X - 30) / w).toFixed(1)); });
+  fitNotes(); document.fonts?.ready.then(() => { if (notes.isConnected) fitNotes(); });
   marker = mk('g', { style: 'opacity:0' }, scene);
   marker.innerHTML = '<g transform="rotate(-35)"><path d="M0 0 L8 -14 L-8 -14Z" fill="#222"/><rect x="-11" y="-110" width="22" height="96" rx="6" fill="#2f7fd6" stroke="#1d1d1f" stroke-width="3"/><rect x="-11" y="-120" width="22" height="22" rx="5" fill="#1d1d1f"/></g>';
   // sab chhupa do
@@ -185,15 +303,16 @@ function build(answer) {
   scene.querySelectorAll('.ink').forEach(e => { const L = e.getTotalLength(); e.style.strokeDasharray = L; e.style.strokeDashoffset = L; });
   // A straight horizontal or vertical line has a flat box, and a filter sized to its box (recipes.js) would hide it.
   scene.querySelectorAll('[filter]').forEach(e => { const b = e.getBBox(); if (b.width < 1 || b.height < 1) e.removeAttribute('filter'); });
-  scene.querySelectorAll('text.hand:not(.fillable)').forEach(e => e.style.clipPath = 'inset(0 100% 0 0)');
-  setCam(480, 270, 1, 0);
+  [scene, notes].forEach(l => l.querySelectorAll('text.hand:not(.fillable)').forEach(e => e.style.clipPath = 'inset(0 100% 0 0)'));
+  setCam(win()[0] / 2, 270, 1, 0);
+  if (isoLive.length) { boardScale(); const my = runId; setTimeout(() => isoWarm(my), 0); watch = { t0: performance.now(), n: 0, slow: 0 }; isoRun(); }
 }
 
 const strokeOf = id => { const e = els[id]; if (!e) throw new Error(`No element "${id}"`); return e.kind === 'tag' ? e.querySelector('rect') : e; };
 
 function markAt(el, x, y) {
   const p = new DOMPoint(x, y).matrixTransform(scene.getCTM().inverse().multiply(el.getCTM()));
-  marker.setAttribute('transform', `translate(${p.x} ${p.y})`);
+  marker.setAttribute('transform', `translate(${p.x} ${p.y}) scale(${(1 / camS).toFixed(3)})`);   // the pen keeps its size when zoomed
 }
 
 function frames(ms, onT) {
@@ -227,7 +346,20 @@ function flowify(el) {
   el.after(el.shimmer);
 }
 async function draw(id, ms = 800) {
-  const el = strokeOf(id);
+  const el = strokeOf(id); shown.add(id);
+  // an Anatomy recipe builds up part by part in its own painter's order, the pen on each part
+  if (el.iso) {
+    el.iso.finish?.();
+    if (FAST) { el.style.opacity = 1; return; }
+    const parts = [...el.iso.children], each = (ms === 800 ? 1400 : ms) / Math.max(1, parts.length);
+    parts.forEach(q => q.style.opacity = 0); el.style.opacity = 1; marker.style.opacity = 1;
+    for (const q of parts) {
+      const b = q.getBBox?.(); if (b && b.width) { const p = new DOMPoint(b.x + b.width / 2, b.y + b.height * .6).matrixTransform(scene.getCTM().inverse().multiply(q.getCTM())); marker.setAttribute('transform', `translate(${p.x} ${p.y})`); }
+      await frames(Math.max(60, each), t => q.style.opacity = ease(t));
+      q.style.opacity = '';
+    }
+    return;
+  }
   // A tag's words show once its box is drawn; "fill" adds the colour. A script that drew a tag but never filled it
   // showed an empty box (seen in 3 of 6 real videos, 19 Oct 2026).
   if (el.tagName !== 'g') { await drawEl(el, ms); flowify(el); if (els[id].kind === 'tag') els[id].querySelector('text')?.classList.add('on'); return; }
@@ -242,12 +374,13 @@ async function draw(id, ms = 800) {
   for (const t of el.querySelectorAll('.lbl')) await write(t, 500);
 }
 async function write(id, ms = 900) {
+  if (typeof id === 'string') shown.add(id);
   const el = typeof id === 'string' ? els[id] : id;
   // a recipe (label, tag…) is a group: write the hidden text inside it, not the group itself
   if (el.tagName === 'g') { const ts = [...el.querySelectorAll('text.hand:not(.fillable)')]; for (const t of ts) await write(t, ms / ts.length); return; }
-  const b = el.getBBox();
-  marker.style.opacity = 1;
-  await frames(ms, t => { el.style.clipPath = `inset(0 ${100 - t * 100}% 0 0)`; markAt(el, b.x + b.width * t, b.y + b.height * .75); });
+  const b = el.getBBox(), pen = !notes.contains(el);
+  marker.style.opacity = pen ? 1 : 0;
+  await frames(ms, t => { el.style.clipPath = `inset(0 ${100 - t * 100}% 0 0)`; if (pen) markAt(el, b.x + b.width * t, b.y + b.height * .75); });
   // Written: no clip at all. Safari clips "inset(0 0% 0 0)" at the text's box, cutting a hand-font letter's tail or a
   // subscript (H2O read H2C, NADH read NADh); Chrome showed them (22 Oct 2026).
   el.style.clipPath = 'none';
@@ -259,11 +392,27 @@ async function penUp() {
   marker.style.opacity = 0;
 }
 const anim = (el, kf, opt = {}) => el.animate(kf, { duration: 600, easing: BOUNCE, fill: 'forwards', ...opt, ...(FAST && { duration: 0 }) }).finished;
+const win = () => [hasNotes ? NOTE_X : 960, 540];         // the part of the board the camera shows the diagram in
 function setCam(cx, cy, s, ms) {
-  const to = `translate(${480 - s * cx}px, ${270 - s * cy}px) scale(${s})`;
+  ms = LITE || REDUCED || !Number.isFinite(ms) ? 0 : Math.min(4000, Math.max(0, ms));   // a bad time never throws
+  const to = `translate(${win()[0] / 2 - s * cx}px, ${270 - s * cy}px) scale(${s})`;
+  camS = s; notes.classList.toggle('zoomed', s > 1.01);
+  if (marker && ms) marker.style.opacity = 0;          // a resting pen would grow with the zoom; the next stroke brings it back
   const p = ms ? anim(scene, [{ transform: camNow || to }, { transform: to }], { duration: ms, easing: SMOOTH }) : (scene.style.transform = to, Promise.resolve());
   camNow = to; return p;
 }
+// Zoom (founder, 26 Oct 2026, like chalk-motion): the board starts and ends whole; on the word that names a thing the
+// camera moves in on it (id, or id.part of an Anatomy recipe), and goes back out for a travel, a go and the end.
+function zoomTo(id, s, ms = 900) {
+  if (!Number.isFinite(ms)) ms = 900;
+  const { x0, y0, x1, y1 } = boxOf(id), [W, H] = win();
+  s = Number.isFinite(s) ? Math.min(3, Math.max(1, s)) : Math.min(2.5, Math.max(1, .55 * W / Math.max(x1 - x0, 1), .55 * H / Math.max(y1 - y0, 1)));
+  s = Math.min(s, .9 * W / Math.max(x1 - x0, 1), .9 * H / Math.max(y1 - y0, 1), 3);   // the whole thing stays in view
+  if (s < 1.1) return zoomOut(ms);
+  const hw = W / 2 / s, hh = H / 2 / s, clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  return setCam(clamp((x0 + x1) / 2, hw, W - hw), clamp((y0 + y1) / 2, hh, H - hh), s, ms);
+}
+const zoomOut = (ms = 900) => camS > 1.01 ? setCam(win()[0] / 2, 270, 1, ms) : Promise.resolve();
 function go(id, ms, pts) {             // tag ko waypoints se le jao (centre coordinates)
   const el = els[id], [cx, cy] = el.center, kf = [{ transform: `translate(${el.off[0]}px, ${el.off[1]}px)` }];
   for (let i = 0; i < pts.length; i += 2) kf.push({ transform: `translate(${pts[i] - cx}px, ${pts[i + 1] - cy}px)` });
@@ -319,13 +468,19 @@ function loop(el, kind) {
 
 // A teacher's mark (20 Oct 2026): circle, underline or point at something already on the board, in red chalk, on
 // the word that names it (bridge.js cues); it fades after a moment so the board stays clean. A seek skips it.
-async function mark(id, kind = 'circle', ms = 600) {
-  const e = els[id]; if (!e) throw new Error(`No element "${id}"`);
-  if (FAST) return;
+// the board box of an element, or of id.part: one named part of an Anatomy recipe (its data-name or data-part)
+function boxOf(id) {
+  const [eid, part] = String(id).split('.'), own = Object.hasOwn(els, eid) ? els[eid] : null; if (!own) throw new Error(`No element "${eid}"`);
+  const e = (part && own.iso && [...own.querySelectorAll('[data-name],[data-part]')].find(q => (q.dataset.name || q.dataset.part) === part)) || own;
+  const fx = [...own.querySelectorAll('[data-fx]')]; fx.forEach(f => f.style.display = 'none');
   const b = e.getBBox(), M = scene.getCTM().inverse().multiply(e.getCTM());
+  fx.forEach(f => f.style.display = '');
   const pts = [[b.x, b.y], [b.x + b.width, b.y], [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]].map(([x, y]) => new DOMPoint(x, y).matrixTransform(M));
-  const x0 = Math.min(...pts.map(p => p.x)), x1 = Math.max(...pts.map(p => p.x)), y0 = Math.min(...pts.map(p => p.y)), y1 = Math.max(...pts.map(p => p.y));
-  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  return { x0: Math.min(...pts.map(p => p.x)), x1: Math.max(...pts.map(p => p.x)), y0: Math.min(...pts.map(p => p.y)), y1: Math.max(...pts.map(p => p.y)) };
+}
+async function mark(id, kind = 'circle', ms = 600) {
+  if (FAST) { boxOf(id); return; }
+  const { x0, y0, x1, y1 } = boxOf(id), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
   let d;
   if (kind === 'circle') {             // a hand loop: a little past all the way round, so the ends overlap like chalk
     const rx = (x1 - x0) / 2 + 16, ry = (y1 - y0) / 2 + 14;
@@ -350,6 +505,9 @@ const bare = cmd => cmd.trim().replace(/^&\s*/, '').replace(/^@\S+\s+/, '').repl
 async function run(cmd) {
   const bg = /^(@\S+\s+)?&/.test(cmd.trim()); const [op, ...a] = bare(cmd).split(/\s+/);
   const nums = a.slice(1).map(Number);
+  if ((op === 'go' || op === 'travel') && camS > 1.01) await zoomOut(600);    // a movement shows where it goes: whole board
+  // a pop or go on something never drawn moved an invisible thing (a real video, 26 Oct 2026): show it first
+  if ((op === 'pop' || op === 'go') && Object.hasOwn(els, a[0]) && !shown.has(a[0])) await (['text', 'title', 'label', 'note'].includes(els[a[0]].kind) ? write(a[0], 300) : draw(a[0], 300));
   let p;
   if (op === 'draw') p = draw(a[0], nums[0]);
   else if (op === 'write') p = write(a[0], nums[0]);
@@ -358,10 +516,15 @@ async function run(cmd) {
   else if (op === 'fade') p = anim(els[a[0]], [{ opacity: getComputedStyle(els[a[0]]).opacity }, { opacity: nums[0] }], { duration: nums[1] || 500, easing: 'linear' });
   else if (op === 'go') p = go(a[0], nums[0], nums.slice(1));
   else if (op === 'cam') p = Promise.resolve();   // founder, 12 Oct: the whole board stays in view so the flow shows; old scripts' cam is ignored
+  else if (op === 'zoom') p = a[0] === 'out' ? zoomOut(nums[0] || undefined) : zoomTo(a[0], nums[0], nums[1] || undefined);
   else if (op === 'wait') p = wait(+a[0]);
   else if (op === 'loop') { loop(els[a[0]], a[1]); p = Promise.resolve(); }
   else if (op === 'travel') p = travel(a[0].split(','), nums[0], a[2] === 'loop');
   else if (op === 'mark') p = mark(a[0], a[1], nums[1]);
+  // set <id> key=value …: an Anatomy recipe's own change (a step, a reading, a switch), shown as it moves
+  else if (op === 'set') { const g = els[a[0]]?.iso; if (!g) throw new Error(`No recipe "${a[0]}"`);
+    g.set(Object.fromEntries(a.slice(1).filter(kv => kv.includes('=')).map(kv => [kv.slice(0, kv.indexOf('=')), kv.slice(kv.indexOf('=') + 1)])));
+    if (LITE || FAST) g.update?.(1, isoClock); else isoRun(); p = Promise.resolve(); }
   else throw new Error(`Unknown command "${op}"`);
   // a looping travel never ends: waiting for it froze the lesson on that step (18 Oct 2026), so it always runs alongside
   if (!bg && !(op === 'travel' && a[2] === 'loop')) await p;
@@ -396,6 +559,7 @@ async function play(answer) {
       await Promise.all([say(s.say), (async () => { for (const c of s.do) await run(c); await penUp(); })()]);
       await wait(250);
     }
+    await zoomOut();
   } catch (e) { $('#caption').textContent = '⚠️ ' + e.message; console.error(e); }
   $('#play').disabled = false; $('#play').textContent = '↻ Replay';
 }
@@ -411,7 +575,7 @@ const current = () => ANSWERS[$('#pick').value];
 $('#pick').onchange = () => { build(current()); stats(current()); $('#caption').textContent = ''; $('#play').textContent = '▶ Play'; };
 $('#play').onclick = () => play(current());
 window.speechSynthesis?.getVoices();
-build(current()); stats(current());
+if (!window.WB_LAZY) { build(current()); stats(current()); }     // lazy: the demo answers' drawings are not loaded
 // #autoN plays answer N; #showN only opens it (the compare page uses this)
 const fromHash = () => { const m = location.hash.match(/#(auto|show)(\d*)/); if (m) { $('#pick').value = m[2] || 0; $('#pick').onchange(); if (m[1] === 'auto') play(current()); } };
 fromHash(); window.onhashchange = fromHash;
@@ -421,25 +585,7 @@ if (new URLSearchParams(location.search).has('saved')) fetch('saved-answers.json
   $('#pick').value = ANSWERS.length - all.filter(s => s.style === 'whiteboard').length; $('#pick').onchange();
 });
 
-// Ask anything: only when the page is served by server.mjs (python http.server has no /api)
-if (self === top) fetch('api/health').then(r => r.ok && r.json()).then(h => { if (h) $('#askbar').style.display = 'flex'; }).catch(() => {});
-$('#askbar').onsubmit = async e => {
-  e.preventDefault();
-  const question = $('#q').value.trim(); if (!question) return;
-  $('#ask').disabled = true; const t0 = Date.now();
-  const tick = setInterval(() => $('#caption').textContent = `Writing your lesson… ${Math.round((Date.now() - t0) / 1000)} s`, 500);
-  try {
-    const r = await fetch('api/answer', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question }) });
-    const out = await r.json();
-    if (!r.ok) throw new Error(out.error);
-    ANSWERS.push(out.answer); $('#pick').append(new Option(out.answer.q, ANSWERS.length - 1)); $('#pick').value = ANSWERS.length - 1;
-    clearInterval(tick); play(out.answer);
-    if (out.usage[0]?.mock) $('#stats').textContent += ' · MOCK: a hand-made answer, no API call';
-    else $('#stats').textContent += ` · made in ${(out.ms / 1000).toFixed(1)} s, ${out.attempts} attempt(s), cost $${out.cost.toFixed(4)}`;
-  } catch (err) { clearInterval(tick); $('#caption').textContent = '⚠️ ' + err.message; }
-  $('#ask').disabled = false;
-};
 </script>
-<style>:root.embed{color-scheme:dark}.embed body{margin:0;background:transparent;min-height:0;display:block;place-items:normal}.embed .wrap{width:auto;max-width:none;margin:0;padding:0}.embed .bar,.embed #askbar,.embed #stats,.embed a{display:none!important}.embed svg,.embed canvas{display:block;width:100%;height:auto}.embed #caption{min-height:0;margin:10px 12px 4px;font-size:clamp(14px,3.6vw,19px);color:#e4e4e7}.embed svg{border:0;border-radius:0;box-shadow:none}</style><script src="bridge.js"></script>
+<style>:root.embed{color-scheme:dark}.embed body{margin:0;background:transparent;min-height:0;display:block;place-items:normal}.embed .wrap{width:auto;max-width:none;margin:0;padding:0}.embed .bar,.embed #stats,.embed a{display:none!important}.embed svg,.embed canvas{display:block;width:100%;height:auto}.embed #caption{min-height:0;margin:10px 12px 4px;font-size:clamp(14px,3.6vw,19px);color:#e4e4e7}.embed svg{border:0;border-radius:0;box-shadow:none}</style><script src="bridge.js"></script>
 </body>
 </html>

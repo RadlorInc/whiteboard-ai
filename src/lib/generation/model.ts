@@ -14,8 +14,12 @@ export const PROMPT_SHA: Record<Style, string> = {
 };
 export type Subject = keyof typeof P.subjects;
 export const SUBJECTS = Object.keys(P.subjects) as Subject[];
+// The Anatomy recipes switch (workshop ARCHITECTURE.md; staging first, production only once the founder approves):
+// every whiteboard prompt is its iso twin, and run.ts renames and cleans the new recipes (checks.mjs isoEls).
+export const ANATOMY = process.env.ANATOMY_RECIPES === '1';
 // A chat's subject picks its own whiteboard prompt; other styles, and asks outside a chat, use the style's prompt.
-const system = (style: Style, subject?: Subject | null) => (style === 'whiteboard' && subject ? P.subjects[subject] : P.styles[style]);
+const system = (style: Style, subject?: Subject | null) => style !== 'whiteboard' ? P.styles[style]
+  : ANATOMY ? (subject ? P.iso.subjects[subject] : P.iso.whiteboard) : subject ? P.subjects[subject] : P.styles[style];
 export const promptSha = (style: Style, subject?: Subject | null) => system(style, subject).sha256;
 // Every cached prompt keep-warm looks after: one per style, plus one per subject (each its own prompt_sha).
 export const PROMPTS: { style: Style; subject: Subject | null }[] = [...STYLES.map(style => ({ style, subject: null })),

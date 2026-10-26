@@ -26,6 +26,7 @@ jobs:
       - run: npx tsc --noEmit
       - run: npx eslint src
       - run: npm run lint:secrets
+      - run: node scripts/wb-index.mjs --check     # the lazy library's index (lib/wb-index.js) matches the category files
       - run: supabase start
       - name: Local env (local stack keys only; no real secrets in CI)
         run: |
@@ -60,6 +61,13 @@ jobs:
             sudo dpkg --configure -a || true
           done
           exit 1
+      # The player on its own (static files, no server): the lazy library builds every example from its own category,
+      # and a sample of Anatomy recipes (the split builds, WebGL ones, a how-to) load, draw and fit their box. The full
+      # 276 take ~15 minutes: `node scripts/player-check.mjs iso` before an Anatomy release (workshop export).
+      - run: node scripts/player-check.mjs lazy
+      - run: node scripts/player-check.mjs iso lever,tyrechange,handwash,cpr,kettle,bpcuff,bunsen,rocket,heartsection,powerline,fridge,circular
+      - run: node scripts/player-check.mjs lite
+      - run: node scripts/player-check.mjs iso bunsen,kettle,rocket,lamp,lever --browser webkit
       - run: CI=1 npx playwright test
       - name: Keep the e2e evidence when it fails
         if: failure()
