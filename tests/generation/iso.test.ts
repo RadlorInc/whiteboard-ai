@@ -121,6 +121,23 @@ describe('parts compose (workshop PARTS.md)', () => {
     const many = Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`s${i}`, `woodscrew ${100 + i * 60} 300 3`]));
     expect(check({ els: isoEls(many), steps: [] })).toEqual([]);
   });
+  it('hostile values on every key of every recipe never reach the player (markup, huge numbers, __proto__)', () => {
+    const bad = ['"><svg/onload=alert(1)>', '1e400', '-1e400', 'Infinity', 'javascript:alert(1)', 'x'.repeat(5000), '1;2', '__proto__'];
+    for (const l of P.iso.lib.lines as Any[]) {
+      const keys = [...l.sig.matchAll(/\b([a-z][a-z0-9]*)=/g)].map((m: Any) => m[1]).filter(k => !["at", "to", "box", "only"].includes(k));
+      for (const v of bad) {
+        const opts = keys.map(k => `${k}=${v}`).join(' ');
+        const out = isoEls({ p: `${l.name} 400 300 5 ${opts} __proto__=1 constructor=1` }).p;
+        expect(out.replace(/ lit=[a-z0-9_|-]+/i, ""), `${l.name} ${v.slice(0, 20)}`).not.toMatch(/[<>"']|__proto__|constructor|javascript|Infinity|x{100}/);
+      }
+    }
+    // an id the object inherits (__proto__, constructor) is not an element: at=/to= and steps must not find it
+    for (const t of ['__proto__', 'constructor', 'toString']) {
+      const els = isoEls({ p: `wirelead 400 300 5 at=${t}.x to=${t}` });
+      expect(check({ els, steps: [] }).join()).toMatch(new RegExp(`at=${t}.x needs a part listed before it.*to=${t} needs a part`));
+      expect(check({ els, steps: [{ say: 'Step 1: go', do: [`draw ${t}`] }] }).join()).toMatch(new RegExp(`missing id "${t}"`));
+    }
+  });
   it('a plain on= option is allowed (a switch, a lamp), an on… handler name is not', () => {
     expect(checkSafety({ els: isoEls({ sw: 'wallswitch 300 200 3 on=1' }), steps: [] }, 'whiteboard')).toEqual([]);
     expect(checkSafety({ els: { x: 'circle 1 2 3 onload=1' }, steps: [] }, 'whiteboard').join()).toMatch(/option "onload" not allowed/);

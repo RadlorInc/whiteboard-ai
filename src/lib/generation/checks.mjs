@@ -41,6 +41,7 @@ export function isoCleaner(line) {
     for (const [k, v] of Object.entries(p)) {
       const rule = rules[k];
       if (/^[+-]?(nan|infinity)$/i.test(String(v))) continue;   // never a value (the player's ISO.cleaner does the same)
+      if (String(v) in {}) continue;   // __proto__, constructor…: never a value (the player does the same)
       if (!rule) { out[k] = v; continue; }
       if (rule.one) { if (rule.one.has(String(v))) out[k] = v; continue; }
       const x = typeof v === 'number' ? v : v === '' || v == null ? NaN : +v;
@@ -82,7 +83,7 @@ export function isoStep(step, els) {
   if (!step || !Array.isArray(step.do)) return step;
   return { ...step, do: step.do.map(cmd => {
     const t = String(cmd).trim(), b = bare(t), [op, id, ...kv] = b.split(/\s+/);
-    const name = op === 'set' && id in els ? isoBase(String(els[id]).trim().split(/\s+/)[0]) : null;
+    const name = op === 'set' && Object.hasOwn(els, id) ? isoBase(String(els[id]).trim().split(/\s+/)[0]) : null;
     return name ? `${t.slice(0, t.length - b.length)}${['set', id, ...cleanOpts(name, kv)].join(' ')}` : cmd;
   }) };
 }
@@ -118,7 +119,7 @@ function isoPlaceErrs(els) {
   // to=<id>[.<anchor>] (a wire's other end): the same rule
   for (const [id, spec] of Object.entries(els)) for (const key of ['at', 'to']) {
     const at = new RegExp(`\\b${key}=(\\S+)`).exec(String(spec))?.[1]; if (!at || !isoBase(String(spec).trim().split(/\s+/)[0])) continue;
-    const [tid, an] = at.split('.'), tname = tid in els ? isoBase(String(els[tid]).trim().split(/\s+/)[0]) : null;
+    const [tid, an] = at.split('.'), tname = Object.hasOwn(els, tid) ? isoBase(String(els[tid]).trim().split(/\s+/)[0]) : null;
     if (!tname || !isPart(tname) || order.indexOf(tid) >= order.indexOf(id)) errs.push(`els.${id}: ${key}=${at} needs a part listed before it`);
     else if (an && !ISO_ANCHORS.get(tname).includes(an)) errs.push(`els.${id}: ${tname} has no anchor "${an}" (anchors: ${ISO_ANCHORS.get(tname).join(' ') || 'none'})`);
   }
@@ -130,8 +131,8 @@ function isoPlaceErrs(els) {
 }
 // mark <id>.<part>: a part the recipe names (its lit= list); set: an Anatomy drawing
 function isoCmdErrs(op, arg, i, els) {
-  const [id, part] = String(arg[0] ?? '').split('.'), name = id in els ? isoBase(String(els[id]).trim().split(/\s+/)[0]) : null;
-  if (op === 'set' && id in els && !name) return [`steps[${i}]: set ${id}: only a detailed 3D drawing (the iso category) takes set`];
+  const [id, part] = String(arg[0] ?? '').split('.'), name = Object.hasOwn(els, id) ? isoBase(String(els[id]).trim().split(/\s+/)[0]) : null;
+  if (op === 'set' && Object.hasOwn(els, id) && !name) return [`steps[${i}]: set ${id}: only a detailed 3D drawing (the iso category) takes set`];
   if (op === 'mark' && part !== undefined) {
     if (!name) return [`steps[${i}]: mark ${arg[0]}: only a detailed 3D drawing has named parts`];
     const parts = /\blit=(\S+)/.exec(ISO_LINE.get(name))?.[1].split('|') ?? [];
@@ -150,7 +151,7 @@ export function checkEls(els, extraSv) {
     if (type === 'sv' && !(id => SV_IDS.has(id) || extraSv?.has(id))(/\bid=(\S+)/.exec(spec)?.[1])) errs.push(`els.${id}: sv needs id=<a name find_drawing returned>`);
     if (type === 'pin') {               // anatomy pins (18 Oct 2026): "pin of=<earlier drawing id> part=<one of its parts>"
       const of = /\bof=(\S+)/.exec(spec)?.[1], part = /\bpart=(\S+)/.exec(spec)?.[1];
-      const ofSpec = of in els ? String(els[of]).trim() : '', ofType = ofSpec.split(/\s+/)[0] || null, before = Object.keys(els).indexOf(of) < Object.keys(els).indexOf(id);
+      const ofSpec = Object.hasOwn(els, of) ? String(els[of]).trim() : '', ofType = ofSpec.split(/\s+/)[0] || null, before = Object.keys(els).indexOf(of) < Object.keys(els).indexOf(id);
       const svId = ofType === 'sv' ? /\bid=(\S+)/.exec(ofSpec)?.[1] : null, list = svId ? SV_PARTS[svId] : PARTS[ofType], what = svId ?? ofType;
       if (!ofType || !list || !before) errs.push(`els.${id}: pin needs of=<an anatomy drawing listed before it>`);
       else if (!list.includes(part)) errs.push(`els.${id}: ${what} has no part "${part}" (parts: ${list.join(' ')})`);
@@ -181,7 +182,7 @@ export function checkStep(s, i, els) {
     if (!COMMANDS.has(op)) { errs.push(`steps[${i}]: unknown command "${op}"`); continue; }
     if (op === 'mark' && !MARKS.has(arg[1])) errs.push(`steps[${i}]: unknown mark "${arg[1]}" (circle, underline or point)`);
     const ids = op === 'travel' ? arg[0]?.split(',') : op === 'fill' ? arg : ['cam', 'wait'].includes(op) ? [] : [op === 'mark' ? arg[0]?.split('.')[0] : arg[0]];
-    for (const id of ids ?? []) if (!(id in els)) errs.push(`steps[${i}]: "${cmd}" uses missing id "${id}"`);
+    for (const id of ids ?? []) if (!Object.hasOwn(els, id)) errs.push(`steps[${i}]: "${cmd}" uses missing id "${id}"`);
     if (op === 'loop' && !LOOPS.has(arg[1])) errs.push(`steps[${i}]: unknown loop "${arg[1]}"`);
     errs.push(...isoCmdErrs(op, arg, i, els));
   }

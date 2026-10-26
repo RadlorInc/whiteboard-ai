@@ -442,7 +442,7 @@ function loop(el, kind) {
 // the word that names it (bridge.js cues); it fades after a moment so the board stays clean. A seek skips it.
 async function mark(id, kind = 'circle', ms = 600) {
   // id.part: one named part of an Anatomy recipe (its data-name or data-part)
-  const [eid, part] = id.split('.'), own = els[eid]; if (!own) throw new Error(`No element "${eid}"`);
+  const [eid, part] = id.split('.'), own = Object.hasOwn(els, eid) ? els[eid] : null; if (!own) throw new Error(`No element "${eid}"`);
   if (FAST) return;
   const e = (part && own.iso && [...own.querySelectorAll('[data-name],[data-part]')].find(q => (q.dataset.name || q.dataset.part) === part)) || own;
   const fx = [...own.querySelectorAll('[data-fx]')]; fx.forEach(f => f.style.display = 'none');
