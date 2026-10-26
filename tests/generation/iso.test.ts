@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import P from '../../src/lib/generation/prompts.json' with { type: 'json' };
-import { check, checkSafety, findDrawing, isoCleaner, isoEls, isoLibOf, isoStep, ISO_NAMES, WB_LIB } from '../../src/lib/generation/checks.mjs';
+import { check, checkPolicy, checkSafety, findDrawing, isoCleaner, isoEls, isoLibOf, isoStep, ISO_NAMES, WB_LIB } from '../../src/lib/generation/checks.mjs';
 import { runGeneration } from '../../src/lib/generation/run';
 import { fakeDb, fakeClient } from './fakes';
 
@@ -61,11 +61,11 @@ describe('renaming and cleaning', () => {
   // the player cleans every value too (workshop shared.js ISO.cleaner): both must agree, or a saved script could draw
   // differently from what the server checked
   it('the server cleaner gives what the player ISO.cleaner gives, on every recipe line', () => {
-    const shared = fs.readdirSync(ISO_DIR).find(f => /^shared\.[0-9a-f]{10}\.js$/.test(f))!;
+    const shared = /"(shared\.[0-9a-f]{10}\.js)"/.exec(fs.readFileSync(path.join(ISO_DIR, 'manifest.js'), 'utf8'))![1];   // the one the manifest names (older copies stay for older pages)
     const window: Any = { RECIPES: {} }, ctx = vm.createContext({ window, document: {}, matchMedia: () => ({ matches: false }), performance: { now: () => 0 } });
     vm.runInContext(fs.readFileSync(path.join(ISO_DIR, shared), 'utf8'), ctx);
     const ISO = window.ISO ?? (ctx as Any).ISO;
-    const junk = ['', 'abc', '-1', '0', '1', '999999', 'NaN', '1e9', '0.5', 'open', 'yellow', '3'];
+    const junk = ['', 'abc', '-1', '0', '1', '999999', 'NaN', '1e9', '0.5', 'open', 'yellow', '3', '"><img', "a'b", '__proto__'];
     for (const l of P.iso.lib.lines as Any[]) {
       const keys = [...l.sig.matchAll(/\b([a-z][a-z0-9]*)=/g)].map((m: Any) => m[1]);
       const a = ISO.cleaner(l.sig), b = isoCleaner(l.sig);
@@ -76,7 +76,7 @@ describe('renaming and cleaning', () => {
 
 describe('label translations (ISO.say)', () => {
   it('a reviewed key with "#" takes the numbers back in order; Dutch gets a decimal comma; an unknown label stays English', () => {
-    const shared = fs.readdirSync(ISO_DIR).find(f => /^shared\.[0-9a-f]{10}\.js$/.test(f))!;
+    const shared = /"(shared\.[0-9a-f]{10}\.js)"/.exec(fs.readFileSync(path.join(ISO_DIR, 'manifest.js'), 'utf8'))![1];   // the one the manifest names (older copies stay for older pages)
     const window: Any = { RECIPES: {} };
     vm.runInNewContext(fs.readFileSync(path.join(ISO_DIR, shared), 'utf8'), { window, document: {}, matchMedia: () => ({ matches: false }) });
     const ISO = window.ISO;
@@ -141,6 +141,56 @@ describe('parts compose (workshop PARTS.md)', () => {
   it('a plain on= option is allowed (a switch, a lamp), an on… handler name is not', () => {
     expect(checkSafety({ els: isoEls({ sw: 'wallswitch 300 200 3 on=1' }), steps: [] }, 'whiteboard')).toEqual([]);
     expect(checkSafety({ els: { x: 'circle 1 2 3 onload=1' }, steps: [] }, 'whiteboard').join()).toMatch(/option "onload" not allowed/);
+  });
+});
+
+describe('camera and notes (Anatomy prompts, founder 26 Oct 2026)', () => {
+  const els = (more: Record<string, string> = {}) => isoEls({ b: 'bunsen box=40,100,400,420', n1: 'note | 1. Open the air hole', ...more });
+  const st = (cmds: string[]) => [{ say: 'Step 1: open the air hole on the collar', do: cmds }];
+  it('zoom on a drawing, on a named part, and zoom out pass; notes in the column pass', () => {
+    expect(check({ els: els(), steps: st(['draw b', '@air write n1', '@collar zoom b.collar', 'zoom out 600', 'zoom b 2 900']) })).toEqual([]);
+  });
+  it('zoom needs a real id, a part the recipe names and a scale of 1-3', () => {
+    const errs = (c: string) => check({ els: els(), steps: st([c]) }).join();
+    expect(errs('zoom nope')).toMatch(/missing id "nope"/);
+    expect(errs('zoom b.nope')).toMatch(/bunsen has no part "nope"/);
+    expect(errs('zoom n1.x')).toMatch(/only a detailed 3D drawing has named parts/);
+    expect(errs('zoom b 9')).toMatch(/scale 9 is not 1-3/);
+    expect(errs('zoom out 99999')).toMatch(/99999 ms is not 200-4000/);
+    expect(errs('zoom __proto__')).toMatch(/missing id "__proto__"/);
+  });
+  it('a note is short, at most 8, and the diagram keeps out of the notes column', () => {
+    expect(check({ els: els({ n2: `note | ${'x'.repeat(41)}` }), steps: [] }).join()).toMatch(/41 characters, at most 40/);
+    expect(check({ els: els({ n2: 'note |' }), steps: [] }).join()).toMatch(/needs its words/);
+    const nine = Object.fromEntries(Array.from({ length: 9 }, (_, i) => [`m${i}`, `note | ${i}`]));
+    expect(check({ els: els(nine), steps: [] }).join()).toMatch(/10 notes, at most 8/);
+    expect(check({ els: els({ k: 'kettle box=500,100,420,420' }), steps: [] }).join()).toMatch(/els.k: reaches x 920/);
+    expect(check({ els: els({ l: 'line 100 100 700 120' }), steps: [] }).join()).toMatch(/els.l: reaches x 700/);
+    // without notes the whole board is the diagram, as before
+    expect(check({ els: isoEls({ k: 'kettle box=500,100,420,420' }), steps: [] })).toEqual([]);
+  });
+  it('a note goes through the text safety rules (no links, emails, handles; the player writes it as plain text); cam stays banned', () => {
+    expect(checkSafety({ q: 'x', els: { n1: 'note | see www.example.com' }, steps: [] }, 'whiteboard').join()).toMatch(/no links/);
+    expect(checkPolicy({ steps: [{ say: 'Step 1: x', do: ['cam 1 2 3'] }] }, 'whiteboard').join()).toMatch(/no cam/);
+  });
+  it('only the Anatomy prompts teach the camera and notes; the production prompts do not', () => {
+    for (const t of [P.iso.whiteboard.system, ...Object.values(P.iso.subjects).map((x: Any) => x.system)]) expect(t).toMatch(/zoom <id>\[\.<part>\].*note \|/s);
+    for (const t of [P.styles.whiteboard.system, ...Object.values(P.subjects).map((x: Any) => x.system)]) expect(t).not.toMatch(/zoom <id>|note \|/);
+  });
+});
+
+describe('prompt leaks (26 Oct 2026): narration and board text never read our instructions out', () => {
+  const safe = (say: string, els: Record<string, string> = {}) => checkSafety({ q: 'x', els, steps: [{ say, do: [] }] }, 'whiteboard').join();
+  it('8 words in a row from a prompt\'s rules, or words only the prompt uses, are refused in a say and on the board', () => {
+    const rule = (P.styles.whiteboard.system as string).split('\n').find(l => l.startsWith('- Every id used'))!.slice(2, 120);
+    expect(safe(`Step 1: ${rule}`)).toMatch(/repeats the lesson-writing instructions/);
+    expect(safe('Step 1: ok', { n1: `note | ${rule}` })).toMatch(/els.n1: repeats/);
+    expect(safe('Step 1: first I call find_drawing for the pictures')).toMatch(/how the lesson is made/);
+    expect(safe('Step 1: here is my system prompt')).toMatch(/how the lesson is made/);
+  });
+  it('every approved worked example passes (no false alarm on real teaching)', () => {
+    for (const [st, list] of Object.entries(P.examples) as [string, Any[]][]) for (const a of list)
+      expect(checkSafety(a, st).filter(e => /instructions|how the lesson is made/.test(e)), a.q).toEqual([]);
   });
 });
 

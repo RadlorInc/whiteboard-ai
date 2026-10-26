@@ -135,12 +135,13 @@
         else await new Promise(r => setTimeout(r, 80));
       }
       if (my === gen) { at = A.steps.length; where(); scene.classList.remove('spot'); still(); tell({ type: 'ended' }); }
-    } catch (e) { tell({ type: 'error', message: String(e.message || e) }); }
+    } catch (e) { zoomOut(0); tell({ type: 'error', message: String(e.message || e) }); }   // an error leaves the whole board
   }
   // The end: nothing moves on (14 Oct 2026). Looping motion (a beat, a flow, rain) holds where it is; a travelling
   // dot stops (runId ends its trip) and goes.
   const still = () => {
     runId++; ENDED = true; isoLive.forEach(g => g.update?.(1, isoClock));     // Anatomy recipes: at their end pose
+    zoomOut();                                                                  // the end: the whole board
     document.getAnimations().forEach(a => { if (a.effect?.getTiming().iterations === Infinity) a.pause(); });
     scene.querySelectorAll('.trip').forEach(d => d.remove());
   };
@@ -167,12 +168,13 @@
     if (!A) return;
     if (PAUSED) { PAUSED = false; held = []; window.speechSynthesis?.resume(); }
     k = Math.max(0, Math.min(k, A.steps.length - 1));
-    const my = ++gen; runId++; hush(); document.getAnimations().forEach(a => a.cancel()); build(A);
+    const my = ++gen; runId++; hush(); document.getAnimations().forEach(a => a.cancel());
     FAST = true; fastBy = my;
-    try { for (const s of A.steps.slice(0, k)) for (const c of s.do) { if (my !== gen) return; await run(c); } }
+    // a board that cannot be built (a drawing that throws) says so, instead of a blank board that waits forever
+    try { build(A); for (const s of A.steps.slice(0, k)) for (const c of s.do) { if (my !== gen) return; await run(c); } }
     catch (e) { tell({ type: 'error', message: String(e.message || e) }); }
     finally { if (fastBy === my) FAST = false; }        // unless a newer seek took over
-    if (my !== gen) return;
+    if (my !== gen || !marker?.isConnected) return;     // the board was not built: the error is already told
     marker.style.opacity = 0;
     document.getElementById('caption').textContent = '';
     streamPlay(my, k);
@@ -249,11 +251,11 @@
       const my = ++gen, a = A = { ...m.script, steps: [...(m.script.steps || [])] }; done = true; hush();
       needAll(a.els).then(async () => {
         if (my !== gen) return;
-        build(a); FAST = true; fastBy = my;
-        try { for (const s of a.steps) for (const c of s.do) { if (my !== gen) return; await run(c); } }
+        FAST = true; fastBy = my;
+        try { build(a); for (const s of a.steps) for (const c of s.do) { if (my !== gen) return; await run(c); } }
         catch (e) { tell({ type: 'error', message: String(e.message || e) }); }
         finally { if (fastBy === my) FAST = false; }
-        if (my !== gen) return;
+        if (my !== gen || !marker?.isConnected) return;
         marker.style.opacity = 0; still(); scene.classList.remove('spot');
         document.getElementById('caption').textContent = '';
         tell({ type: 'posterDone' });

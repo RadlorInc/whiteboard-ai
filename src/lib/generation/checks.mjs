@@ -42,6 +42,7 @@ export function isoCleaner(line) {
       const rule = rules[k];
       if (/^[+-]?(nan|infinity)$/i.test(String(v))) continue;   // never a value (the player's ISO.cleaner does the same)
       if (String(v) in {}) continue;   // __proto__, constructor…: never a value (the player does the same)
+      if (/["'`<>\\]/.test(String(v))) continue;   // never a value (the player's ISO.cleaner does the same)
       if (!rule) { out[k] = v; continue; }
       if (rule.one) { if (rule.one.has(String(v))) out[k] = v; continue; }
       const x = typeof v === 'number' ? v : v === '' || v == null ? NaN : +v;
@@ -133,10 +134,16 @@ function isoPlaceErrs(els) {
 function isoCmdErrs(op, arg, i, els) {
   const [id, part] = String(arg[0] ?? '').split('.'), name = Object.hasOwn(els, id) ? isoBase(String(els[id]).trim().split(/\s+/)[0]) : null;
   if (op === 'set' && Object.hasOwn(els, id) && !name) return [`steps[${i}]: set ${id}: only a detailed 3D drawing (the iso category) takes set`];
-  if (op === 'mark' && part !== undefined) {
-    if (!name) return [`steps[${i}]: mark ${arg[0]}: only a detailed 3D drawing has named parts`];
+  if ((op === 'mark' || op === 'zoom') && part !== undefined) {
+    if (!name) return [`steps[${i}]: ${op} ${arg[0]}: only a detailed 3D drawing has named parts`];
     const parts = /\blit=(\S+)/.exec(ISO_LINE.get(name))?.[1].split('|') ?? [];
-    if (!parts.includes(part)) return [`steps[${i}]: mark ${arg[0]}: ${name} has no part "${part}" (parts: ${parts.join(' ')})`];
+    if (!parts.includes(part)) return [`steps[${i}]: ${op} ${arg[0]}: ${name} has no part "${part}" (parts: ${parts.join(' ')})`];
+  }
+  // zoom <id>[.<part>] [scale 1-3] [ms] · zoom out [ms]
+  if (op === 'zoom') {
+    const [sc, ms] = arg[0] === 'out' ? [undefined, arg[1]] : [arg[1], arg[2]];
+    if (sc !== undefined && !(+sc >= 1 && +sc <= 3)) return [`steps[${i}]: zoom ${arg[0]}: scale ${sc} is not 1-3`];
+    if (ms !== undefined && !(+ms >= 200 && +ms <= 4000)) return [`steps[${i}]: zoom ${arg[0]}: ${ms} ms is not 200-4000`];
   }
   return [];
 }
@@ -157,7 +164,26 @@ export function checkEls(els, extraSv) {
       else if (!list.includes(part)) errs.push(`els.${id}: ${what} has no part "${part}" (parts: ${list.join(' ')})`);
     }
   }
-  return [...errs, ...isoPlaceErrs(els)];
+  return [...errs, ...noteErrs(els), ...isoPlaceErrs(els)];
+}
+// Notes column (Anatomy prompts): short lines at x 660-950 that the camera never moves; the diagram keeps out of it
+const NOTE_X = 652;
+function noteErrs(els) {
+  const notes = Object.entries(els).filter(([, s]) => String(s).trim().split(/\s+/)[0] === 'note');
+  if (!notes.length) return [];
+  const errs = notes.length > 8 ? [`els: ${notes.length} notes, at most 8 (one per step)`] : [];
+  for (const [id, s] of notes) {
+    const t = String(s).split('|').slice(1).join('|').trim();
+    if (!t) errs.push(`els.${id}: a note needs its words after |`);
+    else if ([...t].length > 40) errs.push(`els.${id}: the note is ${[...t].length} characters, at most 40`);
+  }
+  // the right edge of what we can measure: a box=, a part's point, a text's start, a tag's box
+  for (const [id, spec] of Object.entries(els)) {
+    const head = String(spec).split('|')[0].trim().split(/\s+/), type = head[0], n = head.slice(1).filter(t => !t.includes('=')).map(Number);
+    const box = /\bbox=([\d.]+),[\d.]+,([\d.]+)/.exec(spec), right = box ? +box[1] + +box[2] : type === 'tag' ? n[0] + n[2] / 2 : type === 'rect' ? n[0] + n[2] : ['line', 'arrow'].includes(type) ? Math.max(n[0], n[2]) : type === 'circle' ? n[0] + n[2] : type === 'ellipse' ? n[0] + n[2] : n[0];
+    if (type !== 'note' && !/\bat=/.test(spec) && Number.isFinite(right) && right > NOTE_X) errs.push(`els.${id}: reaches x ${Math.round(right)}; with notes on the board keep the diagram in x 0-640 (the notes column is 660-950)`);
+  }
+  return errs;
 }
 // A command may start with a word cue, "@nucleus draw n1" (the player draws it when the voice says that word):
 // bare() drops the & and the cue (either order: the model writes "@word &fade x" too), cueOf() gives the cue's word.
@@ -181,7 +207,7 @@ export function checkStep(s, i, els) {
     const [op, ...arg] = bare(cmd).split(/\s+/);
     if (!COMMANDS.has(op)) { errs.push(`steps[${i}]: unknown command "${op}"`); continue; }
     if (op === 'mark' && !MARKS.has(arg[1])) errs.push(`steps[${i}]: unknown mark "${arg[1]}" (circle, underline or point)`);
-    const ids = op === 'travel' ? arg[0]?.split(',') : op === 'fill' ? arg : ['cam', 'wait'].includes(op) ? [] : [op === 'mark' ? arg[0]?.split('.')[0] : arg[0]];
+    const ids = op === 'travel' ? arg[0]?.split(',') : op === 'fill' ? arg : ['cam', 'wait'].includes(op) || (op === 'zoom' && arg[0] === 'out') ? [] : [['mark', 'zoom'].includes(op) ? arg[0]?.split('.')[0] : arg[0]];
     for (const id of ids ?? []) if (!Object.hasOwn(els, id)) errs.push(`steps[${i}]: "${cmd}" uses missing id "${id}"`);
     if (op === 'loop' && !LOOPS.has(arg[1])) errs.push(`steps[${i}]: unknown loop "${arg[1]}"`);
     errs.push(...isoCmdErrs(op, arg, i, els));
@@ -350,6 +376,22 @@ function lineErrs(where, line, { coordMin = -200, coordMax = 2000, textMax = 200
   }
   return errs;
 }
+// Prompt leaks (26 Oct 2026): a question can try to make the model read its instructions out, and narration and board
+// text become public on shares and Explore. Any 8 words in a row from the rules part of a prompt (not its catalogue,
+// recipe lines or worked examples) in a line the viewer hears or reads is refused, as are names only the prompt uses.
+const LEAK_N = 8, leakWords = t => String(t).toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
+const LEAK = new Set([P.styles, P.subjects, P.iso?.subjects ?? {}, { w: P.iso?.whiteboard }].flatMap(o => Object.values(o)).flatMap(x => {
+  const rules = String(x?.system ?? '').split(/\n(?:Recipe catalogue|Worked examples)/)[0].split('\n').filter(l => !/^\s*[{\[]/.test(l) && !l.includes(' | ')).join(' ');
+  const w = leakWords(rules); return w.slice(0, Math.max(0, w.length - LEAK_N + 1)).map((_, i) => w.slice(i, i + LEAK_N).join(' '));
+}));
+const LEAK_TELL = /\b(find_drawing|system prompt|json object|element lines?|worked examples?|recipe catalogue)\b/i;
+function leakErrs(where, t) {
+  if (typeof t !== 'string' || !t) return [];
+  if (LEAK_TELL.test(t)) return [`${where}: talks about how the lesson is made; teach the question itself`];
+  const w = leakWords(t);
+  for (let i = 0; i + LEAK_N <= w.length; i++) if (LEAK.has(w.slice(i, i + LEAK_N).join(' '))) return [`${where}: repeats the lesson-writing instructions; teach the question itself`];
+  return [];
+}
 export function checkSafety(a, style) {
   if (!a || typeof a !== 'object') return ['safety: not an object'];
   const errs = keyErrs(a);
@@ -359,6 +401,7 @@ export function checkSafety(a, style) {
   const items = style === 'matchcut' ? a.objects : a.steps;
   (Array.isArray(items) ? items : []).forEach((s, i) => {
     errs.push(...textErrs(`${style === 'matchcut' ? 'objects' : 'steps'}[${i}].say`, s?.say, 0));
+    errs.push(...leakErrs(`${style === 'matchcut' ? 'objects' : 'steps'}[${i}].say`, s?.say));
     if (style === 'matchcut') return;
     const cmds = Array.isArray(s?.do) ? s.do : [];
     if (cmds.length > 40) errs.push(`steps[${i}]: ${cmds.length} commands, at most 40`);
@@ -378,6 +421,7 @@ export function checkSafety(a, style) {
       const spec = a.els[id];
       if (typeof spec !== 'string') { errs.push(`els.${id}: must be a string`); continue; }
       errs.push(...lineErrs(`els.${id}`, spec, { pathText: spec.trim().split(/\s+/)[0] === 'path' }));
+      if (spec.includes('|')) errs.push(...leakErrs(`els.${id}`, spec.slice(spec.indexOf('|') + 1)));
     }
   }
   return errs;

@@ -33,27 +33,25 @@
   .fillable.on { fill-opacity: 1; }
   .pivot { transform-box: fill-box; transform-origin: center; }
   #scene { transform-box: view-box; transform-origin: 0 0; }
+  /* notes column (note elements): the camera never moves it; while zoomed it hides the diagram behind it */
+  #notes { pointer-events: none; }
+  #notes .npanel, #notes .nsplit { opacity: 0; transition: opacity .5s; } #notes.zoomed .npanel, #notes.zoomed .nsplit { opacity: 1; }
   /* Anatomy recipes (lib/iso): Lite mode on a narrow board hides their minor labels */
   #scene.lite.narrow .iso-minor { display: none; }
   #caption { min-height: 1.6em; margin: 12px 4px 4px; font-size: 19px; text-align: center; }
   #stats { font-size: 13px; color: #667; text-align: center; }
   .styles { font-size: 14px; color: #445; } .styles a { color: #2f7fd6; }
-  #askbar { display: none; gap: 10px; margin-bottom: 12px; }
   #q { flex: 1; min-width: 0; font-size: 17px; padding: 9px 16px; border-radius: 999px; border: 1px solid #b9c0c7; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <form id="askbar" aria-label="Ask a question">
-    <input id="q" placeholder="Ask anything, e.g. Why is the sky blue?" aria-label="Your question" maxlength="500">
-    <button id="ask">Ask</button>
-  </form>
   <div class="bar">
     <select id="pick" aria-label="Question"></select>
     <button id="play">▶ Play</button>
     <span class="styles">Choose your style: <b>Whiteboard</b> · <a href="explain-stopmotion.html">Stop-motion</a> · <a href="matchcut.html">Match-cut</a> · <a href="styles-demo.html">(the two Instagram style copies)</a> · <a href="compare.html"><b>Compare all</b></a></span>
   </div>
-  <svg viewBox="0 0 960 540" aria-label="Whiteboard answer"><g id="scene"></g></svg>
+  <svg viewBox="0 0 960 540" aria-label="Whiteboard answer"><g id="scene"></g><g id="notes"></g></svg>
   <div id="caption"></div>
   <div id="stats"></div>
 </div>
@@ -65,12 +63,15 @@
 // ---------- Player: ek scene script (JSON) ko whiteboard animation mein chalata hai ----------
 const NS = 'http://www.w3.org/2000/svg';
 const $ = s => document.querySelector(s);
-const scene = $('#scene');
+const scene = $('#scene'), notes = $('#notes');
 // FAST: a seek draws the steps before the one it jumps to at once (bridge.js seek), with no motion and no voice.
 let FAST = false, PAUSED = false;      // PAUSED: the embedded player's pause (bridge.js); timed drawing and waits hold
 const wait = ms => FAST ? Promise.resolve() : frames(ms, () => {});
 const BOUNCE = 'cubic-bezier(.34,1.56,.64,1)', SMOOTH = 'cubic-bezier(.65,0,.35,1)';
 let els = {}, marker, camNow = '', runId = 0;
+// the camera (zoom): camS = its scale; with notes on the board the diagram is x 0..NOTE_X and the camera moves only it
+let camS = 1, hasNotes = false;
+const NOTE_X = 652, REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // ---------- Anatomy recipes (lib/iso: loaded on demand by bridge.js needIso; "<name>Iso" element types) ----------
 // A recipe is a built object (its group g has set, update, readout, and maybe parts still to build: g.rest, ISO.later).
@@ -156,7 +157,8 @@ function isoTick(now) {
     if (now - watch.t0 > 2000) { if (watch.n >= 3 && watch.slow / watch.n > .3) toLite(); watch = null; }   // few frames at all is slow too
   }
   isoLast = now;
-  if (!PAUSED) { isoClock += dt; for (const g of isoLive) g.update?.(dt, isoClock); }
+  // a drawing that throws while it moves stops moving; the others carry on
+  if (!PAUSED) { isoClock += dt; for (const g of isoLive) try { g.update?.(dt, isoClock); } catch (e) { console.error(e); isoLive = isoLive.filter(x => x !== g); } }
   if (!LITE) isoFrame = requestAnimationFrame(isoTick);
 }
 function isoRun() { if (!isoFrame && isoLive.length && !LITE && !ENDED) { isoLast = 0; isoFrame = requestAnimationFrame(isoTick); } }
@@ -239,7 +241,7 @@ function unclutter(movable, drawings) {
 }
 
 function build(answer) {
-  scene.replaceChildren(); els = {};
+  scene.replaceChildren(); els = {}; notes.replaceChildren(); notes.classList.remove('zoomed'); hasNotes = false; let noteN = 0;
   isoLive = []; ENDED = false; watch = null; isoClock = 0; scene.classList.toggle('lite', LITE);
   if (self.ISO) { ISO.dispose(); ISO.LANG = self.LANG || 'en'; }
   // the order the model wrote (answer.order: saved scripts, whose jsonb lost it); older saved videos: pins last
@@ -266,6 +268,12 @@ function build(answer) {
       const t = mk('text', { x: cx, y: cy + 9, 'text-anchor': 'middle', class: 'hand fillable', 'font-size': o.s || 28, fill: '#222' }, e);
       richText(t, content);
       e.center = [cx, cy];
+    } else if (type === 'note') {                  // notes column: one line each, top to bottom in the order listed
+      if (!hasNotes) { hasNotes = true;
+        mk('rect', { x: NOTE_X, y: 0, width: 960 - NOTE_X, height: 540, class: 'npanel', style: 'fill: var(--board, #fff)' }, notes);
+        mk('path', { d: `M${NOTE_X} 12 V528`, class: 'nsplit', stroke: '#b9c0c7', 'stroke-width': 2, 'stroke-dasharray': '6 8' }, notes); }
+      e = mk('text', { x: NOTE_X + 18, y: 64 + 46 * noteN++, class: 'hand note', 'font-size': 24, fill: '#222' }, notes);
+      richText(e, content);
     } else if (isoName(type)) e = isoBuild(isoName(type), n, o, content);
     else if (RECIPES[type]) {
       e = RECIPES[type](n, o, content, scene);
@@ -284,6 +292,9 @@ function build(answer) {
   fx.forEach(f => f.style.display = '');
   // measured again once the hand font has loaded: before it, a fallback font made a long title look short enough
   if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(() => { if (words[0]?.isConnected) unclutter(words, drawings); });
+  // a long note gets a smaller font so it fits its column (measured again once the hand font is in)
+  const fitNotes = () => notes.querySelectorAll('text.note').forEach(t => { t.setAttribute('font-size', 24); const w = t.getComputedTextLength?.() || 0; if (w > 960 - NOTE_X - 30) t.setAttribute('font-size', Math.max(13, 24 * (960 - NOTE_X - 30) / w).toFixed(1)); });
+  fitNotes(); document.fonts?.ready.then(() => { if (notes.isConnected) fitNotes(); });
   marker = mk('g', { style: 'opacity:0' }, scene);
   marker.innerHTML = '<g transform="rotate(-35)"><path d="M0 0 L8 -14 L-8 -14Z" fill="#222"/><rect x="-11" y="-110" width="22" height="96" rx="6" fill="#2f7fd6" stroke="#1d1d1f" stroke-width="3"/><rect x="-11" y="-120" width="22" height="22" rx="5" fill="#1d1d1f"/></g>';
   // sab chhupa do
@@ -292,8 +303,8 @@ function build(answer) {
   scene.querySelectorAll('.ink').forEach(e => { const L = e.getTotalLength(); e.style.strokeDasharray = L; e.style.strokeDashoffset = L; });
   // A straight horizontal or vertical line has a flat box, and a filter sized to its box (recipes.js) would hide it.
   scene.querySelectorAll('[filter]').forEach(e => { const b = e.getBBox(); if (b.width < 1 || b.height < 1) e.removeAttribute('filter'); });
-  scene.querySelectorAll('text.hand:not(.fillable)').forEach(e => e.style.clipPath = 'inset(0 100% 0 0)');
-  setCam(480, 270, 1, 0);
+  [scene, notes].forEach(l => l.querySelectorAll('text.hand:not(.fillable)').forEach(e => e.style.clipPath = 'inset(0 100% 0 0)'));
+  setCam(win()[0] / 2, 270, 1, 0);
   if (isoLive.length) { boardScale(); const my = runId; setTimeout(() => isoWarm(my), 0); watch = { t0: performance.now(), n: 0, slow: 0 }; isoRun(); }
 }
 
@@ -301,7 +312,7 @@ const strokeOf = id => { const e = els[id]; if (!e) throw new Error(`No element 
 
 function markAt(el, x, y) {
   const p = new DOMPoint(x, y).matrixTransform(scene.getCTM().inverse().multiply(el.getCTM()));
-  marker.setAttribute('transform', `translate(${p.x} ${p.y})`);
+  marker.setAttribute('transform', `translate(${p.x} ${p.y}) scale(${(1 / camS).toFixed(3)})`);   // the pen keeps its size when zoomed
 }
 
 function frames(ms, onT) {
@@ -366,9 +377,9 @@ async function write(id, ms = 900) {
   const el = typeof id === 'string' ? els[id] : id;
   // a recipe (label, tag…) is a group: write the hidden text inside it, not the group itself
   if (el.tagName === 'g') { const ts = [...el.querySelectorAll('text.hand:not(.fillable)')]; for (const t of ts) await write(t, ms / ts.length); return; }
-  const b = el.getBBox();
-  marker.style.opacity = 1;
-  await frames(ms, t => { el.style.clipPath = `inset(0 ${100 - t * 100}% 0 0)`; markAt(el, b.x + b.width * t, b.y + b.height * .75); });
+  const b = el.getBBox(), pen = !notes.contains(el);
+  marker.style.opacity = pen ? 1 : 0;
+  await frames(ms, t => { el.style.clipPath = `inset(0 ${100 - t * 100}% 0 0)`; if (pen) markAt(el, b.x + b.width * t, b.y + b.height * .75); });
   // Written: no clip at all. Safari clips "inset(0 0% 0 0)" at the text's box, cutting a hand-font letter's tail or a
   // subscript (H2O read H2C, NADH read NADh); Chrome showed them (22 Oct 2026).
   el.style.clipPath = 'none';
@@ -380,11 +391,27 @@ async function penUp() {
   marker.style.opacity = 0;
 }
 const anim = (el, kf, opt = {}) => el.animate(kf, { duration: 600, easing: BOUNCE, fill: 'forwards', ...opt, ...(FAST && { duration: 0 }) }).finished;
+const win = () => [hasNotes ? NOTE_X : 960, 540];         // the part of the board the camera shows the diagram in
 function setCam(cx, cy, s, ms) {
-  const to = `translate(${480 - s * cx}px, ${270 - s * cy}px) scale(${s})`;
+  ms = LITE || REDUCED || !Number.isFinite(ms) ? 0 : Math.min(4000, Math.max(0, ms));   // a bad time never throws
+  const to = `translate(${win()[0] / 2 - s * cx}px, ${270 - s * cy}px) scale(${s})`;
+  camS = s; notes.classList.toggle('zoomed', s > 1.01);
+  if (marker && ms) marker.style.opacity = 0;          // a resting pen would grow with the zoom; the next stroke brings it back
   const p = ms ? anim(scene, [{ transform: camNow || to }, { transform: to }], { duration: ms, easing: SMOOTH }) : (scene.style.transform = to, Promise.resolve());
   camNow = to; return p;
 }
+// Zoom (founder, 26 Oct 2026, like chalk-motion): the board starts and ends whole; on the word that names a thing the
+// camera moves in on it (id, or id.part of an Anatomy recipe), and goes back out for a travel, a go and the end.
+function zoomTo(id, s, ms = 900) {
+  if (!Number.isFinite(ms)) ms = 900;
+  const { x0, y0, x1, y1 } = boxOf(id), [W, H] = win();
+  s = Number.isFinite(s) ? Math.min(3, Math.max(1, s)) : Math.min(2.5, Math.max(1, .55 * W / Math.max(x1 - x0, 1), .55 * H / Math.max(y1 - y0, 1)));
+  s = Math.min(s, .9 * W / Math.max(x1 - x0, 1), .9 * H / Math.max(y1 - y0, 1), 3);   // the whole thing stays in view
+  if (s < 1.1) return zoomOut(ms);
+  const hw = W / 2 / s, hh = H / 2 / s, clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  return setCam(clamp((x0 + x1) / 2, hw, W - hw), clamp((y0 + y1) / 2, hh, H - hh), s, ms);
+}
+const zoomOut = (ms = 900) => camS > 1.01 ? setCam(win()[0] / 2, 270, 1, ms) : Promise.resolve();
 function go(id, ms, pts) {             // tag ko waypoints se le jao (centre coordinates)
   const el = els[id], [cx, cy] = el.center, kf = [{ transform: `translate(${el.off[0]}px, ${el.off[1]}px)` }];
   for (let i = 0; i < pts.length; i += 2) kf.push({ transform: `translate(${pts[i] - cx}px, ${pts[i + 1] - cy}px)` });
@@ -440,17 +467,19 @@ function loop(el, kind) {
 
 // A teacher's mark (20 Oct 2026): circle, underline or point at something already on the board, in red chalk, on
 // the word that names it (bridge.js cues); it fades after a moment so the board stays clean. A seek skips it.
-async function mark(id, kind = 'circle', ms = 600) {
-  // id.part: one named part of an Anatomy recipe (its data-name or data-part)
-  const [eid, part] = id.split('.'), own = Object.hasOwn(els, eid) ? els[eid] : null; if (!own) throw new Error(`No element "${eid}"`);
-  if (FAST) return;
+// the board box of an element, or of id.part: one named part of an Anatomy recipe (its data-name or data-part)
+function boxOf(id) {
+  const [eid, part] = String(id).split('.'), own = Object.hasOwn(els, eid) ? els[eid] : null; if (!own) throw new Error(`No element "${eid}"`);
   const e = (part && own.iso && [...own.querySelectorAll('[data-name],[data-part]')].find(q => (q.dataset.name || q.dataset.part) === part)) || own;
   const fx = [...own.querySelectorAll('[data-fx]')]; fx.forEach(f => f.style.display = 'none');
   const b = e.getBBox(), M = scene.getCTM().inverse().multiply(e.getCTM());
   fx.forEach(f => f.style.display = '');
   const pts = [[b.x, b.y], [b.x + b.width, b.y], [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]].map(([x, y]) => new DOMPoint(x, y).matrixTransform(M));
-  const x0 = Math.min(...pts.map(p => p.x)), x1 = Math.max(...pts.map(p => p.x)), y0 = Math.min(...pts.map(p => p.y)), y1 = Math.max(...pts.map(p => p.y));
-  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  return { x0: Math.min(...pts.map(p => p.x)), x1: Math.max(...pts.map(p => p.x)), y0: Math.min(...pts.map(p => p.y)), y1: Math.max(...pts.map(p => p.y)) };
+}
+async function mark(id, kind = 'circle', ms = 600) {
+  if (FAST) { boxOf(id); return; }
+  const { x0, y0, x1, y1 } = boxOf(id), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
   let d;
   if (kind === 'circle') {             // a hand loop: a little past all the way round, so the ends overlap like chalk
     const rx = (x1 - x0) / 2 + 16, ry = (y1 - y0) / 2 + 14;
@@ -475,6 +504,7 @@ const bare = cmd => cmd.trim().replace(/^&\s*/, '').replace(/^@\S+\s+/, '').repl
 async function run(cmd) {
   const bg = /^(@\S+\s+)?&/.test(cmd.trim()); const [op, ...a] = bare(cmd).split(/\s+/);
   const nums = a.slice(1).map(Number);
+  if ((op === 'go' || op === 'travel') && camS > 1.01) await zoomOut(600);    // a movement shows where it goes: whole board
   let p;
   if (op === 'draw') p = draw(a[0], nums[0]);
   else if (op === 'write') p = write(a[0], nums[0]);
@@ -483,6 +513,7 @@ async function run(cmd) {
   else if (op === 'fade') p = anim(els[a[0]], [{ opacity: getComputedStyle(els[a[0]]).opacity }, { opacity: nums[0] }], { duration: nums[1] || 500, easing: 'linear' });
   else if (op === 'go') p = go(a[0], nums[0], nums.slice(1));
   else if (op === 'cam') p = Promise.resolve();   // founder, 12 Oct: the whole board stays in view so the flow shows; old scripts' cam is ignored
+  else if (op === 'zoom') p = a[0] === 'out' ? zoomOut(nums[0] || undefined) : zoomTo(a[0], nums[0], nums[1] || undefined);
   else if (op === 'wait') p = wait(+a[0]);
   else if (op === 'loop') { loop(els[a[0]], a[1]); p = Promise.resolve(); }
   else if (op === 'travel') p = travel(a[0].split(','), nums[0], a[2] === 'loop');
@@ -525,6 +556,7 @@ async function play(answer) {
       await Promise.all([say(s.say), (async () => { for (const c of s.do) await run(c); await penUp(); })()]);
       await wait(250);
     }
+    await zoomOut();
   } catch (e) { $('#caption').textContent = '⚠️ ' + e.message; console.error(e); }
   $('#play').disabled = false; $('#play').textContent = '↻ Replay';
 }
@@ -550,25 +582,7 @@ if (new URLSearchParams(location.search).has('saved')) fetch('saved-answers.json
   $('#pick').value = ANSWERS.length - all.filter(s => s.style === 'whiteboard').length; $('#pick').onchange();
 });
 
-// Ask anything: only when the page is served by server.mjs (python http.server has no /api)
-if (self === top) fetch('api/health').then(r => r.ok && r.json()).then(h => { if (h) $('#askbar').style.display = 'flex'; }).catch(() => {});
-$('#askbar').onsubmit = async e => {
-  e.preventDefault();
-  const question = $('#q').value.trim(); if (!question) return;
-  $('#ask').disabled = true; const t0 = Date.now();
-  const tick = setInterval(() => $('#caption').textContent = `Writing your lesson… ${Math.round((Date.now() - t0) / 1000)} s`, 500);
-  try {
-    const r = await fetch('api/answer', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question }) });
-    const out = await r.json();
-    if (!r.ok) throw new Error(out.error);
-    ANSWERS.push(out.answer); $('#pick').append(new Option(out.answer.q, ANSWERS.length - 1)); $('#pick').value = ANSWERS.length - 1;
-    clearInterval(tick); play(out.answer);
-    if (out.usage[0]?.mock) $('#stats').textContent += ' · MOCK: a hand-made answer, no API call';
-    else $('#stats').textContent += ` · made in ${(out.ms / 1000).toFixed(1)} s, ${out.attempts} attempt(s), cost $${out.cost.toFixed(4)}`;
-  } catch (err) { clearInterval(tick); $('#caption').textContent = '⚠️ ' + err.message; }
-  $('#ask').disabled = false;
-};
 </script>
-<style>:root.embed{color-scheme:dark}.embed body{margin:0;background:transparent;min-height:0;display:block;place-items:normal}.embed .wrap{width:auto;max-width:none;margin:0;padding:0}.embed .bar,.embed #askbar,.embed #stats,.embed a{display:none!important}.embed svg,.embed canvas{display:block;width:100%;height:auto}.embed #caption{min-height:0;margin:10px 12px 4px;font-size:clamp(14px,3.6vw,19px);color:#e4e4e7}.embed svg{border:0;border-radius:0;box-shadow:none}</style><script src="bridge.js"></script>
+<style>:root.embed{color-scheme:dark}.embed body{margin:0;background:transparent;min-height:0;display:block;place-items:normal}.embed .wrap{width:auto;max-width:none;margin:0;padding:0}.embed .bar,.embed #stats,.embed a{display:none!important}.embed svg,.embed canvas{display:block;width:100%;height:auto}.embed #caption{min-height:0;margin:10px 12px 4px;font-size:clamp(14px,3.6vw,19px);color:#e4e4e7}.embed svg{border:0;border-radius:0;box-shadow:none}</style><script src="bridge.js"></script>
 </body>
 </html>

@@ -13,8 +13,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium, webkit } from '@playwright/test';
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
+// PLAYER_ROOT=<dir holding player/>: check a shipped copy (scripts/ship-player.mjs --out <dir>/player), where lib/iso is lib/k
+const root = process.env.PLAYER_ROOT || path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
+const ISO_DIR = fs.existsSync(path.join(root, 'player', 'lib', 'iso')) ? 'iso' : 'k';
 const [mode = 'iso', only] = process.argv.slice(2).filter((a, i, all) => !a.startsWith('--') && all[i - 1] !== '--browser');
+if (!['lazy', 'iso', 'lite', 'attack'].includes(mode)) { console.error(`unknown mode "${mode}" (lazy, iso, lite, attack): nothing was checked`); process.exit(1); }   // "iso --browser webkit" as ONE argument once checked nothing and said all ok
 const engine = process.argv.includes('--browser') && process.argv[process.argv.indexOf('--browser') + 1] === 'webkit' ? webkit : chromium;
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.css': 'text/css' };
 const server = http.createServer((req, res) => {
@@ -36,7 +39,7 @@ async function open(query) {
 }
 
 if (mode === 'lazy') {
-  const P = JSON.parse(fs.readFileSync(path.join(root, '..', 'src', 'lib', 'generation', 'prompts.json'), 'utf8'));
+  const P = JSON.parse(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'src', 'lib', 'generation', 'prompts.json'), 'utf8'));
   const cats = P.wbLib.filter(c => !c.cat.startsWith('servier') && (!only || only.split(',').includes(c.cat)));
   // Builds each example line into its own board; returns the lines that threw, with the error.
   const tryAll = (page, lines) => page.evaluate(lines => lines.map(line => {
@@ -64,7 +67,7 @@ if (mode === 'lazy') {
 
 if (mode === 'iso') {
   global.window = {};
-  await import(path.join(root, 'player', 'lib', 'iso', 'manifest.js'));
+  await import(path.join(root, 'player', 'lib', ISO_DIR, 'manifest.js'));
   const M = global.window.ISO_MANIFEST;
   const names = only ? only.split(',') : Object.keys(M.recipes);
   const { page, errs } = await open('?lazy=1');
@@ -110,7 +113,7 @@ if (mode === 'iso') {
 // of a recipe and in its text must never run or reach the board as markup.
 if (mode === 'attack') {
   global.window = {};
-  await import(path.join(root, 'player', 'lib', 'iso', 'manifest.js'));
+  await import(path.join(root, 'player', 'lib', ISO_DIR, 'manifest.js'));
   const names = only ? only.split(',') : Object.keys(global.window.ISO_MANIFEST.recipes);
   const { page, errs } = await open('?lazy=1');
   const BAD = ['"><img src=x onerror="window.__pwn=1">', "'><svg onload=window.__pwn=1>", '</text><script>window.__pwn=1</script>', 'javascript:window.__pwn=1'];

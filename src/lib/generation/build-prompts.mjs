@@ -48,13 +48,14 @@ const libIndex = lib => lib.map(c => isSv(c)
 const PRIMITIVES = ['circle', 'ellipse', 'rect', 'line', 'arrow', 'path', 'text', 'tag'];
 const typesOf = lib => new Set([...PRIMITIVES, ...RECIPE_NAMES, ...lib.filter(c => !isSv(c)).flatMap(c => c.lines.map(l => l.name)), ...(lib.some(isSv) ? ['sv'] : [])]);
 const TYPES = typesOf(WB_ALL);                                    // what the checks accept: every loaded drawing
-const COMMANDS = new Set(['draw', 'write', 'fill', 'pop', 'fade', 'go', 'cam', 'wait', 'loop', 'travel', 'mark', 'set']);   // set: Anatomy recipes only
+const COMMANDS = new Set(['draw', 'write', 'fill', 'pop', 'fade', 'go', 'cam', 'wait', 'loop', 'travel', 'mark', 'set', 'zoom']);   // set, zoom: Anatomy prompts only
 const LOOPS = new Set(['beat', 'flow', 'fall', 'rise', 'sway', 'swing']);
 const catalogue = fs.readFileSync(path.join(genDir, 'recipe-catalogue.md'), 'utf8');
 
 // lib = the categories this prompt lists; teach = a subject's teaching rules ('' for the plain prompt, which must stay
 // byte-identical to the prototype's).
-const wbRules = (lib, teach = '') => `You turn a question into a 30-60 second voiced whiteboard lesson, written as ONE JSON object that our
+// cam: the Anatomy prompts' camera and notes column (founder, 26 Oct 2026); without it the text is the production prompt
+const wbRules = (lib, teach = '', cam = false) => `You turn a question into a 30-60 second voiced whiteboard lesson, written as ONE JSON object that our
 player draws live on a 960x540 board. Reply with the JSON object only: no prose, no code fences.
 
 Shape: {"q": "<the question>", "els": {"<id>": "<element line>", ...}, "steps": [{"say": "<one spoken sentence>", "do": ["<command>", ...]}, ...]}
@@ -62,13 +63,14 @@ Shape: {"q": "<the question>", "els": {"<id>": "<element line>", ...}, "steps": 
 - "els" lists every object on the board (order = back to front). Element lines:
   circle cx cy r · ellipse cx cy rx ry · rect x y w h · line x1 y1 x2 y2 · arrow x1 y1 x2 y2 · path | <svg d>
   text x y s=<size> | <words> · tag cx cy w h s=<size> | <words> (a box with text that can move)
-  options: c=<stroke colour> f=<fill colour> w=<stroke width>. Prefer a recipe below over raw paths.
+  options: c=<stroke colour> f=<fill colour> w=<stroke width>. Prefer a recipe below over raw paths.${cam ? `
+  note | <words> (one line in the notes column)` : ''}
 - Commands in "do" (run in order; a leading & = do not wait):
   draw <id> [ms] · write <id> [ms] · fill <id> <id>... · pop <id> [scale] · fade <id> <opacity> [ms]
   go <tagId> <ms> x y [x y ...] · wait <ms> · loop <id> beat|flow|fall|rise|sway|swing
-  travel <id1,id2,...> <ms> [loop]
+  travel <id1,id2,...> <ms> [loop]${cam ? ' · zoom <id>[.<part>] [scale 1-3] · zoom out' : ''}
 - Every id used in "do" must exist in "els". Keep everything inside the board. Never let labels overlap drawings.
-- Motion is the product: something pops when it appears, loops keep the scene alive, and at least one travel or go
+${cam ? CAM_RULES : `- Motion is the product: something pops when it appears, loops keep the scene alive, and at least one travel or go
   shows the idea moving. The whole board is always in view (there is no camera or zoom), so the viewer sees where
   things come from and go to: draw every part big enough to read at full size, and use the whole 960x540.
 - Numbered steps with a visible flow: every step's "say" begins "Step 1:", "Step 2:" and so on, and every step adds
@@ -76,7 +78,7 @@ Shape: {"q": "<the question>", "els": {"<id>": "<element line>", ...}, "steps": 
   that step), placed in reading order (left to right, then the next row) and never over a drawing. From step 2 on,
   draw an arrow or flow from the previous step's part of the board to this step's, so the eye follows 1 → 2 → 3.
   The worked examples below were made before this rule: follow the rule, not them, on numbering.
-- Only these element types exist: ${[...typesOf(lib)].join(', ')}.${teach}
+`}- Only these element types exist: ${[...typesOf(lib), ...(cam ? ['note'] : [])].join(', ')}.${teach}
 
 Recipe catalogue (one line draws a full illustrated object):
 ${catalogue}
@@ -85,6 +87,22 @@ More recipes, by subject (names only). Before you write the script, call find_dr
 ${libIndex(lib)}
 Worked examples (hand-made, approved; match their quality):
 ${EXAMPLES.map(a => JSON.stringify(a)).join('\n')}`;
+// The Anatomy prompts' version of the two rules above: a camera that moves in on what is named, and notes that stay
+const CAM_RULES = `- Motion is the product: something pops when it appears, loops keep the scene alive, and at least one travel or go
+  shows the idea moving.
+- Camera, like a teacher stepping close to the board: the board starts and ends whole. On the word that names a thing,
+  zoom moves in on it: "@burette zoom b", or one named part of a detailed 3D drawing: "@tap zoom b.tap" (the parts
+  are its lit= names). zoom out shows the whole diagram again: use it before a step that names things far apart. The
+  player zooms out by itself for a travel or a go (a movement shows where it comes from and goes to) and at the end.
+  Zoom on the one or two things each step is about; draw a thing before you zoom on it.
+- Notes the viewer can copy: the right of the board, x 660-950, is the notes column, and the camera never moves it.
+  Keep every drawing, label and tag in x 0-640. Each step adds one note, "n1": "note | 1. Alkali + indicator in
+  flask" (notes stack top to bottom in the order listed), written on its word: "@indicator write n1". A note is the
+  step's key fact, formula or number in at most 32 characters, numbered like the step. Notes stay to the end, so the
+  last board is the summary; they replace the numbered step tags (no step tags on the diagram).
+- Numbered steps: every step's "say" begins "Step 1:", "Step 2:" and so on.
+  The worked examples below were made before these rules: follow the rules, not them, on the camera and notes.
+`;
 const RULES = wbRules(WB_LIB);
 
 // ---------- Subjects (founder, 18 Oct 2026): a chat's subject picks its own whiteboard prompt and drawing library ----------
@@ -406,8 +424,8 @@ const ISO_RULES = `
   to=: "w1": "wirelead at=cell.plus to=bulb.a c=red". A big drawing shows only some of its parts with only=<part>,<part>
   (its lit= names), e.g. "bu": "distill box=60,200,260,300 only=burner,flask".`;
 const ISO_SUBJECT_RULES = Object.fromEntries(Object.entries(SUBJECTS).map(([s, { cats: cs, teach }]) =>
-  [s, wbRules(isoLib(cs.map(c => WB_ALL.find(x => x.cat === c))), teach + REUSE + TEACHER + SHOW_AND_FINISH + ISO_RULES + DRAW_OWN[s])]));
-const ISO_RULES_PLAIN = wbRules(isoLib(WB_LIB), ISO_RULES);
+  [s, wbRules(isoLib(cs.map(c => WB_ALL.find(x => x.cat === c))), teach + REUSE + TEACHER + SHOW_AND_FINISH + ISO_RULES + DRAW_OWN[s], true)]));
+const ISO_RULES_PLAIN = wbRules(isoLib(WB_LIB), ISO_RULES, true);
 
 const sha = t => crypto.createHash('sha256').update(t).digest('hex');
 export function buildPrompts() {
@@ -434,7 +452,7 @@ export function buildPrompts() {
     iso: { whiteboard: { system: ISO_RULES_PLAIN, sha256: sha(ISO_RULES_PLAIN) },
       subjects: Object.fromEntries(Object.entries(ISO_SUBJECT_RULES).map(([s, t]) => [s, { system: t, sha256: sha(t) }])),
       lib: ISO_CAT },
-    types: [...TYPES, ...[...ISO_NAMES].map(n => `${n}Iso`)], commands: [...COMMANDS], loops: [...LOOPS],
+    types: [...TYPES, 'note', ...[...ISO_NAMES].map(n => `${n}Iso`)], commands: [...COMMANDS], loops: [...LOOPS],
     libNames: [...LIB_NAMES], flowItems: [...FLOW_ITEMS], bloodPaths: [...BLOOD_PATHS], textures: [...TEXTURES],
     wbLib: WB_ALL, paperLib: PAPER_LIB, mcLib: MC_LIB,
     examples: { whiteboard: EXAMPLES, paper: SM_EXAMPLES, matchcut: MC_EXAMPLES },
