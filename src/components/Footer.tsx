@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PLANS_ON } from "@/product";
+import { PLANS_ON, PRODUCT_NAME } from "@/product";
 
 // §5.2: public pages and Account. Pricing, Help and Contact arrive with their pages (M5/M6); until then they 404.
 const LINKS: [string, string][] = [
@@ -25,7 +25,7 @@ export function Footer() {
         ))}
         <li>
           <span className="muted small" style={{ display: "inline-flex", minHeight: 44, alignItems: "center" }}>
-            © Radlor Inc.
+            © {new Date().getFullYear()} {PRODUCT_NAME}
           </span>
         </li>
       </ul>
