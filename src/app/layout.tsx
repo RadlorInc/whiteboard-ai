@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import "./globals.css";
 import { PLANS_ON, PRODUCT_NAME, SITE_URL, searchDescription } from "@/product";
 import { Toaster } from "@/components/Toast";
+import { InAppTip } from "@/components/InAppTip";
 
 export const metadata: Metadata = {
   title: { default: PRODUCT_NAME, template: `%s · ${PRODUCT_NAME}` },
@@ -37,6 +38,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body>
         <a href="#main" className="skip-link">Skip to content</a>
+        <InAppTip />
         {children}
         <Toaster />
       </body>

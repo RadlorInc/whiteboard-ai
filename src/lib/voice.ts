@@ -25,7 +25,11 @@ const weak = () => {
   const n = navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string }; deviceMemory?: number };
   return !!n.connection?.saveData || /2g/.test(n.connection?.effectiveType ?? "") || (n.deviceMemory ?? 8) <= 2;
 };
-export const voiceOn = () => ON && typeof Worker !== "undefined" && !weak();
+// "Use the browser voice now" (founder, 26 Oct 2026: someone on mobile data can try a video without the download):
+// for the rest of this visit the browser's voice speaks; the next visit offers the download again.
+const SKIP = "wb.voiceSkip";
+const skipped = () => { try { return sessionStorage.getItem(SKIP) === "1"; } catch { return false; } };
+export const voiceOn = () => ON && typeof Worker !== "undefined" && !weak() && !skipped();
 
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((f) => f());
@@ -36,6 +40,7 @@ const set = (s: Partial<VoiceStatus>) => { status = { ...status, ...s }; emit();
 
 let worker: Worker | null = null;
 let ready: Promise<boolean> | null = null;
+let settle: ((ok: boolean) => void) | null = null;   // resolves `ready` from outside (skipVoiceDownload)
 let nextId = 0;
 const waiting = new Map<number, (wav: ArrayBuffer | null) => void>();
 
@@ -44,6 +49,7 @@ export function startVoice(): Promise<boolean> {
   if (!voiceOn()) return (ready = Promise.resolve(false));
   set({ state: "loading", stage: null });
   ready = new Promise<boolean>((resolve) => {
+    settle = resolve;
     const fail = (why: string) => {
       console.warn("Narration voice off, the browser voice speaks instead:", why);
       set({ state: "failed", stage: null, why: why.slice(0, 160) }); resolve(false);
@@ -105,6 +111,16 @@ export function speakLine(text: string, voice = getVoice()): Promise<ArrayBuffer
 export function cancelLine(text: string, voice = getVoice()) {
   const id = asked.get(`${voice}\n${text}`);
   if (id !== undefined) worker?.postMessage({ cancel: id });
+}
+
+/** Stop the download and let the browser's voice speak for the rest of this visit: every line waiting for the model
+ *  gets null at once (the player then says it with the browser's voice), so a video that waited starts now. */
+export function skipVoiceDownload() {
+  try { sessionStorage.setItem(SKIP, "1"); } catch {}
+  worker?.terminate(); worker = null;
+  waiting.forEach((w) => w(null)); waiting.clear();
+  settle?.(false); ready = Promise.resolve(false);
+  set({ state: "off", stage: null, loaded: 0, total: 0 });
 }
 
 export function useVoiceStatus(): VoiceStatus {
