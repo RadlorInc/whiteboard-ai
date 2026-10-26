@@ -11,10 +11,14 @@ export const admin = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SER
 
 export async function signIn(page: Page, email: string) {
   await page.goto("/signin");
-  await page.fill('input[type="email"]', email);
-  await page.getByRole("button", { name: "Continue with email" }).click();
   const box = page.locator('input[inputmode="numeric"]');
-  await expect(box).toBeVisible();
+  // On a cold dev server WebKit can fill the field before React hydrates, which empties it (email-link.spec.ts, CI
+  // 26 Oct): fill and send again until the code box shows.
+  await expect(async () => {
+    await page.fill('input[type="email"]', email);
+    await page.getByRole("button", { name: "Continue with email" }).click();
+    await expect(box).toBeVisible({ timeout: 3_000 });
+  }).toPass({ timeout: 30_000 });
   await expect(page.getByText(`We sent a 6-digit code to ${email}.`)).toBeVisible();   // the address shown is the one typed
   const { data, error } = await admin.auth.admin.generateLink({ type: "magiclink", email });
   if (error) throw error;
