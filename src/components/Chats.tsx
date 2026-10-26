@@ -1,10 +1,13 @@
 import Link from "next/link";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type Subject = "biology" | "physics" | "chemistry" | "home" | "car";
-export const SUBJECT_NAME: Record<Subject, string> = { biology: "Biology", physics: "Physics", chemistry: "Chemistry", home: "Home improvements", car: "Auto repairs" };
+export type Subject = "biology" | "physics" | "chemistry" | "cs" | "finance" | "home" | "car";
+export const SUBJECT_NAME: Record<Subject, string> = { biology: "Biology", physics: "Physics", chemistry: "Chemistry", cs: "Computer science", finance: "Finance", home: "Home improvements", car: "Auto repairs" };
 // The picker's groups (founder, 20 Oct 2026): school subjects, then Everyday fixes with its own Home and Car libraries.
-export const SUBJECT_GROUPS: [string, Subject[]][] = [["Study", ["biology", "physics", "chemistry"]], ["Everyday fixes", ["home", "car"]]];
+// 26 Oct 2026: Computer science and Finance added; Everyday fixes (home, car) no longer offered (their old chats still open).
+export const SUBJECT_GROUPS: [string, Subject[]][] = [["Study", ["biology", "physics", "chemistry", "cs", "finance"]]];
+// added after people picked their subjects at sign-up: offered to everyone until they change their choice
+export const NEW_SUBJECTS: Subject[] = ["cs", "finance"];
 export type ChatRow = { id: string; subject: Subject; title: string };
 
 // The signed-in person's conversations, newest first, each titled by its first question (RLS: only their own).

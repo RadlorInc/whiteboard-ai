@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { startVoice } from "@/lib/voice";
 import { VoiceProgress } from "./Voice";
 import { Icon } from "./Icon";
-import { SUBJECT_GROUPS, SUBJECT_NAME, type Subject } from "./Chats";
+import { NEW_SUBJECTS, SUBJECT_GROUPS, SUBJECT_NAME, type Subject } from "./Chats";
 
 import { PLANS_ON } from "@/product";
 import { FRIENDS_MAX, LEVEL_NAME, canAsk, taughtLevel, videos, type Allowance, type Level } from "@/lib/videos";
@@ -14,6 +14,8 @@ const EXAMPLES: Record<Subject, string[]> = {
   biology: ["How does the heart pump blood?", "How do we breathe?", "What does DNA do?"],
   physics: ["How does a rainbow form?", "Why do things fall?", "How does a car engine work?"],
   chemistry: ["Why does salt dissolve in water?", "What is an atom made of?", "How does fire burn?"],
+  cs: ["How does a computer add two numbers?", "How does the internet send a message?", "How does sorting work?"],
+  finance: ["How does a shop make a profit?", "How do I make a monthly budget?", "How does a cash machine work?"],
   home: ["How do I tie a tie?", "Why did my breaker trip?", "How do I fix a leak under the sink?"],
   car: ["How do I change a flat tire?", "How do I check my oil?", "How do I change my oil?"],
 };
@@ -26,7 +28,7 @@ export function AskComposer({ allowance: a, firstRun, onAsk, busy = false, place
   allowance: Allowance; firstRun: boolean; onAsk: (question: string, explore: boolean) => void; busy?: boolean;
   placeholder?: string; subject: Subject; subjects?: Subject[]; onSubject?: (s: Subject) => void; level?: Level;
 }) {
-  const groups = SUBJECT_GROUPS.map(([g, list]) => [g, list.filter((s) => !subjects || subjects.includes(s))] as const)
+  const groups = SUBJECT_GROUPS.map(([g, list]) => [g, list.filter((s) => !subjects || subjects.includes(s) || NEW_SUBJECTS.includes(s))] as const)
     .filter(([, list]) => list.length);
   const [question, setQuestion] = useState("");
   const [explore, setExploreTick] = useState(true);   // every new video goes to Explore (founder, 15 Oct 2026)
