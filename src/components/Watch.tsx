@@ -33,6 +33,7 @@ const PAGE: Record<Style, string> = {
 // The chat subject tells the whiteboard player which subject-only drawing files to load (lib/wb-load.js); none = all.
 const pageOf = (style: Style, subject?: string | null) => (style === "whiteboard" ? boardPage(subject) : PAGE[style]);
 const STAGE: Record<string, string> = {
+  queue: "Lots of people are asking right now. Your video starts in a moment…",
   reading: "Reading your question…", drawings: "Picking drawings…", writing: "Writing the lesson…", fixing: "Fixing a step…",
 };
 const FAILED: Record<string, string> = {
@@ -41,6 +42,8 @@ const FAILED: Record<string, string> = {
   rate_limited: "You've reached today's limit. Try again tomorrow.",
   paused: "Making videos is paused right now. Try again soon.",
   at_capacity: "We're very busy. Try again in a minute.",
+  spend_cap: "So many videos were made today that new ones are paused for now. Try again in a few hours.",
+  access_required: "This is invite-only right now. Enter an invite code to start.",
   refusal: "This question can't be answered here.",
   check_failed: "The video didn't come out right, so nothing was charged. Try asking again.",
   timeout: "This took too long, so nothing was charged. Try again.",
@@ -229,7 +232,7 @@ export function Player({ style, subject, script, onEnded, bind, onStart, cover }
   );
 }
 
-type Making = { at: 0 | 1 | 2 | 3; names?: string[]; fixing?: boolean };
+type Making = { at: 0 | 1 | 2 | 3; names?: string[]; fixing?: boolean; queued?: boolean };   // queued: waiting in line (at capacity)
 
 // Over the empty board while a video is made: a spinner, how long it has taken, and the real stages from the
 // server's stream (reading → drawings → writing) and then this browser making the first spoken line. Nothing here
@@ -243,7 +246,7 @@ function MakingCover({ making }: { making: Making }) {
     ? voice.stage === "download" && voice.total ? `Getting the voice ready (${Math.round(voice.loaded / 1e6)} of ${Math.round(voice.total / 1e6)} MB, first time only)` : "Getting the voice ready"
     : "Making the voice";
   const rows = [
-    "Reading your question",
+    making.queued ? "Lots of people are asking right now. Your video starts in a moment" : "Reading your question",
     names ? `Choosing drawings: ${names}` : "Choosing drawings",
     making.fixing ? "Writing the lesson (fixing a step)" : "Writing the lesson",
     voiceLine,
@@ -317,7 +320,7 @@ export function Watch({ question, style, subject, explore = false, conversationI
     const sendWhole = (script: Script) => { sendScript(post, style, script); };
     setError(null); setOwned(null);
     let res: Response;
-    for (;;) {
+    for (let full = 0; ; ) {
       try {
         res = await fetch("/api/generate", {
           method: "POST", headers: { "content-type": "application/json" },
@@ -325,6 +328,15 @@ export function Watch({ question, style, subject, explore = false, conversationI
             ...(conversationId && { conversation_id: conversationId }) }),
         });
       } catch { setError("You're offline. Check your connection and try again."); onDone?.(null); return; }
+      // Everyone's videos at once (a launch, 26 Oct 2026): wait in line behind the making cover, up to ~3 minutes.
+      if (res.status === 503 && full < 6) {
+        const j = await res.clone().json().catch(() => ({}));
+        if (j.code === "at_capacity") {
+          full++; setStage(STAGE.queue); setMaking(m => ({ ...m, queued: true }));
+          await new Promise(r => setTimeout(r, 20e3 + Math.random() * 15e3));    // spread out, so the line does not return at once
+          continue;
+        }
+      }
       if (res.status === 429) {
         // Fair-use slow-down (≤ 60 s): wait behind the making cover and ask again, never shown as an error.
         const j = await res.clone().json().catch(() => ({}));
@@ -337,6 +349,7 @@ export function Watch({ question, style, subject, explore = false, conversationI
       }
       break;
     }
+    setMaking(m => ({ ...m, queued: false }));
     if (res.status === 409) { const j = await res.json(); if (j.code === "already_owned") { setOwned(j.id); setStage(""); return; } setError(msg(j.code ?? "provider_error")); onDone?.(null); return; }
     if (!res.ok || !res.body) { const j = await res.json().catch(() => ({})); setError(msg(j.code ?? "provider_error", j.retry_at)); onDone?.(null); return; }
     post({ type: "reset" });
