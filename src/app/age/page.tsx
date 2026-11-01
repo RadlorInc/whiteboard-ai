@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { isSource } from "@/lib/source";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { PRODUCT_NAME } from "@/product";
-import { AGE_BLOCK_COOKIE, INVITE_COOKIE, SIGNUP_SOURCES, okNext, signupQuery, verify } from "@/lib/age";
+import { AGE_BLOCK_COOKIE, INVITE_COOKIE, okNext, signupQuery, verify } from "@/lib/age";
 import { getAccount, signupMode } from "@/lib/session";
 import { AgeForm } from "@/components/AgeForm";
 import { Footer } from "@/components/Footer";
@@ -34,7 +35,7 @@ export default async function Age({ searchParams }: PageProps<"/age">) {
   const account = await getAccount();
   if (account?.ageBand) redirect("/ask");
   const q = await searchParams;
-  const src = typeof q.src === "string" && SIGNUP_SOURCES.includes(q.src) ? q.src : undefined;
+  const src = isSource(q.src) ? q.src : undefined;
   // Invite mode, signed out: the invite code comes first (§5.3), so no stranger's age or email is collected for nothing.
   if (!account && (await signupMode()) === "invite" && !verify(jar.get(INVITE_COOKIE)?.value)) {
     redirect(`/signup${signupQuery(src, q.next)}`);

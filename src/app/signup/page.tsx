@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { isSource } from "@/lib/source";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { AGE_OK_COOKIE, INVITE_COOKIE, SIGNUP_SOURCES, okNext, signupQuery, verify, type AgeOk } from "@/lib/age";
+import { AGE_OK_COOKIE, INVITE_COOKIE, okNext, signupQuery, verify, type AgeOk } from "@/lib/age";
 import { createClient } from "@/lib/supabase/server";
 import { isInAppBrowser, signupMode } from "@/lib/session";
 import { checkInvite } from "@/app/actions";
@@ -19,7 +20,7 @@ export default async function SignUp({ searchParams }: PageProps<"/signup">) {
   if (data.user) redirect("/ask");
 
   const q = await searchParams;
-  const src = typeof q.src === "string" && SIGNUP_SOURCES.includes(q.src) ? q.src : undefined;
+  const src = isSource(q.src) ? q.src : undefined;
   const jar = await cookies();
   const ageOk = verify<AgeOk>(jar.get(AGE_OK_COOKIE)?.value);
   const next = okNext(q.next);

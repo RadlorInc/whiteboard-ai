@@ -614,3 +614,7 @@ li.now .tick { border-color: transparent; }
 /* In-app browsers (Instagram, LinkedIn…): a thin bar suggesting the real browser (InAppTip) */
 .in-app-tip { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; padding: 10px 16px; font-size: 0.875rem; color: var(--text, #fff); background: #1c1c22; border-bottom: 1px solid #2a2a31; text-align: center; }
 .in-app-tip .btn { min-height: 44px; }
+
+/* the friend link after a finished video (InviteNudge) */
+.invite-nudge { margin-top: 12px; gap: 6px; }
+.invite-nudge p { margin: 0; }
