@@ -12,6 +12,8 @@ describe('landingSource', () => {
   it('takes ?src= or ?utm_source= when it is one of ours, in any case', () => {
     expect(landingSource(q('src=whatsapp'), '/')).toBe('whatsapp');
     expect(landingSource(q('utm_source=LinkedIn'), '/')).toBe('linkedin');
+    expect(landingSource(q('src=quora'), '/')).toBe('quora');
+    expect(landingSource(q('utm_source=StackExchange'), '/')).toBe('stackexchange');
     expect(landingSource(q('src=instagram&utm_source=linkedin'), '/explore')).toBe('instagram');
   });
   it('counts a shared video with no channel as "share", and a channel link over it', () => {

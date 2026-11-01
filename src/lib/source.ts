@@ -8,6 +8,7 @@
 // A new channel = a new migration + this array; tests/auth/source.test.ts checks the array against the migration.
 export const SIGNUP_SOURCES = [
   "tiktok", "instagram", "youtube", "reddit", "discord", "ref", "share", "direct", "whatsapp", "linkedin", "friend",
+  "quora", "stackexchange",
 ] as const;
 export type SignupSource = (typeof SIGNUP_SOURCES)[number];
 export const SRC_COOKIE = "ar_src";
