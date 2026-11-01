@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { SIGNUP_SOURCES } from "@/lib/age";
+import { isSource } from "@/lib/source";
 import { createClient } from "@/lib/supabase/server";
 import { freeVideos, signupMode } from "@/lib/session";
 import type { Metadata } from "next";
@@ -55,7 +55,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
     redirect(`/auth/callback?${fwd}`);
   }
   const utm = typeof q.utm_source === "string" ? q.utm_source.toLowerCase() : "";
-  const src = SIGNUP_SOURCES.includes(utm) ? utm : q.ref ? "ref" : q.from === "share" ? "share" : "";
+  const src = isSource(utm) ? utm : q.ref ? "ref" : q.from === "share" ? "share" : "";
   const invite = (await signupMode()) === "invite";
   const free = await freeVideos();
 

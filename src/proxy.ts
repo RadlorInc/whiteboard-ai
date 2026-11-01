@@ -4,6 +4,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { FRIEND_COOKIE, FRIEND_CODE, REF_COOKIE, REF_DAYS, refCookieValue } from "@/lib/radlorOps";
+import { SRC_COOKIE, landingSource } from "@/lib/source";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -66,6 +67,9 @@ export async function proxy(request: NextRequest) {
   // A user's friend link (?friend=…, 22 Oct 2026): separate from a rep's ?ref=, read at sign-up the same way.
   const friend = request.nextUrl.searchParams.get("friend");
   if (friend && FRIEND_CODE.test(friend)) response.cookies.set(FRIEND_COOKIE, friend, { httpOnly: true, secure: request.nextUrl.protocol === "https:", sameSite: "lax", path: "/", maxAge: REF_DAYS * 86400 });
+  // The channel a visitor first arrived from (?src=…, or "share" on a shared video): first one wins (lib/source.ts).
+  const src = landingSource(request.nextUrl.searchParams, request.nextUrl.pathname);
+  if (src && !request.cookies.has(SRC_COOKIE)) response.cookies.set(SRC_COOKIE, src, { httpOnly: true, secure: request.nextUrl.protocol === "https:", sameSite: "lax", path: "/", maxAge: REF_DAYS * 86400 });
   return response;
 }
 

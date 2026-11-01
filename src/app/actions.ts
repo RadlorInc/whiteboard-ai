@@ -2,12 +2,14 @@
 // Sign-up, sign-in and the age gate (PLAN.md §5.3–5.4). Every write goes through these server actions, which Next
 // checks for a same-origin request.
 import { readInterests } from "@/lib/interests";
+import { SRC_COOKIE, pickSource } from "@/lib/source";
+import { FRIEND_COOKIE, REF_COOKIE } from "@/lib/radlorOps";
 import { createHmac } from "node:crypto";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import {
-  AGE_BLOCK_COOKIE, AGE_GATE_VERSION, AGE_OK_COOKIE, INVITE_COOKIE, SIGNUP_SOURCES, ageCheck, sign, verify,
+  AGE_BLOCK_COOKIE, AGE_GATE_VERSION, AGE_OK_COOKIE, INVITE_COOKIE, ageCheck, sign, verify,
   okNext, signupQuery, type AgeOk,
 } from "@/lib/age";
 import { START_SEEN_COOKIE, getAccount, landing } from "@/lib/session";
@@ -79,10 +81,9 @@ export async function submitAge(_: FormState, form: FormData): Promise<FormState
     redirect("/age");
   }
 
-  const src = String(form.get("src") ?? "");
   const invite = verify<{ code: string }>(jar.get(INVITE_COOKIE)?.value)?.code ?? null;
   const age: AgeOk = {
-    month, year, gate_version: AGE_GATE_VERSION, source: SIGNUP_SOURCES.includes(src) ? src : null, invite,
+    month, year, gate_version: AGE_GATE_VERSION, source: pickSource({ form: form.get("src"), cookie: jar.get(SRC_COOKIE)?.value, hasRef: jar.has(REF_COOKIE), hasFriend: jar.has(FRIEND_COOKIE) }), invite,
     next: okNext(form.get("next")), interests,
   };
 

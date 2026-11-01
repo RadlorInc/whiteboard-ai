@@ -11,9 +11,10 @@ import { deleteChat, startConversation } from "@/app/(app)/c/actions";
 import { ShareButton } from "./ShareButton";
 import { VideoFeedback } from "./VideoFeedback";
 import { SUBJECT_GROUPS, SUBJECT_NAME, type Subject } from "./Chats";
-import { LEVEL_NAME, type Allowance, type Level } from "@/lib/videos";
+import { FRIENDS_MAX, LEVEL_NAME, type Allowance, type Level } from "@/lib/videos";
 import { Icon } from "./Icon";
 import { BoardPreview } from "./BoardPreview";
+import { InviteNudge } from "./InviteNudge";
 import { PRODUCT_NAME } from "@/product";
 
 export type Turn = { id: string; question: string; style: Style; status: string; script: Record<string, unknown> | null };
@@ -46,9 +47,9 @@ function PastTurn({ t, subject, onNext }: { t: Turn; subject: Subject; onNext?: 
 
 // subjects: the ones a new chat offers (the person's categories, founder, 22 Oct 2026); level: the chat's, or for a new
 // chat the one chosen on /settings.
-export function Chat({ conversationId, subject: initialSubject, subjects, level: initialLevel, turns, allowance, firstRun }: {
+export function Chat({ conversationId, subject: initialSubject, subjects, level: initialLevel, turns, allowance, firstRun, friendCode = null }: {
   conversationId: string | null; subject: Subject | null; subjects?: Subject[]; level?: Level; turns: Turn[]; allowance: Allowance;
-  firstRun: boolean;
+  firstRun: boolean; friendCode?: string | null;
 }) {
   const router = useRouter();
   const [conv, setConv] = useState(conversationId);
@@ -131,6 +132,8 @@ export function Chat({ conversationId, subject: initialSubject, subjects, level:
               <div key={l.n} ref={i === live.length - 1 ? lastLive : undefined} className="turn-live">
                 <Watch question={l.question} style="whiteboard" subject={subject} explore={l.explore} conversationId={l.conv} onDone={done(l.n)}
                   onNext={!busy && i === live.length - 1 ? q => ask(q, false) : undefined} />
+                {/* a finished video (it has an id) and room for more friends: offer the friend link once */}
+                {l.id && i === live.length - 1 && friendCode && !allowance.admin && allowance.friends < FRIENDS_MAX && <InviteNudge code={friendCode} />}
               </div>
             ))}
             <div ref={end} aria-hidden="true" />
