@@ -8,9 +8,9 @@ export function PublicNameForm({ initial }: { initial: string }) {
   return (
     <form action={action} className="stack">
       <label className="stack">Name on your videos
-        <input name="name" className="input" defaultValue={initial} minLength={2} maxLength={30} required autoComplete="nickname" />
+        <input name="name" className="input" defaultValue={initial} maxLength={30} autoComplete="nickname" />
       </label>
-      <p className="muted small">Shown as &ldquo;Asked by&rdquo; on videos you share or put on Explore. Your real name or a nickname: your choice.</p>
+      <p className="muted small">Shown as &ldquo;Asked by&rdquo; on videos you share or put on Explore. Your real name or a nickname: your choice. Empty: no name is shown.</p>
       <div><button type="submit" className="btn" disabled={pending}>Save</button></div>
       {state?.error && <p role="alert" className="error">{state.error}</p>}
       {state?.ok && <p role="status" className="muted small">Saved.</p>}

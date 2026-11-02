@@ -9,7 +9,9 @@ const env = Object.fromEntries(readFileSync(`${process.cwd()}/.env.local`, "utf8
 if (!/^http:\/\/127\.0\.0\.1:/.test(env.NEXT_PUBLIC_SUPABASE_URL)) throw new Error("e2e refuses: not the local stack");
 export const admin = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 
-export async function signIn(page: Page, email: string) {
+// namePrompt: leave the "Pick a name" popup (NamePrompt.tsx) on; off by default so it doesn't cover what a test clicks.
+export async function signIn(page: Page, email: string, { namePrompt = false } = {}) {
+  if (!namePrompt) await page.addInitScript(() => { try { localStorage.setItem("ar_name_prompt_skipped", "1"); } catch {} });
   await page.goto("/signin");
   const box = page.locator('input[inputmode="numeric"]');
   // On a cold dev server WebKit can fill the field before React hydrates, which empties it (email-link.spec.ts, CI
