@@ -4,6 +4,7 @@ import { useState, useSyncExternalStore, useTransition } from "react";
 import { Player, type Style } from "./Watch";
 import { VoiceProgress } from "./Voice";
 import { Icon } from "./Icon";
+import { shareUrl } from "./ShareButton";
 import { VideoFeedback } from "./VideoFeedback";
 import { deleteVideo, setExplore, shareVideo, unshareVideo } from "@/app/(app)/videos/actions";
 
@@ -12,7 +13,7 @@ export const exploreRefusal = (e?: string) => e === "contact_info" ? "This quest
 
 const noop = () => () => {};
 
-export function VideoView({ id, style, script, slug: initial, inExplore: initialExplore }: { id: string; style: Style; script: Record<string, unknown>; slug: string | null; inExplore: boolean }) {
+export function VideoView({ id, style, script, slug: initial, inExplore: initialExplore, friendCode }: { id: string; style: Style; script: Record<string, unknown>; slug: string | null; inExplore: boolean; friendCode: string | null }) {
   const [n, setN] = useState(0);
   const [inExplore, setInExplore] = useState(initialExplore);
   const [slug, setSlug] = useState(initial);
@@ -21,7 +22,7 @@ export function VideoView({ id, style, script, slug: initial, inExplore: initial
   // The origin is only known in the browser: null on the server and while hydrating, so the HTML matches
   // (a mismatch re-renders the page and drops a click made meanwhile, e.g. "Remove from Explore").
   const origin = useSyncExternalStore(noop, () => location.origin, () => null);
-  const url = slug && origin ? `${origin}/v/${slug}` : null;
+  const url = slug && origin ? shareUrl(origin, slug, friendCode) : null;
   return (
     <section className="stack">
       <VoiceProgress />
@@ -36,7 +37,7 @@ export function VideoView({ id, style, script, slug: initial, inExplore: initial
         ) : (
           <button className="btn secondary" type="button" disabled={busy} onClick={() => start(async () => {
             const r = await shareVideo(id);
-            if (r.slug) { setSlug(r.slug); setNote("Anyone with the link can watch this video. They can't see who made it."); }
+            if (r.slug) { setSlug(r.slug); setNote("Anyone with the link can watch this video. They see the name on your Account page."); }
             else setNote(r.error === "contact_info" ? "This question has contact details in it, so it can't be shared." : "Couldn't make a link. Try again.");
           })}><Icon name="share" size={16} /> Share</button>
         )}
@@ -45,7 +46,7 @@ export function VideoView({ id, style, script, slug: initial, inExplore: initial
           if (r.error) { setNote(exploreRefusal(r.error)); return; }
           if (r.slug) setSlug(r.slug);
           setInExplore(!inExplore);
-          setNote(inExplore ? "Off Explore. The share link still works." : "On Explore: anyone can watch it there. They can't see who made it.");
+          setNote(inExplore ? "Off Explore. The share link still works." : "On Explore: anyone can watch it there, with the name on your Account page.");
         })}><Icon name="compass" size={16} /> {inExplore ? "Remove from Explore" : "Show in Explore"}</button>
         <button className="btn danger" type="button" disabled={busy} onClick={() => {
           if (window.confirm("Delete this video? This can't be undone. Used videos aren't given back.")) start(() => deleteVideo(id));

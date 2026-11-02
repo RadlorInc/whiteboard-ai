@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function Video({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  await requireAccount(`/videos/${id}`);
+  const account = await requireAccount(`/videos/${id}`);
   const sb = await createClient();
   const { data: g } = await sb.from("generations")
     .select("id, style, question, status, script, created_at, conversation_id")
@@ -44,7 +44,7 @@ export default async function Video({ params }: { params: Promise<{ id: string }
         </p>
       </div>
       {g.status === "succeeded" && g.script
-        ? <VideoView id={g.id} style={g.style} script={g.script} slug={share?.slug ?? null} inExplore={!!share?.explore_at} />
+        ? <VideoView id={g.id} style={g.style} script={g.script} slug={share?.slug ?? null} inExplore={!!share?.explore_at} friendCode={account.friendCode} />
         : <div className="card"><p>{g.status === "failed" || g.status === "refunded" ? "This video didn't finish, so nothing was charged." : "This video is still being made. Refresh in a moment."}</p></div>}
       {(before || after) && (
         <nav className="seq-nav" aria-label="In this chat">

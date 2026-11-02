@@ -9,8 +9,10 @@ import { ReportForm } from "@/components/ReportForm";
 import { SaveButton } from "@/components/SaveButton";
 import { SUBJECT_NAME, type Subject } from "@/components/Chats";
 import { PRODUCT_NAME } from "@/product";
+import { namesFor, withNames } from "@/lib/names";
+import { ShareSlugButton } from "@/components/ShareButton";
 
-// §5.10: a public share page. No login, no owner identity, not indexed. A video from a chat brings the chat's other
+// §5.10: a public share page. No login, not indexed; the maker shows only by their public name ("Asked by", 2 Nov 2026). A video from a chat brings the chat's other
 // Explore videos with it, in order (explore_series), and related lessons below (explore_related). Signed out, only the
 // opened video plays; the rest of the chat shows blurred behind "Sign up to watch the rest" (founder, 18 Oct 2026),
 // and their scripts never leave the server.
@@ -38,7 +40,8 @@ export default async function Shared({ params }: { params: Promise<{ slug: strin
   const saved = (mine ?? []).map((r: { slug: string }) => r.slug);
   const items = (rows ?? []) as (SeriesItem & { subject: string | null })[];
   if (!items.length) notFound();
-  const related = (rel ?? []) as ExploreItem[];
+  const [related, names] = await Promise.all([withNames((rel ?? []) as ExploreItem[]), namesFor([items[0].slug])]);
+  const by = names.get(items[0].slug);
   const subject = items[0].subject ? SUBJECT_NAME[items[0].subject as Subject] : null;
   const start = Math.max(0, items.findIndex((v) => v.slug === slug));
   const gated = !account && items.length > 1;
@@ -52,7 +55,7 @@ export default async function Shared({ params }: { params: Promise<{ slug: strin
         <h1>{shown[0].question}</h1>
         {/* the lesson is kept by its first video's slug, the one its Explore card uses */}
         <SaveButton slug={items[0].slug} saved={saved.includes(items[0].slug)} signedIn={!!account} label className="sm" />
-        <p className="page-sub small">{[subject, items.length > 1 ? `${items.length} videos` : null, `Made with ${PRODUCT_NAME}`].filter(Boolean).join(" · ")}</p>
+        <p className="page-sub small">{[by ? `Asked by ${by}` : null, subject, items.length > 1 ? `${items.length} videos` : null, `Made with ${PRODUCT_NAME}`].filter(Boolean).join(" · ")}</p>
       </div>
       <SeriesView items={shown} start={account ? start : 0} signUpAfter={account ? undefined : `/v/${slug}`} />
       {gated && <SeriesGate questions={locked} next={`/v/${slug}`} />}
@@ -61,6 +64,7 @@ export default async function Shared({ params }: { params: Promise<{ slug: strin
         <div className="toolbar">
           <Link className="btn sm" href="/">Ask your own</Link>
           <Link className="btn secondary sm" href="/explore">Explore more</Link>
+          {account && <ShareSlugButton slug={slug} title={shown[0].question} friend={account.friendCode} />}
         </div>
       </div>
       <ReportForm slug={slug} />

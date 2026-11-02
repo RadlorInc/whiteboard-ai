@@ -108,6 +108,17 @@ export async function saveInterests(_: FormState, form: FormData): Promise<FormS
   return { ok: true };
 }
 
+// The name on your shared videos (founder, 2 Nov 2026): your real name or a nickname; set_public_name checks it.
+export async function savePublicName(_: FormState, form: FormData): Promise<FormState> {
+  const { data } = await (await createClient()).auth.getUser();
+  if (!data.user) redirect("/signin?next=/account");
+  const { data: r, error } = await createAdminClient().rpc("set_public_name", { p_user_id: data.user.id, p_name: String(form.get("name") ?? "").slice(0, 100) });
+  if (error || r === "invalid") return { error: "Use 2 to 30 letters, numbers, spaces, dots or dashes." };
+  if (r === "contact_info") return { error: "No phone numbers, emails or links in your name." };
+  if (r === "reserved") return { error: "Please choose a different name." };
+  return { ok: true };
+}
+
 // ---------- Email code ----------
 
 export async function verifyCode(emailIn: string, token: string, next: string): Promise<FormState> {

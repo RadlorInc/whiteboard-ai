@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getAccount } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { ExploreGrid, type ExploreItem } from "@/components/ExploreGrid";
+import { withNames } from "@/lib/names";
 import { Icon } from "@/components/Icon";
 import { SUBJECT_GROUPS, SUBJECT_NAME, type Subject } from "@/components/Chats";
 
@@ -19,7 +20,7 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
   const account = await getAccount();
   const { data } = await (await createClient()).rpc("explore_feed",
     { p_q: q || null, p_subject: subject, p_offset: (page - 1) * PAGE, p_limit: PAGE });
-  const items = (data ?? []) as ExploreItem[];
+  const items = await withNames((data ?? []) as ExploreItem[]);
   const { data: mine } = account ? await (await createClient()).from("saved_items").select("slug") : { data: null };   // RLS: own
   const save = { saved: (mine ?? []).map((r: { slug: string }) => r.slug), signedIn: !!account };
   const href = (o: { q?: string; subject?: string | null; page?: number }) => {

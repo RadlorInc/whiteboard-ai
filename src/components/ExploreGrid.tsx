@@ -5,7 +5,7 @@ import { SaveButton } from "./SaveButton";
 import { SUBJECT_NAME, type Subject } from "./Chats";
 
 export type ExploreItem = { slug: string; title: string; style: string; script: unknown; n: number; subject: string | null; latest: string;
-  href?: string; meta?: string };   // your own videos (/library) link to /videos/[id] and say what they cost
+  href?: string; meta?: string; by?: string };   // by: the maker's public name (lib/names.ts)   // your own videos (/library) link to /videos/[id] and say what they cost
 
 const day = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
@@ -23,6 +23,7 @@ export function ExploreGrid({ items, save }: { items: ExploreItem[]; save?: { sa
               <span className="x-play" aria-hidden="true"><Icon name="play" size={18} /></span>
             </span>
             <span className="x-title">{it.title}</span>
+            {it.by && <span className="x-by">Asked by {it.by}</span>}
             <span className="x-meta">{it.meta ?? `${it.subject ? SUBJECT_NAME[it.subject as Subject] : "Video"} · ${day(it.latest)}`}</span>
           </Link>
           {save && !it.href && <SaveButton slug={it.slug} saved={save.saved.includes(it.slug)} signedIn={save.signedIn} className="on-card" />}

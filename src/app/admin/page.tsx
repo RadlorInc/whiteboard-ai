@@ -38,6 +38,21 @@ export default async function Admin() {
     db.from("generation_calls").select("started_at, cost_usd").gte("started_at", since7).limit(20000),
     db.from("admins").select("user_id"),
   ]);
+  // Sign-ups per person (founder, 2 Nov 2026): accounts made from someone's friend link or shared-video link
+  // (friend_referrals keeps every one, not just the 2 that earn free videos), and how many of them made a video.
+  // ponytail: whole table in memory + one auth lookup per row shown; a SQL group-by when it passes ~10k rows.
+  // own_video: true = from a video they made, false = from someone else's video they shared, null = invite link.
+  type Ref = { friend: string; referrer: string; own_video: boolean | null };
+  const refs = ((await db.from("friend_referrals").select("friend, referrer, own_video").limit(10000)).data ?? []) as Ref[];
+  const byRef = new Map<string, Ref[]>();
+  for (const r of refs) byRef.set(r.referrer, [...(byRef.get(r.referrer) ?? []), r]);
+  const topRefs = [...byRef].sort((a, b) => b[1].length - a[1].length).slice(0, 50);
+  const shownFriends = topRefs.flatMap(([, f]) => f.map(x => x.friend));
+  const madeVideo = new Set(shownFriends.length ? ((await db.from("generations").select("user_id").eq("status", "succeeded")
+    .in("user_id", shownFriends).limit(50000)).data ?? []).map(x => x.user_id) : []);
+  const referrers = await Promise.all(topRefs.map(async ([id, f]) => ({ id, signups: f.length, made: f.filter(x => madeVideo.has(x.friend)).length,
+    own: f.filter(x => x.own_video === true).length, others: f.filter(x => x.own_video === false).length, invite: f.filter(x => x.own_video === null).length,
+    email: (await db.auth.admin.getUserById(id)).data.user?.email ?? "(deleted)" })));
   // Video feedback, last 7 days (VideoFeedback.tsx). A thumbs-down links to the video's public page when it has one.
   const fb = feedback.data ?? [], downs = fb.filter(f => f.rating === -1);
   const why = new Map<string, number>();
@@ -88,6 +103,13 @@ export default async function Admin() {
             return <tr key={u.id}><td>{istTime(u.created_at)}</td><td>{adminIds.has(u.id) ? "admin" : u.signup_source ?? "—"}</td>
               <td>{ug.length || <strong className="error">0</strong>}</td><td>{ug.filter(x => x.status === "succeeded").length}</td></tr>;
           })}</tbody></table>
+      </section>
+      <section className="card stack">
+        <h2>Sign-ups by person ({refs.length})</h2>
+        <p className="muted">Accounts made from someone&apos;s links: a video they made, someone else&apos;s video they shared, or
+          their invite link (also sign-ups from before 2 Nov). Top 50.</p>
+        <table><thead><tr><th>Person</th><th>Sign-ups</th><th>Own videos</th><th>Others&apos; videos</th><th>Invite link</th><th>Made a video</th></tr></thead>
+          <tbody>{referrers.map(r => <tr key={r.id}><td>{r.email}</td><td>{r.signups}</td><td>{r.own}</td><td>{r.others}</td><td>{r.invite}</td><td>{r.made}</td></tr>)}</tbody></table>
       </section>
       <div className="grid">
         <SwitchForm k="generation_enabled" label="Making videos" on={s.generation_enabled} />

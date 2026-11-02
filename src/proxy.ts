@@ -66,7 +66,9 @@ export async function proxy(request: NextRequest) {
   if (ref) response.cookies.set(REF_COOKIE, ref, { httpOnly: true, secure: request.nextUrl.protocol === "https:", sameSite: "lax", path: "/", maxAge: REF_DAYS * 86400 });
   // A user's friend link (?friend=…, 22 Oct 2026): separate from a rep's ?ref=, read at sign-up the same way.
   const friend = request.nextUrl.searchParams.get("friend");
-  if (friend && FRIEND_CODE.test(friend)) response.cookies.set(FRIEND_COOKIE, friend, { httpOnly: true, secure: request.nextUrl.protocol === "https:", sameSite: "lax", path: "/", maxAge: REF_DAYS * 86400 });
+  // On a shared video (/v/<slug>?friend=…, 2 Nov 2026) the slug rides along: "<code>.<slug>" (lib/signup.ts keepFriend).
+  const via = /^\/v\/([A-Za-z0-9_-]{22})$/.exec(request.nextUrl.pathname)?.[1];
+  if (friend && FRIEND_CODE.test(friend)) response.cookies.set(FRIEND_COOKIE, via ? `${friend}.${via}` : friend, { httpOnly: true, secure: request.nextUrl.protocol === "https:", sameSite: "lax", path: "/", maxAge: REF_DAYS * 86400 });
   // The channel a visitor first arrived from (?src=…, or "share" on a shared video): first one wins (lib/source.ts).
   const src = landingSource(request.nextUrl.searchParams, request.nextUrl.pathname);
   if (src && !request.cookies.has(SRC_COOKIE)) response.cookies.set(SRC_COOKIE, src, { httpOnly: true, secure: request.nextUrl.protocol === "https:", sameSite: "lax", path: "/", maxAge: REF_DAYS * 86400 });

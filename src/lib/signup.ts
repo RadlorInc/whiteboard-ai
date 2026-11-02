@@ -82,10 +82,14 @@ export async function finishSignIn(next: string): Promise<string> {
  * (add_friend_referral refuses self-invites and a second inviter). */
 async function keepFriend(userId: string) {
   const jar = await cookies();
-  const code = jar.get(FRIEND_COOKIE)?.value;
-  if (!code) return;
+  const value = jar.get(FRIEND_COOKIE)?.value;
+  if (!value) return;
   jar.delete(FRIEND_COOKIE);
-  await createAdminClient().rpc("add_friend_referral", { p_friend: userId, p_code: code });
+  const [code, via] = value.split(".");   // "<code>" or "<code>.<slug>" from a shared video (proxy.ts); the DB checks both
+  const admin = createAdminClient();
+  const { error } = await admin.rpc("add_friend_referral", { p_friend: userId, p_code: code, p_via: via ?? null });
+  // before 20261102000100 runs the function has no p_via: keep the referral without the video
+  if (error) await admin.rpc("add_friend_referral", { p_friend: userId, p_code: code });
 }
 
 /** A new account that arrived through a market rep's link: stored on the user (checkout reads it) and reported. */
