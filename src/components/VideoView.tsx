@@ -37,7 +37,7 @@ export function VideoView({ id, style, script, slug: initial, inExplore: initial
         ) : (
           <button className="btn secondary" type="button" disabled={busy} onClick={() => start(async () => {
             const r = await shareVideo(id);
-            if (r.slug) { setSlug(r.slug); setNote("Anyone with the link can watch this video. They see the name on your Account page."); }
+            if (r.slug) { setSlug(r.slug); setNote("Anyone with the link can watch this video. They see your name only if you set one on your Account page."); }
             else setNote(r.error === "contact_info" ? "This question has contact details in it, so it can't be shared." : "Couldn't make a link. Try again.");
           })}><Icon name="share" size={16} /> Share</button>
         )}
@@ -46,7 +46,7 @@ export function VideoView({ id, style, script, slug: initial, inExplore: initial
           if (r.error) { setNote(exploreRefusal(r.error)); return; }
           if (r.slug) setSlug(r.slug);
           setInExplore(!inExplore);
-          setNote(inExplore ? "Off Explore. The share link still works." : "On Explore: anyone can watch it there, with the name on your Account page.");
+          setNote(inExplore ? "Off Explore. The share link still works." : "On Explore: anyone can watch it there, with your name if you set one on your Account page.");
         })}><Icon name="compass" size={16} /> {inExplore ? "Remove from Explore" : "Show in Explore"}</button>
         <button className="btn danger" type="button" disabled={busy} onClick={() => {
           if (window.confirm("Delete this video? This can't be undone. Used videos aren't given back.")) start(() => deleteVideo(id));

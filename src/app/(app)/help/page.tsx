@@ -15,7 +15,7 @@ const QA: [string, string][] = [
   ["My video failed. Was I charged?", "No. Failed, refused and timed-out videos are always free."],
   ["The video looks wrong.", "Open it from Your videos and use Contact with the link. Wrong or broken plan videos reported within 7 days are given back."],
   ["Can I watch a video again?", "Yes, as often as you like, for free, from Your videos."],
-  ["How do I share a video?", "Open it and press Share. Anyone with the link can watch and sees the name on your account (change it on your Account page). Stop sharing turns the link off."],
+  ["How do I share a video?", "Open it and press Share. Anyone with the link can watch, and sees your name if you set one on your Account page. Stop sharing turns the link off."],
   ["There's no sound.", "Check your phone isn't on silent and the volume is up. Voices come from your device for now."],
   ["How do I cancel my plan?", "Account → Manage plan and payment. You keep your plan videos until the end of the period."],
   ["I paid but my videos aren't there.", "They usually appear within a minute. Reload Your videos or Account. Still missing after 10 minutes? Contact us with the email you paid with."],

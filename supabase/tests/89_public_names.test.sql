@@ -1,10 +1,11 @@
--- Public names and referral sources (20261102000100_public_names.sql): every profile has a made-up name; public_names
+-- Public names and referral sources (20261102000100_public_names.sql, 20261102000200_public_name_optional.sql): no name
+-- until the user sets one (then no "Asked by"); public_names
 -- shows it only for live share links; set_public_name is service_role only and refuses contact details and our name;
 -- add_friend_referral keeps the shared video's slug and whether it was the referrer's own. Expected values by hand.
 begin;
 set local search_path = public, extensions;
 \ir helpers.psql
-select plan(16);
+select plan(18);
 
 create function pg_temp.video(p_user uuid, p_q text) returns uuid language plpgsql as $$
 declare g uuid := pg_temp.gid(pg_temp.reserve(p_user, gen_random_uuid(), 'whiteboard', p_q));
@@ -28,16 +29,18 @@ select pg_temp.new_user('pn_f3') as f3 \gset
 select pg_temp.give(:'a', 0, 10) is null as x \gset
 select pg_temp.share(:'a', pg_temp.video(:'a', 'Why is the sky blue?')) as slug \gset
 
-select ok((select public_name ~ '^[A-Z][a-z]+ [A-Z][a-z]+ [1-9][0-9]{2}$' from public.profiles where id = :'a'),
-  'a new account starts with a made-up name like "Curious Owl 482"');
-select is(pg_temp.anon(format('select name from public.public_names(array[%L])', :'slug')),
-  (select public_name from public.profiles where id = :'a'), 'anon reads the name of a live share link');
+select is((select public_name from public.profiles where id = :'a'), null, 'a new account has no name');
+select is(pg_temp.anon(format('select count(*)::text from public.public_names(array[%L])', :'slug')), '0',
+  'no name: public_names gives nothing for its share link (no "Asked by")');
 select is(pg_temp.anon($$select count(*)::text from public.public_names(array['AAAAAAAAAAAAAAAAAAAAAA'])$$), '0',
   'an unknown slug gives nothing');
 
 select is(pg_temp.setname(:'a', '  Rafi   K.  '), 'ok', 'service_role sets a name');
 select is((select public_name from public.profiles where id = :'a'), 'Rafi K.', '... trimmed and single-spaced');
+select is(pg_temp.anon(format('select name from public.public_names(array[%L])', :'slug')), 'Rafi K.',
+  'anon reads the name of a live share link once it is set');
 select is(pg_temp.setname(:'a', 'x'), 'invalid', 'too short is refused');
+select is(pg_temp.setname(:'b', '   '), 'ok', 'empty clears the name (none shown)');
 select is(pg_temp.setname(:'a', repeat('a', 31)), 'invalid', 'too long is refused');
 select is(pg_temp.setname(:'a', '<script>'), 'invalid', 'markup characters are refused');
 select is(pg_temp.setname(:'a', 'call 555 123 4567'), 'contact_info', 'a phone number is refused');

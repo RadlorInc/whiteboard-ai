@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { admin, credits, signIn } from "./helpers";
+import { admin, credits, freshUser, signIn } from "./helpers";
 
 // One file, one at a time: these tests sign in the same seed users, and a new code for an address cancels the last.
 test.describe.configure({ mode: "serial" });
@@ -56,7 +56,7 @@ test("ask, get a free video, find it in the library, share it, unshare it", asyn
   expect((await anon.goto(url))!.status()).toBe(200);
   await expect(anon.getByRole("heading", { level: 1 })).toHaveText(question);
   expect(await anon.content()).not.toContain("a@example.test");
-  await expect(anon.locator(".v-head").getByText(/^Asked by /)).toBeVisible();              // the maker's public name, never the email
+  await expect(anon.locator(".v-head").getByText(/^Asked by /)).toHaveCount(0);            // no name set: none shown, never the email
   const frame = anon.frameLocator('iframe[title="Video player"]');
   await expect(frame.locator("#scene > *").first()).toBeAttached({ timeout: 15_000 });   // the replay draws
 
@@ -129,4 +129,27 @@ test("Explore is open without signing in", async ({ page }) => {
   expect((await page.goto("/explore"))!.status()).toBe(200);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Explore");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+// "Asked by" (2 Nov 2026): a user with no name is asked once, the box prefilled from the email (a suggestion only);
+// Save makes it the name on their shared videos, Skip is remembered.
+test("pick a name once: prefilled from the email, saved on Account; Skip is remembered", async ({ browser }) => {
+  const email = await freshUser("namer");
+  const page = await (await browser.newContext()).newPage();
+  await signIn(page, email, { namePrompt: true });
+  const box = page.getByRole("textbox", { name: "Name on your videos" });
+  await expect(box).toHaveValue(email.split("@")[0]);
+  await box.fill("Ada L.");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByRole("dialog")).toBeHidden();
+  await page.goto("/account");
+  await expect(page.locator('input[name="name"]')).toHaveValue("Ada L.");
+  await page.goto("/ask");
+  await expect(page.getByRole("dialog")).toBeHidden();                     // named: never asked again
+
+  const other = await (await browser.newContext()).newPage();
+  await signIn(other, await freshUser("skipper"), { namePrompt: true });
+  await other.getByRole("button", { name: "Skip" }).click();
+  await other.reload();
+  await expect(other.getByRole("dialog")).toBeHidden();
 });

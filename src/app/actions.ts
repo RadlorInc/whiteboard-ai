@@ -113,7 +113,7 @@ export async function savePublicName(_: FormState, form: FormData): Promise<Form
   const { data } = await (await createClient()).auth.getUser();
   if (!data.user) redirect("/signin?next=/account");
   const { data: r, error } = await createAdminClient().rpc("set_public_name", { p_user_id: data.user.id, p_name: String(form.get("name") ?? "").slice(0, 100) });
-  if (error || r === "invalid") return { error: "Use 2 to 30 letters, numbers, spaces, dots or dashes." };
+  if (error || r === "invalid") return { error: "Use 2 to 30 letters, numbers, spaces, dots or dashes, or leave it empty." };
   if (r === "contact_info") return { error: "No phone numbers, emails or links in your name." };
   if (r === "reserved") return { error: "Please choose a different name." };
   return { ok: true };
