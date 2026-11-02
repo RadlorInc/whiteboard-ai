@@ -5,6 +5,11 @@ import { shareVideo } from "@/app/(app)/videos/actions";
 import { shareLink, toast } from "./Toast";
 import { Icon } from "./Icon";
 
+// A video's link carries its maker's friend code: whoever signs up from it is stored as their friend (proxy.ts →
+// lib/signup.ts keepFriend), so sign-ups can be counted per person (admin page).
+export const shareUrl = (origin: string, slug: string, friend?: string | null) =>
+  `${origin}/v/${slug}${friend ? `?friend=${friend}` : ""}`;
+
 export function ShareButton({ id, title, label = "Share" }: { id: string; title: string; label?: string }) {
   const [busy, setBusy] = useState(false);
   return (
@@ -12,7 +17,7 @@ export function ShareButton({ id, title, label = "Share" }: { id: string; title:
       setBusy(true);
       const r = await shareVideo(id);
       setBusy(false);
-      if (r.slug) shareLink(`${location.origin}/v/${r.slug}`, title);
+      if (r.slug) shareLink(shareUrl(location.origin, r.slug, r.friend), title);
       else toast(r.error === "contact_info" ? "This question has contact details in it, so it can't be shared."
         : r.error === "share_limit" ? "That's a lot of shared videos today. Try again tomorrow." : "Couldn't make a link. Try again.");
     }}><Icon name="share" size={16} /> {label}</button>

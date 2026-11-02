@@ -8,13 +8,18 @@ import { createAdminClient, createClient } from "@/lib/supabase/server";
 
 const isId = (v: unknown): v is string => typeof v === "string" && /^[0-9a-f-]{36}$/i.test(v);
 
-export async function shareVideo(id: string): Promise<{ slug?: string; error?: string }> {
+// friend: the maker's friend code, put on the link so a sign-up from it is counted for them (founder, 2 Nov 2026).
+export async function shareVideo(id: string): Promise<{ slug?: string; friend?: string; error?: string }> {
   if (!isId(id)) return { error: "bad_request" };
-  const { data, error } = await (await createClient()).rpc("create_share", { p_generation_id: id });
+  const sb = await createClient();
+  const [{ data, error }, { data: me }] = await Promise.all([
+    sb.rpc("create_share", { p_generation_id: id }),
+    sb.from("profiles").select("friend_code").maybeSingle(),   // RLS: own row only
+  ]);
   const r = Array.isArray(data) ? data[0] : data;
   if (error || !r?.slug) return { error: r?.outcome ?? "failed" };
   revalidatePath(`/videos/${id}`);
-  return { slug: r.slug };
+  return { slug: r.slug, friend: me?.friend_code ?? undefined };
 }
 
 export async function unshareVideo(id: string) {
