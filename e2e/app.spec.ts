@@ -50,12 +50,13 @@ test("ask, get a free video, find it in the library, share it, unshare it", asyn
   expect(await moving()).toEqual({ running: 0, dots: 0 });
   await page.getByRole("button", { name: "Share", exact: true }).click();
   const url = (await page.locator("p.muted", { hasText: "/v/" }).textContent())!.trim();
-  expect(url).toMatch(/\/v\/[A-Za-z0-9_-]{22}$/);
+  expect(url).toMatch(/\/v\/[A-Za-z0-9_-]{22}\?friend=[0-9a-f]{12}$/);    // the maker's friend code rides along
 
   const anon = await (await browser.newContext()).newPage();
   expect((await anon.goto(url))!.status()).toBe(200);
   await expect(anon.getByRole("heading", { level: 1 })).toHaveText(question);
   expect(await anon.content()).not.toContain("a@example.test");
+  await expect(anon.getByText(/^Asked by /)).toBeVisible();                 // the maker's public name, never the email
   const frame = anon.frameLocator('iframe[title="Video player"]');
   await expect(frame.locator("#scene > *").first()).toBeAttached({ timeout: 15_000 });   // the replay draws
 
