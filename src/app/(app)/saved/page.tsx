@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireAccount } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { ExploreGrid, type ExploreItem } from "@/components/ExploreGrid";
+import { withNames } from "@/lib/names";
 
 export const metadata: Metadata = { title: "Collection" };
 
@@ -10,7 +11,7 @@ export const metadata: Metadata = { title: "Collection" };
 export default async function Saved() {
   await requireAccount("/saved");
   const { data } = await (await createClient()).rpc("my_saved", { p_limit: 200 });
-  const items = (data ?? []) as ExploreItem[];
+  const items = await withNames((data ?? []) as ExploreItem[]);
   return (
     <main className="page wide stack">
       <div>

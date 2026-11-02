@@ -1,17 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAccount } from "@/lib/session";
+import { createClient } from "@/lib/supabase/server";
 import { FRIEND_BONUS, FRIENDS_MAX } from "@/lib/videos";
 import { PLANS_ON } from "@/product";
 import { SignOutButton } from "@/components/SignOutButton";
 import { BillingButton, DeleteAccount } from "@/components/AccountData";
 import { FriendLink } from "@/components/FriendLink";
+import { PublicNameForm } from "@/components/PublicNameForm";
 
 export const metadata: Metadata = { title: "Account" };
 
 // §5.11 /account: email, sign-in methods, credits, your data, sign out. Voice and motion are in /settings.
 export default async function Account() {
   const account = await requireAccount("/account");
+  // read here, not in getAccount: every page would break if the column were missing (code can go live before its migration)
+  const { data: me } = await (await createClient()).from("profiles").select("public_name").maybeSingle();   // RLS: own row
   const methods = [...new Set((account.user.identities ?? []).map((i) => (i.provider === "google" ? "Google" : "Email code")))];
   return (
     <main className="page narrow stack">
@@ -21,6 +25,10 @@ export default async function Account() {
         <div className="pack-row"><span className="muted">Sign in with</span><span>{methods.join(", ") || "Email code"}</span></div>
         <div className="pack-row"><span className="muted">Free videos</span><span>{account.allowance.admin ? "Unlimited (admin)" : `${account.allowance.freeLeft} of ${account.allowance.freeTotal} left`}</span></div>
         {PLANS_ON && <div className="pack-row"><span className="muted">Videos from your plan</span><span>{account.allowance.plan}</span></div>}
+      </section>
+      <section className="card stack">
+        <h2>Your name</h2>
+        <PublicNameForm initial={me?.public_name ?? ""} />
       </section>
       {PLANS_ON && <section className="card stack">
         <h2>Videos and billing</h2>

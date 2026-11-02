@@ -22,7 +22,7 @@ export const LEGAL: Record<string, Doc> = {
       "Payments are handled by Stripe. Prices are in US dollars, plus tax where applicable. See Refunds for when money comes back."]],
     ["Acceptable use", ["Follow the Acceptable use rules. We may decline a question, and may suspend accounts that break them."]],
     ["Sharing and Explore", [
-      "If you share a video, anyone with the link can watch it. They do not see who made it. You can stop sharing at any time.",
+      "If you share a video, anyone with the link can watch it. They see the name on your account (a made-up name until you change it on your Account page), never your email. You can stop sharing at any time.",
       "Explore is a public page where anyone, signed in or not, can watch videos people chose to show there. Every new video goes on Explore when it is finished, for every account including those of users aged 13\u201317. Explore shows the question and the video, never your name or email. You can remove a video from Explore at any time from its page.",
       "Questions with links, email addresses, handles or phone numbers are never shown on Explore. Anyone can report a public video, and we may remove any video from Explore or stop it being shared."]],
     ["Ending your account", ["You can delete your account at any time from Account. We may close accounts that break these terms."]],
@@ -40,7 +40,7 @@ export const LEGAL: Record<string, Doc> = {
       "Your browser downloads the narration voice model from Hugging Face, which lets Hugging Face see your IP address. No question or video is sent to it: the voice is made on your device."]],
     ["Your questions", ["Your question is sent to Anthropic to write the video. Do not put private details (like full names, addresses or phone numbers) in a question, above all one you show on Explore. Questions never appear in web addresses or analytics."]],
     ["Explore and shared videos", [
-      "A video you show on Explore or share by link is public: anyone can see its question and watch it. We never show who made it.",
+      "A video you show on Explore or share by link is public: anyone can see its question, watch it and see the name on your account (a made-up name until you change it on your Account page). We never show your email or anything else about you.",
       "Remove it from Explore or stop sharing at any time from the video's page; deleting the video or your account also removes it.",
       "When someone reports a public video we keep the reason, their note and a scrambled form of their IP address (to limit reports), never the address itself."]],
     ["Keeping and deleting", [

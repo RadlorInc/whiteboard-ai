@@ -56,6 +56,7 @@ insert into want_fn values
   ('get_shared_video', '{anon,authenticated,service_role}', true),
   ('explore_list',     '{anon,authenticated,service_role}', true),
   ('explore_feed',     '{anon,authenticated,service_role}', true), ('explore_series', '{anon,authenticated,service_role}', true),
+  ('public_names', '{anon,authenticated,service_role}', true),
   ('explore_related',  '{anon,authenticated,service_role}', true),
   ('health_ping',      '{anon,authenticated,service_role}', false),
   -- authenticated
@@ -94,7 +95,7 @@ insert into want_fn values
   ('outbox_claim','{service_role}',true), ('outbox_done','{service_role}',true),
   ('unfinished_signups','{service_role}',true), ('delete_account_data','{service_role}',true),
   ('credit_drift','{service_role}',true), ('free_videos','{service_role}',true), ('add_friend_referral','{service_role}',true),
-  ('set_interests','{service_role}',true),
+  ('set_interests','{service_role}',true), ('set_public_name','{service_role}',true),
   -- none (cron runs as postgres; triggers; helpers called only inside DEFINER functions)
   ('sweep','{}',true), ('daily','{}',true), ('check_credit_drift','{}',true), ('is_admin','{}',true),
   ('handle_new_user','{}',true), ('on_auth_user_deleted','{}',true),

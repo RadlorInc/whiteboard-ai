@@ -10,6 +10,16 @@ import { Icon } from "./Icon";
 export const shareUrl = (origin: string, slug: string, friend?: string | null) =>
   `${origin}/v/${slug}${friend ? `?friend=${friend}` : ""}`;
 
+// Share any shared video you are watching (a share page, from Explore): the link carries YOUR friend code, so a
+// sign-up from it is counted for you (founder, 2 Nov 2026).
+export function ShareSlugButton({ slug, title, friend }: { slug: string; title: string; friend: string | null }) {
+  return (
+    <button type="button" className="btn secondary sm" onClick={() => shareLink(shareUrl(location.origin, slug, friend), title)}>
+      <Icon name="share" size={16} /> Share
+    </button>
+  );
+}
+
 export function ShareButton({ id, title, label = "Share" }: { id: string; title: string; label?: string }) {
   const [busy, setBusy] = useState(false);
   return (
