@@ -37,7 +37,7 @@ const line = (g, d, color, w = 3, extra = {}) =>
   mk('path', { d, stroke: color, 'stroke-width': w, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', filter: 'url(#rough)', class: 'ink', ...extra }, g);
 // Sub- and superscripts (19 Oct 2026): the hand fonts have no glyphs for ⁺ ⁻ ² ₆₀ …, so "e⁻", "C₆₀", "x²" lost their
 // marks. Unicode super/subscript characters, "^{..}" / "^x" and "_{..}" / "_x" become smaller raised or lowered
-// tspans in the same font (Q_H, E_{ion}, e^{-x}). Plain text is left as it is.
+// tspans in the same font (Q_H, v_esc, E_{ion}, e^{-x}). Plain text is left as it is.
 const SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿⁱ', SUB = '₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₒₓₙ', NORM = '0123456789+–=()ni', NORMSUB = '0123456789+–=()aeoxn';
 const richText = (t, text) => {
   text = String(text ?? '');
@@ -49,6 +49,7 @@ const richText = (t, text) => {
     if ((c === '_' || c === '^') && i + 1 < ch.length && ch[i + 1] !== ' ') {
       push(buf, 0); buf = ''; let body;
       if (ch[i + 1] === '{') { const j = ch.indexOf('}', i + 2); body = ch.slice(i + 2, j < 0 ? ch.length : j).join(''); i = j < 0 ? ch.length : j + 1; }
+      else if (c === '_' && /[a-z]/.test(ch[i + 1])) { let j = i + 1; while (j < ch.length && /[a-z]/.test(ch[j])) j++; body = ch.slice(i + 1, j).join(''); i = j; }   // v_esc: the whole word goes down
       else { body = ch[i + 1]; i += 2; }
       push(body, c === '^' ? 1 : -1);
     } else if (SUP.includes(c) || SUB.includes(c)) {

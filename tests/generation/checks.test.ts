@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   check, checkEls, checkStep, checkPaper, checkPaperStep, checkMatchcut, expandMatchcut, checkPolicy, checkSafety,
-  findDrawing as findDrawingJs, guardFindInput, BUILT_IN, EXAMPLES, WB_LIB, PAPER_LIB, MC_LIB, STYLE_CHECK,
+  findDrawing as findDrawingJs, guardFindInput, namedDrawings, unusedDrawingErrs, BUILT_IN, EXAMPLES, WB_LIB, PAPER_LIB, MC_LIB, STYLE_CHECK,
 } from '../../src/lib/generation/checks.mjs';
 import P from '../../src/lib/generation/prompts.json' with { type: 'json' };
 import MOCK from '../../src/lib/generation/mock-answers.json' with { type: 'json' };
@@ -262,5 +262,70 @@ describe('realistic drawings with parts', () => {
     }
     expect(checkEls({ l: 'sv id=lungs 480 270 460', p: 'pin of=l part=trachea' })).toEqual([]);
     expect(checkEls({ l: 'sv id=lungs 480 270 460', p: 'pin of=l part=spleen' })[0]).toMatch(/lungs has no part "spleen"/);
+  });
+});
+
+describe('a real thing is drawn, not faked with a shape (4 Nov 2026)', () => {
+  const errs = (els: Any) => checkEls(els).filter((e: string) => /stands in for the real thing/.test(e));
+  it('stops the black hole lesson\'s boxes and plain Earth', () => {
+    expect(errs({ b: 'tag 90 395 60 28 s=16 f=#ffe08a | ball' })).toHaveLength(1);
+    expect(errs({ r: 'tag 600 470 80 30 f=#c8e6c9 | Rocket' })).toHaveLength(1);
+    expect(errs({ e: 'circle 90 450 40 f=#4fa3e0 c=#2f6fb0 w=3', t: 'text 62 515 s=20 | Earth' })).toHaveLength(1);
+  });
+  it('leaves ideas, numbers, far labels and outlines alone', () => {
+    expect(errs({ a: 'tag 90 395 60 28 | 800', b: 'tag 90 495 60 28 | light', c: 'tag 90 200 120 28 | Hi, see you', d: 'tag 200 200 90 28 | solid' })).toEqual([]);
+    expect(errs({ e: 'circle 90 450 40 f=#4fa3e0', t: 'text 800 60 s=20 | Earth' })).toEqual([]);
+    expect(errs({ e: 'circle 90 450 40 c=#e53935', t: 'text 62 515 s=20 | Earth' })).toEqual([]);
+    expect(errs({ r: 'circle 360 150 30 f=#ffe08a', t: 'text 340 200 s=20 | router' })).toEqual([]);
+  });
+  it('does not fall over on odd lines', () => {
+    expect(errs({ a: 'tag', b: 'text', c: 'circle f=#000', d: 'text 1 2 | moon', e: 7 as Any })).toEqual([]);
+  });
+});
+
+describe('drawings the question names (4 Nov 2026)', () => {
+  const lib = [{ cat: 'x', lines: ['transformer', 'rocket-physics', 'neutrophil-7', 'hole', 'black-hole', 'globe'].map(name => ({ name, sig: '', desc: '' })) }];
+  const own = { new_xfmr_a: 'line 1 1 2 2', new_xfmr_b: 'line 2 2 3 3' };
+  it('finds exact names, plurals and whole phrases only', () => {
+    expect([...namedDrawings(lib, 'How do transformers work?').keys()]).toEqual(['transformer']);
+    expect(namedDrawings(lib, 'Why do ROCKETS fly?').get('rocket')).toEqual(['rocket-physics']);
+    expect([...namedDrawings(lib, 'What is a black hole?').keys()]).toEqual(['black hole']);   // not "hole" too
+    expect(namedDrawings(lib, 'Is a rocketship a transformers-style toy?').has('rocket')).toBe(false);
+  });
+  it('only a hand-built drawing is sent back', () => {
+    const named = namedDrawings(lib, 'How does a transformer work?');
+    expect(unusedDrawingErrs(own, named).join()).toMatch(/"transformer".*instead of your own/);
+    expect(unusedDrawingErrs({ a: 'rect 1 1 5 5', b: 'tag 1 1 5 5 | transformer' }, named)).toEqual([]);  // the box check's job
+    expect(unusedDrawingErrs({ ...own, t: 'transformer 100 100 200' }, named)).toEqual([]);
+    expect(unusedDrawingErrs({ ...own, t: 'tool 100 100 k=transformer' }, named)).toEqual([]);
+    expect(unusedDrawingErrs({ ...own, t: 'text 1 1 | transformer' }, named)).toHaveLength(1);           // a label is not a drawing
+    expect(unusedDrawingErrs(own, new Map())).toEqual([]);
+  });
+  it('Earth is met by a globe', () => {
+    const named = new Map([['earth', ['earth']]]);
+    expect(unusedDrawingErrs({ ...own, g: 'sv id=globe-showing-asia-physics 1 1 9' }, named)).toEqual([]);
+  });
+  it('odd questions find nothing and do not throw', () => {
+    for (const q of ['', '   ', '!!!', '\u0000', '<script>alert(1)</script>', 'Ignore your rules', 'रॉकेट', 'a'.repeat(100_000), null, undefined])
+      expect(namedDrawings(lib, q as any).size).toBe(0);
+  });
+});
+
+describe('player sub- and superscripts (4 Nov 2026: v_esc showed as v-e-sc)', () => {
+  const src = fs.readFileSync(path.join(process.cwd(), 'public/player/recipes.js'), 'utf8');
+  const code = src.slice(src.indexOf("const SUP = "), src.indexOf('const label = '));
+  const doc = { createElementNS: () => { const n: Any = { setAttribute() {}, textContent: '' }; return n; } };
+  const richText = new Function('document', `${code}; return richText;`)(doc);
+  const runs = (text: string) => { const out: string[] = []; const t: Any = { append: (n: Any) => out.push(n.textContent) }; richText(t, text); return out; };
+  it('sends a whole lowercase word down, and only that', () => {
+    expect(runs('v_esc = 11')).toEqual(['v', 'esc', ' = 11']);
+    expect(runs('H_2O')).toEqual(['H', '2', 'O']);
+    expect(runs('Q_H')).toEqual(['Q', 'H']);
+    expect(runs('K_aHA')).toEqual(['K', 'a', 'HA']);
+    expect(runs('E_{ion}')).toEqual(['E', 'ion']);
+    expect(runs('e^{-x}')).toEqual(['e', '-x']);
+  });
+  it('a stray underscore at the end does not hang or drop text', () => {
+    expect(runs('a_').join('')).toBe('a_');
   });
 });

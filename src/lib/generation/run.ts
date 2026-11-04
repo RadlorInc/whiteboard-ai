@@ -2,7 +2,7 @@
 // ask() + answer(), plus streaming, per-step emission, the pinned repair, budgets and cost rows.
 // Money rule: every path ends in exactly one db.finish (charge) or db.fail (release) — settle() is the only caller.
 import { AuthenticationError, PermissionDeniedError, NotFoundError, APIError, APIUserAbortError } from '@anthropic-ai/sdk';
-import { STYLE_CHECK, checkEls, checkStep, checkPaperStep, checkPolicy, checkSafety, findDrawing, guardFindInput, parse, BUILT_IN, WB_LIB, PAPER_LIB, isoEls, isoStep, isoLibOf } from './checks.mjs';
+import { STYLE_CHECK, checkEls, checkStep, checkPaperStep, checkPolicy, checkSafety, findDrawing, guardFindInput, namedDrawings, unusedDrawingErrs, parse, BUILT_IN, WB_LIB, PAPER_LIB, isoEls, isoStep, isoLibOf } from './checks.mjs';
 import { createScanner } from './scan.mjs';
 import { candidateGroups, savedCat, SAVED_CAT } from './drawings.mjs';
 import P from './prompts.json' with { type: 'json' };
@@ -22,6 +22,8 @@ const textOf = (m: FinalMessage) => m.content.filter(b => b.type === 'text').map
 const codePoints = (s: unknown) => (typeof s === 'string' ? [...s].length : 0);
 const catsOf = (lib: Lib, names: string[]) => [...new Set(lib.filter(c => c.cat !== SAVED_CAT && c.lines.some(l => names.includes(l.name))).map(c => c.cat))];
 
+const NAMED_HINT = (names: string[]) => `The library has drawings of things this question names: ${names.join(', ')}. ` +
+  'If one is what the lesson is about, find_drawing it and use it instead of drawing your own.';
 const FOLLOW_UP = 'Answer the new question below with a new lesson. Build on what was already explained; do not repeat it, ' +
   'and refer back to it where it helps.';
 
@@ -59,9 +61,14 @@ export async function runGeneration(o: {
   // A follow-up's earlier turns end in a cache breakpoint: the next call of this video (after find_drawing) and the
   // next follow-up read them from the cache instead of paying for them again.
   const ctx = o.context ?? [], follow = ctx.length > 1;
+  const named = iso ? namedDrawings(lib, question) : new Map<string, string[]>();
+  const hint = named.size ? [{ type: 'text', text: NAMED_HINT([...named.values()].map(names => names[0]).slice(0, 8)) }] : [];
+  // Only the first attempt can be sent back for this: a missing drawing never costs the student the video.
+  const ownDrawingErrs = (els: unknown): string[] => attempts === 1 ? unusedDrawingErrs((els ?? {}) as Json, named) : [];
   const messages: Json[] = [{ role: 'user', content: ctx.length ? [
     ...ctx.map((text, i) => ({ type: 'text', text, ...(follow && i === ctx.length - 1 && { cache_control: { type: 'ephemeral', ttl: '1h' } }) })),
-    { type: 'text', text: `${follow ? FOLLOW_UP + '\n' : ''}New question: ${question}` }] : question }];
+    ...hint,
+    { type: 'text', text: `${follow ? FOLLOW_UP + '\n' : ''}New question: ${question}` }] : hint.length ? [...hint, { type: 'text', text: question }] : question }];
   let sentEls: Json | null = null; const sent: Step[] = [];
   let attempts = 1, outputTokens = 0, settled = false;
   const abort = new AbortController(), timer = setTimeout(() => abort.abort(), o.deadlineMs ?? LIMITS.deadlineMs);
@@ -91,7 +98,7 @@ export async function runGeneration(o: {
         }
         return;
       }
-      if (checkEls(els, savedSv).length || checkSafety({ els, steps: [] }, style).length) { halted = true; return; }
+      if (checkEls(els, savedSv).length || ownDrawingErrs(els).length || checkSafety({ els, steps: [] }, style).length) { halted = true; return; }
       sentEls = els; timings.els ??= at();
       send('els', { els, drawings: drawingsFor(els) });
       send('need', { cats: catsOf(lib, Object.values(els).map(s => String(s).split('|')[0].trim().split(/\s+/)[0])) });
@@ -189,7 +196,7 @@ export async function runGeneration(o: {
       try {
         a = parse(textOf(msg)) as Json;
         if (iso && a && typeof a.els === 'object' && a.els && Array.isArray(a.steps)) { a.els = isoEls(a.els as Json); a.steps = (a.steps as Step[]).map(s => isoStep(s, a!.els as Json)); }
-        errs = [...STYLE_CHECK[style](a, savedSv), ...checkPolicy(a, style), ...checkSafety(a, style)];
+        errs = [...STYLE_CHECK[style](a, savedSv), ...checkPolicy(a, style), ...checkSafety(a, style), ...ownDrawingErrs(a.els)];
         if (pinned > 0) {
           const steps = (a.steps ?? []) as Step[];
           if (!sent.every((s, i) => same(steps[i], s))) errs.push(`steps 1 to ${pinned} changed after they were shown`);

@@ -372,6 +372,8 @@ async function draw(id, ms = 800) {
   const floor = Math.min(50, ms / Math.max(1, inks.length));
   for (const e of inks) await drawEl(e, Math.max(floor, ms * e.getTotalLength() / total));
   for (const t of el.querySelectorAll('.lbl')) await write(t, 500);
+  // A drawing never stays pale: a script that forgot "fill" left it a faint outline (7 of 33 library drawings, 4 Nov 2026).
+  el.querySelectorAll('.fillable').forEach(e => e.classList.add('on'));
 }
 async function write(id, ms = 900) {
   if (typeof id === 'string') shown.add(id);
