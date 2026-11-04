@@ -150,6 +150,49 @@ function isoCmdErrs(op, arg, i, els) {
 
 // ---------- whiteboard: check(a) = shape + checkEls + every checkStep (prototype `check`, split) ----------
 // extraSv: the approved library drawings' slugs (library_drawings), which a script may also use as sv ids.
+// A named thing faked with a shape (founder, 4 Nov 2026: a black hole lesson drew Earth as a plain circle and the ball and
+// rocket as boxes with their names, while the library had all three). "Real thing" = an Anatomy drawing, a planet, or a
+// colour drawing of that exact name, so the library's growth widens this by itself and a diagram's "solid" box stays free.
+// ponytail: one-word names only, and for circles only planets and balls; "tennis ball" or a labelled rect still pass, the prompt rule covers those.
+const PLANETS = new Set(/\bk=(\S+)/.exec(ISO_LINE.get('planet') ?? '')?.[1].split('|') ?? []);
+const realThing = w => ISO_NAMES.has(w) || PLANETS.has(w) || SV_IDS.has(`${w}-physics`) || SV_IDS.has(`${w}-emoji`);
+const wordsOf = spec => String(spec).split('|').slice(1).join('|').trim().toLowerCase();
+function fakedThingErrs(els) {
+  const errs = [], fix = w => `use its drawing (find_drawing "${w} colour"), or show it another way`;
+  const parts = Object.entries(els).map(([id, spec]) => [id, String(spec).trim().split(/\s+/), wordsOf(spec)]);
+  for (const [id, [type], w] of parts) if (type === 'tag' && realThing(w)) errs.push(`els.${id}: a box that says "${w}" stands in for the real thing; ${fix(w)}`);
+  for (const [id, [type, x, y], w] of parts) {
+    if (type !== 'text' || !(PLANETS.has(w) || w === 'ball')) continue;   // round things only: a circle is a fair node for a "router"
+    const near = parts.find(([, [t, cx, cy, r], ], i) => t === 'circle' && /\bf=/.test(String(Object.values(els)[i]))
+      && Math.abs(x - cx) <= +r + 80 && Math.abs(y - cy) <= +r + 60);
+    if (near) errs.push(`els.${near[0]}: a plain circle labelled "${w}" (${id}) stands in for the real thing; ${fix(w)}`);
+  }
+  return errs;
+}
+// Drawings the question itself names (founder, 4 Nov 2026: the model built its own transformer with one in the library).
+// Exact names only, so the list stays short: it goes to the model up front, and a hand-built drawing is checked against it.
+// Stopping only on a hand-built one (new_<name>_<part>): on 59 real videos, "named but not on the board" stopped 17, nearly all wrong
+// ("energy", "room", "people"); this stopped 2. ponytail: a thing drawn with plain shapes and no new_ name still passes.
+const singular = w => w.length > 3 && !w.endsWith('ss') ? w.replace(/s$/, '') : w;
+const plainWords = s => String(s).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).map(singular).join(' ');
+const thingOf = name => plainWords(name.replace(/-(physics|emoji|silhouette)$/, '').replace(/-\d+$/, ''));
+export function namedDrawings(lib, question) {
+  const q = ` ${plainWords(question)} `, found = new Map();
+  for (const c of lib) for (const { name } of c.lines) {
+    const thing = thingOf(name);
+    if (thing.length >= 3 && q.includes(` ${thing} `)) found.set(thing, [...(found.get(thing) ?? []), name]);
+  }
+  for (const t of [...found.keys()]) if ([...found.keys()].some(o => o !== t && ` ${o} `.includes(` ${t} `))) found.delete(t);   // "black hole" hides "hole"
+  return found;
+}
+const SAME_THING = { earth: ['globe', 'planet'] };
+export function unusedDrawingErrs(els, named) {
+  if (!Object.keys(els).some(id => /^new_[a-z0-9]+_/.test(id))) return [];
+  const onBoard = Object.values(els).map(String).filter(v => !/^\s*(tag|text|note|title|arrow|line|path|rect|circle)\b/.test(v))
+    .map(v => v.split('|')[0]).join(' ').toLowerCase().replace(/[^a-z0-9]/g, '');
+  return [...named].filter(([t]) => ![t.replace(/ /g, ''), ...(SAME_THING[t] ?? [])].some(w => onBoard.includes(w)))
+    .map(([t, names]) => `the question names "${t}" and the library has its drawing (${names.slice(0, 3).join(', ')}): use it instead of your own new_ drawing`);
+}
 export function checkEls(els, extraSv) {
   const errs = [];
   for (const [id, spec] of Object.entries(els)) {
@@ -164,7 +207,7 @@ export function checkEls(els, extraSv) {
       else if (!list.includes(part)) errs.push(`els.${id}: ${what} has no part "${part}" (parts: ${list.join(' ')})`);
     }
   }
-  return [...errs, ...noteErrs(els), ...isoPlaceErrs(els)];
+  return [...errs, ...noteErrs(els), ...isoPlaceErrs(els), ...fakedThingErrs(els)];
 }
 // Notes column (Anatomy prompts): short lines at x 660-950 that the camera never moves; the diagram keeps out of it
 const NOTE_X = 652;

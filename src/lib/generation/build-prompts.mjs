@@ -64,6 +64,10 @@ Shape: {"q": "<the question>", "els": {"<id>": "<element line>", ...}, "steps": 
   circle cx cy r · ellipse cx cy rx ry · rect x y w h · line x1 y1 x2 y2 · arrow x1 y1 x2 y2 · path | <svg d>
   text x y s=<size> | <words> · tag cx cy w h s=<size> | <words> (a box with text that can move)
   options: c=<stroke colour> f=<fill colour> w=<stroke width>. Prefer a recipe below over raw paths.${cam ? `
+  A real thing the lesson names (a ball, the Earth, a rocket) is never a box with its name on it or a plain circle with
+  a label: find_drawing it and use the drawing. A search for "<thing> colour" finds colour ones, which sit well on an
+  empty board; a drawing on a stand or in a rig is for lessons about that object. tag and plain circles are for ideas,
+  numbers and steps in a diagram. A thing with no drawing is shown by what it does (light as a bright moving line).
   note | <words> (one line in the notes column)` : ''}
 - Commands in "do" (run in order; a leading & = do not wait):
   draw <id> [ms] · write <id> [ms] · fill <id> <id>... · pop <id> [scale] · fade <id> <opacity> [ms]
@@ -183,7 +187,7 @@ const SUBJECTS = {
   qcircuit, detector, phonons, bandstructure, superconductor, hubble, gravwave, bindingenergy.
 - Diagrams are recipes (physics, phys): circuits with symbols, ray diagrams, field lines, forces, waves, the atom.
   Everyday objects the lesson talks about (a bulb, a magnet, a rocket, a bicycle, a guitar, a planet, a moon phase, a
-  stopwatch) are colour drawings: search "<thing> colour" and draw with "sv id=<name> cx cy height", one or two per
+  stopwatch) are colour drawings: search "<thing> colour" and draw with "sv id=<name> cx cy height", up to three per
   lesson, beside the diagram, never instead of it.` },
   chemistry: { cats: ['anatomy', 'servier-chem', 'servier', 'servier-phys', 'servier-car', 'servier-home', 'objects', 'chemistry', 'chemuni', 'chemgr', 'earth', 'math', 'diagrams'], teach: `
 - Teaching chemistry: show the particles (atoms, molecules, ions) and what changes and what stays the same. Write the
