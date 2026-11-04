@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   check, checkEls, checkStep, checkPaper, checkPaperStep, checkMatchcut, expandMatchcut, checkPolicy, checkSafety,
-  findDrawing as findDrawingJs, guardFindInput, namedDrawings, unusedDrawingErrs, BUILT_IN, EXAMPLES, WB_LIB, PAPER_LIB, MC_LIB, STYLE_CHECK,
+  findDrawing as findDrawingJs, guardFindInput, namedDrawings, unusedDrawingErrs, isoEls, isoStep, BUILT_IN, EXAMPLES, WB_LIB, PAPER_LIB, MC_LIB, STYLE_CHECK,
 } from '../../src/lib/generation/checks.mjs';
 import P from '../../src/lib/generation/prompts.json' with { type: 'json' };
 import MOCK from '../../src/lib/generation/mock-answers.json' with { type: 'json' };
@@ -280,6 +280,13 @@ describe('a real thing is drawn, not faked with a shape (4 Nov 2026)', () => {
   });
   it('does not fall over on odd lines', () => {
     expect(errs({ a: 'tag', b: 'text', c: 'circle f=#000', d: 'text 1 2 | moon', e: 7 as Any })).toEqual([]);
+  });
+});
+
+describe('a transformer can be switched on (4 Nov 2026: every one read 0.0 V, its on= was cleaned away)', () => {
+  it('on survives the clean-up on the element and on set', () => {
+    expect(isoEls({ t: 'transformer 1 2 300 k=up on=1' }).t).toBe('transformerIso 1 2 300 k=up on=1');
+    expect(isoStep({ say: 'x', do: ['set t on=1'] }, { t: 'transformerIso 1 2 300 k=up' }).do).toEqual(['set t on=1']);
   });
 });
 
