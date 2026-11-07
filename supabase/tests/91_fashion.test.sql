@@ -1,4 +1,4 @@
--- Fashion (20261107000100_fashion.sql): a new chat may be Fashion; a made-up subject is still refused; a Fashion
+-- Fashion (in 20261107000200_engineering.sql): a new chat may be Fashion; a made-up subject is still refused; a Fashion
 -- video's chat appears in Explore's items like a study one; a profile may tick all eight subjects.
 begin;
 set local search_path = public, extensions;
