@@ -150,7 +150,7 @@ function m3SetErrs(m, kvs, i, id) {
       if (!(v !== '' && n >= 0 && n <= 1)) errs.push(`${where}: ${k} must be 0 to 1`);
       else if (n > 0 && !m.effects.includes(k)) errs.push(`${where}: this machine has no ${k} (effects: ${m.effects.join(' ') || 'none'})`);
     } else if (k === 'hi' || k === 'labels') { const bad = v.split(',').filter(p => p && !m.parts.includes(p)); if (bad.length) errs.push(`${where}: no part ${bad.join(', ')} (parts: ${m.parts.join(' ')})`); }
-    else if (k === 'speed') { if (!(v !== '' && n >= 0 && n <= 4)) errs.push(`${where}: speed must be 0 to 4`); }
+    else if (k === 'speed') { if (!(v !== '' && n >= 0 && n <= 20)) errs.push(`${where}: speed must be 0 to 20`); }
     else if (k === 'mt') { if (!(v !== '' && Number.isFinite(n) && n >= 0)) errs.push(`${where}: mt must be seconds, 0 or more`); }
     else errs.push(`${where}: unknown key "${k}" (view cut xray explode hi labels speed mt)`);
   }

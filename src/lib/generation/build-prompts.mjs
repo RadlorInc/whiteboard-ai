@@ -477,7 +477,7 @@ const M3_RULES = `
   "@compressor set m view=side cut=1 hi=lowCompressor labels=lowCompressor,coreAir speed=0.12".
 - set keys: view=<one of its views> · cut=0|1 (open the casing) and xray=0..1 (see through) only if its effects list
   them · hi=<parts> highlights (hi= clears) · labels=<parts> names them (labels= clears) · speed= how fast it runs
-  (1 real speed, 0.1 slow motion, 0 holds still) · mt=<seconds> jumps its clock (see its clock line). A key left out
+  (1 real speed, 0.1 slow motion, 0 holds still, above 1 fast-forwards a slow process) · mt=<seconds> jumps its clock (see its clock line). A key left out
   stays as it was. Change the view or what is lit every step, so each step shows something new.
 - Say only what it shows. Never name a part from its "not in the model" list as shown, and say a number only if it
   is in its example (the screen shows those). Never call it 3D, a model or a simulation: it is "the engine", "the

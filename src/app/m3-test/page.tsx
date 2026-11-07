@@ -1,12 +1,19 @@
 "use client";
-// Phone test of a library model in the real player, with a hand-written answer: no sign-in, no database, no AI.
+// Phone test of a library model in the real player, playing its example answer: no sign-in, no database, no AI.
+// /m3-test?m=<id> picks the model (default jet).
 // Remove before this branch goes to main.
 import { useEffect, useRef, useState } from "react";
-import answer from "./answer.json";
+import catalogue from "@/lib/generation/m3-catalogue.json";
+
+const lessonOf = (id: string) => {
+  const m = catalogue.find((x) => x.id === id) ?? catalogue.find((x) => x.id === "jet")!;
+  return { q: m.desc.split(". ")[0].replace(/^3D working model: /, ""), ...JSON.parse(/example: (\{.*\})$/.exec(m.desc)![1]) };
+};
 
 type Stats = { fps: number; slow: number; pr: number; width: number; buildMs: number };
 
 export default function M3Test() {
+  const [answer, setAnswer] = useState<ReturnType<typeof lessonOf> | null>(null);
   const frame = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
   const [state, setState] = useState("Loading…");
@@ -31,10 +38,10 @@ export default function M3Test() {
 
   return (
     <main style={{ maxWidth: 900, margin: "0 auto", padding: 12, color: "#e4e4e7", background: "#18181b", minHeight: "100vh", fontFamily: "system-ui" }}>
-      <p style={{ fontWeight: 700 }}>{answer.q}</p>
+      <p style={{ fontWeight: 700 }}>{answer?.q ?? "Press Play"}</p>
       <iframe ref={frame} src="/player/index.html" sandbox="allow-scripts" allow="autoplay" title="Video player" style={{ width: "100%", height: h || undefined, aspectRatio: h ? undefined : "16/11", border: 0 }} />
       <button disabled={!ready} style={{ fontSize: 18, padding: "10px 22px", margin: "12px 0", borderRadius: 999 }}
-        onClick={() => { setLow(null); frame.current?.contentWindow?.postMessage({ type: "script", script: answer }, "*"); }}>Play</button>
+        onClick={() => { const a = lessonOf(new URLSearchParams(location.search).get("m") ?? "jet"); setAnswer(a); setLow(null); frame.current?.contentWindow?.postMessage({ type: "script", script: a }, "*"); }}>Play</button>
       <p>{state}</p>
       {stats && <p>Speed now: <b>{stats.fps} fps</b> · lowest: <b>{low} fps</b> · slow frames: {stats.slow}% · detail: {stats.pr} · built in {stats.buildMs} ms</p>}
     </main>
