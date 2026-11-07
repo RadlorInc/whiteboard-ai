@@ -462,6 +462,28 @@ const ISO_SUBJECT_RULES = Object.fromEntries(Object.entries(SUBJECTS).map(([s, {
   [s, wbRules(isoLib(cs.map(c => WB_ALL.find(x => x.cat === c))), teach + REUSE + TEACHER + SHOW_AND_FINISH + ISO_RULES + DRAW_OWN[s], true)]));
 const ISO_RULES_PLAIN = wbRules(isoLib(WB_LIB), ISO_RULES, true);
 
+// ---------- 3D models (behind the MODELS_3D switch; model.ts M3) ----------
+// m3-catalogue.json is written by teardown-sims/library/export.mjs with the player's lib/m files. The rules below are
+// added to the end of a subject's whiteboard prompt (model.ts), so the prompts without the switch do not change.
+const M3 = JSON.parse(fs.readFileSync(path.join(genDir, 'm3-catalogue.json'), 'utf8'));
+const M3_RULES = `
+
+3D machines (find_drawing them; names: ${M3.map(m => m.name).join(', ')}):
+- A working 3D machine fills the whole board and can be turned, cut open, seen through and slowed down. When the
+  question is about how one of these machines works, teach with it instead of drawing: find_drawing its name for its
+  views, parts, effects and an example lesson.
+- A 3D lesson has exactly one element, "m": "m3 id=<id>" (the id its find_drawing line gives), and nothing else on
+  the board. Every step moves it with one set command, cued on the word that names what it shows:
+  "@compressor set m view=side cut=1 hi=lowCompressor labels=lowCompressor,coreAir speed=0.12".
+- set keys: view=<one of its views> · cut=0|1 (open the casing) and xray=0..1 (see through) only if its effects list
+  them · hi=<parts> highlights (hi= clears) · labels=<parts> names them (labels= clears) · speed= how fast it runs
+  (1 real speed, 0.1 slow motion, 0 holds still) · mt=<seconds> jumps its clock (see its clock line). A key left out
+  stays as it was. Change the view or what is lit every step, so each step shows something new.
+- Say only what it shows. Never name a part from its "not in the model" list as shown, and say a number only if it
+  is in its example (the screen shows those). Never call it 3D, a model or a simulation: it is "the engine", "the
+  plane". 4-7 steps.`;
+const M3_LIB = { cat: 'machines', lines: M3.map(({ name, sig, desc }) => ({ name, sig, desc })) };
+
 const sha = t => crypto.createHash('sha256').update(t).digest('hex');
 export function buildPrompts() {
   return {
@@ -487,6 +509,8 @@ export function buildPrompts() {
     iso: { whiteboard: { system: ISO_RULES_PLAIN, sha256: sha(ISO_RULES_PLAIN) },
       subjects: Object.fromEntries(Object.entries(ISO_SUBJECT_RULES).map(([s, t]) => [s, { system: t, sha256: sha(t) }])),
       lib: ISO_CAT },
+    // the 3D machines (MODELS_3D): the rules added to a prompt, their find_drawing lines, and what the checks allow
+    m3: { rules: M3_RULES, lib: M3_LIB, models: Object.fromEntries(M3.map(m => [m.id, { views: m.views, parts: m.parts, effects: m.effects }])) },
     types: [...TYPES, 'note', ...[...ISO_NAMES].map(n => `${n}Iso`)], commands: [...COMMANDS], loops: [...LOOPS],
     libNames: [...LIB_NAMES], flowItems: [...FLOW_ITEMS], bloodPaths: [...BLOOD_PATHS], textures: [...TEXTURES],
     wbLib: WB_ALL, paperLib: PAPER_LIB, mcLib: MC_LIB,

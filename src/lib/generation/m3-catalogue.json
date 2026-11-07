@@ -1,0 +1,32 @@
+[
+ {
+  "name": "jet3d",
+  "id": "jet",
+  "sig": "m3 id=jet",
+  "desc": "3D working model: jet engine, turbofan, thrust, bypass, compressor, turbine, combustion chamber, airliner engine. views: front side core rear. parts: fan (Fan), lowCompressor (Booster (low-pressure compressor)), highCompressor (High-pressure compressor), combustor (Combustion chamber), highTurbine (High-pressure turbine), lowTurbine (Low-pressure turbine), nozzle (Exhaust nozzle), nacelle (Nacelle (cowl)), bypassDuct (Bypass duct), coreAir (Core air), bypassAir (Bypass air), shafts (Two shafts (N1 inside N2)). effects: cut xray. clock: 1 model second = 1 fan revolution. shows: air sucked in by the fan, split into bypass and core streams (5.1 : 1); compressor stages squeezing core air, temperature rising; burning in the combustion chamber, hot gas through two turbines; two shafts: low-pressure turbine drives the fan, high-pressure turbine drives the compressor; thrust split: bypass air vs core exhaust. readouts: fan speed, bypass ratio, pressure ratio, temperatures (°F), thrust (lb), fan size (ft), air and fuel flow (lb/s), jet speeds (mph), pressure (psi). not in the model, never say it is shown: fuel spray, fuel nozzle, injector, afterburner, thrust reverser, gearbox, starter, pylon. example: {\"els\":{\"m\":\"m3 id=jet\"},\"steps\":[{\"say\":\"Step 1: It throws air backward. A jet engine swallows a huge amount of air, about 760 lb every second at takeoff, and throws it out of the back much faster. Pushing air back pushes the plane forward.\",\"do\":[\"set m view=front speed=0.15 mt=0 labels=nacelle,fan\"]},{\"say\":\"Step 2: Squeeze. Air going into the middle, the core, passes 12 rows of spinning blades. They squeeze it to 32 times normal pressure, and squeezing heats it to about 1,100 °F.\",\"do\":[\"set m view=side cut=1 speed=0.12 hi=lowCompressor,highCompressor labels=lowCompressor,highCompressor,coreAir\"]},{\"say\":\"Step 3: Burn. Fuel is added to the squeezed air and burns non-stop, about 2.5 lb of fuel every second. The gas comes out at about 2,400 °F.\",\"do\":[\"set m view=core xray=0.9 speed=0.08 hi=combustor labels=combustor,coreAir\"]},{\"say\":\"Step 4: Spin. The hot gas rushes through turbines, windmills that take energy out of it. Shafts carry that energy forward to turn the compressor and the big fan.\",\"do\":[\"set m view=side xray=0 speed=0.12 hi=highTurbine,lowTurbine,shafts labels=highTurbine,lowTurbine,shafts\"]},{\"say\":\"Step 5: Blow. Two jets leave: hot core gas at about 1,200 mph and cool fan air at about 690 mph. There is far more fan air, so it gives 20,000 of the 27,000 lb of push.\",\"do\":[\"set m view=rear speed=0.12 hi=nozzle,bypassAir labels=nozzle,bypassAir\"]}]}",
+  "views": [
+   "front",
+   "side",
+   "core",
+   "rear"
+  ],
+  "parts": [
+   "fan",
+   "lowCompressor",
+   "highCompressor",
+   "combustor",
+   "highTurbine",
+   "lowTurbine",
+   "nozzle",
+   "nacelle",
+   "bypassDuct",
+   "coreAir",
+   "bypassAir",
+   "shafts"
+  ],
+  "effects": [
+   "cut",
+   "xray"
+  ]
+ }
+]
