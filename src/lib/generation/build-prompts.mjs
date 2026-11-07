@@ -243,6 +243,25 @@ const SUBJECTS = {
   classes use them. No brand, mission or company names; never weapons or missiles.
 - Match the depth to the asker: a school question gets the plain picture; a college or engineering one gets the real
   model and its equations, with the symbols defined on the board.` },
+  // Fashion (founder, 7 Nov 2026): how clothes and fabric work, for anyone curious, in the painted shelf's look.
+  fashion: { cats: ['anatomy', 'objects', 'daily', 'math', 'diagrams'], teach: `
+- Teaching fashion and clothes: start from the piece of clothing or the fabric, then move in close to its threads or
+  fibers, then show what happens to them (washing, stretching, sun, dye, wear). The answer is how it works, seen up
+  close, never a style tip.
+- Every board is a tailor's table: the first element is "tailortable 480 270 1" (it fills the board; draw it first).
+  On it use the painted drawings, found with find_drawing: garment (clothing on a hanger or flat), clothswatch (a
+  piece of cloth, by fabric), weaveview (threads up close), fiberview (one fiber up close), layerview (what passes
+  through cloth), and the others it returns. On a fashion board use the painted ones ending in "paint" (treepaint,
+  factorypaint, shippaint, truckpaint, shelfpaint, magnetpaint, cashpaint, lamppaint, sunpaint), not the plain ones.
+- Clothes are never on a body: no people, faces, hands, skin or body shapes, ever. Only modest clothing: long sleeves,
+  high necklines, long skirts and dresses, loose fits. Never swimwear, underwear, short, tight or see-through clothes,
+  never sizes, body types or what "flatters" a body. When a question asks for any of these, explain the fabric or the
+  idea with cloth on the table instead.
+- Settings and examples are everyday: a closet, a laundry room, a store, a sewing table. Never dating, parties, music,
+  dancing, alcohol, gambling, magic or religious festivals; leather is never pig.
+- A machine (a sewing machine, washing machine, loom, knitting or spinning machine): when 3D machines are listed for
+  this subject, show that machine's 3D model by itself; otherwise its painted or detailed drawing on the table.
+- No brands, designers, logos or real stores. US words: color, closet, T-shirt, sweater, pants.` },
   car: { cats: ['anatomy', 'carfix', 'servier-car', 'servier-home', 'servier-phys', 'servier', 'servier-chem', 'objects', 'engineering', 'tech', 'daily', 'diagrams'], teach: `
 - Teaching car: (car care and fixes, for any driver, not mechanics) show the job as the steps a person really does,
   in order: what you need first (tools and parts, drawn), where it is on the car, then each action on the part it
@@ -316,6 +335,10 @@ const DRAW_OWN = {
 - Drawing what the library lacks: draw everyday objects as simple flat shapes with real proportions (a stall, a shelf,
   a box of goods, a ledger page), and numbers as written sums laid out in columns so each step is easy to follow; every
   amount the voice says is written on the board.` + OWN_NAMES,
+  fashion: `
+- Drawing what the library lacks: draw it as simple flat shapes in soft fabric colors with a thin dark outline, on the
+  table, real proportions, never on a body; threads and fibers as rounded strands; every part named with text and a
+  thin leader line.` + OWN_NAMES,
   chemistry: `
 - Drawing what the library lacks: a named molecule is first searched as "<name> structure". When nothing fits, draw
   it yourself with real geometry, computed, not guessed:
