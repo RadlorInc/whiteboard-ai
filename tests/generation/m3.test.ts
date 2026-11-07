@@ -73,7 +73,7 @@ describe('the switch', () => {
     expect(prefix('whiteboard', 'physics', true).system[0].text).toMatch(/3D machines \(find_drawing them; names: .*jet-3d/);
     expect(prefix('whiteboard', null, true).system[0].text).toMatch(/3D machines/);
     expect(prefix('whiteboard', 'biology', true).system[0].text).not.toMatch(/3D machines/);
-    for (const s of ['mechanical', 'aeronautics', 'aerospace'] as const) expect(prefix('whiteboard', s, true).system[0].text).toMatch(/3D machines/);
+    for (const s of ['mechanical', 'aeronautics', 'aerospace', 'fashion'] as const) expect(prefix('whiteboard', s, true).system[0].text).toMatch(/3D machines/);
     expect(prefix('whiteboard', 'mechanical', false).system[0].text).not.toMatch(/3D machines/);
     expect(promptSha('whiteboard', 'physics', true)).not.toBe(promptSha('whiteboard', 'physics', false));
   });
