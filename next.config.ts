@@ -3,7 +3,10 @@ import type { NextConfig } from "next";
 // The players (public/player, PLAN.md §7.8) are prototype pages with inline scripts. They skip the app's nonce CSP
 // (proxy.ts) and get their own: no network at all, framed only by our own pages, and loaded in a sandboxed iframe.
 // A sandboxed iframe has an opaque origin, so 'self' matches nothing inside it: name our origin instead.
-const ORIGIN = new URL(process.env.APP_URL || "http://localhost:3100").origin;
+// A preview is opened at its own address (its branch's or its deployment's), not at the one APP_URL names.
+const PREVIEW = process.env.VERCEL_ENV === "preview"
+  ? [process.env.VERCEL_BRANCH_URL, process.env.VERCEL_URL].filter(Boolean).map((h) => `https://${h}`) : [];
+const ORIGIN = [new URL(process.env.APP_URL || "http://localhost:3100").origin, ...PREVIEW].join(" ");
 const PLAYER_CSP = [
   "sandbox allow-scripts",            // opaque origin even when opened directly in a tab: no cookies, no same-origin access
   "default-src 'none'",
