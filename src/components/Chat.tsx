@@ -53,7 +53,7 @@ export function Chat({ conversationId, subject: initialSubject, subjects, level:
 }) {
   const router = useRouter();
   const [conv, setConv] = useState(conversationId);
-  const [subject, setSubject] = useState<Subject>(initialSubject ?? subjects?.find(s => SUBJECT_GROUPS[0][1].includes(s)) ?? "biology");   // a new chat: a subject still offered
+  const [subject, setSubject] = useState<Subject>(initialSubject ?? subjects?.find(s => SUBJECT_GROUPS.some(([, l]) => l.includes(s))) ?? "biology");   // a new chat: a subject still offered
   const level: Level = subject === "home" || subject === "car" ? "school" : initialLevel ?? "school";   // fixes have one length
   const [live, setLive] = useState<Live[]>([]);
   const [busy, setBusy] = useState(false);

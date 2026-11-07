@@ -10,7 +10,7 @@ test("the picker offers the five study subjects, and a Computer science chat sta
   await page.addInitScript(() => localStorage.setItem("wb.explore", "off"));
   await page.goto("/ask");
   const pick = page.getByLabel("Subject");
-  await expect(pick.locator("option")).toHaveText(["Biology", "Physics", "Chemistry", "Computer science", "Finance"]);
+  await expect(pick.locator("option")).toHaveText(["Biology", "Physics", "Chemistry", "Computer science", "Finance", "Mechanical", "Aeronautics", "Aerospace"]);
   await pick.selectOption("cs");
   await ask(page, `How does the internet send a message? (subjects ${Date.now()})`);
   await expect(page.locator("[data-charged]")).toBeVisible({ timeout: 120_000 });

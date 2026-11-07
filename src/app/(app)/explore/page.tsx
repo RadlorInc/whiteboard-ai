@@ -45,7 +45,7 @@ export default async function Explore({ searchParams }: { searchParams: Promise<
         </form>
         <nav className="x-chips" aria-label="Subject">
           <Link href={href({ subject: null })} className={`chip${subject ? "" : " on"}`} aria-current={subject ? undefined : "page"}>All</Link>
-          {SUBJECT_GROUPS[0][1].map((s) => (   /* the study subjects offered now */
+          {SUBJECT_GROUPS.flatMap(([, l]) => l).map((s) => (   /* the subjects offered now */
             <Link key={s} href={href({ subject: s })} className={`chip${subject === s ? " on" : ""}`} aria-current={subject === s ? "page" : undefined}>
               {SUBJECT_NAME[s]}
             </Link>

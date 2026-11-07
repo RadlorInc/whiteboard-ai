@@ -25,7 +25,7 @@ const base = (style: Style, subject?: Subject | null) => style !== 'whiteboard' 
 // outside a chat or in these subjects ends with the machines' rules (build-prompts.mjs M3_RULES), and its
 // find_drawing searches them too (run.ts). Each such prompt is its own cache entry and prompt_sha.
 export const M3 = process.env.MODELS_3D === '1';
-export const M3_SUBJECTS: (Subject | null)[] = [null, 'physics'];
+export const M3_SUBJECTS: (Subject | null)[] = [null, 'physics', 'mechanical', 'aeronautics', 'aerospace'];
 export const m3For = (style: Style, subject?: Subject | null, on = M3) => on && style === 'whiteboard' && M3_SUBJECTS.includes(subject ?? null);
 const withM3 = new Map<string, { system: string; sha256: string }>();
 const system = (style: Style, subject?: Subject | null, m3 = M3) => {

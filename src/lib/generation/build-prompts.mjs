@@ -222,6 +222,27 @@ const SUBJECTS = {
 - Never present earning or paying interest as a good choice, and never show gambling, betting, lotteries or a piggy
   bank (or any pig): saving is a jar, a wallet or a safe. When a question asks about interest or loans, explain what
   they are and what they cost, plainly, and show saving, budgeting, trade and profit-sharing as the ways to grow money.` },
+  // Mechanical, Aeronautics, Aerospace (founder, 7 Nov 2026): machines, flight and space, each its own chat subject.
+  // Physics' shelves; with MODELS_3D on their prompts also get the 3D machines (model.ts M3_SUBJECTS).
+  mechanical: { cats: ['anatomy', 'physics', 'phys', 'physuni', 'physadv', 'physgr', 'servier-phys', 'servier', 'servier-chem', 'servier-car', 'servier-home', 'objects', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
+- Teaching mechanical engineering: how a machine works. Name its parts, show how they move and push on each other, and
+  follow the force or the energy from where it goes in to where it does the work. Put numbers with units on the board
+  when the question has them (cars, home and everyday machines in US units: mph, lb, lb-ft, psi, °F; test benches and
+  physics in SI), and a formula only after the picture has explained it.
+- Match the depth to the asker: a school question gets the plain picture; a college or engineering one gets the real
+  model and its equations, with the symbols defined on the board.` },
+  aeronautics: { cats: ['anatomy', 'physics', 'phys', 'physuni', 'physadv', 'physgr', 'servier-phys', 'servier', 'servier-chem', 'servier-car', 'servier-home', 'objects', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
+- Teaching aeronautics: flight through the air. Draw lift, weight, thrust and drag as arrows on the aircraft, the air
+  moving around it, and the parts that control it (wings, flaps, ailerons, rudder, engines). Aircraft numbers in US
+  units (mph or knots, ft, lb); wind-tunnel and physics set-ups in SI. Never weapons or military attack.
+- Match the depth to the asker: a school question gets the plain picture; a college or engineering one gets the real
+  model and its equations, with the symbols defined on the board.` },
+  aerospace: { cats: ['anatomy', 'physics', 'phys', 'physuni', 'physadv', 'physgr', 'servier-phys', 'servier', 'servier-chem', 'servier-car', 'servier-home', 'objects', 'engineering', 'tech', 'earth', 'math', 'diagrams'], teach: `
+- Teaching aerospace: rockets, orbits and spacecraft. Draw thrust and gravity as arrows, a path as a curve, and a
+  rocket's stages or a spacecraft's parts in the order they work. Numbers in SI (m/s, km, kN, kg), as US science
+  classes use them. No brand, mission or company names; never weapons or missiles.
+- Match the depth to the asker: a school question gets the plain picture; a college or engineering one gets the real
+  model and its equations, with the symbols defined on the board.` },
   car: { cats: ['anatomy', 'carfix', 'servier-car', 'servier-home', 'servier-phys', 'servier', 'servier-chem', 'objects', 'engineering', 'tech', 'daily', 'diagrams'], teach: `
 - Teaching car: (car care and fixes, for any driver, not mechanics) show the job as the steps a person really does,
   in order: what you need first (tools and parts, drawn), where it is on the car, then each action on the part it
@@ -347,6 +368,7 @@ const SHOW_AND_FINISH = `
   ends: where it arrives, or how it stops, wears off or leaves (a medicine is broken down by the liver and removed by
   the kidneys; food leaves the gut). Share the 900 characters across the whole journey; do not stop at its most
   interesting middle part.`;
+DRAW_OWN.mechanical = DRAW_OWN.aeronautics = DRAW_OWN.aerospace = DRAW_OWN.physics;   // machines are drawn as physics draws a device
 const SUBJECT_RULES = Object.fromEntries(Object.entries(SUBJECTS).map(([s, { cats: cs, teach }]) =>
   [s, wbRules(cs.map(c => WB_ALL.find(x => x.cat === c)), teach + REUSE + TEACHER + SHOW_AND_FINISH + DRAW_OWN[s])]));
 

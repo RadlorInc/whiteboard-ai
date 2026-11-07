@@ -16,6 +16,9 @@ const EXAMPLES: Record<Subject, string[]> = {
   chemistry: ["Why does salt dissolve in water?", "What is an atom made of?", "How does fire burn?"],
   cs: ["How does a computer add two numbers?", "How does the internet send a message?", "How does sorting work?"],
   finance: ["How does a shop make a profit?", "How do I make a monthly budget?", "How does a cash machine work?"],
+  mechanical: ["How does a car engine work?", "How does a gearbox change speed?", "How does a refrigerator keep food cold?"],
+  aeronautics: ["How does a wing lift a plane?", "How does a helicopter fly?", "How does a jet engine push a plane?"],
+  aerospace: ["How does a rocket reach space?", "Why doesn't a satellite fall down?", "How does a capsule survive re-entry?"],
   home: ["How do I tie a tie?", "Why did my breaker trip?", "How do I fix a leak under the sink?"],
   car: ["How do I change a flat tire?", "How do I check my oil?", "How do I change my oil?"],
 };
