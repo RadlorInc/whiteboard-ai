@@ -244,6 +244,7 @@ function build(answer) {
   scene.replaceChildren(); els = {}; shown = new Set(); notes.replaceChildren(); notes.classList.remove('zoomed'); hasNotes = false; let noteN = 0;
   isoLive = []; ENDED = false; watch = null; isoClock = 0; scene.classList.toggle('lite', LITE);
   if (self.ISO) { ISO.dispose(); ISO.LANG = self.LANG || 'en'; }
+  self.M3?.dispose();
   // the order the model wrote (answer.order: saved scripts, whose jsonb lost it); older saved videos: pins last
   const keys = Array.isArray(answer.order) ? [...new Set([...answer.order.filter(k => k in answer.els), ...Object.keys(answer.els)])]
     : Object.keys(answer.els).sort((a, b) => /^\s*pin\b/.test(answer.els[a]) - /^\s*pin\b/.test(answer.els[b]));
@@ -275,6 +276,7 @@ function build(answer) {
       e = mk('text', { x: NOTE_X + 18, y: 64 + 46 * noteN++, class: 'hand note', 'font-size': 24, fill: '#222' }, notes);
       richText(e, content);
     } else if (isoName(type)) e = isoBuild(isoName(type), n, o, content);
+    else if (type === 'm3') e = M3.make(o.id, scene);   // a library model (lib/m/run.js, loaded by bridge.js needM3)
     else if (RECIPES[type]) {
       e = RECIPES[type](n, o, content, scene);
       if (e.tagName === 'g' && !e.anim) { const inner = mk('g', { class: 'pivot' }); inner.append(...e.childNodes); e.append(inner); e.anim = inner; }

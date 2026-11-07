@@ -1,0 +1,41 @@
+{
+ "q": "How does a jet engine push a plane forward?",
+ "els": {
+  "eng": "m3 id=jet"
+ },
+ "order": [
+  "eng"
+ ],
+ "steps": [
+  {
+   "say": "It throws air backward. A jet engine swallows a huge amount of air, about 760 lb every second at takeoff, and throws it out of the back much faster. Pushing air back pushes the plane forward.",
+   "do": [
+    "set eng view=front speed=0.15 mt=0 hi= labels=nacelle,fan"
+   ]
+  },
+  {
+   "say": "Squeeze. Air going into the middle, the core, passes 12 rows of spinning blades. They squeeze it to 32 times normal pressure, and squeezing heats it to about 1,100 °F.",
+   "do": [
+    "set eng view=side cut=1 speed=0.12 hi=lowCompressor,highCompressor labels=lowCompressor,highCompressor,coreAir"
+   ]
+  },
+  {
+   "say": "Burn. Fuel is added to the squeezed air and burns non-stop, about 2.5 lb of fuel every second. The gas comes out at about 2,400 °F.",
+   "do": [
+    "set eng view=core xray=0.9 speed=0.08 hi=combustor labels=combustor,coreAir"
+   ]
+  },
+  {
+   "say": "Spin. The hot gas rushes through turbines, windmills that take energy out of it. Shafts carry that energy forward to turn the compressor and the big fan.",
+   "do": [
+    "set eng view=side xray=0 speed=0.12 hi=highTurbine,lowTurbine,shafts labels=highTurbine,lowTurbine,shafts"
+   ]
+  },
+  {
+   "say": "Blow. Two jets leave: hot core gas at about 1,200 mph and cool fan air at about 690 mph. There is far more fan air, so it gives 20,000 of the 27,000 lb of push.",
+   "do": [
+    "set eng view=rear speed=0.12 hi=nozzle,bypassAir labels=nozzle,bypassAir"
+   ]
+  }
+ ]
+}

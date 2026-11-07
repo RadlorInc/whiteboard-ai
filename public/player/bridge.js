@@ -220,7 +220,18 @@
     if (self.ISO) isoHooks();
     for (const n of names) if (!RECIPES[`${n}Iso`]) RECIPES[`${n}Iso`] = RECIPES[n] || ((nn, o, t, parent) => mk('g', {}, parent));
   };
-  const needAll = els => needLib(els).then(() => Promise.all([needSv(els), needIso(els)]));
+  // Library models ("m3 id=<name>", lib/m): the engine and the player once, then the model. The engine is the biggest
+  // file a video can ask for, so a slow line gets longer than a drawing does before the board goes on without it.
+  const m3Files = new Set();
+  const needM3 = async els => {
+    const names = Object.values(els || {}).map(v => /^\s*m3\b.*\bid=([a-z0-9]+)/.exec(String(v))?.[1]).filter(Boolean);
+    if (!names.length) return;
+    if (!self.M3_LIST) await loadInOrder(['lib/m/manifest.js']);
+    const files = ['core', 'run', ...names.filter(n => self.M3_LIST?.includes(n))].filter(f => !m3Files.has(f));
+    files.forEach(f => m3Files.add(f));
+    await Promise.race([loadInOrder(files.map(f => `lib/m/${f}.js`)), new Promise(r => setTimeout(r, 20000))]);
+  };
+  const needAll = els => needLib(els).then(() => Promise.all([needSv(els), needIso(els), needM3(els)]));
   async function playScript(script, voice) {
     gen++; hush();
     self.VOICE_WAVS = Number.isInteger(voice) && voice > 0 ? new Array(voice).fill(undefined) : null; waiters = [];
@@ -242,7 +253,7 @@
     const carried = m.drawings || m.script?.drawings;
     if (carried && typeof carried === 'object' && self.SV) for (const [id, d] of Object.entries(carried))
       if (/^[a-z0-9-]{1,60}$/.test(id) && !SV.data[id] && okDrawing(d)) SV.add(id, d);
-    if (m.type === 'reset') { gen++; A = null; done = false; PAUSED = false; held = []; hush(); }
+    if (m.type === 'reset') { gen++; A = null; done = false; PAUSED = false; held = []; hush(); self.M3?.dispose(); }
     else if (m.type === 'script') playScript(m.script, m.voice);
     else if (m.type === 'wav' && self.VOICE_WAVS && Number.isInteger(m.i) && m.i >= 0 && m.i < self.VOICE_WAVS.length) {
       const w = self.VOICE_WAVS[m.i] = m.wav instanceof ArrayBuffer ? m.wav : null;
