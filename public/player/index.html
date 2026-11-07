@@ -582,7 +582,7 @@ const current = () => ANSWERS[$('#pick').value];
 $('#pick').onchange = () => { build(current()); stats(current()); $('#caption').textContent = ''; $('#play').textContent = '▶ Play'; };
 $('#play').onclick = () => play(current());
 window.speechSynthesis?.getVoices();
-if (!window.WB_LAZY) { build(current()); stats(current()); }     // lazy: the demo answers' drawings are not loaded
+if (!window.WB_LAZY && current()) { build(current()); stats(current()); }   // shipped, the example list is empty     // lazy: the demo answers' drawings are not loaded
 // #autoN plays answer N; #showN only opens it (the compare page uses this)
 const fromHash = () => { const m = location.hash.match(/#(auto|show)(\d*)/); if (m) { $('#pick').value = m[2] || 0; $('#pick').onchange(); if (m[1] === 'auto') play(current()); } };
 fromHash(); window.onhashchange = fromHash;
