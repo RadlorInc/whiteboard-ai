@@ -275,6 +275,7 @@
         if (my !== gen || !marker?.isConnected) return;
         marker.style.opacity = 0; still(); scene.classList.remove('spot');
         document.getElementById('caption').textContent = '';
+        self.M3?.freeze();
         tell({ type: 'posterDone' });
       });
     }

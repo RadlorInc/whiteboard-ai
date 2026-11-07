@@ -202,6 +202,15 @@ function fakedThingErrs(els) {
 const singular = w => w.length > 3 && !w.endsWith('ss') ? w.replace(/s$/, '') : w;
 const plainWords = s => String(s).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).map(singular).join(' ');
 const thingOf = name => plainWords(name.replace(/-(physics|emoji|silhouette)$/, '').replace(/-\d+$/, ''));
+// The 3D machines a question is about (7 Nov 2026: "How does a huge airplane stay up?" was told only of the airplane
+// drawing and drew it, while the plane machine was in the library): those with the most topics the question names, a
+// topic counting when all its words are in the question. Up to two, so a general word ("lift") does not list many.
+export function namedMachines(question) {
+  const q = ` ${plainWords(question)} `;
+  return (P.m3?.lib.lines ?? []).map(l => [l.name, /^3D working model: (.*?)\. views:/.exec(l.desc)?.[1].split(', ')
+      .filter(t => q.includes(` ${plainWords(t)} `)).length ?? 0])
+    .filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([name]) => name);
+}
 export function namedDrawings(lib, question) {
   const q = ` ${plainWords(question)} `, found = new Map();
   for (const c of lib) for (const { name } of c.lines) {

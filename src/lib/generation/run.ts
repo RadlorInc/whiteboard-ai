@@ -2,7 +2,7 @@
 // ask() + answer(), plus streaming, per-step emission, the pinned repair, budgets and cost rows.
 // Money rule: every path ends in exactly one db.finish (charge) or db.fail (release) — settle() is the only caller.
 import { AuthenticationError, PermissionDeniedError, NotFoundError, APIError, APIUserAbortError } from '@anthropic-ai/sdk';
-import { STYLE_CHECK, checkEls, checkStep, checkPaperStep, checkPolicy, checkSafety, findDrawing, guardFindInput, namedDrawings, unusedDrawingErrs, parse, BUILT_IN, WB_LIB, PAPER_LIB, isoEls, isoStep, isoLibOf } from './checks.mjs';
+import { STYLE_CHECK, checkEls, checkStep, checkPaperStep, checkPolicy, checkSafety, findDrawing, guardFindInput, namedDrawings, namedMachines, unusedDrawingErrs, parse, BUILT_IN, WB_LIB, PAPER_LIB, isoEls, isoStep, isoLibOf } from './checks.mjs';
 import { createScanner } from './scan.mjs';
 import { candidateGroups, savedCat, SAVED_CAT } from './drawings.mjs';
 import P from './prompts.json' with { type: 'json' };
@@ -24,6 +24,8 @@ const catsOf = (lib: Lib, names: string[]) => [...new Set(lib.filter(c => c.cat 
 
 const NAMED_HINT = (names: string[]) => `The library has drawings of things this question names: ${names.join(', ')}. ` +
   'If one is what the lesson is about, find_drawing it and use it instead of drawing your own.';
+const MACHINE_HINT = (names: string[]) => `The library has a 3D machine for this question: ${names.join(', ')}. ` +
+  'find_drawing it: when the question is how it works, teach with the machine.';
 const FOLLOW_UP = 'Answer the new question below with a new lesson. Build on what was already explained; do not repeat it, ' +
   'and refer back to it where it helps.';
 
@@ -65,7 +67,9 @@ export async function runGeneration(o: {
   // next follow-up read them from the cache instead of paying for them again.
   const ctx = o.context ?? [], follow = ctx.length > 1;
   const named = iso ? namedDrawings(lib, question) : new Map<string, string[]>();
-  const hint = named.size ? [{ type: 'text', text: NAMED_HINT([...named.values()].map(names => names[0]).slice(0, 8)) }] : [];
+  const machines: string[] = m3 ? namedMachines(question) as string[] : [];
+  const hint = [...(machines.length ? [{ type: 'text', text: MACHINE_HINT(machines) }] : []),
+    ...(named.size ? [{ type: 'text', text: NAMED_HINT([...named.values()].map(names => names[0]).slice(0, 8)) }] : [])];
   // Only the first attempt can be sent back for this: a missing drawing never costs the student the video.
   const ownDrawingErrs = (els: unknown): string[] => attempts === 1 ? unusedDrawingErrs((els ?? {}) as Json, named) : [];
   const messages: Json[] = [{ role: 'user', content: ctx.length ? [

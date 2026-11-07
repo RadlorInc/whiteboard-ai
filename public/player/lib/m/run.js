@@ -43,10 +43,10 @@
     layer.style.display = 'block';
     if (!models[id]) {
       // the model's own page, laid out at its 1600 x 900: a model may add a chart or a legend beside its canvas
-      const pg = document.createElement('div'), canvas = document.createElement('canvas'), t0 = performance.now();
+      const pg = document.createElement('div'), canvas = document.createElement('canvas');
       pg.className = 'pg'; pg.append(canvas); layer.prepend(pg);
       const model = M3M[id](canvas);
-      models[id] = { id, model, canvas, pg, buildMs: performance.now() - t0, q: 1, frames: 0, slow: 0, spent: 0, t1: performance.now() + 2000 };   // the first 2 s build shaders: not the phone's speed
+      models[id] = { id, model, canvas, pg, q: 1, frames: 0, slow: 0, t1: performance.now() + 2000 };   // the first 2 s build shaders: not the phone's speed
       model.warm?.();
     }
     return models[id];
@@ -117,12 +117,11 @@
   // too slow on this phone: draw fewer pixels rather than stutter
   function watch(m, dt, at) {
     if (at < m.t1) return;
-    m.frames++; m.spent += dt; if (dt > .034) m.slow++;
+    m.frames++; if (dt > .034) m.slow++;
     if (at - m.t1 < 2000) return;
-    const fps = m.frames / m.spent, slow = m.slow / m.frames;
+    const slow = m.slow / m.frames;
     if (slow > .3 && m.pr > .5) { m.q *= .75; sizeUp(m); }
-    parent.postMessage({ type: 'm3stats', fps: Math.round(fps), slow: Math.round(slow * 100), pr: +m.pr.toFixed(2), width: layer.clientWidth, buildMs: Math.round(m.buildMs), model: m.id }, '*');
-    m.frames = m.slow = m.spent = 0; m.t1 = at;
+    m.frames = m.slow = 0; m.t1 = at;
   }
   function tick(at) {
     raf = 0; if (!live) return;
@@ -160,6 +159,17 @@
       last = performance.now(); if (!raf) raf = requestAnimationFrame(tick);
       draw(m);
       return e;
+    },
+    // An Explore card (a poster) keeps a picture and gives its 3D canvas back: a page of many cards would otherwise run
+    // out of the few 3D canvases a browser allows, and the oldest cards would go blank.
+    freeze() {
+      const m = live; if (!m) return;
+      draw(m);
+      const img = new Image(); img.src = m.canvas.toDataURL('image/jpeg', .85);
+      img.style.cssText = m.canvas.style.cssText + ';position:absolute;inset:0;width:100%;height:100%;transform-origin:50% 50%';
+      m.canvas.replaceWith(img);
+      (m.canvas.getContext('webgl2') || m.canvas.getContext('webgl'))?.getExtension('WEBGL_lose_context')?.loseContext();
+      delete models[m.id]; live = null; if (raf) cancelAnimationFrame(raf); raf = 0;
     },
     dispose() {
       live = null; if (raf) cancelAnimationFrame(raf); raf = 0;

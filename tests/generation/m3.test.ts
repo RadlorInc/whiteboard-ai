@@ -2,7 +2,7 @@
 // 3D machines (MODELS_3D): the answer writer finds a machine with find_drawing, the script drives it with set, and the
 // checks hold the script to what the machine has. No real model, database or API.
 import { describe, it, expect } from 'vitest';
-import { check, findDrawing } from '../../src/lib/generation/checks.mjs';
+import { check, findDrawing, namedMachines } from '../../src/lib/generation/checks.mjs';
 import { runGeneration } from '../../src/lib/generation/run';
 import { prefix, promptSha } from '../../src/lib/generation/model';
 import P from '../../src/lib/generation/prompts.json' with { type: 'json' };
@@ -47,6 +47,22 @@ describe('finding a machine', () => {
   it('a plain question finds it, and its name gives its line', () => {
     expect(findDrawing([(P as Any).m3.lib], { names: [], query: 'how does a jet engine work' })).toMatch(/^m3 id=jet — /);
     expect(findDrawing([(P as Any).m3.lib], { names: ['jet-3d'] as never[], query: '' })).toMatch(/views: front side core rear/);
+  });
+});
+
+describe('the machine a question names', () => {
+  it('a question about a machine names it; one about none names none', () => {
+    expect(namedMachines('How does a huge airplane stay up in the air?')).toEqual(['plane-3d']);
+    expect(namedMachines('How does a refrigerator make things cold?')).toEqual(['fridge-3d']);
+    expect(namedMachines('What is photosynthesis?')).toEqual([]);
+  });
+  it('with the switch on, the model is told before the question; off, it is not', async () => {
+    for (const m3 of [true, false]) {
+      const { db } = fakeDb(), f = fakeClient([{ text: JSON.stringify(example) }]);
+      await runGeneration({ id: '00000000-0000-4000-8000-000000000001', style: 'whiteboard', subject: 'aeronautics', question: 'How does a huge airplane stay up?',
+        client: f.client, db, send: () => {}, retryWaitMs: () => 0, m3, iso: true });
+      expect(JSON.stringify(f.seen[0])).toMatch(m3 ? /3D machine for this question: plane-3d/ : /^(?!.*3D machine for this question)/);
+    }
   });
 });
 
