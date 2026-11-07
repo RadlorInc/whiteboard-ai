@@ -172,6 +172,8 @@
     if (PAUSED) { PAUSED = false; held = []; window.speechSynthesis?.resume(); }
     k = Math.max(0, Math.min(k, A.steps.length - 1));
     const my = ++gen; runId++; hush(); document.getAnimations().forEach(a => a.cancel());
+    // a jump that comes while the board's files are still loading (a library model's engine is big) waits for them
+    if (m3Names(A.els).length) { await needM3(A.els); if (my !== gen) return; }
     FAST = true; fastBy = my;
     // a board that cannot be built (a drawing that throws) says so, instead of a blank board that waits forever
     try { build(A); for (const s of A.steps.slice(0, k)) for (const c of s.do) { if (my !== gen) return; await runOrSkip(c); } }
@@ -220,7 +222,19 @@
     if (self.ISO) isoHooks();
     for (const n of names) if (!RECIPES[`${n}Iso`]) RECIPES[`${n}Iso`] = RECIPES[n] || ((nn, o, t, parent) => mk('g', {}, parent));
   };
-  const needAll = els => needLib(els).then(() => Promise.all([needSv(els), needIso(els)]));
+  // Library models ("m3 id=<name>", lib/m): the engine and the player once, then the model. The engine is the biggest
+  // file a video can ask for, so a slow line gets longer than a drawing does before the board goes on without it.
+  // Calls queue behind each other, so a second call (a jump while the first is still loading) waits for the files too.
+  const m3Files = new Set();
+  let m3Load = Promise.resolve();
+  const m3Names = els => Object.values(els || {}).map(v => /^\s*m3\b.*\bid=([a-z0-9]+)/.exec(String(v))?.[1]).filter(Boolean);
+  const needM3 = els => !m3Names(els).length ? Promise.resolve() : m3Load = m3Load.then(async () => {
+    if (!self.M3_LIST) await loadInOrder(['lib/m/manifest.js']);
+    const files = ['core', 'run', ...m3Names(els).filter(n => self.M3_LIST?.includes(n))].filter(f => !m3Files.has(f));
+    files.forEach(f => m3Files.add(f));
+    await Promise.race([loadInOrder(files.map(f => `lib/m/${f}.js`)), new Promise(r => setTimeout(r, 20000))]);
+  });
+  const needAll = els => needLib(els).then(() => Promise.all([needSv(els), needIso(els), needM3(els)]));
   async function playScript(script, voice) {
     gen++; hush();
     self.VOICE_WAVS = Number.isInteger(voice) && voice > 0 ? new Array(voice).fill(undefined) : null; waiters = [];
@@ -242,7 +256,7 @@
     const carried = m.drawings || m.script?.drawings;
     if (carried && typeof carried === 'object' && self.SV) for (const [id, d] of Object.entries(carried))
       if (/^[a-z0-9-]{1,60}$/.test(id) && !SV.data[id] && okDrawing(d)) SV.add(id, d);
-    if (m.type === 'reset') { gen++; A = null; done = false; PAUSED = false; held = []; hush(); }
+    if (m.type === 'reset') { gen++; A = null; done = false; PAUSED = false; held = []; hush(); self.M3?.dispose(); }
     else if (m.type === 'script') playScript(m.script, m.voice);
     else if (m.type === 'wav' && self.VOICE_WAVS && Number.isInteger(m.i) && m.i >= 0 && m.i < self.VOICE_WAVS.length) {
       const w = self.VOICE_WAVS[m.i] = m.wav instanceof ArrayBuffer ? m.wav : null;
@@ -261,6 +275,7 @@
         if (my !== gen || !marker?.isConnected) return;
         marker.style.opacity = 0; still(); scene.classList.remove('spot');
         document.getElementById('caption').textContent = '';
+        self.M3?.freeze();
         tell({ type: 'posterDone' });
       });
     }

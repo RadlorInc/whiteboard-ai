@@ -1,6 +1,7 @@
 import "server-only";
 // The model: the real Anthropic client, or GENERATION_MOCK=1's fake that streams hand-made answers (PLAN.md §7.1).
 import Anthropic, { APIUserAbortError } from '@anthropic-ai/sdk';
+import { createHash } from 'node:crypto';
 import P from './prompts.json' with { type: 'json' };
 import MOCK_ANSWERS from './mock-answers.json' with { type: 'json' };
 import { FIND_TOOL } from './checks.mjs';
@@ -18,9 +19,22 @@ export const SUBJECTS = Object.keys(P.subjects) as Subject[];
 // every whiteboard prompt is its iso twin, and run.ts renames and cleans the new recipes (checks.mjs isoEls).
 export const ANATOMY = process.env.ANATOMY_RECIPES === '1';
 // A chat's subject picks its own whiteboard prompt; other styles, and asks outside a chat, use the style's prompt.
-const system = (style: Style, subject?: Subject | null) => style !== 'whiteboard' ? P.styles[style]
+const base = (style: Style, subject?: Subject | null) => style !== 'whiteboard' ? P.styles[style]
   : ANATOMY ? (subject ? P.iso.subjects[subject] : P.iso.whiteboard) : subject ? P.subjects[subject] : P.styles[style];
-export const promptSha = (style: Style, subject?: Subject | null) => system(style, subject).sha256;
+// The 3D machines switch (staging first, production only once the founder approves): a whiteboard prompt for asks
+// outside a chat or in these subjects ends with the machines' rules (build-prompts.mjs M3_RULES), and its
+// find_drawing searches them too (run.ts). Each such prompt is its own cache entry and prompt_sha.
+export const M3 = process.env.MODELS_3D === '1';
+export const M3_SUBJECTS: (Subject | null)[] = [null, 'physics', 'mechanical', 'aeronautics', 'aerospace'];
+export const m3For = (style: Style, subject?: Subject | null, on = M3) => on && style === 'whiteboard' && M3_SUBJECTS.includes(subject ?? null);
+const withM3 = new Map<string, { system: string; sha256: string }>();
+const system = (style: Style, subject?: Subject | null, m3 = M3) => {
+  const b = base(style, subject);
+  if (!m3For(style, subject, m3)) return b;
+  if (!withM3.has(b.sha256)) { const t = b.system + P.m3.rules; withM3.set(b.sha256, { system: t, sha256: createHash('sha256').update(t).digest('hex') }); }
+  return withM3.get(b.sha256)!;
+};
+export const promptSha = (style: Style, subject?: Subject | null, m3 = M3) => system(style, subject, m3).sha256;
 // Every cached prompt keep-warm looks after: one per style, plus one per subject (each its own prompt_sha).
 export const PROMPTS: { style: Style; subject: Subject | null }[] = [...STYLES.map(style => ({ style, subject: null })),
   ...SUBJECTS.map(subject => ({ style: 'whiteboard' as Style, subject }))];
@@ -32,10 +46,10 @@ export const MOCK = process.env.GENERATION_MOCK === '1';
 if (MOCK && (process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'))
   throw new Error('GENERATION_MOCK=1 is set in production: refusing to start the fake model.');
 
-const SYSTEM = (style: Style, subject?: Subject | null) => [{ type: 'text' as const, text: system(style, subject).system, cache_control: { type: 'ephemeral' as const, ttl: '1h' as const } }];
+const SYSTEM = (style: Style, subject?: Subject | null, m3 = M3) => [{ type: 'text' as const, text: system(style, subject, m3).system, cache_control: { type: 'ephemeral' as const, ttl: '1h' as const } }];
 // Everything the cache keys on (model, tools, system, settings). A round, a repair and a ping all send exactly this.
-export const prefix = (style: Style, subject?: Subject | null) => ({
-  model: MODEL, system: SYSTEM(style, subject), ...(style !== 'matchcut' ? { tools: [FIND_TOOL] } : {}),
+export const prefix = (style: Style, subject?: Subject | null, m3 = M3) => ({
+  model: MODEL, system: SYSTEM(style, subject, m3), ...(style !== 'matchcut' ? { tools: [FIND_TOOL] } : {}),
   output_config: { effort: 'medium' },
 });
 

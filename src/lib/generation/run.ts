@@ -2,11 +2,11 @@
 // ask() + answer(), plus streaming, per-step emission, the pinned repair, budgets and cost rows.
 // Money rule: every path ends in exactly one db.finish (charge) or db.fail (release) — settle() is the only caller.
 import { AuthenticationError, PermissionDeniedError, NotFoundError, APIError, APIUserAbortError } from '@anthropic-ai/sdk';
-import { STYLE_CHECK, checkEls, checkStep, checkPaperStep, checkPolicy, checkSafety, findDrawing, guardFindInput, namedDrawings, unusedDrawingErrs, parse, BUILT_IN, WB_LIB, PAPER_LIB, isoEls, isoStep, isoLibOf } from './checks.mjs';
+import { STYLE_CHECK, checkEls, checkStep, checkPaperStep, checkPolicy, checkSafety, findDrawing, guardFindInput, namedDrawings, namedMachines, unusedDrawingErrs, parse, BUILT_IN, WB_LIB, PAPER_LIB, isoEls, isoStep, isoLibOf } from './checks.mjs';
 import { createScanner } from './scan.mjs';
 import { candidateGroups, savedCat, SAVED_CAT } from './drawings.mjs';
 import P from './prompts.json' with { type: 'json' };
-import { prefix, cost, promptSha, ANATOMY, type ModelClient, type FinalMessage, type Style, type Subject, type Block } from './model';
+import { prefix, cost, promptSha, m3For, ANATOMY, type ModelClient, type FinalMessage, type Style, type Subject, type Block } from './model';
 import type { GenDb, FailCode, Metrics } from './db';
 
 export const LIMITS = { deadlineMs: 240_000, maxTokens: 16_000, toolRounds: 5, outputBudget: 40_000 };
@@ -20,10 +20,12 @@ const PINNED = (errs: string[], k: number, style: Style) => `Your script failed 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);   // both come from JSON.parse
 const textOf = (m: FinalMessage) => m.content.filter(b => b.type === 'text').map(b => b.text).join('');
 const codePoints = (s: unknown) => (typeof s === 'string' ? [...s].length : 0);
-const catsOf = (lib: Lib, names: string[]) => [...new Set(lib.filter(c => c.cat !== SAVED_CAT && c.lines.some(l => names.includes(l.name))).map(c => c.cat))];
+const catsOf = (lib: Lib, names: string[]) => [...new Set(lib.filter(c => c.cat !== SAVED_CAT && c.cat !== P.m3.lib.cat && c.lines.some(l => names.includes(l.name))).map(c => c.cat))];
 
 const NAMED_HINT = (names: string[]) => `The library has drawings of things this question names: ${names.join(', ')}. ` +
   'If one is what the lesson is about, find_drawing it and use it instead of drawing your own.';
+const MACHINE_HINT = (names: string[]) => `The library has a 3D machine for this question: ${names.join(', ')}. ` +
+  'find_drawing it: when the question is how it works, teach with the machine.';
 const FOLLOW_UP = 'Answer the new question below with a new lesson. Build on what was already explained; do not repeat it, ' +
   'and refer back to it where it helps.';
 
@@ -40,6 +42,7 @@ export async function runGeneration(o: {
   deadlineMs?: number; retryWaitMs?: (n: number) => number;
   explore?: () => Promise<string>;      // after a video is saved: put it on Explore (the outcome goes in 'done')
   iso?: boolean;                         // the Anatomy switch (model.ts ANATOMY); tests set it
+  m3?: boolean;                          // the 3D machines switch (model.ts M3); tests set it
 }) {
   const { id, style, question, client, db, send } = o;
   const t0 = Date.now(), at = () => Date.now() - t0;
@@ -52,17 +55,21 @@ export async function runGeneration(o: {
   // script (drawings), because the sandboxed player cannot fetch them. A failed read just leaves them out.
   const approved = style === 'whiteboard' ? await (db.approvedDrawings?.() ?? Promise.resolve([])).catch(() => []) : [];
   if (approved.length) lib.push(savedCat(approved));
+  const m3 = m3For(style, o.subject, o.m3);
+  if (m3) lib.push(P.m3.lib);
   const savedSv = new Set(approved.map(r => r.slug)), savedData = new Map(approved.map(r => [r.slug, r.data]));
   const drawingsFor = (els: Json) => { const out: Json = {};
     for (const v of Object.values(els)) { const sv = /^\s*sv\b.*\bid=([a-z0-9-]+)/.exec(String(v))?.[1]; if (sv && savedData.has(sv)) out[sv] = savedData.get(sv); }
     return Object.keys(out).length ? out : undefined; };
-  const sha = promptSha(style, o.subject);
+  const sha = promptSha(style, o.subject, m3);
   // A conversation's context (subject, earlier questions) goes first in the same user turn; the question stays last.
   // A follow-up's earlier turns end in a cache breakpoint: the next call of this video (after find_drawing) and the
   // next follow-up read them from the cache instead of paying for them again.
   const ctx = o.context ?? [], follow = ctx.length > 1;
   const named = iso ? namedDrawings(lib, question) : new Map<string, string[]>();
-  const hint = named.size ? [{ type: 'text', text: NAMED_HINT([...named.values()].map(names => names[0]).slice(0, 8)) }] : [];
+  const machines: string[] = m3 ? namedMachines(question) as string[] : [];
+  const hint = [...(machines.length ? [{ type: 'text', text: MACHINE_HINT(machines) }] : []),
+    ...(named.size ? [{ type: 'text', text: NAMED_HINT([...named.values()].map(names => names[0]).slice(0, 8)) }] : [])];
   // Only the first attempt can be sent back for this: a missing drawing never costs the student the video.
   const ownDrawingErrs = (els: unknown): string[] => attempts === 1 ? unusedDrawingErrs((els ?? {}) as Json, named) : [];
   const messages: Json[] = [{ role: 'user', content: ctx.length ? [
@@ -117,7 +124,7 @@ export async function runGeneration(o: {
   async function call(kind: 'round' | 'repair', round: number): Promise<FinalMessage> {
     const startedAt = new Date(), c0 = Date.now(), scan = createScanner(style);
     let ttft: number | null = null;
-    const stream = client.messages.stream({ ...prefix(style, o.subject), max_tokens: LIMITS.maxTokens, messages },
+    const stream = client.messages.stream({ ...prefix(style, o.subject, m3), max_tokens: LIMITS.maxTokens, messages },
       { signal: abort.signal, timeout: Math.max(1000, (o.deadlineMs ?? LIMITS.deadlineMs) - at()) });
     for await (const ev of stream) {
       if (ttft == null) ttft = Date.now() - c0;

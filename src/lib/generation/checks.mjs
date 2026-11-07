@@ -131,8 +131,34 @@ function isoPlaceErrs(els) {
   return errs;
 }
 // mark <id>.<part>: a part the recipe names (its lit= list); set: an Anatomy drawing
+// ---------- 3D machines (MODELS_3D; build-prompts.mjs M3_RULES) ----------
+// A machine fills the board, so it is the lesson's only element; set moves it with only keys and values it has.
+const M3_MODELS = P.m3?.models ?? {};
+const m3Of = (els, id) => { const m = Object.hasOwn(els, id) && /^\s*m3\b.*\bid=(\S+)/.exec(String(els[id]))?.[1]; return m && Object.hasOwn(M3_MODELS, m) ? M3_MODELS[m] : null; };
+function m3ElErrs(id, spec, els) {
+  const m = /\bid=(\S+)/.exec(String(spec))?.[1];
+  if (!m || !Object.hasOwn(M3_MODELS, m)) return [`els.${id}: m3 needs id=<a machine find_drawing returned>`];
+  return Object.keys(els).length > 1 ? [`els.${id}: a 3D machine fills the board: it must be the only element (remove ${Object.keys(els).filter(k => k !== id).join(', ')})`] : [];
+}
+function m3SetErrs(m, kvs, i, id) {
+  const errs = [], where = `steps[${i}]: set ${id}`;
+  for (const kv of kvs) {
+    const eq = kv.indexOf('='), k = kv.slice(0, eq), v = kv.slice(eq + 1), n = Number(v);
+    if (eq < 1) errs.push(`${where}: "${kv}" is not key=value`);
+    else if (k === 'view') { if (!m.views.includes(v)) errs.push(`${where}: no view "${v}" (views: ${m.views.join(' ')})`); }
+    else if (['cut', 'xray', 'explode'].includes(k)) {
+      if (!(v !== '' && n >= 0 && n <= 1)) errs.push(`${where}: ${k} must be 0 to 1`);
+      else if (n > 0 && !m.effects.includes(k)) errs.push(`${where}: this machine has no ${k} (effects: ${m.effects.join(' ') || 'none'})`);
+    } else if (k === 'hi' || k === 'labels') { const bad = v.split(',').filter(p => p && !m.parts.includes(p)); if (bad.length) errs.push(`${where}: no part ${bad.join(', ')} (parts: ${m.parts.join(' ')})`); }
+    else if (k === 'speed') { if (!(v !== '' && n >= 0 && n <= 20)) errs.push(`${where}: speed must be 0 to 20`); }
+    else if (k === 'mt') { if (!(v !== '' && Number.isFinite(n) && n >= 0)) errs.push(`${where}: mt must be seconds, 0 or more`); }
+    else errs.push(`${where}: unknown key "${k}" (view cut xray explode hi labels speed mt)`);
+  }
+  return errs;
+}
 function isoCmdErrs(op, arg, i, els) {
   const [id, part] = String(arg[0] ?? '').split('.'), name = Object.hasOwn(els, id) ? isoBase(String(els[id]).trim().split(/\s+/)[0]) : null;
+  if (op === 'set' && m3Of(els, id)) return m3SetErrs(m3Of(els, id), arg.slice(1), i, id);
   if (op === 'set' && Object.hasOwn(els, id) && !name) return [`steps[${i}]: set ${id}: only a detailed 3D drawing (the iso category) takes set`];
   if ((op === 'mark' || op === 'zoom') && part !== undefined) {
     if (!name) return [`steps[${i}]: ${op} ${arg[0]}: only a detailed 3D drawing has named parts`];
@@ -176,6 +202,15 @@ function fakedThingErrs(els) {
 const singular = w => w.length > 3 && !w.endsWith('ss') ? w.replace(/s$/, '') : w;
 const plainWords = s => String(s).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).map(singular).join(' ');
 const thingOf = name => plainWords(name.replace(/-(physics|emoji|silhouette)$/, '').replace(/-\d+$/, ''));
+// The 3D machines a question is about (7 Nov 2026: "How does a huge airplane stay up?" was told only of the airplane
+// drawing and drew it, while the plane machine was in the library): those with the most topics the question names, a
+// topic counting when all its words are in the question. Up to two, so a general word ("lift") does not list many.
+export function namedMachines(question) {
+  const q = ` ${plainWords(question)} `;
+  return (P.m3?.lib.lines ?? []).map(l => [l.name, /^3D working model: (.*?)\. views:/.exec(l.desc)?.[1].split(', ')
+      .filter(t => q.includes(` ${plainWords(t)} `)).length ?? 0])
+    .filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([name]) => name);
+}
 export function namedDrawings(lib, question) {
   const q = ` ${plainWords(question)} `, found = new Map();
   for (const c of lib) for (const { name } of c.lines) {
@@ -197,6 +232,7 @@ export function checkEls(els, extraSv) {
   const errs = [];
   for (const [id, spec] of Object.entries(els)) {
     const type = String(spec).split('|')[0].trim().split(/\s+/)[0];
+    if (type === 'm3') { errs.push(...m3ElErrs(id, spec, els)); continue; }
     if (!TYPES.has(type)) errs.push(`els.${id}: unknown type "${type}"`);
     if (type === 'sv' && !(id => SV_IDS.has(id) || extraSv?.has(id))(/\bid=(\S+)/.exec(spec)?.[1])) errs.push(`els.${id}: sv needs id=<a name find_drawing returned>`);
     if (type === 'pin') {               // anatomy pins (18 Oct 2026): "pin of=<earlier drawing id> part=<one of its parts>"

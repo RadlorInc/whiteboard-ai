@@ -3,19 +3,25 @@
 begin;
 set local search_path = public, extensions;
 \ir helpers.psql
-select plan(4);
+select plan(7);
 
 create temp table c (n text primary key, id uuid);
 insert into c values
   ('pg', pg_temp.as_user(pg_temp.ua(), $$select public.create_conversation('physics', 'grad')$$)::uuid),
   ('bs', pg_temp.as_user(pg_temp.ua(), $$select public.create_conversation('biology')$$)::uuid),
-  ('fg', pg_temp.as_user(pg_temp.ua(), $$select public.create_conversation('finance', 'grad')$$)::uuid);
+  ('fg', pg_temp.as_user(pg_temp.ua(), $$select public.create_conversation('finance', 'grad')$$)::uuid),
+  ('mu', pg_temp.as_user(pg_temp.ua(), $$select public.create_conversation('mechanical', 'undergrad')$$)::uuid),
+  ('an', pg_temp.as_user(pg_temp.ua(), $$select public.create_conversation('aeronautics')$$)::uuid),
+  ('as', pg_temp.as_user(pg_temp.ua(), $$select public.create_conversation('aerospace', 'grad')$$)::uuid);
 create function pg_temp.lvl(p text) returns text language sql as $$
   select level from public.conversations where id = (select id from c where n = p) $$;
 
 select is(pg_temp.lvl('pg'), 'grad', 'a physics chat keeps Grad school');
 select is(pg_temp.lvl('bs'), 'school', 'no level: high school');
 select is(pg_temp.lvl('fg'), 'grad', 'a finance chat keeps its level too (study subjects, 26 Oct 2026)');
+select is(pg_temp.lvl('mu'), 'undergrad', 'a mechanical chat starts and keeps College (7 Nov 2026)');
+select is(pg_temp.lvl('an'), 'school', 'an aeronautics chat starts');
+select is(pg_temp.lvl('as'), 'grad', 'an aerospace chat starts');
 select matches(pg_temp.as_user(pg_temp.ua(), $$select public.create_conversation('physics', 'phd')$$), '^ERROR 23514', 'an unknown level is refused');
 
 select * from finish();
