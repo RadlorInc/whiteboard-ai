@@ -174,7 +174,7 @@ if (mode === 'lite') {
     await poster(page, { c: 'cprIso 480 280 320', h: 'handwashIso 200 260 200' }, ['draw c', 'draw h']);   // files loaded first
     await cdp.send('Emulation.setCPUThrottlingRate', { rate });
     await page.evaluate(() => { postMessage({ type: 'els', els: { c: 'cprIso 480 280 320 run=1', h: 'handwashIso 200 260 200 run=1' } }, '*');
-      postMessage({ type: 'step', step: { say: 'Step 1: push.', do: ['draw c', 'draw h', 'set c run=1', 'wait 4000'] } }, '*'); postMessage({ type: 'done' }, '*'); });
+      postMessage({ type: 'step', step: { say: 'push.', do: ['draw c', 'draw h', 'set c run=1', 'wait 4000'] } }, '*'); postMessage({ type: 'done' }, '*'); });
     await page.waitForTimeout(rate === 1 ? 4000 : 9000);
     const lite = await page.evaluate(() => document.getElementById('scene').classList.contains('lite'));
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });

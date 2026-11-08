@@ -399,7 +399,8 @@ export const guardFindInput = input => ({
 export const parse = text => JSON.parse(text.trim().replace(/^```(?:json)?\s*|\s*```$/g, ''));
 
 // ---------- checkPolicy: the founder's format rules. Server only, never the player (§7.4) ----------
-export const POLICY_VERSION = 1;
+export const POLICY_VERSION = 2;   // 2 (8 Nov 2026, founder): the voice no longer says "Step 1:", one flowing explanation
+const STEP_SAID = /\bstep\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b/i;
 const codePoints = s => [...s].length;               // = Postgres char_length, which narration_chars() bills on
 export function checkPolicy(a, style) {
   const items = style === 'matchcut' ? a?.objects : a?.steps;
@@ -409,7 +410,7 @@ export function checkPolicy(a, style) {
   if (chars > cap) errs.push(`policy: ${chars} spoken characters, at most ${cap}`);
   if (style !== 'matchcut' && items.length > 7) errs.push(`policy: ${items.length} steps, at most 7`);
   if (style === 'whiteboard') items.forEach((s, i) => {
-    if (typeof s?.say === 'string' && !s.say.startsWith(`Step ${i + 1}:`)) errs.push(`steps[${i}]: say must begin "Step ${i + 1}:"`);
+    if (typeof s?.say === 'string' && STEP_SAID.test(s.say)) errs.push(`steps[${i}]: say must not number the step ("Step ${i + 1}"): one connected explanation`);
     for (const cmd of Array.isArray(s?.do) ? s.do : [])
       if (bare(cmd).split(/\s+/)[0] === 'cam') errs.push(`steps[${i}]: no cam (the whole board is always in view)`);
   });

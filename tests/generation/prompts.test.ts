@@ -17,14 +17,16 @@ const sha = (t: string) => crypto.createHash('sha256').update(t).digest('hex');
 // Written out by hand from the prototype on 12 Oct 2026 (RULES / PAPER_RULES / MC_RULES of prototype/server.mjs).
 // A deliberate prompt change (the M7 decline policy) changes these on purpose, in the same commit.
 const EXPECTED = {
-  whiteboard: '332e6d7eca2617a485305ad53d82b9e27eeb51a87365106006e4e19626ebddca',
+  whiteboard: 'a4d36210459a9eedd1207dc54b7ac94e22011f39aa982fe400b3ce4256f80dc1',   // 8 Nov 2026: connected narration (no "Step 1:")
   paper: 'c480e603d8b77bf2f4e31faed61444d2b549877b8ef4295be46f22a6b9694a5d',
   matchcut: 'c5d86359b0c730adb73f93d11fe2e9e0d95aa4f346633d3d845686ca8d1d7b31',
 } as const;
+// The frozen prototype keeps "Step 1:" narration; the app dropped it on 8 Nov 2026, so only paper/matchcut still match it.
+const PROTOTYPE_WHITEBOARD = '332e6d7eca2617a485305ad53d82b9e27eeb51a87365106006e4e19626ebddca';
 
 describe('prompt sha parity', () => {
   for (const style of ['whiteboard', 'paper', 'matchcut'] as const) {
-    it(`${style}: the system text hashes to the prototype's sha`, () => {
+    it(`${style}: the system text hashes to its bound sha`, () => {
       expect(sha(P.styles[style].system)).toBe(EXPECTED[style]);
       expect(P.styles[style].sha256).toBe(EXPECTED[style]);
     });
@@ -36,7 +38,7 @@ describe('prompt sha parity', () => {
     const out = execFileSync(process.execPath, ['-e',
       "import('./server.mjs').then(m => { const h = t => require('crypto').createHash('sha256').update(t).digest('hex'); console.log(JSON.stringify({ whiteboard: h(m.RULES), paper: h(m.PAPER_RULES), matchcut: h(m.MC_RULES) })); })"],
       { cwd: prototype, env: { PATH: process.env.PATH, MOCK: '1', ANTHROPIC_API_KEY: '' } as unknown as NodeJS.ProcessEnv }).toString().trim();
-    expect(JSON.parse(out)).toEqual(EXPECTED);
+    expect(JSON.parse(out)).toEqual({ ...EXPECTED, whiteboard: PROTOTYPE_WHITEBOARD });
   });
 
   it('prompts.json is what build-prompts.mjs makes from public/player now (not stale)', () => {
@@ -55,11 +57,11 @@ describe('prompt sha parity', () => {
 
   // Subject prompts (founder, 18 Oct 2026): new prompts, so no prototype twin; these shas bind them the same way.
   const SUBJECT_EXPECTED = {
-    biology: '5589b3d9c641509c0635468dd0691a559494bdbc5733e130522ff6790db7a070',
-    physics: '99fa588ae84240052f4689a0410f171e6313e3a9ea1f3992235e20fbee837b3f',
-    chemistry: 'cd8b6b8539f89a37db47183747a0b16b4162a98a284e6187fdeb0ae9591db75c',
-    car: '14e4025c4653d974d3b58fe7995108bcdd693d1caa3cf14cc0e8635785eef81e',
-    home: '800292c188dfbc18d6602f276cf4209f1dbe6fa088f327ce808845231907f70d',
+    biology: 'ffa3c3f8c0135e7c59716be46fadaa33a1c4e5891a9dde6268aecfae97f10d53',
+    physics: '61ef895b6112940dfe7f597aaf7ec91e79923632a8ecff0f4a25309d2df01575',
+    chemistry: '2aa963d5a17d33d37d3d557d15c7c5513e2e958315824e28b1b29d1094ad5a59',
+    car: 'b236d1e21f1caf33331d93d951f9f012e3f18c55975358e2ed836373481a5d71',
+    home: 'c22cd8162c1e0dc75dc02304419c230203302fbdbfaa6331cec475cf013365d0',
   } as const;
   for (const s of ['biology', 'physics', 'chemistry', 'car', 'home'] as const) it(`${s}: its own prompt, sha bound, only its categories listed`, () => {
     const t = P.subjects[s].system;
@@ -107,8 +109,13 @@ describe('prompt sha parity', () => {
     expect(P.styles.whiteboard.system).not.toMatch(/objects: |lab=0 to hide/);
   });
 
-  it('the prompt carries the numbered-steps and no-zoom rules', () => {
-    expect(P.styles.whiteboard.system).toContain('every step\'s "say" begins "Step 1:", "Step 2:" and so on');
+  it('the prompt carries the connected-narration and no-zoom rules', () => {
+    // founder, 8 Nov 2026: the board keeps its numbered tags/notes, the voice never says "Step 1:"
+    const all = [P.styles.whiteboard, ...Object.values(P.subjects), P.iso.whiteboard, ...Object.values(P.iso.subjects)].map(x => x.system);
+    for (const t of all) {
+      expect(t).toContain('the voice never numbers the steps');
+      expect(t).not.toMatch(/"say" begins "Step|say "Step \d/);
+    }
     expect(P.styles.whiteboard.system).toContain('there is no camera or zoom');
   });
 

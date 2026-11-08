@@ -49,7 +49,7 @@ describe('approved drawings in a lesson', () => {
   const data = toDrawing(HEDGEHOG);
   const approved = [{ slug: 'hedgehog', name: 'hedgehog', subject: 'biology' as const, tags: ['spiny'], data }];
   const script = { q: 'q', els: { h: 'sv id=hedgehog 480 270 300', t1: 'tag 150 60 170 44 | 1. Spines' },
-    steps: [{ say: 'Step 1: A hedgehog has spines.', do: ['draw h', 'fill h', 'draw t1'] }] };
+    steps: [{ say: 'A hedgehog has spines.', do: ['draw h', 'fill h', 'draw t1'] }] };
 
   it('check accepts an approved slug only when told about it', () => {
     expect(check(script).join()).toMatch(/sv needs id/);

@@ -77,7 +77,9 @@ Shape: {"q": "<the question>", "els": {"<id>": "<element line>", ...}, "steps": 
 ${cam ? CAM_RULES : `- Motion is the product: something pops when it appears, loops keep the scene alive, and at least one travel or go
   shows the idea moving. The whole board is always in view (there is no camera or zoom), so the viewer sees where
   things come from and go to: draw every part big enough to read at full size, and use the whole 960x540.
-- Numbered steps with a visible flow: every step's "say" begins "Step 1:", "Step 2:" and so on, and every step adds
+- One connected explanation, not a list: the voice never numbers the steps (no "Step 1:", no "step two"). Each
+  "say" carries on from the one before it, the way a teacher talks ("First…", "Now that…", "So…", "That is why…").
+- A visible flow on the board: every step adds
   one small numbered tag on the board (e.g. tag 150 60 170 44 s=20 | 1. Key turns: the number plus 2-4 words naming
   that step), placed in reading order (left to right, then the next row) and never over a drawing. From step 2 on,
   draw an arrow or flow from the previous step's part of the board to this step's, so the eye follows 1 → 2 → 3.
@@ -104,7 +106,8 @@ const CAM_RULES = `- Motion is the product: something pops when it appears, loop
   flask" (notes stack top to bottom in the order listed), written on its word: "@indicator write n1". A note is the
   step's key fact, formula or number in at most 32 characters, numbered like the step. Notes stay to the end, so the
   last board is the summary; they replace the numbered step tags (no step tags on the diagram).
-- Numbered steps: every step's "say" begins "Step 1:", "Step 2:" and so on.
+- One connected explanation, not a list: the voice never numbers the steps (no "Step 1:", no "step two"). Each
+  "say" carries on from the one before it, the way a teacher talks ("First…", "Now that…", "So…", "That is why…").
 - Long answers in parts: when the question truly cannot be taught well in 7 steps (a long derivation, balancing and
   then using an equation, a process with many stages), teach Part 1 fully in 6-7 steps, end its last step by saying
   what Part 2 will show, and add "next": "Part 2: <what it answers, at most 90 characters>" to the JSON. The viewer
@@ -373,7 +376,7 @@ const REUSE = `
 // already drawn. Subject prompts only: the plain prompt stays the prototype's.
 const TEACHER = `
 - Draw on the word, like a teacher at the board: start a command with @<word> and it runs the moment the voice says
-  that word of this step's "say", e.g. say "Step 2: The nucleus holds the DNA." with do ["@nucleus draw nuc",
+  that word of this step's "say", e.g. say "Inside it, the nucleus holds the DNA." with do ["@nucleus draw nuc",
   "@DNA write dnaText"]. The word is written as it is in the say; cues follow the order their words are spoken. Cue the
   main drawing and naming commands of every step on the word that names the thing; a command with no cue runs as soon
   as the one before it ends.
