@@ -124,22 +124,34 @@ describe('check.mjs §2d–2e: library and find_drawing', () => {
   });
 });
 
-describe('checkPolicy (policy 1)', () => {
+describe('checkPolicy (policy 2)', () => {
   const ok = clone((MOCK as Any).whiteboard[0]);
-  it('the mock fixtures are policy-1 answers: every check passes', () => {
+  it('the mock fixtures are policy-2 answers: every check passes', () => {
     for (const [style, xs] of Object.entries(MOCK) as [string, Any[]][]) for (const a of xs)
       expect([...(STYLE_CHECK as Any)[style](clone(a)), ...checkPolicy(a, style), ...checkSafety(a, style)], `${style}: ${a.q}`).toEqual([]);
   });
   const planted: Record<string, (a: Any) => void> = {
     'a cam command': a => { a.steps[1].do.push('cam 480 270 1.5 800'); },
     'a "&cam" command': a => { a.steps[1].do.push('&cam 480 270 1.5 800'); },
-    'no "Step N:"': a => { a.steps[2].say = a.steps[2].say.replace(/^Step 3: /, ''); },
-    'steps out of order': a => { a.steps[1].say = a.steps[1].say.replace(/^Step 2:/, 'Step 3:'); },
+    'a say that begins "Step 3:"': a => { a.steps[2].say = `Step 3: ${a.steps[2].say}`; },
+    'a say that says "step two" mid-sentence': a => { a.steps[1].say = `Now for step two, ${a.steps[1].say}`; },
     'over 900 spoken characters': a => { a.steps[0].say += ' ' + 'a'.repeat(901); },
-    'eight steps': a => { while (a.steps.length < 8) a.steps.push({ say: `Step ${a.steps.length + 1}: more.`, do: [] }); },
+    'eight steps': a => { while (a.steps.length < 8) a.steps.push({ say: 'And more.', do: [] }); },
   };
   for (const [name, plant] of Object.entries(planted)) it(`catches: ${name}`, () => {
     const a = clone(ok); plant(a); expect(checkPolicy(a, 'whiteboard').length).toBeGreaterThan(0);
+  });
+  // Founder, 8 Nov 2026: one flowing explanation, the voice never says "Step one / Step 2".
+  it('no mock or worked-example narration numbers its steps', () => {
+    for (const xs of [...Object.values(MOCK), ...Object.values(EXAMPLES)] as Any[][]) for (const a of xs)
+      for (const s of a.steps ?? a.objects ?? []) expect(s.say, a.q).not.toMatch(/\bstep\s+(\d+|one|two|three|four|five|six|seven)\b/i);
+  });
+  it('a whiteboard step that says "Step 1:" fails, a connected one passes', () => {
+    const one = (say: string) => checkPolicy({ steps: [{ say, do: [] }] }, 'whiteboard');
+    expect(one('Step 1: Light enters the drop.').join()).toMatch(/must not number the step/);
+    expect(one('step ONE, light enters the drop.').join()).toMatch(/must not number the step/);
+    expect(one('First, light enters the drop, and then it bends.')).toEqual([]);
+    expect(one('Each footstep 2 metres apart.')).toEqual([]);
   });
   it('match-cut cap is 700 characters', () => {
     const a = clone(mc[0]); a.objects[0].say = 'a'.repeat(701);

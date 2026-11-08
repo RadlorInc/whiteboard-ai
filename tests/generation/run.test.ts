@@ -11,7 +11,7 @@ import MOCK from '../../src/lib/generation/mock-answers.json' with { type: 'json
 import { fakeDb, fakeClient, readSse, type Round } from './fakes';
 
 type Any = any;
-const rainbow = (MOCK as Any).whiteboard[0];          // 7 steps, 515 spoken characters → ceil(ceil(515/15)/10) = 4 credits
+const rainbow = (MOCK as Any).whiteboard[0];          // 7 steps, 459 spoken characters → ceil(ceil(459/15)/10) = 4 credits
 const paperA = (MOCK as Any).paper[0];                // 289 characters → ceil(20/10)... ceil(289/15)=20 → 2 credits
 const ID = '00000000-0000-4000-8000-000000000001';
 
@@ -52,7 +52,7 @@ describe('money paths: exactly one settle or release', () => {
   it('success: one finish with the hand-computed charge, no release', async () => {
     const r = await run('whiteboard', [{ tool: { names: ['sun', 'unicornx'] } }, { text: text(rainbow) }]);
     expect(r.closes).toBe(1); expect(r.log.finish.length).toBe(1);
-    expect(r.events.at(-1)).toEqual({ event: 'done', data: { id: ID, creditsCharged: 4, narrationChars: 515, available: 96, explore: null } });
+    expect(r.events.at(-1)).toEqual({ event: 'done', data: { id: ID, creditsCharged: 4, narrationChars: 459, available: 96, explore: null } });
     expect(r.log.finish[0].metrics).toMatchObject({ attempts: 1, repaired: false, misses: ['unicornx'], steps_sent: 7 });
     expect(r.log.calls.map(c => c.kind)).toEqual(['round', 'round']);   // one cost row per model call
     // jsonb loses key order, so the saved script keeps it (a pin must be built after its drawing)
@@ -161,7 +161,7 @@ describe('provider errors map by SDK class, never by message text', () => {
 
 describe('check.mjs §2f: the find_drawing tool loop', () => {
   it('the catalogue line goes back as a tool_result; misses are recorded, built-ins are not', async () => {
-    const good = { q: 'Magnets', els: { m: 'magnet 480 270 300' }, steps: [{ say: 'Step 1: A magnet.', do: ['draw m 600'] }] };
+    const good = { q: 'Magnets', els: { m: 'magnet 480 270 300' }, steps: [{ say: 'A magnet.', do: ['draw m 600'] }] };
     const r = await run('whiteboard', [{ tool: { names: ['magnet', 'unicornx', 'sun'] } }, { text: text(good) }]);
     const result = (r.seen[1].messages as Any[]).at(-1).content[0];
     expect(result.type).toBe('tool_result'); expect(result.tool_use_id).toBe('t1'); expect(result.content).toMatch(/^magnet /);
@@ -329,7 +329,7 @@ describe('POST /api/generate in a conversation', () => {
     expect(ev.at(-1)!.event).toBe('done');
   });
   it("find_drawing only searches the subject's categories; outside a chat the plain prompt and its library", async () => {
-    const good = { q: 'Magnets', els: { m: 'magnet 480 270 300' }, steps: [{ say: 'Step 1: A magnet.', do: ['draw m 600'] }] };
+    const good = { q: 'Magnets', els: { m: 'magnet 480 270 300' }, steps: [{ say: 'A magnet.', do: ['draw m 600'] }] };
     const r = await run('whiteboard', [{ tool: { names: ['magnet', 'heartsection'] } }, { text: text(good) }], { subject: 'biology' });
     const out = (r.seen[1].messages as Any[]).at(-1).content[0].content as string;
     expect(out).toMatch(/^magnet: not in the library/m); expect(out).toMatch(/^heartsection /m);

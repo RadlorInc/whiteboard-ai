@@ -52,11 +52,11 @@ describe('renaming and cleaning', () => {
   it('a value with markup or quotes is dropped, in an element and in set', () => {
     const els = isoEls({ b: 'bunsen box=540,90,380,420 lit="><img/src=x> k=<b>blue</b>' });
     expect(els.b).toBe('bunsenIso box=540,90,380,420');
-    expect(isoStep({ say: 'Step 1: x', do: ['set b lit=collar"/onload=x'] }, els).do).toEqual(['set b']);
+    expect(isoStep({ say: 'x', do: ['set b lit=collar"/onload=x'] }, els).do).toEqual(['set b']);
   });
   it('set is cleaned by its element recipe, its cue and & kept; set on a plain drawing is untouched', () => {
     const els = isoEls({ b: 'bunsen box=540,90,380,420', c: 'circle 1 2 3' });
-    expect(isoStep({ say: 'Step 1: air on', do: ['@air &set b air=9 foo=2', 'set c x=1', 'draw b'] }, els).do).toEqual(['@air &set b air=1', 'set c x=1', 'draw b']);
+    expect(isoStep({ say: 'air on', do: ['@air &set b air=9 foo=2', 'set c x=1', 'draw b'] }, els).do).toEqual(['@air &set b air=1', 'set c x=1', 'draw b']);
   });
   // the player cleans every value too (workshop shared.js ISO.cleaner): both must agree, or a saved script could draw
   // differently from what the server checked
@@ -135,7 +135,7 @@ describe('parts compose (workshop PARTS.md)', () => {
     for (const t of ['__proto__', 'constructor', 'toString']) {
       const els = isoEls({ p: `wirelead 400 300 5 at=${t}.x to=${t}` });
       expect(check({ els, steps: [] }).join()).toMatch(new RegExp(`at=${t}.x needs a part listed before it.*to=${t} needs a part`));
-      expect(check({ els, steps: [{ say: 'Step 1: go', do: [`draw ${t}`] }] }).join()).toMatch(new RegExp(`missing id "${t}"`));
+      expect(check({ els, steps: [{ say: 'go', do: [`draw ${t}`] }] }).join()).toMatch(new RegExp(`missing id "${t}"`));
     }
   });
   it('a plain on= option is allowed (a switch, a lamp), an on… handler name is not', () => {
@@ -146,7 +146,7 @@ describe('parts compose (workshop PARTS.md)', () => {
 
 describe('camera and notes (Anatomy prompts, founder 26 Oct 2026)', () => {
   const els = (more: Record<string, string> = {}) => isoEls({ b: 'bunsen box=40,100,400,420', n1: 'note | 1. Open the air hole', ...more });
-  const st = (cmds: string[]) => [{ say: 'Step 1: open the air hole on the collar', do: cmds }];
+  const st = (cmds: string[]) => [{ say: 'open the air hole on the collar', do: cmds }];
   it('zoom on a drawing, on a named part, and zoom out pass; notes in the column pass', () => {
     expect(check({ els: els(), steps: st(['draw b', '@air write n1', '@collar zoom b.collar', 'zoom out 600', 'zoom b 2 900']) })).toEqual([]);
   });
@@ -171,7 +171,7 @@ describe('camera and notes (Anatomy prompts, founder 26 Oct 2026)', () => {
   });
   it('a note goes through the text safety rules (no links, emails, handles; the player writes it as plain text); cam stays banned', () => {
     expect(checkSafety({ q: 'x', els: { n1: 'note | see www.example.com' }, steps: [] }, 'whiteboard').join()).toMatch(/no links/);
-    expect(checkPolicy({ steps: [{ say: 'Step 1: x', do: ['cam 1 2 3'] }] }, 'whiteboard').join()).toMatch(/no cam/);
+    expect(checkPolicy({ steps: [{ say: 'x', do: ['cam 1 2 3'] }] }, 'whiteboard').join()).toMatch(/no cam/);
   });
   it('only the Anatomy prompts teach the camera and notes; the production prompts do not', () => {
     for (const t of [P.iso.whiteboard.system, ...Object.values(P.iso.subjects).map((x: Any) => x.system)]) expect(t).toMatch(/zoom <id>\[\.<part>\][\s\S]*note \|/);
@@ -196,7 +196,7 @@ describe('prompt leaks (26 Oct 2026): narration and board text never read our in
 
 describe('placement and parts', () => {
   const els = (more: Record<string, string> = {}) => isoEls({ t: 'tag 150 60 200 44 s=20 | 1. Light', b: 'bunsen box=40,100,400,420', k: 'kettle box=500,100,420,420', ...more });
-  const steps = (cmds: string[]) => [{ say: 'Step 1: light it', do: cmds }];
+  const steps = (cmds: string[]) => [{ say: 'light it', do: cmds }];
   it('a clean board passes', () => expect(check({ els: els(), steps: steps(['draw t', 'draw b', 'mark b.collar circle', 'set k on=1']) })).toEqual([]));
   it('boxes on top of each other, off the board, or under a tag are errors', () => {
     expect(check({ els: els({ k: 'kettle box=300,100,420,420' }), steps: [] }).join()).toMatch(/boxes overlap/);
@@ -218,7 +218,7 @@ describe('placement and parts', () => {
 
 describe('a run with the switch on', () => {
   const script = { q: 'q', els: { t: 'tag 150 60 200 44 s=20 | 1. Light it', b: 'bunsen box=500,100,420,420 k=yellow air=5' },
-    steps: [{ say: 'Step 1: Open the air hole and the flame turns blue.', do: ['draw t', 'fill t', '@air draw b', '@blue set b air=1 k=blue'] }] };
+    steps: [{ say: 'Open the air hole and the flame turns blue.', do: ['draw t', 'fill t', '@air draw b', '@blue set b air=1 k=blue'] }] };
   async function go(iso: boolean) {
     const { db, log } = fakeDb(), f = fakeClient([{ text: JSON.stringify(script) }]), events: Any[] = [];
     await runGeneration({ id: '00000000-0000-4000-8000-000000000009', style: 'whiteboard', question: 'q', client: f.client, db, send: (event, data) => events.push({ event, data }), retryWaitMs: () => 0, iso });
@@ -238,7 +238,7 @@ describe('a run with the switch on', () => {
 });
 
 describe('long answers in parts (founder, 26 Oct 2026)', () => {
-  const steps = (n: number) => Array.from({ length: n }, (_, i) => ({ say: `Step ${i + 1}: x`, do: [] }));
+  const steps = (n: number) => Array.from({ length: n }, () => ({ say: "x", do: [] }));
   it('a full lesson may name its next part; a short one, a wrong shape or a long name may not', () => {
     expect(nextErrs({ steps: steps(6), next: 'Part 2: using the balanced equation to find the mass' })).toEqual([]);
     expect(nextErrs({ steps: steps(7) })).toEqual([]);
@@ -252,9 +252,9 @@ describe('long answers in parts (founder, 26 Oct 2026)', () => {
     expect(checkSafety({ q: 'x', els: {}, steps: [], next: 'Part 2: how find_drawing picks pictures' }, 'whiteboard').join()).toMatch(/how the lesson is made/);
   });
   it('a run sends next with done, and saves it with the script', async () => {
-    const say = (i: number) => `Step ${i + 1}: The flame changes as the air hole opens a little more each time.`;
+    const say = "The flame changes as the air hole opens a little more each time.";
     const script = { q: 'q', els: { b: 'bunsen box=40,100,420,420' }, next: 'Part 2: why the blue flame is hotter',
-      steps: Array.from({ length: 6 }, (_, i) => ({ say: say(i), do: i ? [] : ['draw b'] })) };
+      steps: Array.from({ length: 6 }, (_, i) => ({ say, do: i ? [] : ['draw b'] })) };
     const { db, log } = fakeDb(), f = fakeClient([{ text: JSON.stringify(script) }]), events: Any[] = [];
     await runGeneration({ id: '00000000-0000-4000-8000-000000000010', style: 'whiteboard', question: 'q', client: f.client, db, send: (event, data) => events.push({ event, data }), retryWaitMs: () => 0, iso: true });
     expect(events.at(-1)).toMatchObject({ event: 'done', data: { next: 'Part 2: why the blue flame is hotter' } });

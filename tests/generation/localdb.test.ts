@@ -30,7 +30,7 @@ describe.runIf(on)('local stack money path (WB_LOCAL_DB=1)', () => {
     const ok = await ask('How does a rainbow form?');
     await runGeneration({ id: ok, style: 'whiteboard', question: 'How does a rainbow form?', client: mockClient({ cps: 0 }), db, send: () => {} });
     const paid = (await sb.from('generations').select('paid_with').eq('id', ok).single()).data!.paid_with as string;
-    expect(await db.getOwn(ok, A)).toMatchObject({ status: 'succeeded', credits_charged: paid === 'free' ? 0 : 1, narration_chars: 515 });
+    expect(await db.getOwn(ok, A)).toMatchObject({ status: 'succeeded', credits_charged: paid === 'free' ? 0 : 1, narration_chars: 459 });
     const bad = await ask('q two');
     await runGeneration({ id: bad, style: 'whiteboard', question: 'q two', client: fakeClient([{ stop: 'refusal', text: '' }]).client, db, send: () => {} });
     expect(await db.getOwn(bad, A)).toMatchObject({ status: 'failed', error_code: 'refusal' });

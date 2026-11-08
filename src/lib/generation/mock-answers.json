@@ -34,7 +34,7 @@
    },
    "steps": [
     {
-     "say": "Step 1: A rainbow needs two things: sunlight, and raindrops in the air.",
+     "say": "A rainbow needs two things: sunlight, and raindrops in the air.",
      "do": [
       "draw sun 900",
       "fill sun",
@@ -48,7 +48,7 @@
      ]
     },
     {
-     "say": "Step 2: Sunlight looks white, but it is really a mix of every colour.",
+     "say": "Sunlight looks white, but it is really a mix of every colour.",
      "do": [
       "draw drop 1200",
       "fill drop",
@@ -57,7 +57,7 @@
      ]
     },
     {
-     "say": "Step 3: When light enters a raindrop, it bends, and each colour bends a little differently.",
+     "say": "When light enters a raindrop, it bends, and each colour bends a little differently.",
      "do": [
       "draw r1 500",
       "draw g1 500",
@@ -66,7 +66,7 @@
      ]
     },
     {
-     "say": "Step 4: Then it bounces off the back of the drop.",
+     "say": "Then it bounces off the back of the drop.",
      "do": [
       "draw r2 500",
       "draw g2 500",
@@ -75,7 +75,7 @@
      ]
     },
     {
-     "say": "Step 5: And it comes out spread into a fan of colours.",
+     "say": "And it comes out spread into a fan of colours.",
      "do": [
       "draw r3 500",
       "draw g3 500",
@@ -84,7 +84,7 @@
      ]
     },
     {
-     "say": "Step 6: Millions of drops do this at the same time, so we see a giant arc of colour.",
+     "say": "Millions of drops do this at the same time, so we see a giant arc of colour.",
      "do": [
       "draw a1 450",
       "draw a2 450",
@@ -96,7 +96,7 @@
      ]
     },
     {
-     "say": "Step 7: That is why a rainbow appears when the sun is behind you and the rain is in front of you.",
+     "say": "That is why a rainbow appears when the sun is behind you and the rain is in front of you.",
      "do": [
       "write t_final 1600",
       "pop t_final 1.08"
@@ -137,14 +137,14 @@
    },
    "steps": [
     {
-     "say": "Step 1: Compound interest means you earn interest on your interest, too.",
+     "say": "Compound interest means you earn interest on your interest, too.",
      "do": [
       "write title 1300",
       "write given 1100"
      ]
     },
     {
-     "say": "Step 2: Say you put one hundred dollars in a bank that pays ten percent a year.",
+     "say": "Say you put one hundred dollars in a bank that pays ten percent a year.",
      "do": [
       "draw yaxis 500",
       "draw xaxis 700",
@@ -155,7 +155,7 @@
      ]
     },
     {
-     "say": "Step 3: After one year you earn ten dollars, so you have one hundred and ten.",
+     "say": "After one year you earn ten dollars, so you have one hundred and ten.",
      "do": [
       "draw b1 700",
       "fill b1",
@@ -164,7 +164,7 @@
      ]
     },
     {
-     "say": "Step 4: The next year, ten percent of one hundred and ten is eleven dollars, not ten. Your interest earned interest.",
+     "say": "The next year, ten percent of one hundred and ten is eleven dollars, not ten. Your interest earned interest.",
      "do": [
       "draw b2 700",
       "fill b2",
@@ -173,7 +173,7 @@
      ]
     },
     {
-     "say": "Step 5: Keep going, and the growth speeds up. After ten years you have about two hundred and fifty nine dollars.",
+     "say": "Keep going, and the growth speeds up. After ten years you have about two hundred and fifty nine dollars.",
      "do": [
       "draw b3 250",
       "fill b3",
@@ -200,7 +200,7 @@
      ]
     },
     {
-     "say": "Step 6: With simple interest you would only have two hundred. The extra fifty nine dollars is interest on interest.",
+     "say": "With simple interest you would only have two hundred. The extra fifty nine dollars is interest on interest.",
      "do": [
       "draw simple 1200",
       "write simpleT 400",
@@ -239,7 +239,7 @@
    },
    "steps": [
     {
-     "say": "Step 1: When you send a message, your computer does not send it in one piece.",
+     "say": "When you send a message, your computer does not send it in one piece.",
      "do": [
       "draw screen 900",
       "fill screen",
@@ -255,7 +255,7 @@
      ]
     },
     {
-     "say": "Step 2: First it cuts the message into small numbered pieces, called packets.",
+     "say": "First it cuts the message into small numbered pieces, called packets.",
      "do": [
       "fade msg 0.15 500",
       "draw p1 400",
@@ -270,7 +270,7 @@
      ]
     },
     {
-     "say": "Step 3: Each packet hops through routers, which pass it toward your friend's address.",
+     "say": "Each packet hops through routers, which pass it toward your friend's address.",
      "do": [
       "draw L1 300",
       "draw L2 300",
@@ -289,7 +289,7 @@
      ]
     },
     {
-     "say": "Step 4: Packets can take different roads, so they may arrive in any order.",
+     "say": "Packets can take different roads, so they may arrive in any order.",
      "do": [
       "&go p1 2600 360 150 620 150 760 425",
       "&go p2 3000 360 400 620 400 760 470",
@@ -298,7 +298,7 @@
      ]
     },
     {
-     "say": "Step 5: Your friend's phone puts them back in order using the numbers, and the message appears.",
+     "say": "Your friend's phone puts them back in order using the numbers, and the message appears.",
      "do": [
       "&go p3 1000 880 380 880 470 760 470",
       "&go p1 700 760 380",
@@ -313,7 +313,7 @@
      ]
     },
     {
-     "say": "Step 6: All of this happens in less than a second!",
+     "say": "All of this happens in less than a second!",
      "do": [
       "write fast 1200"
      ]
@@ -334,7 +334,7 @@
    },
    "steps": [
     {
-     "say": "Step 1: Plants make their own food, and the kitchen is the leaf.",
+     "say": "Plants make their own food, and the kitchen is the leaf.",
      "do": [
       "write title 1200",
       "draw leaf 2400",
@@ -342,7 +342,7 @@
      ]
     },
     {
-     "say": "Step 2: Sunlight gives the leaf its energy.",
+     "say": "Sunlight gives the leaf its energy.",
      "do": [
       "draw sun 1100",
       "fill sun",
@@ -350,26 +350,26 @@
      ]
     },
     {
-     "say": "Step 3: Water travels up from the roots.",
+     "say": "Water travels up from the roots.",
      "do": [
       "draw water 1300"
      ]
     },
     {
-     "say": "Step 4: Carbon dioxide comes in from the air.",
+     "say": "Carbon dioxide comes in from the air.",
      "do": [
       "draw co2 1300"
      ]
     },
     {
-     "say": "Step 5: With sunlight's energy, the leaf turns water and carbon dioxide into sugar, its food.",
+     "say": "With sunlight's energy, the leaf turns water and carbon dioxide into sugar, its food.",
      "do": [
       "draw sugar 900",
       "fill sugar"
      ]
     },
     {
-     "say": "Step 6: And it breathes out oxygen, the air we need.",
+     "say": "And it breathes out oxygen, the air we need.",
      "do": [
       "draw oxy 900"
      ]
@@ -391,7 +391,7 @@
    },
    "steps": [
     {
-     "say": "Step 1: Water on Earth is always on the move, in a giant loop called the water cycle.",
+     "say": "Water on Earth is always on the move, in a giant loop called the water cycle.",
      "do": [
       "write title 1200",
       "draw sea 1400",
@@ -400,14 +400,14 @@
      ]
     },
     {
-     "say": "Step 2: The sun warms the sea, and water rises into the air as invisible vapour. That is evaporation.",
+     "say": "The sun warms the sea, and water rises into the air as invisible vapour. That is evaporation.",
      "do": [
       "draw vapour 1600",
       "loop vapour rise"
      ]
     },
     {
-     "say": "Step 3: High up, the vapour cools into tiny droplets that gather into clouds. That is condensation.",
+     "say": "High up, the vapour cools into tiny droplets that gather into clouds. That is condensation.",
      "do": [
       "draw sun 800",
       "fill sun",
@@ -419,7 +419,7 @@
      ]
     },
     {
-     "say": "Step 4: When the droplets get heavy, they fall as rain or snow. That is precipitation.",
+     "say": "When the droplets get heavy, they fall as rain or snow. That is precipitation.",
      "do": [
       "draw mountain 1400",
       "fill mountain",
@@ -428,7 +428,7 @@
      ]
     },
     {
-     "say": "Step 5: Rivers carry the water back to the sea, and the whole cycle starts again.",
+     "say": "Rivers carry the water back to the sea, and the whole cycle starts again.",
      "do": [
       "draw coll 1000",
       "loop coll flow",
@@ -453,7 +453,7 @@
    },
    "steps": [
     {
-     "say": "Step 1: Your heart is a pump about the size of your fist, and it never stops.",
+     "say": "Your heart is a pump about the size of your fist, and it never stops.",
      "do": [
       "write title 1200",
       "draw heart 2600",
@@ -463,28 +463,28 @@
      ]
     },
     {
-     "say": "Step 2: Used blood, low on oxygen, comes back from the body into its right side.",
+     "say": "Used blood, low on oxygen, comes back from the body into its right side.",
      "do": [
       "draw bodyIn 1100",
       "loop bodyIn flow"
      ]
     },
     {
-     "say": "Step 3: The right side pumps it to the lungs, where it picks up fresh oxygen.",
+     "say": "The right side pumps it to the lungs, where it picks up fresh oxygen.",
      "do": [
       "draw toLungs 1000",
       "loop toLungs flow"
      ]
     },
     {
-     "say": "Step 4: Fresh blood comes back from the lungs into the left side.",
+     "say": "Fresh blood comes back from the lungs into the left side.",
      "do": [
       "draw fromLungs 1100",
       "loop fromLungs flow"
      ]
     },
     {
-     "say": "Step 5: And the strong left side pumps it out to the whole body. Two pumps beating together, about seventy times a minute.",
+     "say": "And the strong left side pumps it out to the whole body. Two pumps beating together, about seventy times a minute.",
      "do": [
       "draw toBody 1000",
       "loop toBody flow",
@@ -517,7 +517,7 @@
    },
    "steps": [
     {
-     "say": "Step 1: Your heart is two pumps side by side, with four rooms called chambers.",
+     "say": "Your heart is two pumps side by side, with four rooms called chambers.",
      "do": [
       "draw heart 2600",
       "fill heart",
@@ -528,7 +528,7 @@
      ]
     },
     {
-     "say": "Step 2: Blood low on oxygen comes back from the body into the right side.",
+     "say": "Blood low on oxygen comes back from the body into the right side.",
      "do": [
       "draw circ 2200",
       "fill circ",
@@ -540,7 +540,7 @@
      ]
     },
     {
-     "say": "Step 3: The right ventricle pumps it to the lungs, where it picks up oxygen.",
+     "say": "The right ventricle pumps it to the lungs, where it picks up oxygen.",
      "do": [
       "draw a23 400",
       "draw t3 500",
@@ -550,7 +550,7 @@
      ]
     },
     {
-     "say": "Step 4: Now rich in oxygen, it flows back into the left side of the heart.",
+     "say": "Now rich in oxygen, it flows back into the left side of the heart.",
      "do": [
       "draw a34 400",
       "draw t4 500",
@@ -560,7 +560,7 @@
      ]
     },
     {
-     "say": "Step 5: The strong left ventricle pumps it through the aorta to the whole body, and round it goes again.",
+     "say": "The strong left ventricle pumps it through the aorta to the whole body, and round it goes again.",
      "do": [
       "draw a45 400",
       "draw t5 500",
@@ -608,7 +608,7 @@
    },
    "steps": [
     {
-     "say": "Step 1: A rainbow needs two things: sunlight, and raindrops in the air.",
+     "say": "A rainbow needs two things: sunlight, and raindrops in the air.",
      "do": [
       "draw sun 900",
       "fill sun",
@@ -622,7 +622,7 @@
      ]
     },
     {
-     "say": "Step 2: Sunlight looks white, but it is really a mix of every colour.",
+     "say": "Sunlight looks white, but it is really a mix of every colour.",
      "do": [
       "draw drop 1200",
       "fill drop",
@@ -631,7 +631,7 @@
      ]
     },
     {
-     "say": "Step 3: When light enters a raindrop, it bends, and each colour bends a little differently.",
+     "say": "When light enters a raindrop, it bends, and each colour bends a little differently.",
      "do": [
       "draw r1 500",
       "draw g1 500",
@@ -640,7 +640,7 @@
      ]
     },
     {
-     "say": "Step 4: Then it bounces off the back of the drop.",
+     "say": "Then it bounces off the back of the drop.",
      "do": [
       "draw r2 500",
       "draw g2 500",
@@ -649,7 +649,7 @@
      ]
     },
     {
-     "say": "Step 5: And it comes out spread into a fan of colours.",
+     "say": "And it comes out spread into a fan of colours.",
      "do": [
       "draw r3 500",
       "draw g3 500",
@@ -658,7 +658,7 @@
      ]
     },
     {
-     "say": "Step 6: Millions of drops do this at the same time, so we see a giant arc of colour.",
+     "say": "Millions of drops do this at the same time, so we see a giant arc of colour.",
      "do": [
       "draw a1 450",
       "draw a2 450",
@@ -670,7 +670,7 @@
      ]
     },
     {
-     "say": "Step 7: That is why a rainbow appears when the sun is behind you and the rain is in front of you.",
+     "say": "That is why a rainbow appears when the sun is behind you and the rain is in front of you.",
      "do": [
       "write t_final 1600",
       "pop t_final 1.08"
@@ -693,7 +693,7 @@
    },
    "steps": [
     {
-     "say": "Step 1: Your heart is a pump about the size of your fist, and it never stops.",
+     "say": "Your heart is a pump about the size of your fist, and it never stops.",
      "do": [
       "write title 1200",
       "draw heart 2600",
@@ -703,28 +703,28 @@
      ]
     },
     {
-     "say": "Step 2: Used blood, low on oxygen, comes back from the body into its right side.",
+     "say": "Used blood, low on oxygen, comes back from the body into its right side.",
      "do": [
       "draw bodyIn 1100",
       "loop bodyIn flow"
      ]
     },
     {
-     "say": "Step 3: The right side pumps it to the lungs, where it picks up fresh oxygen.",
+     "say": "The right side pumps it to the lungs, where it picks up fresh oxygen.",
      "do": [
       "draw toLungs 1000",
       "loop toLungs flow"
      ]
     },
     {
-     "say": "Step 4: Fresh blood comes back from the lungs into the left side.",
+     "say": "Fresh blood comes back from the lungs into the left side.",
      "do": [
       "draw fromLungs 1100",
       "loop fromLungs flow"
      ]
     },
     {
-     "say": "Step 5: And the strong left side pumps it out to the whole body. Two pumps beating together, about seventy times a minute.",
+     "say": "And the strong left side pumps it out to the whole body. Two pumps beating together, about seventy times a minute.",
      "do": [
       "draw toBody 1000",
       "loop toBody flow",
