@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { PublicHeader } from "@/components/AppFrame";
 import { Icon } from "@/components/Icon";
 import { PriceCompare } from "@/components/PriceCompare";
+import { DemoVideo } from "@/components/DemoVideo";
 
 const TITLE = `${PRODUCT_NAME}: ask anything, watch the answer drawn`;
 
@@ -65,8 +66,14 @@ export default async function Home({ searchParams }: PageProps<"/">) {
       <PublicHeader />
       <main className="landing" id="main">
         <section className="landing-hero">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="" width={168} height={116} />
+          {/* The logo, alive: it floats, glows, blinks its eyes and antenna, a
+              small moon orbits it (behind the head on the far side) and stars twinkle. CSS only (globals.css). */}
+          <span className="logo-live" aria-hidden="true">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="" width={168} height={114} fetchPriority="high" />
+            <i className="eye l" /><i className="eye r" /><i className="tip" /><i className="moon" />
+            <i className="spark s1" /><i className="spark s2" /><i className="spark s3" /><i className="spark s4" /><i className="spark s5" />
+          </span>
           <h1>Ask anything. Watch it drawn.</h1>
           <p className="lede">Type a question and get a short voiced video that draws the answer step by step.</p>
           {/* Two equal doors: a returning user once took the big button for sign-in and ended up in sign-up
@@ -79,6 +86,16 @@ export default async function Home({ searchParams }: PageProps<"/">) {
           </div>
           <p className="muted small">Your first {free} videos are free.{PLANS_ON && " Want more? Packs from $4.99, plans from $13.99 a month."}</p>
           <Link href="/explore" className="small">See videos people made</Link>
+        </section>
+
+        {/* One real answer, muted (founder, 9 Nov 2026). Asked by the Ask Radlor account, so nothing personal. */}
+        <section className="landing-section" aria-labelledby="demo-title">
+          <p className="section-label">See one</p>
+          <h2 id="demo-title" className="demo-q">“How does a jet engine work?”</h2>
+          <figure className="demo">
+            <DemoVideo src="/home/jet-engine.mp4" poster="/home/jet-engine.jpg" label="A short part of the answer to: how does a jet engine work?" />
+            <figcaption className="muted small">A short part of the answer, sound off. <Link href="/v/XVK26B9yXQXpkU6gRkyP5A">Watch it all with sound</Link></figcaption>
+          </figure>
         </section>
 
         {PLANS_ON && (

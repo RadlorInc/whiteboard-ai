@@ -364,11 +364,49 @@ li.now .tick { border-color: transparent; }
 .landing { flex: 1; width: 100%; }
 .landing-hero { max-width: 720px; margin: 0 auto; padding: 72px 16px 48px; display: grid; justify-items: center; text-align: center; gap: 18px; }
 .landing-hero img { width: 168px; height: auto; margin-bottom: 8px; }
+.logo-live { position: relative; display: block; width: 168px; aspect-ratio: 340 / 230; margin-bottom: 8px; animation: logo-float 4s ease-in-out infinite; }
+/* bigger by zoom, so the moon's orbit (in px) grows with it: about 210px on a phone, 250px on a wide screen */
+.logo-live { zoom: 1.25; }
+@media (min-width: 640px) { .logo-live { zoom: 1.5; } }
+.logo-live img { position: relative; z-index: 1; display: block; margin: 0; animation: logo-glow 4s ease-in-out infinite; }
+.logo-live i { position: absolute; z-index: 2; pointer-events: none; }
+.logo-live .eye { top: 49.5%; width: 9%; aspect-ratio: 2 / 3; translate: -50% -50%; border-radius: 50%; opacity: 0;
+  background: radial-gradient(closest-side, #e6fbff, #5fd8ff 55%, transparent); mix-blend-mode: screen; animation: logo-eyes 4s ease-in-out infinite; }
+.logo-live .eye.l { left: 41.8%; }
+.logo-live .eye.r { left: 59.4%; }
+.logo-live .tip { left: 50%; top: 5%; width: 16px; height: 16px; translate: -50% -50%; border-radius: 50%; opacity: 0;
+  background: radial-gradient(closest-side, #fff, #5fd8ff 50%, transparent); animation: logo-tip 1.6s ease-in-out infinite; }
+/* a small moon on a slightly wider orbit than the ring: in front on the near half, behind the head on the far half */
+.logo-live .moon { left: 0; top: 0; width: 9px; height: 9px; border-radius: 50%; background: #e6fbff; box-shadow: 0 0 8px 3px #5fd8ff;
+  offset-path: path("M162 27.3 A82 32 -22 1 1 10 88.7 A82 32 -22 1 1 162 27.3"); offset-rotate: 0deg; offset-anchor: 50% 50%;
+  animation: logo-orbit 6s linear infinite; }
+.logo-live .spark { width: 10px; height: 10px; opacity: 0; background: #bfefff;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: logo-spark 2.4s ease-in-out infinite; }
+.logo-live .s1 { left: -14%; top: 10%; }
+.logo-live .s2 { left: 104%; top: 30%; animation-delay: .5s; }
+.logo-live .s3 { left: 88%; top: 96%; animation-delay: 1s; width: 7px; height: 7px; }
+.logo-live .s4 { left: 4%; top: 72%; animation-delay: 1.5s; width: 7px; height: 7px; }
+.logo-live .s5 { left: 26%; top: -8%; animation-delay: 1.9s; }
+@keyframes logo-float { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-14px) rotate(2.5deg); } }
+@keyframes logo-glow { 0%, 100% { filter: drop-shadow(0 0 6px rgb(30 144 255 / .3)); } 50% { filter: drop-shadow(0 0 22px rgb(30 144 255 / .75)); } }
+@keyframes logo-eyes { 0%, 20%, 34%, 70%, 84%, 100% { opacity: 0; } 25%, 29%, 75%, 79% { opacity: .95; } }
+@keyframes logo-tip { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+@keyframes logo-orbit { 0% { offset-distance: 0%; z-index: 2; scale: 1.15; } 50% { z-index: 2; scale: 1; }
+  50.01% { z-index: 0; } 75% { scale: .7; } 100% { offset-distance: 100%; z-index: 0; scale: 1.15; } }
+@keyframes logo-spark { 0%, 100% { opacity: 0; transform: scale(.3) rotate(0); } 50% { opacity: 1; transform: scale(1) rotate(45deg); } }
+/* motion off: the logo as it was, no moon or stars left hanging */
+@media (prefers-reduced-motion: reduce) { :root:not([data-motion="full"]) .logo-live :is(.moon, .spark) { display: none; } }
+:root[data-motion="reduce"] .logo-live :is(.moon, .spark) { display: none; }
 .landing-hero h1 { font-size: clamp(2.25rem, 7vw, 3.5rem); line-height: 1.05; letter-spacing: -0.035em; font-weight: 700; }
 .landing-hero .lede { font-size: 1.125rem; color: var(--muted); max-width: 520px; }
 .landing-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 8px; }
 .landing-cta .btn { min-height: 48px; padding: 0 24px; }
 .landing-section { max-width: 880px; margin: 0 auto; padding: 32px 16px; }
+.demo-q { font-size: clamp(1.5rem, 4.5vw, 2rem); line-height: 1.15; letter-spacing: -0.02em; margin: 4px 0 16px; }
+.demo { margin: 0; display: grid; gap: 10px; }
+/* the box is sized before the poster arrives, so nothing below it moves */
+.demo-video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: var(--radius); background: #f4ede3;
+  border: 1px solid var(--border); box-shadow: 0 0 0 1px rgb(255 255 255 / .03), 0 24px 60px -20px rgb(30 144 255 / .35); }
 .steps3 { display: grid; gap: 12px; list-style: none; padding: 0; margin-top: 16px; counter-reset: s; }
 @media (min-width: 720px) { .steps3 { grid-template-columns: repeat(3, 1fr); } }
 .steps3 li { counter-increment: s; }
