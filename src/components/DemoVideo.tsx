@@ -22,6 +22,6 @@ export function DemoVideo({ src, poster, label }: { src: string; poster: string;
   }, []);
   return (
     <video ref={ref} className="demo-video" src={src} poster={poster} muted loop playsInline preload="none"
-      width={960} height={540} aria-label={label} />
+      width={1600} height={900} aria-label={label} />
   );
 }
