@@ -5,20 +5,27 @@
 
 **Before going live: [LAUNCH.md](LAUNCH.md)** — the checklist of what was left for launch (migration + merge order, keep-warm, Stripe, legal).
 
-## Free videos: first 20 once + invite a friend (22 Oct 2026, branch `free-20-refer`, Draft PR, not on prod)
+## Free videos: first 20 once + invite a friend (LIVE since 22 Oct 2026, #38)
 
 - Founder's plan (replaces "10 free every UTC month" and the "set 40" note): first 20 videos free, once; a friend
-  who signs up with your link (`/?friend=<profiles.friend_code>`, Account → Invite a friend) and makes a video gives
-  you 10 more, for at most 2 friends (40 free at most). Everyone, old users too, got a fresh 20 from the moment the
-  migration ran (`ops_settings.free_from`).
-- Migration `20261022000100_free_20_friends.sql`: `free_videos_monthly` → `free_videos` (20), table
-  `friend_referrals`, functions `free_videos()` and `add_friend_referral()`. 10 and 2 are constants in `free_videos()`
-  and `FRIEND_BONUS`/`FRIENDS_MAX` in `lib/videos.ts`: change both together.
-- Limits (founder: keep it light): no self-invite, one inviter per account, bonus for 2 friends at most.
-  Rep links (`?ref=`, `lib/radlorOps.ts`) are separate and unchanged; both can apply to one sign-up.
-- To ship (expand/contract, no window where live code and DB disagree): DB-only PR `free-20-db` → migrate-prod
-  → this PR (#38, auto-deploys) → once Vercel shows it live, migrate-prod again (drops `free_videos_monthly`). Terms text changed but
-  `current_terms_version` was NOT bumped (would make everyone re-accept): founder/attorney to decide.
+  who signs up with your link (`/?friend=<profiles.friend_code>`, Account → Invite a friend) and makes their first
+  video gives you 10 more at once, for at most 2 friends (40 free at most). Everyone, old users too, got a fresh 20
+  from when the migration ran on prod (`ops_settings.free_from` = 22 Oct 2026 09:36 UTC).
+- Limits (founder: keep it light): no self-invite, one inviter per account, bonus for 2 friends at most. The link is
+  read only at sign-up, so an existing account cannot be invited later. Rep links (`?ref=`, `lib/radlorOps.ts`) are
+  separate and unchanged; both can apply to one sign-up.
+- DB: `20261022000100_free_20_friends.sql` (adds `free_videos` = 20, `free_from`, `profiles.friend_code`, table
+  `friend_referrals`, functions `free_videos()` / `add_friend_referral()`; `reserve_generation` pays from it, and
+  `insufficient` has no `retry_at` now) and `20261022000200_drop_free_videos_monthly.sql`. Both applied to prod by
+  migrate-prod #11 (22 Oct 09:36 UTC). 10 and 2 are constants in `free_videos()` and `FRIEND_BONUS`/`FRIENDS_MAX` in
+  `lib/videos.ts`: change both together (a new migration).
+- Lesson (22 Oct): #38 merged and auto-deployed before migrate-prod ran, so for ~7 min the live code read a column
+  prod did not have yet. Merging to `main` deploys at once: run migrate-prod right after a merge that carries a
+  migration, or ship the migration first in its own PR and make it work with the code already live.
+- Open: terms text changed but `current_terms_version` was NOT bumped (a bump makes everyone re-accept):
+  founder/attorney to decide. Not yet checked signed in on prod: Account page count ("X of 20 left") and the invite
+  button. Possible later: show the invite link after a video too (founder to decide; now only Account and the
+  "free videos used up" notes).
 
 ## Production (12 Oct 2026, end of day)
 
